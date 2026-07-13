@@ -1,0 +1,33 @@
+name: jaffle_shop
+version: 1.0.0
+config-version: 2
+profile: jaffle_shop_trino
+
+model-paths: ["models"]
+seed-paths: ["seeds"]
+test-paths: ["tests"]
+macro-paths: ["macros"]
+
+target-path: "target"
+clean-targets:
+  - "target"
+  - "dbt_packages"
+
+models:
+  jaffle_shop:
+    staging:
+      +materialized: view
+      +schema: staging
+      +tags: ["staging"]
+    marts:
+      +materialized: table
+      +schema: marts
+      +tags: ["mart"]
+
+seeds:
+  jaffle_shop:
+    +schema: seeds
+    +tags: ["seed"]
+
+vars:
+  start_date: "2016-01-01"

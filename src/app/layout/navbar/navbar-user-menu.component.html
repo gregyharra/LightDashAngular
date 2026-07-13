@@ -1,0 +1,25 @@
+<button
+  mat-button
+  class="user-menu__trigger"
+  [matMenuTriggerFor]="userMenu"
+  aria-label="User menu"
+>
+  <span class="user-menu__avatar">{{ initials() }}</span>
+</button>
+
+<mat-menu #userMenu="matMenu" xPosition="before" panelClass="ld-user-menu user-menu__panel">
+  <div class="user-menu__header" mat-menu-item disabled>
+    <span class="user-menu__name">
+      {{ user()?.firstName }} {{ user()?.lastName }}
+    </span>
+    <span class="user-menu__email">{{ user()?.email }}</span>
+  </div>
+  <button mat-menu-item disabled>
+    <mat-icon>person</mat-icon>
+    User settings
+  </button>
+  <button mat-menu-item disabled>
+    <mat-icon>logout</mat-icon>
+    Logout
+  </button>
+</mat-menu>

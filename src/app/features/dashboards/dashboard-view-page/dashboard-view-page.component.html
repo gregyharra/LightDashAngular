@@ -1,0 +1,120 @@
+@if (loading()) {
+  <div class="dashboard-view__loading">
+    <mat-spinner diameter="32" />
+  </div>
+} @else if (error()) {
+  <div class="dashboard-view__error-wrap">
+    <div class="dashboard-view__error">{{ error() }}</div>
+  </div>
+} @else {
+  @if (dashboard(); as dash) {
+  <div class="dashboard-view">
+    <header class="dashboard-view__header">
+      <div class="dashboard-view__header-inner page__container page__container--wide">
+        <nav class="dashboard-view__breadcrumbs" aria-label="Breadcrumb">
+          <a routerLink="/projects" class="dashboard-view__breadcrumb-link">Home</a>
+          <mat-icon>chevron_right</mat-icon>
+          <a
+            class="dashboard-view__breadcrumb-link"
+            [routerLink]="['/projects', projectUuid(), 'dashboards']"
+          >
+            Dashboards
+          </a>
+          <mat-icon>chevron_right</mat-icon>
+          <span class="dashboard-view__breadcrumb-current">{{ dash.name }}</span>
+        </nav>
+
+        <div class="dashboard-view__title-row">
+          <div class="dashboard-view__title-block">
+            <h1 class="dashboard-view__title">{{ dash.name }}</h1>
+            @if (dash.description) {
+              <p class="dashboard-view__description">{{ dash.description }}</p>
+            }
+          </div>
+
+          <div class="dashboard-view__actions">
+            <button mat-stroked-button class="dashboard-view__action-btn" disabled>
+              <mat-icon>refresh</mat-icon>
+              Refresh
+            </button>
+            <button mat-stroked-button class="dashboard-view__action-btn" disabled>
+              <mat-icon>edit</mat-icon>
+              Edit
+            </button>
+          </div>
+        </div>
+
+        @if (dash.tabs.length > 1) {
+          <div class="dashboard-view__tabs" role="tablist" aria-label="Dashboard tabs">
+            @for (tab of dash.tabs; track tab.uuid) {
+              <button
+                type="button"
+                class="dashboard-view__tab"
+                role="tab"
+                [class.dashboard-view__tab--active]="activeTab()?.uuid === tab.uuid"
+                [attr.aria-selected]="activeTab()?.uuid === tab.uuid"
+                (click)="setActiveTab(tab.uuid)"
+              >
+                {{ tab.name }}
+              </button>
+            }
+          </div>
+        }
+
+        <div class="dashboard-view__meta">
+          <span>{{ dash.spaceName }}</span>
+          <span class="dashboard-view__meta-separator">·</span>
+          <span>Updated {{ formatDate(dash.updatedAt) }}</span>
+          <span class="dashboard-view__meta-separator">·</span>
+          <span>{{ dash.views }} views</span>
+        </div>
+      </div>
+    </header>
+
+    <div class="dashboard-view__content">
+      <div class="page__container page__container--wide">
+        <div
+          class="dashboard-view__grid"
+          [style.--grid-row-height.px]="gridRowHeight"
+          [style.--grid-gap.px]="gridGap"
+        >
+          @for (tile of visibleTiles(); track tile.uuid) {
+            @switch (tile.type) {
+              @case (DashboardTileTypes.HEADING) {
+                <div class="dashboard-tile dashboard-tile--heading" [ngStyle]="tileGridStyle(tile)">
+                  <h2 class="dashboard-tile__heading-text">{{ tile.properties.text }}</h2>
+                  @if (tile.properties.showDivider) {
+                    <hr class="dashboard-tile__heading-divider" />
+                  }
+                </div>
+              }
+              @case (DashboardTileTypes.MARKDOWN) {
+                <div class="dashboard-tile dashboard-tile--markdown" [ngStyle]="tileGridStyle(tile)">
+                  <header class="dashboard-tile__header">
+                    <h3 class="dashboard-tile__title">{{ tile.properties.title }}</h3>
+                  </header>
+                  <div class="dashboard-tile__markdown">{{ tile.properties.content }}</div>
+                </div>
+              }
+              @case (DashboardTileTypes.SAVED_CHART) {
+                <div class="dashboard-tile dashboard-tile--chart" [ngStyle]="tileGridStyle(tile)">
+                  <header class="dashboard-tile__header">
+                    <h3 class="dashboard-tile__title">
+                      {{ tile.properties.title ?? tile.properties.chartName ?? 'Chart' }}
+                    </h3>
+                  </header>
+                  <div class="dashboard-tile__chart-placeholder" aria-hidden="true">
+                    <mat-icon>bar_chart</mat-icon>
+                    <span>{{ chartKindLabel(tile.properties.lastVersionChartKind) }}</span>
+                    <p class="dashboard-tile__chart-stub">Chart rendering coming soon</p>
+                  </div>
+                </div>
+              }
+            }
+          }
+        </div>
+      </div>
+    </div>
+  </div>
+  }
+}

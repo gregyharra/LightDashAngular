@@ -1,0 +1,35 @@
+version: 2
+
+sources:
+  - name: jaffle_shop
+    description: Raw data from the Jaffle Shop operational database, replicated to Trino
+    database: jaffle_shop
+    schema: raw
+    tables:
+      - name: raw_customers
+        description: Customer records loaded from the operational Postgres replica
+        columns:
+          - name: id
+            tests: [unique, not_null]
+          - name: email
+            tests: [unique]
+
+      - name: raw_orders
+        description: Order headers synced nightly from the POS system
+        columns:
+          - name: id
+            tests: [unique, not_null]
+          - name: customer_id
+            tests:
+              - relationships:
+                  to: source('jaffle_shop', 'raw_customers')
+                  field: id
+
+      - name: raw_order_items
+        description: Line-item details for each order
+
+      - name: raw_products
+        description: Product catalog with SKU, price, and category
+
+      - name: raw_supplies
+        description: Supply inventory and unit costs for COGS calculations

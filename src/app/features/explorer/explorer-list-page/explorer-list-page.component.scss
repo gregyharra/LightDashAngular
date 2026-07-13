@@ -1,0 +1,201 @@
+.explorer-list__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--ld-spacing-md);
+  margin-bottom: var(--ld-spacing-md);
+}
+
+.explorer-list__breadcrumbs {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: var(--ld-font-size-sm);
+  color: var(--ld-gray-6);
+
+  mat-icon {
+    width: 16px;
+    height: 16px;
+    font-size: 16px;
+    color: var(--ld-gray-5);
+  }
+}
+
+.explorer-list__breadcrumb-link {
+  color: var(--ld-gray-7);
+  text-decoration: none;
+
+  &:hover {
+    color: var(--ld-blue-6);
+    text-decoration: underline;
+  }
+}
+
+.explorer-list__breadcrumb-current {
+  color: var(--ld-gray-9);
+  font-weight: 500;
+}
+
+.explorer-list__title {
+  margin-bottom: var(--ld-spacing-xs);
+  font-size: 18px;
+  font-weight: 600;
+  line-height: 1.3;
+  color: var(--ld-gray-9);
+}
+
+.explorer-list__subtitle {
+  margin: 0 0 var(--ld-spacing-lg);
+  font-size: var(--ld-font-size-sm);
+  color: var(--ld-gray-6);
+}
+
+.explorer-list__loading {
+  display: flex;
+  justify-content: center;
+  padding: var(--ld-spacing-xxl);
+}
+
+.explorer-list__error {
+  padding: var(--ld-spacing-md);
+  border: 1px solid #fa5252;
+  border-radius: var(--ld-radius-md);
+  background-color: #fff5f5;
+  color: #c92a2a;
+  font-size: var(--ld-font-size-sm);
+}
+
+.explorer-list__empty {
+  display: grid;
+  place-items: center;
+  min-height: 200px;
+  padding: var(--ld-spacing-xxl);
+  border: 1px dashed var(--ld-gray-3);
+  border-radius: var(--ld-radius-md);
+  background-color: var(--ld-background);
+  text-align: center;
+  color: var(--ld-gray-6);
+
+  mat-icon {
+    width: 40px;
+    height: 40px;
+    font-size: 40px;
+    margin-bottom: var(--ld-spacing-xs);
+    color: var(--ld-gray-5);
+  }
+
+  p {
+    margin: 0;
+  }
+}
+
+.explorer-list__grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: var(--ld-spacing-md);
+}
+
+.explorer-list__card {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--ld-spacing-sm);
+  width: 100%;
+  padding: var(--ld-spacing-md);
+  border: 1px solid var(--ld-gray-2);
+  border-radius: var(--ld-radius-md);
+  background-color: var(--ld-background);
+  box-shadow: var(--ld-shadow-subtle);
+  text-align: left;
+  cursor: pointer;
+  transition:
+    border-color 150ms ease,
+    box-shadow 150ms ease,
+    background-color 150ms ease;
+
+  &:hover {
+    border-color: var(--ld-indigo-2);
+    background-color: var(--ld-indigo-0);
+    box-shadow: var(--ld-shadow-heavy);
+  }
+}
+
+.explorer-list__card-icon {
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  width: 36px;
+  height: 36px;
+  border-radius: var(--ld-radius-md);
+  background-color: var(--ld-gray-1);
+
+  mat-icon {
+    width: 20px;
+    height: 20px;
+    font-size: 20px;
+    color: var(--ld-gray-7);
+  }
+}
+
+.explorer-list__card-body {
+  flex: 1;
+  min-width: 0;
+}
+
+.explorer-list__card-name {
+  display: block;
+  font-size: var(--ld-font-size-sm);
+  font-weight: 600;
+  color: var(--ld-gray-9);
+  line-height: 1.3;
+}
+
+.explorer-list__card-description {
+  display: block;
+  margin-top: 4px;
+  font-size: var(--ld-font-size-xs);
+  color: var(--ld-gray-6);
+  line-height: 1.4;
+}
+
+.explorer-list__card-meta {
+  display: block;
+  margin-top: 6px;
+  font-size: var(--ld-font-size-xs);
+  color: var(--ld-gray-5);
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+}
+
+.explorer-list__card-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-top: var(--ld-spacing-xs);
+}
+
+.explorer-list__tag {
+  padding: 2px 6px;
+  border-radius: var(--ld-radius-sm);
+  background-color: var(--ld-gray-1);
+  color: var(--ld-gray-7);
+  font-size: 11px;
+  font-weight: 500;
+}
+
+.explorer-list__card-chevron {
+  flex-shrink: 0;
+  width: 20px;
+  height: 20px;
+  font-size: 20px;
+  margin-top: 8px;
+  color: var(--ld-gray-5);
+}
+
+.page-sidebar__link--clickable {
+  text-decoration: none;
+  cursor: pointer;
+
+  &:hover {
+    background-color: var(--ld-gray-1);
+    color: var(--ld-gray-9);
+  }
+}

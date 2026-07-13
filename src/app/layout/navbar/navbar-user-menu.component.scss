@@ -1,0 +1,50 @@
+.user-menu__trigger {
+  min-width: 0;
+  padding: 0;
+  border-radius: var(--ld-radius-md);
+}
+
+.user-menu__avatar {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: var(--ld-radius-md);
+  background-color: var(--ld-gray-2);
+  color: var(--ld-dark-9);
+  font-size: var(--ld-font-size-xs);
+  font-weight: 600;
+  box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.2);
+  transition:
+    background-color 0.2s ease,
+    box-shadow 0.2s ease;
+
+  .user-menu__trigger:hover & {
+    background-color: var(--ld-gray-3);
+    box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.4);
+  }
+}
+
+.user-menu__header {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+  opacity: 1 !important;
+  cursor: default;
+  height: auto;
+  line-height: 1.3;
+  padding-block: 10px;
+}
+
+.user-menu__name {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--ld-gray-9);
+}
+
+.user-menu__email {
+  font-size: var(--ld-font-size-xs);
+  color: var(--ld-gray-6);
+}

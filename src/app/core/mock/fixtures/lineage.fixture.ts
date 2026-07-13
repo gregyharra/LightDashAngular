@@ -1,0 +1,565 @@
+import { MOCK_PROJECT_UUID } from './ids.fixture';
+import { ColumnLineageEdge, LineageColumn, LineageNode, ProjectLineage } from '../../models/lineage.model';
+
+const CATALOG = 'jaffle_shop';
+const DATABASE = 'jaffle_shop';
+const PACKAGE = 'jaffle_shop';
+
+const DBT_PATHS: Record<string, string> = {
+  'source.jaffle_shop.raw.raw_customers': 'sources/raw/raw_customers',
+  'source.jaffle_shop.raw.raw_orders': 'sources/raw/raw_orders',
+  'source.jaffle_shop.raw.raw_order_items': 'sources/raw/raw_order_items',
+  'source.jaffle_shop.raw.raw_products': 'sources/raw/raw_products',
+  'source.jaffle_shop.raw.raw_supplies': 'sources/raw/raw_supplies',
+  'seed.jaffle_shop.seeds.country_codes': 'seeds/country_codes.csv',
+  'seed.jaffle_shop.seeds.us_state_abbreviations': 'seeds/us_state_abbreviations.csv',
+  'model.jaffle_shop.staging.stg_customers': 'models/staging/stg_customers.sql',
+  'model.jaffle_shop.staging.stg_orders': 'models/staging/stg_orders.sql',
+  'model.jaffle_shop.staging.stg_order_items': 'models/staging/stg_order_items.sql',
+  'model.jaffle_shop.staging.stg_products': 'models/staging/stg_products.sql',
+  'model.jaffle_shop.staging.stg_supplies': 'models/staging/stg_supplies.sql',
+  'model.jaffle_shop.marts.dim_customers': 'models/marts/dim_customers.sql',
+  'model.jaffle_shop.marts.dim_products': 'models/marts/dim_products.sql',
+  'model.jaffle_shop.marts.fct_orders': 'models/marts/fct_orders.sql',
+  'model.jaffle_shop.marts.fct_order_items': 'models/marts/fct_order_items.sql',
+  'model.jaffle_shop.marts.revenue_daily': 'models/marts/revenue_daily.sql',
+  'model.jaffle_shop.marts.customer_order_summary': 'models/marts/customer_order_summary.sql',
+};
+
+function withDbtPath(node: LineageNode): LineageNode {
+  return { ...node, dbtPath: DBT_PATHS[node.id] };
+}
+
+const RAW_CUSTOMERS_COLS: LineageColumn[] = [
+  { name: 'id', type: 'bigint', description: 'Primary key from source system' },
+  { name: 'first_name', type: 'varchar' },
+  { name: 'last_name', type: 'varchar' },
+  { name: 'email', type: 'varchar', tags: ['pii'] },
+  { name: 'created_at', type: 'timestamp' },
+];
+
+const RAW_ORDERS_COLS: LineageColumn[] = [
+  { name: 'id', type: 'bigint', description: 'Order primary key' },
+  { name: 'customer_id', type: 'bigint', description: 'FK to customers' },
+  { name: 'order_date', type: 'date' },
+  { name: 'status', type: 'varchar', description: 'Raw POS status code' },
+  { name: 'amount', type: 'decimal(12,2)', description: 'Order total before tax' },
+  { name: 'tax_paid', type: 'decimal(12,2)' },
+  { name: 'updated_at', type: 'timestamp' },
+];
+
+const RAW_ORDER_ITEMS_COLS: LineageColumn[] = [
+  { name: 'id', type: 'bigint' },
+  { name: 'order_id', type: 'bigint' },
+  { name: 'product_id', type: 'bigint' },
+  { name: 'quantity', type: 'integer' },
+  { name: 'unit_price', type: 'decimal(12,2)' },
+  { name: 'created_at', type: 'timestamp' },
+];
+
+const RAW_PRODUCTS_COLS: LineageColumn[] = [
+  { name: 'id', type: 'bigint' },
+  { name: 'name', type: 'varchar' },
+  { name: 'price', type: 'decimal(12,2)' },
+  { name: 'category', type: 'varchar' },
+  { name: 'sku', type: 'varchar' },
+  { name: 'is_active', type: 'boolean' },
+];
+
+const RAW_SUPPLIES_COLS: LineageColumn[] = [
+  { name: 'id', type: 'bigint' },
+  { name: 'product_id', type: 'bigint' },
+  { name: 'cost', type: 'decimal(12,2)' },
+  { name: 'perishable', type: 'boolean' },
+];
+
+const COUNTRY_CODES_COLS: LineageColumn[] = [
+  { name: 'country_code', type: 'varchar(2)' },
+  { name: 'country_name', type: 'varchar' },
+  { name: 'region', type: 'varchar' },
+];
+
+const US_STATE_COLS: LineageColumn[] = [
+  { name: 'state_name', type: 'varchar' },
+  { name: 'state_abbr', type: 'varchar(2)' },
+];
+
+const STG_CUSTOMERS_COLS: LineageColumn[] = [
+  { name: 'customer_id', type: 'bigint', description: 'Renamed from id' },
+  { name: 'first_name', type: 'varchar' },
+  { name: 'last_name', type: 'varchar' },
+  { name: 'full_name', type: 'varchar', description: 'Concatenated display name' },
+  { name: 'email', type: 'varchar', tags: ['pii'] },
+  { name: 'country_code', type: 'varchar(2)', description: 'ISO code from seed join' },
+  { name: 'state_abbr', type: 'varchar(2)' },
+  { name: 'created_at', type: 'timestamp' },
+];
+
+const STG_ORDERS_COLS: LineageColumn[] = [
+  { name: 'order_id', type: 'bigint', description: 'Renamed from id' },
+  { name: 'customer_id', type: 'bigint' },
+  { name: 'order_date', type: 'date' },
+  { name: 'status', type: 'varchar', description: 'Normalized status label' },
+  { name: 'amount', type: 'decimal(12,2)' },
+  { name: 'tax_paid', type: 'decimal(12,2)' },
+  { name: 'amount_with_tax', type: 'decimal(12,2)', description: 'amount + tax_paid' },
+  { name: 'is_completed', type: 'boolean' },
+  { name: 'updated_at', type: 'timestamp' },
+];
+
+const STG_ORDER_ITEMS_COLS: LineageColumn[] = [
+  { name: 'order_item_id', type: 'bigint' },
+  { name: 'order_id', type: 'bigint' },
+  { name: 'product_id', type: 'bigint' },
+  { name: 'quantity', type: 'integer' },
+  { name: 'unit_price', type: 'decimal(12,2)' },
+  { name: 'extended_price', type: 'decimal(12,2)', description: 'quantity * unit_price' },
+  { name: 'created_at', type: 'timestamp' },
+];
+
+const STG_PRODUCTS_COLS: LineageColumn[] = [
+  { name: 'product_id', type: 'bigint' },
+  { name: 'product_name', type: 'varchar' },
+  { name: 'price', type: 'decimal(12,2)' },
+  { name: 'category', type: 'varchar' },
+  { name: 'sku', type: 'varchar' },
+  { name: 'is_active', type: 'boolean' },
+  { name: 'price_tier', type: 'varchar', description: 'Budget / Standard / Premium' },
+  { name: 'updated_at', type: 'timestamp' },
+];
+
+const STG_SUPPLIES_COLS: LineageColumn[] = [
+  { name: 'supply_id', type: 'bigint' },
+  { name: 'product_id', type: 'bigint' },
+  { name: 'unit_cost', type: 'decimal(12,2)' },
+  { name: 'perishable', type: 'boolean' },
+  { name: 'cost_per_unit', type: 'decimal(12,4)' },
+];
+
+const DIM_CUSTOMERS_COLS: LineageColumn[] = [
+  { name: 'customer_id', type: 'bigint' },
+  { name: 'full_name', type: 'varchar' },
+  { name: 'email', type: 'varchar', tags: ['pii'] },
+  { name: 'country_code', type: 'varchar(2)' },
+  { name: 'state_abbr', type: 'varchar(2)' },
+  { name: 'first_order_date', type: 'date' },
+  { name: 'last_order_date', type: 'date' },
+  { name: 'lifetime_order_count', type: 'integer' },
+  { name: 'lifetime_spend', type: 'decimal(14,2)' },
+  { name: 'avg_order_value', type: 'decimal(12,2)' },
+  { name: 'customer_segment', type: 'varchar' },
+  { name: 'is_active', type: 'boolean' },
+];
+
+const DIM_PRODUCTS_COLS: LineageColumn[] = [
+  { name: 'product_id', type: 'bigint' },
+  { name: 'product_name', type: 'varchar' },
+  { name: 'category', type: 'varchar' },
+  { name: 'sku', type: 'varchar' },
+  { name: 'price', type: 'decimal(12,2)' },
+  { name: 'price_tier', type: 'varchar' },
+  { name: 'supply_unit_cost', type: 'decimal(12,2)' },
+  { name: 'estimated_margin', type: 'decimal(12,2)' },
+  { name: 'margin_pct', type: 'decimal(5,2)' },
+  { name: 'is_active', type: 'boolean' },
+  { name: 'product_launch_date', type: 'date' },
+];
+
+const FCT_ORDERS_COLS: LineageColumn[] = [
+  { name: 'order_id', type: 'bigint' },
+  { name: 'customer_id', type: 'bigint' },
+  { name: 'customer_name', type: 'varchar' },
+  { name: 'order_date', type: 'date' },
+  { name: 'status', type: 'varchar' },
+  { name: 'amount', type: 'decimal(12,2)' },
+  { name: 'tax_paid', type: 'decimal(12,2)' },
+  { name: 'amount_with_tax', type: 'decimal(12,2)' },
+  { name: 'is_completed', type: 'boolean' },
+  { name: 'country_code', type: 'varchar(2)' },
+  { name: 'customer_segment', type: 'varchar' },
+  { name: 'order_rank', type: 'integer', description: 'Customer order sequence' },
+  { name: 'days_since_prior_order', type: 'integer' },
+  { name: 'updated_at', type: 'timestamp' },
+];
+
+const FCT_ORDER_ITEMS_COLS: LineageColumn[] = [
+  { name: 'order_item_id', type: 'bigint' },
+  { name: 'order_id', type: 'bigint' },
+  { name: 'product_id', type: 'bigint' },
+  { name: 'product_name', type: 'varchar' },
+  { name: 'category', type: 'varchar' },
+  { name: 'quantity', type: 'integer' },
+  { name: 'unit_price', type: 'decimal(12,2)' },
+  { name: 'extended_price', type: 'decimal(12,2)' },
+  { name: 'supply_unit_cost', type: 'decimal(12,2)' },
+  { name: 'item_margin', type: 'decimal(12,2)' },
+  { name: 'margin_pct', type: 'decimal(5,2)' },
+  { name: 'order_date', type: 'date' },
+  { name: 'customer_id', type: 'bigint' },
+];
+
+const REVENUE_DAILY_COLS: LineageColumn[] = [
+  { name: 'order_date', type: 'date' },
+  { name: 'order_count', type: 'integer' },
+  { name: 'revenue', type: 'decimal(14,2)' },
+  { name: 'avg_order_value', type: 'decimal(12,2)' },
+  { name: 'item_count', type: 'integer' },
+  { name: 'unique_customers', type: 'integer' },
+];
+
+const CUSTOMER_ORDER_SUMMARY_COLS: LineageColumn[] = [
+  { name: 'customer_id', type: 'bigint' },
+  { name: 'full_name', type: 'varchar' },
+  { name: 'order_count', type: 'integer' },
+  { name: 'total_spend', type: 'decimal(14,2)' },
+  { name: 'avg_order_value', type: 'decimal(12,2)' },
+  { name: 'first_order_date', type: 'date' },
+  { name: 'last_order_date', type: 'date' },
+  { name: 'recency_days', type: 'integer' },
+  { name: 'rfm_score', type: 'varchar' },
+];
+
+const COLUMN_EDGES: ColumnLineageEdge[] = [
+  // raw_orders → stg_orders
+  { sourceNodeId: 'source.jaffle_shop.raw.raw_orders', sourceColumn: 'id', targetNodeId: 'model.jaffle_shop.staging.stg_orders', targetColumn: 'order_id' },
+  { sourceNodeId: 'source.jaffle_shop.raw.raw_orders', sourceColumn: 'customer_id', targetNodeId: 'model.jaffle_shop.staging.stg_orders', targetColumn: 'customer_id' },
+  { sourceNodeId: 'source.jaffle_shop.raw.raw_orders', sourceColumn: 'order_date', targetNodeId: 'model.jaffle_shop.staging.stg_orders', targetColumn: 'order_date' },
+  { sourceNodeId: 'source.jaffle_shop.raw.raw_orders', sourceColumn: 'status', targetNodeId: 'model.jaffle_shop.staging.stg_orders', targetColumn: 'status' },
+  { sourceNodeId: 'source.jaffle_shop.raw.raw_orders', sourceColumn: 'amount', targetNodeId: 'model.jaffle_shop.staging.stg_orders', targetColumn: 'amount' },
+  { sourceNodeId: 'source.jaffle_shop.raw.raw_orders', sourceColumn: 'tax_paid', targetNodeId: 'model.jaffle_shop.staging.stg_orders', targetColumn: 'tax_paid' },
+  { sourceNodeId: 'source.jaffle_shop.raw.raw_orders', sourceColumn: 'updated_at', targetNodeId: 'model.jaffle_shop.staging.stg_orders', targetColumn: 'updated_at' },
+
+  // stg_orders → fct_orders
+  { sourceNodeId: 'model.jaffle_shop.staging.stg_orders', sourceColumn: 'order_id', targetNodeId: 'model.jaffle_shop.marts.fct_orders', targetColumn: 'order_id' },
+  { sourceNodeId: 'model.jaffle_shop.staging.stg_orders', sourceColumn: 'customer_id', targetNodeId: 'model.jaffle_shop.marts.fct_orders', targetColumn: 'customer_id' },
+  { sourceNodeId: 'model.jaffle_shop.staging.stg_orders', sourceColumn: 'order_date', targetNodeId: 'model.jaffle_shop.marts.fct_orders', targetColumn: 'order_date' },
+  { sourceNodeId: 'model.jaffle_shop.staging.stg_orders', sourceColumn: 'status', targetNodeId: 'model.jaffle_shop.marts.fct_orders', targetColumn: 'status' },
+  { sourceNodeId: 'model.jaffle_shop.staging.stg_orders', sourceColumn: 'amount', targetNodeId: 'model.jaffle_shop.marts.fct_orders', targetColumn: 'amount' },
+  { sourceNodeId: 'model.jaffle_shop.staging.stg_orders', sourceColumn: 'tax_paid', targetNodeId: 'model.jaffle_shop.marts.fct_orders', targetColumn: 'tax_paid' },
+  { sourceNodeId: 'model.jaffle_shop.staging.stg_orders', sourceColumn: 'amount_with_tax', targetNodeId: 'model.jaffle_shop.marts.fct_orders', targetColumn: 'amount_with_tax' },
+  { sourceNodeId: 'model.jaffle_shop.staging.stg_orders', sourceColumn: 'is_completed', targetNodeId: 'model.jaffle_shop.marts.fct_orders', targetColumn: 'is_completed' },
+  { sourceNodeId: 'model.jaffle_shop.staging.stg_orders', sourceColumn: 'updated_at', targetNodeId: 'model.jaffle_shop.marts.fct_orders', targetColumn: 'updated_at' },
+
+  // raw_customers → stg_customers
+  { sourceNodeId: 'source.jaffle_shop.raw.raw_customers', sourceColumn: 'id', targetNodeId: 'model.jaffle_shop.staging.stg_customers', targetColumn: 'customer_id' },
+  { sourceNodeId: 'source.jaffle_shop.raw.raw_customers', sourceColumn: 'first_name', targetNodeId: 'model.jaffle_shop.staging.stg_customers', targetColumn: 'first_name' },
+  { sourceNodeId: 'source.jaffle_shop.raw.raw_customers', sourceColumn: 'last_name', targetNodeId: 'model.jaffle_shop.staging.stg_customers', targetColumn: 'last_name' },
+  { sourceNodeId: 'source.jaffle_shop.raw.raw_customers', sourceColumn: 'email', targetNodeId: 'model.jaffle_shop.staging.stg_customers', targetColumn: 'email' },
+
+  // seeds → stg_customers
+  { sourceNodeId: 'seed.jaffle_shop.seeds.country_codes', sourceColumn: 'country_code', targetNodeId: 'model.jaffle_shop.staging.stg_customers', targetColumn: 'country_code' },
+  { sourceNodeId: 'seed.jaffle_shop.seeds.us_state_abbreviations', sourceColumn: 'state_abbr', targetNodeId: 'model.jaffle_shop.staging.stg_customers', targetColumn: 'state_abbr' },
+
+  // stg_customers → dim_customers / fct_orders enrichments
+  { sourceNodeId: 'model.jaffle_shop.staging.stg_customers', sourceColumn: 'customer_id', targetNodeId: 'model.jaffle_shop.marts.dim_customers', targetColumn: 'customer_id' },
+  { sourceNodeId: 'model.jaffle_shop.staging.stg_customers', sourceColumn: 'full_name', targetNodeId: 'model.jaffle_shop.marts.fct_orders', targetColumn: 'customer_name' },
+  { sourceNodeId: 'model.jaffle_shop.staging.stg_customers', sourceColumn: 'country_code', targetNodeId: 'model.jaffle_shop.marts.fct_orders', targetColumn: 'country_code' },
+
+  // raw_order_items → stg_order_items → fct_order_items
+  { sourceNodeId: 'source.jaffle_shop.raw.raw_order_items', sourceColumn: 'order_id', targetNodeId: 'model.jaffle_shop.staging.stg_order_items', targetColumn: 'order_id' },
+  { sourceNodeId: 'source.jaffle_shop.raw.raw_order_items', sourceColumn: 'product_id', targetNodeId: 'model.jaffle_shop.staging.stg_order_items', targetColumn: 'product_id' },
+  { sourceNodeId: 'source.jaffle_shop.raw.raw_order_items', sourceColumn: 'quantity', targetNodeId: 'model.jaffle_shop.staging.stg_order_items', targetColumn: 'quantity' },
+  { sourceNodeId: 'model.jaffle_shop.staging.stg_order_items', sourceColumn: 'order_item_id', targetNodeId: 'model.jaffle_shop.marts.fct_order_items', targetColumn: 'order_item_id' },
+  { sourceNodeId: 'model.jaffle_shop.staging.stg_order_items', sourceColumn: 'extended_price', targetNodeId: 'model.jaffle_shop.marts.fct_order_items', targetColumn: 'extended_price' },
+
+  // products / supplies → dims & facts
+  { sourceNodeId: 'model.jaffle_shop.staging.stg_products', sourceColumn: 'product_name', targetNodeId: 'model.jaffle_shop.marts.fct_order_items', targetColumn: 'product_name' },
+  { sourceNodeId: 'model.jaffle_shop.staging.stg_supplies', sourceColumn: 'unit_cost', targetNodeId: 'model.jaffle_shop.marts.dim_products', targetColumn: 'supply_unit_cost' },
+
+  // facts → metrics
+  { sourceNodeId: 'model.jaffle_shop.marts.fct_orders', sourceColumn: 'order_date', targetNodeId: 'model.jaffle_shop.marts.revenue_daily', targetColumn: 'order_date' },
+  { sourceNodeId: 'model.jaffle_shop.marts.fct_orders', sourceColumn: 'amount_with_tax', targetNodeId: 'model.jaffle_shop.marts.revenue_daily', targetColumn: 'revenue' },
+  { sourceNodeId: 'model.jaffle_shop.marts.fct_orders', sourceColumn: 'customer_id', targetNodeId: 'model.jaffle_shop.marts.customer_order_summary', targetColumn: 'customer_id' },
+  { sourceNodeId: 'model.jaffle_shop.marts.dim_customers', sourceColumn: 'full_name', targetNodeId: 'model.jaffle_shop.marts.customer_order_summary', targetColumn: 'full_name' },
+];
+
+/** Jaffle Shop dbt lineage on Trino — raw → staging → marts (18 nodes). */
+const LINEAGE_NODES: LineageNode[] = [
+    {
+      id: 'source.jaffle_shop.raw.raw_customers',
+      name: 'raw_customers',
+      type: 'source',
+      catalog: CATALOG,
+      database: DATABASE,
+      schema: 'raw',
+      columnCount: RAW_CUSTOMERS_COLS.length,
+      columns: RAW_CUSTOMERS_COLS,
+      description: 'Customer records loaded from the operational Postgres replica',
+      tags: ['raw', 'source'],
+      packageName: PACKAGE,
+    },
+    {
+      id: 'source.jaffle_shop.raw.raw_orders',
+      name: 'raw_orders',
+      type: 'source',
+      catalog: CATALOG,
+      database: DATABASE,
+      schema: 'raw',
+      columnCount: RAW_ORDERS_COLS.length,
+      columns: RAW_ORDERS_COLS,
+      description: 'Order headers synced nightly from the POS system',
+      tags: ['raw', 'source'],
+      packageName: PACKAGE,
+    },
+    {
+      id: 'source.jaffle_shop.raw.raw_order_items',
+      name: 'raw_order_items',
+      type: 'source',
+      catalog: CATALOG,
+      database: DATABASE,
+      schema: 'raw',
+      columnCount: RAW_ORDER_ITEMS_COLS.length,
+      columns: RAW_ORDER_ITEMS_COLS,
+      description: 'Line-item details for each order',
+      tags: ['raw', 'source'],
+      packageName: PACKAGE,
+    },
+    {
+      id: 'source.jaffle_shop.raw.raw_products',
+      name: 'raw_products',
+      type: 'source',
+      catalog: CATALOG,
+      database: DATABASE,
+      schema: 'raw',
+      columnCount: RAW_PRODUCTS_COLS.length,
+      columns: RAW_PRODUCTS_COLS,
+      description: 'Product catalog with SKU, price, and category',
+      tags: ['raw', 'source'],
+      packageName: PACKAGE,
+    },
+    {
+      id: 'source.jaffle_shop.raw.raw_supplies',
+      name: 'raw_supplies',
+      type: 'source',
+      catalog: CATALOG,
+      database: DATABASE,
+      schema: 'raw',
+      columnCount: RAW_SUPPLIES_COLS.length,
+      columns: RAW_SUPPLIES_COLS,
+      description: 'Supply inventory and unit costs for COGS calculations',
+      tags: ['raw', 'source'],
+      packageName: PACKAGE,
+    },
+    {
+      id: 'seed.jaffle_shop.seeds.country_codes',
+      name: 'country_codes',
+      type: 'seed',
+      catalog: CATALOG,
+      database: DATABASE,
+      schema: 'seeds',
+      columnCount: COUNTRY_CODES_COLS.length,
+      columns: COUNTRY_CODES_COLS,
+      description: 'ISO 3166-1 alpha-2 country codes for customer address enrichment',
+      materialization: 'seed',
+      tags: ['seed', 'reference'],
+      packageName: PACKAGE,
+    },
+    {
+      id: 'seed.jaffle_shop.seeds.us_state_abbreviations',
+      name: 'us_state_abbreviations',
+      type: 'seed',
+      catalog: CATALOG,
+      database: DATABASE,
+      schema: 'seeds',
+      columnCount: US_STATE_COLS.length,
+      columns: US_STATE_COLS,
+      description: 'US state name to abbreviation lookup table',
+      materialization: 'seed',
+      tags: ['seed', 'reference'],
+      packageName: PACKAGE,
+    },
+    {
+      id: 'model.jaffle_shop.staging.stg_customers',
+      name: 'stg_customers',
+      type: 'staging',
+      catalog: CATALOG,
+      database: DATABASE,
+      schema: 'staging',
+      columnCount: STG_CUSTOMERS_COLS.length,
+      columns: STG_CUSTOMERS_COLS,
+      description: 'Cleaned customer records with standardized names and country codes',
+      materialization: 'view',
+      tags: ['staging'],
+      packageName: PACKAGE,
+    },
+    {
+      id: 'model.jaffle_shop.staging.stg_orders',
+      name: 'stg_orders',
+      type: 'staging',
+      catalog: CATALOG,
+      database: DATABASE,
+      schema: 'staging',
+      columnCount: STG_ORDERS_COLS.length,
+      columns: STG_ORDERS_COLS,
+      description: 'Typed order records with status normalization and date casting',
+      materialization: 'view',
+      tags: ['staging'],
+      packageName: PACKAGE,
+    },
+    {
+      id: 'model.jaffle_shop.staging.stg_order_items',
+      name: 'stg_order_items',
+      type: 'staging',
+      catalog: CATALOG,
+      database: DATABASE,
+      schema: 'staging',
+      columnCount: STG_ORDER_ITEMS_COLS.length,
+      columns: STG_ORDER_ITEMS_COLS,
+      description: 'Line items with quantity validation and product key resolution',
+      materialization: 'view',
+      tags: ['staging'],
+      packageName: PACKAGE,
+    },
+    {
+      id: 'model.jaffle_shop.staging.stg_products',
+      name: 'stg_products',
+      type: 'staging',
+      catalog: CATALOG,
+      database: DATABASE,
+      schema: 'staging',
+      columnCount: STG_PRODUCTS_COLS.length,
+      columns: STG_PRODUCTS_COLS,
+      description: 'Product catalog with price formatting and category cleanup',
+      materialization: 'view',
+      tags: ['staging'],
+      packageName: PACKAGE,
+    },
+    {
+      id: 'model.jaffle_shop.staging.stg_supplies',
+      name: 'stg_supplies',
+      type: 'staging',
+      catalog: CATALOG,
+      database: DATABASE,
+      schema: 'staging',
+      columnCount: STG_SUPPLIES_COLS.length,
+      columns: STG_SUPPLIES_COLS,
+      description: 'Supply records with per-unit cost standardization',
+      materialization: 'view',
+      tags: ['staging'],
+      packageName: PACKAGE,
+    },
+    {
+      id: 'model.jaffle_shop.marts.dim_customers',
+      name: 'dim_customers',
+      type: 'mart',
+      catalog: CATALOG,
+      database: DATABASE,
+      schema: 'marts',
+      columnCount: DIM_CUSTOMERS_COLS.length,
+      columns: DIM_CUSTOMERS_COLS,
+      description: 'Customer dimension with lifetime order count and total spend',
+      materialization: 'table',
+      tags: ['mart', 'dimension'],
+      packageName: PACKAGE,
+    },
+    {
+      id: 'model.jaffle_shop.marts.dim_products',
+      name: 'dim_products',
+      type: 'mart',
+      catalog: CATALOG,
+      database: DATABASE,
+      schema: 'marts',
+      columnCount: DIM_PRODUCTS_COLS.length,
+      columns: DIM_PRODUCTS_COLS,
+      description: 'Product dimension with rolled-up supply cost and margin estimates',
+      materialization: 'table',
+      tags: ['mart', 'dimension'],
+      packageName: PACKAGE,
+    },
+    {
+      id: 'model.jaffle_shop.marts.fct_orders',
+      name: 'fct_orders',
+      type: 'mart',
+      catalog: CATALOG,
+      database: DATABASE,
+      schema: 'marts',
+      columnCount: FCT_ORDERS_COLS.length,
+      columns: FCT_ORDERS_COLS,
+      description: 'Order-level fact table enriched with customer and payment context',
+      materialization: 'table',
+      tags: ['mart', 'fact'],
+      packageName: PACKAGE,
+    },
+    {
+      id: 'model.jaffle_shop.marts.fct_order_items',
+      name: 'fct_order_items',
+      type: 'mart',
+      catalog: CATALOG,
+      database: DATABASE,
+      schema: 'marts',
+      columnCount: FCT_ORDER_ITEMS_COLS.length,
+      columns: FCT_ORDER_ITEMS_COLS,
+      description: 'Line-item fact table with product details and extended price',
+      materialization: 'table',
+      tags: ['mart', 'fact'],
+      packageName: PACKAGE,
+    },
+    {
+      id: 'model.jaffle_shop.marts.revenue_daily',
+      name: 'revenue_daily',
+      type: 'mart',
+      catalog: CATALOG,
+      database: DATABASE,
+      schema: 'marts',
+      columnCount: REVENUE_DAILY_COLS.length,
+      columns: REVENUE_DAILY_COLS,
+      description: 'Daily revenue, order count, and average order value for executive KPIs',
+      materialization: 'incremental',
+      tags: ['mart', 'metric', 'daily'],
+      packageName: PACKAGE,
+    },
+    {
+      id: 'model.jaffle_shop.marts.customer_order_summary',
+      name: 'customer_order_summary',
+      type: 'mart',
+      catalog: CATALOG,
+      database: DATABASE,
+      schema: 'marts',
+      columnCount: CUSTOMER_ORDER_SUMMARY_COLS.length,
+      columns: CUSTOMER_ORDER_SUMMARY_COLS,
+      description: 'Per-customer order frequency, recency, and monetary value (RFM-style)',
+      materialization: 'table',
+      tags: ['mart', 'metric'],
+      packageName: PACKAGE,
+    },
+];
+
+export const mockLineage: ProjectLineage = {
+  projectUuid: MOCK_PROJECT_UUID,
+  projectName: 'Jaffle Shop',
+  warehouseType: 'trino',
+  dbtProject: {
+    name: 'jaffle_shop',
+    version: '1.0.0',
+    profile: 'jaffle_shop_trino',
+    lastCompiledAt: '2025-07-10T14:32:00.000Z',
+    modelCount: 11,
+    seedCount: 2,
+    sourceCount: 5,
+  },
+  nodes: LINEAGE_NODES.map(withDbtPath),
+  edges: [
+    { source: 'source.jaffle_shop.raw.raw_customers', target: 'model.jaffle_shop.staging.stg_customers' },
+    { source: 'source.jaffle_shop.raw.raw_orders', target: 'model.jaffle_shop.staging.stg_orders' },
+    { source: 'source.jaffle_shop.raw.raw_order_items', target: 'model.jaffle_shop.staging.stg_order_items' },
+    { source: 'source.jaffle_shop.raw.raw_products', target: 'model.jaffle_shop.staging.stg_products' },
+    { source: 'source.jaffle_shop.raw.raw_supplies', target: 'model.jaffle_shop.staging.stg_supplies' },
+    { source: 'seed.jaffle_shop.seeds.country_codes', target: 'model.jaffle_shop.staging.stg_customers' },
+    { source: 'seed.jaffle_shop.seeds.us_state_abbreviations', target: 'model.jaffle_shop.staging.stg_customers' },
+    { source: 'model.jaffle_shop.staging.stg_customers', target: 'model.jaffle_shop.marts.dim_customers' },
+    { source: 'model.jaffle_shop.staging.stg_products', target: 'model.jaffle_shop.marts.dim_products' },
+    { source: 'model.jaffle_shop.staging.stg_supplies', target: 'model.jaffle_shop.marts.dim_products' },
+    { source: 'model.jaffle_shop.staging.stg_orders', target: 'model.jaffle_shop.marts.fct_orders' },
+    { source: 'model.jaffle_shop.staging.stg_customers', target: 'model.jaffle_shop.marts.fct_orders' },
+    { source: 'model.jaffle_shop.staging.stg_orders', target: 'model.jaffle_shop.marts.fct_order_items' },
+    { source: 'model.jaffle_shop.staging.stg_order_items', target: 'model.jaffle_shop.marts.fct_order_items' },
+    { source: 'model.jaffle_shop.staging.stg_products', target: 'model.jaffle_shop.marts.fct_order_items' },
+    { source: 'model.jaffle_shop.marts.dim_customers', target: 'model.jaffle_shop.marts.fct_orders' },
+    { source: 'model.jaffle_shop.marts.dim_products', target: 'model.jaffle_shop.marts.fct_order_items' },
+    { source: 'model.jaffle_shop.marts.fct_orders', target: 'model.jaffle_shop.marts.revenue_daily' },
+    { source: 'model.jaffle_shop.marts.fct_order_items', target: 'model.jaffle_shop.marts.revenue_daily' },
+    { source: 'model.jaffle_shop.marts.dim_customers', target: 'model.jaffle_shop.marts.customer_order_summary' },
+    { source: 'model.jaffle_shop.marts.fct_orders', target: 'model.jaffle_shop.marts.customer_order_summary' },
+  ],
+  columnEdges: COLUMN_EDGES,
+};

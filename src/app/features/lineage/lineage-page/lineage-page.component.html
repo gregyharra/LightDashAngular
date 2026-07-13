@@ -1,0 +1,137 @@
+<div class="page-layout">
+  <aside class="page-layout__sidebar">
+    <div class="page-sidebar">
+      <header class="page-sidebar__header">
+        <p class="page-sidebar__breadcrumb">Browse</p>
+        @if (activeProjectService.activeProject(); as project) {
+          <p class="page-sidebar__org">{{ project.name }}</p>
+        }
+      </header>
+
+      <nav class="page-sidebar__nav" aria-label="Browse navigation">
+        <p class="page-sidebar__section-label">Content</p>
+        <a
+          class="page-sidebar__link page-sidebar__link--clickable"
+          [routerLink]="['/projects', projectUuid(), 'dashboards']"
+        >
+          <mat-icon>dashboard</mat-icon>
+          Dashboards
+        </a>
+        <a
+          class="page-sidebar__link page-sidebar__link--clickable"
+          [routerLink]="['/projects', projectUuid(), 'tables']"
+        >
+          <mat-icon>table_chart</mat-icon>
+          Tables
+        </a>
+        <a
+          class="page-sidebar__link page-sidebar__link--active page-sidebar__link--clickable"
+          [routerLink]="['/projects', projectUuid(), 'lineage']"
+        >
+          <mat-icon>account_tree</mat-icon>
+          Lineage
+        </a>
+      </nav>
+    </div>
+  </aside>
+
+  <div class="page-layout__content page-layout__content--flush">
+    <section class="lineage-page">
+      <header class="lineage-page__header">
+        <div>
+          <nav class="lineage-page__breadcrumbs" aria-label="Breadcrumb">
+            <a routerLink="/projects" class="lineage-page__breadcrumb-link">Home</a>
+            <mat-icon>chevron_right</mat-icon>
+            <span class="lineage-page__breadcrumb-current">dbt Lineage</span>
+          </nav>
+          <h1 class="lineage-page__title">
+            @if (lineage(); as data) {
+              {{ data.projectName }}
+            } @else {
+              dbt Lineage
+            }
+          </h1>
+          @if (lineage(); as data) {
+            <p class="lineage-page__subtitle">
+              <span class="lineage-page__dbt-summary">
+                <mat-icon>folder</mat-icon>
+                {{ data.dbtProject.name }} v{{ data.dbtProject.version }}
+              </span>
+              @if (selectedDbtPath(); as path) {
+                <span class="lineage-page__file-path" title="{{ path }}">
+                  <mat-icon>description</mat-icon>
+                  {{ path }}
+                </span>
+              }
+              <span>{{ data.nodes.length }} nodes · {{ data.edges.length }} dependencies</span>
+              @if (columnEdgeCount() > 0) {
+                <span>{{ columnEdgeCount() }} column links</span>
+              }
+              <span class="lineage-page__compiled">
+                Last compiled {{ formatCompiledAt(data.dbtProject.lastCompiledAt) }}
+              </span>
+              @if (data.warehouseType) {
+                <span class="lineage-page__warehouse-chip">
+                  <mat-icon>storage</mat-icon>
+                  {{ data.warehouseType }}
+                </span>
+              }
+            </p>
+          }
+        </div>
+      </header>
+
+      @if (loading()) {
+        <div class="lineage-page__loading">
+          <mat-spinner diameter="32" />
+        </div>
+      } @else if (error()) {
+        <div class="lineage-page__error">{{ error() }}</div>
+      } @else {
+        @if (lineage(); as data) {
+          <div class="lineage-page__workspace">
+            <app-folder-search-panel
+              [tree]="dbtTree()"
+              [selectedNodeId]="selectedNodeId()"
+              (nodeSelected)="onNodeSelected($event)"
+            />
+            <app-lineage-graph
+              class="lineage-page__graph"
+              [nodes]="data.nodes"
+              [edges]="data.edges"
+              [columnEdges]="data.columnEdges ?? []"
+              [selectedNodeId]="selectedNodeId()"
+              [selectedColumn]="selectedColumn()"
+              [viewMode]="viewMode()"
+              [graphMode]="graphMode()"
+              [hopDepth]="hopDepth()"
+              (nodeSelected)="onNodeSelected($event)"
+              (columnSelected)="onColumnSelected($event)"
+              (columnSelectionCleared)="onColumnSelectionCleared()"
+              (viewModeChange)="onViewModeChange($event)"
+              (graphModeChange)="onGraphModeChange($event)"
+              (hopDepthChange)="onHopDepthChange($event)"
+            />
+            @if (selectedNode(); as node) {
+              <app-lineage-detail-panel
+                [node]="node"
+                [nodes]="data.nodes"
+                [edges]="data.edges"
+                [columnEdges]="data.columnEdges ?? []"
+                [selectedColumn]="selectedColumn()"
+                [requestedTab]="requestedDetailTab()"
+                (nodeSelected)="onNodeSelected($event)"
+                (columnSelected)="onDetailColumnSelected($event)"
+              />
+            } @else {
+              <aside class="lineage-page__detail-placeholder">
+                <mat-icon>touch_app</mat-icon>
+                <p>Select a model from the project tree or graph</p>
+              </aside>
+            }
+          </div>
+        }
+      }
+    </section>
+  </div>
+</div>

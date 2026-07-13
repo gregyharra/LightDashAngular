@@ -1,0 +1,98 @@
+<div class="page-layout">
+  <aside class="page-layout__sidebar">
+    <div class="page-sidebar">
+      <header class="page-sidebar__header">
+        <p class="page-sidebar__breadcrumb">Browse</p>
+        @if (activeProjectService.activeProject(); as project) {
+          <p class="page-sidebar__org">{{ project.name }}</p>
+        }
+      </header>
+
+      <nav class="page-sidebar__nav" aria-label="Browse navigation">
+        <p class="page-sidebar__section-label">Content</p>
+        <a
+          class="page-sidebar__link page-sidebar__link--clickable"
+          [routerLink]="['/projects', projectUuid(), 'dashboards']"
+        >
+          <mat-icon>dashboard</mat-icon>
+          Dashboards
+        </a>
+        <a
+          class="page-sidebar__link page-sidebar__link--active page-sidebar__link--clickable"
+          [routerLink]="['/projects', projectUuid(), 'tables']"
+        >
+          <mat-icon>table_chart</mat-icon>
+          Tables
+        </a>
+        <a
+          class="page-sidebar__link page-sidebar__link--clickable"
+          [routerLink]="['/projects', projectUuid(), 'lineage']"
+        >
+          <mat-icon>account_tree</mat-icon>
+          Lineage
+        </a>
+      </nav>
+    </div>
+  </aside>
+
+  <div class="page-layout__content">
+    <section class="explorer-list">
+      <div class="page__container page__container--wide">
+        <header class="explorer-list__header">
+          <nav class="explorer-list__breadcrumbs" aria-label="Breadcrumb">
+            <a routerLink="/projects" class="explorer-list__breadcrumb-link">Home</a>
+            <mat-icon>chevron_right</mat-icon>
+            <span class="explorer-list__breadcrumb-current">All tables</span>
+          </nav>
+        </header>
+
+        <h1 class="explorer-list__title">Tables</h1>
+        <p class="explorer-list__subtitle">Select an explore to build a query</p>
+
+        @if (loading()) {
+          <div class="explorer-list__loading">
+            <mat-spinner diameter="32" />
+          </div>
+        } @else if (error()) {
+          <div class="explorer-list__error">{{ error() }}</div>
+        } @else if (explores().length === 0) {
+          <div class="explorer-list__empty">
+            <mat-icon>table_chart</mat-icon>
+            <p>No explores available.</p>
+          </div>
+        } @else {
+          <div class="explorer-list__grid">
+            @for (explore of explores(); track explore.name) {
+              <button
+                type="button"
+                class="explorer-list__card"
+                (click)="openExplore(explore.name)"
+              >
+                <div class="explorer-list__card-icon">
+                  <mat-icon>table_chart</mat-icon>
+                </div>
+                <div class="explorer-list__card-body">
+                  <span class="explorer-list__card-name">{{ explore.label }}</span>
+                  @if (explore.description) {
+                    <span class="explorer-list__card-description">{{ explore.description }}</span>
+                  }
+                  <span class="explorer-list__card-meta">
+                    {{ explore.databaseName }}.{{ explore.schemaName }}
+                  </span>
+                  @if (explore.tags.length > 0) {
+                    <div class="explorer-list__card-tags">
+                      @for (tag of explore.tags; track tag) {
+                        <span class="explorer-list__tag">{{ tag }}</span>
+                      }
+                    </div>
+                  }
+                </div>
+                <mat-icon class="explorer-list__card-chevron">chevron_right</mat-icon>
+              </button>
+            }
+          </div>
+        }
+      </div>
+    </section>
+  </div>
+</div>

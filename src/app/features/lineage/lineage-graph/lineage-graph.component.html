@@ -1,0 +1,348 @@
+<div class="lineage-graph">
+  <div class="lineage-graph__toolbar">
+    <div class="lineage-graph__view-toggle" role="group" aria-label="Graph scope">
+      <button
+        type="button"
+        class="lineage-graph__view-btn"
+        [class.lineage-graph__view-btn--active]="graphMode() === 'focus'"
+        (click)="setGraphMode('focus')"
+      >
+        Focus
+      </button>
+      <button
+        type="button"
+        class="lineage-graph__view-btn"
+        [class.lineage-graph__view-btn--active]="graphMode() === 'full'"
+        (click)="setGraphMode('full')"
+      >
+        Full graph
+      </button>
+    </div>
+
+    <div class="lineage-graph__toolbar-divider"></div>
+
+    <div
+      class="lineage-graph__hop-controls"
+      role="group"
+      aria-label="Lineage hop depth"
+      [class.lineage-graph__hop-controls--disabled]="!hopDepthControlsEnabled()"
+    >
+      <button
+        type="button"
+        class="lineage-graph__tool-btn"
+        (click)="decreaseHopDepth()"
+        [disabled]="!canDecreaseHopDepth()"
+        aria-label="Decrease hop depth"
+        title="Show fewer upstream/downstream levels"
+      >
+        −
+      </button>
+      <span class="lineage-graph__hop-label" [attr.aria-label]="'Hop depth: ' + hopDepthLabel()">
+        {{ hopDepthLabel() }}
+      </span>
+      <button
+        type="button"
+        class="lineage-graph__tool-btn"
+        (click)="increaseHopDepth()"
+        [disabled]="!canIncreaseHopDepth()"
+        aria-label="Increase hop depth"
+        title="Show more upstream/downstream levels"
+      >
+        +
+      </button>
+      <button
+        type="button"
+        class="lineage-graph__tool-btn lineage-graph__tool-btn--infinity"
+        [class.lineage-graph__tool-btn--active]="isUnlimitedHopDepth()"
+        (click)="setUnlimitedHopDepth()"
+        [disabled]="!hopDepthControlsEnabled()"
+        aria-label="Show full lineage"
+        title="Show full transitive closure"
+      >
+        ∞
+      </button>
+    </div>
+
+    <div class="lineage-graph__toolbar-divider"></div>
+
+    <div class="lineage-graph__view-toggle" role="group" aria-label="Lineage view mode">
+      <button
+        type="button"
+        class="lineage-graph__view-btn"
+        [class.lineage-graph__view-btn--active]="viewMode() === 'models'"
+        (click)="setViewMode('models')"
+      >
+        Models
+      </button>
+      <button
+        type="button"
+        class="lineage-graph__view-btn"
+        [class.lineage-graph__view-btn--active]="viewMode() === 'columns'"
+        (click)="setViewMode('columns')"
+      >
+        Columns
+      </button>
+    </div>
+
+    <div class="lineage-graph__toolbar-divider"></div>
+
+    <button type="button" class="lineage-graph__tool-btn" (click)="zoomOut()" aria-label="Zoom out">
+      −
+    </button>
+    <span class="lineage-graph__zoom-label">{{ (zoom() * 100) | number: '1.0-0' }}%</span>
+    <button type="button" class="lineage-graph__tool-btn" (click)="zoomIn()" aria-label="Zoom in">
+      +
+    </button>
+    <button type="button" class="lineage-graph__tool-btn" (click)="resetView()">Fit</button>
+    <button
+      type="button"
+      class="lineage-graph__tool-btn lineage-graph__tool-btn--icon"
+      (click)="reorganizeLayout()"
+      aria-label="Reorganize layout"
+      title="Reorganize layout"
+    >
+      <mat-icon>account_tree</mat-icon>
+    </button>
+  </div>
+
+  <div
+    #canvas
+    class="lineage-graph__canvas"
+    [class.lineage-graph__canvas--panning]="isPanning()"
+    [class.lineage-graph__canvas--dragging]="draggingNodeId() !== null"
+    [class.lineage-graph__canvas--column-focus]="hasColumnFocus()"
+    (pointerdown)="onCanvasPointerDown($event)"
+    (pointermove)="onCanvasPointerMove($event)"
+    (pointerup)="onCanvasPointerUp($event)"
+    (pointercancel)="onCanvasPointerUp($event)"
+    (wheel)="onWheel($event)"
+  >
+    <div class="lineage-graph__viewport" [style.transform]="transform()">
+      <svg
+        class="lineage-graph__svg"
+        [attr.width]="bounds().width"
+        [attr.height]="bounds().height"
+        [attr.viewBox]="'0 0 ' + bounds().width + ' ' + bounds().height"
+      >
+        <defs>
+          <marker
+            id="lineage-arrow"
+            viewBox="0 0 10 10"
+            refX="9"
+            refY="5"
+            markerWidth="6"
+            markerHeight="6"
+            orient="auto-start-reverse"
+          >
+            <path d="M 0 0 L 10 5 L 0 10 z" fill="var(--ld-gray-5)" />
+          </marker>
+          <marker
+            id="lineage-column-arrow"
+            viewBox="0 0 10 10"
+            refX="9"
+            refY="5"
+            markerWidth="5"
+            markerHeight="5"
+            orient="auto-start-reverse"
+          >
+            <path d="M 0 0 L 10 5 L 0 10 z" fill="#868e96" />
+          </marker>
+          <marker
+            id="lineage-column-arrow-highlight"
+            viewBox="0 0 10 10"
+            refX="9"
+            refY="5"
+            markerWidth="5"
+            markerHeight="5"
+            orient="auto-start-reverse"
+          >
+            <path d="M 0 0 L 10 5 L 0 10 z" fill="var(--ld-brand)" />
+          </marker>
+        </defs>
+
+        @for (item of edgePaths(); track item.edge.source + '->' + item.edge.target) {
+          <path
+            class="lineage-graph__edge"
+            [class.lineage-graph__edge--dimmed]="isEdgeDimmed(item.edge)"
+            [class.lineage-graph__edge--highlight]="isEdgeHighlighted(item.edge) && !hasColumnFocus()"
+            [attr.d]="item.path"
+            marker-end="url(#lineage-arrow)"
+          />
+        }
+
+        @for (item of columnEdgePaths(); track item.key) {
+          <path
+            class="lineage-graph__column-edge"
+            [class.lineage-graph__column-edge--highlight]="isColumnEdgeHighlighted(item.key)"
+            [class.lineage-graph__column-edge--dimmed]="isColumnEdgeDimmed(item.key)"
+            [attr.d]="item.path"
+            [attr.marker-end]="
+              isColumnEdgeHighlighted(item.key)
+                ? 'url(#lineage-column-arrow-highlight)'
+                : 'url(#lineage-column-arrow)'
+            "
+          />
+        }
+
+        @for (node of displayNodes(); track node.id) {
+          @if (positions().get(node.id); as pos) {
+            <g
+              class="lineage-graph__node"
+              [class.lineage-graph__node--selected]="selectedNodeId() === node.id"
+              [class.lineage-graph__node--expanded]="isNodeExpanded(node.id)"
+              [class.lineage-graph__node--dimmed]="isNodeDimmed(node.id)"
+              [class.lineage-graph__node--dragging]="draggingNodeId() === node.id"
+              [class.lineage-graph__node--reorganizing]="isReorganizing()"
+              [style.transform]="'translate(' + pos.x + 'px,' + pos.y + 'px)'"
+            >
+              <rect
+                class="lineage-graph__node-bg"
+                [attr.width]="pos.width"
+                [attr.height]="pos.height"
+                rx="8"
+                [attr.fill]="nodeColors(node.type).fill"
+                [attr.stroke]="nodeColors(node.type).stroke"
+              />
+
+              <g
+                class="lineage-graph__node-header"
+                (pointerdown)="onNodePointerDown(node.id, $event)"
+                (pointerup)="onNodePointerUp(node.id, $event)"
+                (pointercancel)="onNodePointerUp(node.id, $event)"
+                (click)="selectNode(node.id, $event)"
+                (dblclick)="onNodeDoubleClick(node.id, $event)"
+                role="button"
+                tabindex="0"
+                (keydown.enter)="selectNode(node.id, $event)"
+              >
+                <title>{{ node.name }}</title>
+                <rect
+                  class="lineage-graph__node-header-hit"
+                  [attr.width]="pos.width"
+                  [attr.height]="headerHeight()"
+                  rx="8"
+                  fill="transparent"
+                />
+
+                <rect
+                  class="lineage-graph__node-badge"
+                  x="12"
+                  y="12"
+                  width="52"
+                  height="18"
+                  rx="4"
+                  [attr.fill]="nodeColors(node.type).badge"
+                  pointer-events="none"
+                />
+                <text class="lineage-graph__node-badge-text" x="18" y="24" pointer-events="none">
+                  {{ typeLabel(node.type) }}
+                </text>
+
+                @if (viewMode() === 'models' && node.columns?.length) {
+                  <g
+                    class="lineage-graph__expand-btn"
+                    [attr.transform]="'translate(' + (pos.width - 28) + ', 10)'"
+                    (click)="toggleNodeExpand(node.id, $event)"
+                    (pointerdown)="$event.stopPropagation()"
+                    role="button"
+                    tabindex="0"
+                    [attr.aria-label]="isNodeExpanded(node.id) ? 'Collapse columns' : 'Expand columns'"
+                  >
+                    <rect width="18" height="18" rx="4" fill="rgba(255,255,255,0.85)" stroke="var(--ld-gray-4)" />
+                    <text x="9" y="13" text-anchor="middle" class="lineage-graph__expand-icon">
+                      {{ isNodeExpanded(node.id) ? '−' : '+' }}
+                    </text>
+                  </g>
+                }
+
+                <text class="lineage-graph__node-name" x="12" y="46" pointer-events="none">{{ node.name }}</text>
+                <text class="lineage-graph__node-meta" x="12" y="60" pointer-events="none">
+                  {{ node.schema }} · {{ node.columnCount }} cols
+                </text>
+              </g>
+
+              @if (isNodeExpanded(node.id) && node.columns?.length) {
+                <line
+                  class="lineage-graph__node-divider"
+                  x1="8"
+                  [attr.x2]="pos.width - 8"
+                  [attr.y1]="headerHeight()"
+                  [attr.y2]="headerHeight()"
+                />
+
+                @for (col of node.columns; track col.name; let i = $index) {
+                  <g
+                    class="lineage-graph__column-row"
+                    [class.lineage-graph__column-row--highlight]="isColumnPathHighlighted(node.id, col.name)"
+                    [class.lineage-graph__column-row--selected]="isColumnSelected(node.id, col.name)"
+                    [class.lineage-graph__column-row--dimmed]="isColumnDimmed(node.id, col.name)"
+                    [attr.transform]="'translate(0, ' + (headerHeight() + i * 22) + ')'"
+                    (pointerdown)="onColumnPointerDown($event)"
+                    (click)="selectColumn(node.id, col.name, $event)"
+                    role="button"
+                    tabindex="0"
+                    (keydown.enter)="selectColumn(node.id, col.name, $event)"
+                  >
+                    <title>{{ col.name }} ({{ col.type }})</title>
+                    <rect
+                      class="lineage-graph__column-bg"
+                      x="8"
+                      y="0"
+                      [attr.width]="pos.width - 16"
+                      height="20"
+                      rx="4"
+                    />
+                    <circle class="lineage-graph__column-dot" cx="18" cy="10" r="3" />
+                    <text class="lineage-graph__column-name" x="28" y="14">{{ col.name }}</text>
+                    <text class="lineage-graph__column-type" [attr.x]="pos.width - 12" y="14" text-anchor="end">
+                      {{ col.type }}
+                    </text>
+                  </g>
+                }
+              }
+            </g>
+          }
+        }
+      </svg>
+    </div>
+
+    <div class="lineage-graph__minimap" aria-hidden="true">
+      <svg
+        [attr.width]="bounds().width * minimapScale()"
+        [attr.height]="bounds().height * minimapScale()"
+        [attr.viewBox]="'0 0 ' + bounds().width + ' ' + bounds().height"
+      >
+        @for (node of displayNodes(); track node.id) {
+          @if (positions().get(node.id); as pos) {
+            <rect
+              [attr.x]="pos.x"
+              [attr.y]="pos.y"
+              [attr.width]="pos.width"
+              [attr.height]="pos.height"
+              rx="4"
+              [attr.fill]="nodeColors(node.type).badge"
+              opacity="0.55"
+            />
+          }
+        }
+        <rect
+          class="lineage-graph__minimap-viewport"
+          [attr.x]="minimapViewport().x"
+          [attr.y]="minimapViewport().y"
+          [attr.width]="minimapViewport().width"
+          [attr.height]="minimapViewport().height"
+        />
+      </svg>
+    </div>
+  </div>
+
+  <div class="lineage-graph__legend">
+    <span class="lineage-graph__legend-item lineage-graph__legend-item--source">Source</span>
+    <span class="lineage-graph__legend-item lineage-graph__legend-item--seed">Seed</span>
+    <span class="lineage-graph__legend-item lineage-graph__legend-item--staging">Staging</span>
+    <span class="lineage-graph__legend-item lineage-graph__legend-item--mart">Mart</span>
+    @if (viewMode() === 'columns' || hasColumnFocus()) {
+      <span class="lineage-graph__legend-item lineage-graph__legend-item--column-edge">Column lineage</span>
+    }
+  </div>
+</div>

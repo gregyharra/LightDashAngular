@@ -1,0 +1,39 @@
+@if (activeProjectService.activeProject(); as active) {
+  <button
+    mat-button
+    class="project-switcher__trigger"
+    [matMenuTriggerFor]="projectMenu"
+    aria-label="Switch project"
+  >
+    <span class="project-switcher__label">{{ active.name }}</span>
+    <mat-icon class="project-switcher__chevron">expand_more</mat-icon>
+  </button>
+}
+
+<mat-menu
+  #projectMenu="matMenu"
+  xPosition="before"
+  panelClass="ld-navbar-menu project-switcher__panel"
+>
+  <div class="project-switcher__section-header" mat-menu-item disabled>
+    Projects
+    <span class="project-switcher__count">
+      {{ activeProjectService.projects().length }}
+    </span>
+  </div>
+
+  @for (project of activeProjectService.projects(); track project.projectUuid) {
+    <button
+      mat-menu-item
+      (click)="selectProject(project.projectUuid)"
+      [class.project-switcher__item--active]="
+        project.projectUuid === activeProjectService.activeProjectUuid()
+      "
+    >
+      <span class="project-switcher__item-name">{{ project.name }}</span>
+      @if (project.projectUuid === activeProjectService.activeProjectUuid()) {
+        <span class="project-switcher__current">current</span>
+      }
+    </button>
+  }
+</mat-menu>

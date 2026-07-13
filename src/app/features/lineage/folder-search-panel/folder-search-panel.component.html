@@ -1,0 +1,69 @@
+<aside class="folder-panel">
+  <header class="folder-panel__header">
+    <h2 class="folder-panel__title">Project</h2>
+    <div class="folder-panel__search-wrap">
+      <mat-icon class="folder-panel__search-icon">search</mat-icon>
+      <input
+        class="folder-panel__search"
+        type="search"
+        placeholder="Search models…"
+        aria-label="Search dbt project tree"
+        [ngModel]="searchQuery()"
+        (ngModelChange)="onSearchInput($event)"
+        (keydown)="onSearchKeydown($event)"
+      />
+    </div>
+    @if (searchQuery().trim()) {
+      <p class="folder-panel__match-count">
+        {{ matchCount() }} match{{ matchCount() === 1 ? '' : 'es' }}
+        <span class="folder-panel__hint">· Enter to select first</span>
+      </p>
+    }
+  </header>
+
+  <nav #treeNav class="folder-panel__tree" aria-label="dbt project folder tree">
+    @if (visibleItems().length === 0) {
+      <p class="folder-panel__empty">No models match your search</p>
+    } @else {
+      <ul class="folder-panel__list">
+        @for (item of visibleItems(); track item.node.id) {
+          <li
+            class="folder-panel__item"
+            [class.folder-panel__item--selected]="isSelected(item.node)"
+            [class.folder-panel__item--folder]="item.node.type === 'folder'"
+            [style.padding-left.px]="12 + item.depth * 16"
+            [attr.title]="item.node.path"
+            (click)="item.hasChildren ? toggleFolder(item.node.path, $event) : selectItem(item.node, $event)"
+          >
+            @if (item.hasChildren) {
+              <button
+                type="button"
+                class="folder-panel__expand"
+                [attr.aria-label]="item.expanded ? 'Collapse folder' : 'Expand folder'"
+                (click)="toggleFolder(item.node.path, $event)"
+              >
+                <mat-icon>{{ item.expanded ? 'expand_more' : 'chevron_right' }}</mat-icon>
+              </button>
+            } @else {
+              <span class="folder-panel__expand-spacer"></span>
+            }
+
+            <mat-icon class="folder-panel__icon folder-panel__icon--{{ item.node.type }}">
+              {{ iconForType(item.node.type) }}
+            </mat-icon>
+
+            <button
+              type="button"
+              class="folder-panel__label"
+              [class.folder-panel__label--selectable]="!!item.node.lineageNodeId"
+              [disabled]="!item.node.lineageNodeId"
+              (click)="selectItem(item.node, $event)"
+            >
+              {{ item.node.name }}
+            </button>
+          </li>
+        }
+      </ul>
+    }
+  </nav>
+</aside>

@@ -1,0 +1,334 @@
+@if (node(); as selected) {
+  <aside class="lineage-detail">
+    <header class="lineage-detail__header">
+      <span class="lineage-detail__type lineage-detail__type--{{ selected.type }}">
+        {{ typeLabel(selected.type) }}
+      </span>
+      <h2 class="lineage-detail__name">{{ selected.name }}</h2>
+      @if (selected.dbtPath) {
+        <p class="lineage-detail__path" title="{{ selected.dbtPath }}">{{ selected.dbtPath }}</p>
+      }
+      @if (selected.description) {
+        <p class="lineage-detail__description">{{ selected.description }}</p>
+      }
+    </header>
+
+    <div class="lineage-detail__tabs" role="tablist" aria-label="Detail panel tabs">
+      <button
+        type="button"
+        class="lineage-detail__tab"
+        [class.lineage-detail__tab--active]="activeTab() === 'overview'"
+        role="tab"
+        [attr.aria-selected]="activeTab() === 'overview'"
+        (click)="setTab('overview')"
+      >
+        Overview
+      </button>
+      <button
+        type="button"
+        class="lineage-detail__tab"
+        [class.lineage-detail__tab--active]="activeTab() === 'columns'"
+        role="tab"
+        [attr.aria-selected]="activeTab() === 'columns'"
+        (click)="setTab('columns')"
+      >
+        Columns
+        @if (selected.columns?.length) {
+          <span class="lineage-detail__tab-count">{{ selected.columns!.length }}</span>
+        }
+      </button>
+      <button
+        type="button"
+        class="lineage-detail__tab"
+        [class.lineage-detail__tab--active]="activeTab() === 'lineage'"
+        role="tab"
+        [attr.aria-selected]="activeTab() === 'lineage'"
+        (click)="setTab('lineage')"
+      >
+        Lineage
+      </button>
+    </div>
+
+    @if (activeTab() === 'overview') {
+      <section class="lineage-detail__section">
+        <h3 class="lineage-detail__section-title">Details</h3>
+        <dl class="lineage-detail__meta">
+          @if (selected.dbtPath) {
+            <div class="lineage-detail__meta-row">
+              <dt>Path</dt>
+              <dd class="lineage-detail__mono">{{ selected.dbtPath }}</dd>
+            </div>
+          }
+          <div class="lineage-detail__meta-row">
+            <dt>Schema</dt>
+            <dd>{{ selected.schema }}</dd>
+          </div>
+          <div class="lineage-detail__meta-row">
+            <dt>Catalog</dt>
+            <dd>{{ selected.catalog }}</dd>
+          </div>
+          <div class="lineage-detail__meta-row">
+            <dt>Database</dt>
+            <dd>{{ selected.database }}</dd>
+          </div>
+          @if (selected.packageName) {
+            <div class="lineage-detail__meta-row">
+              <dt>Package</dt>
+              <dd>{{ selected.packageName }}</dd>
+            </div>
+          }
+          <div class="lineage-detail__meta-row">
+            <dt>Columns</dt>
+            <dd>{{ selected.columnCount }}</dd>
+          </div>
+          @if (selected.materialization) {
+            <div class="lineage-detail__meta-row">
+              <dt>Materialization</dt>
+              <dd>{{ selected.materialization }}</dd>
+            </div>
+          }
+        </dl>
+      </section>
+
+      @if (selected.tags?.length) {
+        <section class="lineage-detail__section">
+          <h3 class="lineage-detail__section-title">Tags</h3>
+          <div class="lineage-detail__tags">
+            @for (tag of selected.tags; track tag) {
+              <span class="lineage-detail__tag">{{ tag }}</span>
+            }
+          </div>
+        </section>
+      }
+    } @else if (activeTab() === 'columns') {
+      <section class="lineage-detail__section">
+        @if (!selected.columns?.length) {
+          <p class="lineage-detail__empty">No column metadata available</p>
+        } @else {
+          <div class="lineage-detail__column-search-wrap">
+            <mat-icon>search</mat-icon>
+            <input
+              class="lineage-detail__column-search"
+              type="search"
+              placeholder="Search columns…"
+              aria-label="Search columns"
+              [value]="columnSearch()"
+              (input)="onColumnSearch(($any($event.target)).value)"
+            />
+          </div>
+
+          <div class="lineage-detail__table-wrap">
+            <table class="lineage-detail__table">
+              <thead>
+                <tr>
+                  <th>
+                    <button type="button" class="lineage-detail__sort-btn" (click)="toggleColumnSort('name')">
+                      Name {{ sortIndicator('name') }}
+                    </button>
+                  </th>
+                  <th>
+                    <button type="button" class="lineage-detail__sort-btn" (click)="toggleColumnSort('type')">
+                      Type {{ sortIndicator('type') }}
+                    </button>
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                @for (col of filteredColumns(); track col.name) {
+                  <tr
+                    class="lineage-detail__table-row lineage-detail__table-row--clickable"
+                    [class.lineage-detail__table-row--selected]="isSelectedColumn(col)"
+                    [class.lineage-detail__table-row--path]="isColumnInLineagePath(col)"
+                    (click)="selectColumn(col)"
+                  >
+                    <td>
+                      <span class="lineage-detail__col-name">{{ col.name }}</span>
+                      @if (col.description) {
+                        <span class="lineage-detail__col-desc">{{ col.description }}</span>
+                      }
+                      @if (col.tags?.length) {
+                        <span class="lineage-detail__col-tags">
+                          @for (tag of col.tags; track tag) {
+                            <span class="lineage-detail__col-tag">{{ tag }}</span>
+                          }
+                        </span>
+                      }
+                    </td>
+                    <td class="lineage-detail__col-type">{{ col.type }}</td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+        }
+      </section>
+
+      @if (selectedColumn()?.nodeId === selected.id) {
+        <section class="lineage-detail__section">
+          <h3 class="lineage-detail__section-title">Selected column</h3>
+          <p class="lineage-detail__selected-col">{{ selectedColumn()!.columnName }}</p>
+
+          <h4 class="lineage-detail__subsection-title">
+            <mat-icon>arrow_upward</mat-icon>
+            Derived from ({{ columnUpstream().length }})
+          </h4>
+          @if (columnUpstream().length === 0) {
+            <p class="lineage-detail__empty">No upstream column lineage</p>
+          } @else {
+            <ul class="lineage-detail__list">
+              @for (item of columnUpstream(); track item.node.id + item.column.name) {
+                <li>
+                  <button
+                    type="button"
+                    class="lineage-detail__list-item lineage-detail__list-item--clickable"
+                    (click)="selectRelatedColumn(item.node.id, item.column.name)"
+                  >
+                    <span class="lineage-detail__list-type">{{ typeLabel(item.node.type) }}</span>
+                    <span class="lineage-detail__list-name">{{ item.node.name }}.{{ item.column.name }}</span>
+                  </button>
+                </li>
+              }
+            </ul>
+          }
+
+          <h4 class="lineage-detail__subsection-title">
+            <mat-icon>arrow_downward</mat-icon>
+            Used by ({{ columnDownstream().length }})
+          </h4>
+          @if (columnDownstream().length === 0) {
+            <p class="lineage-detail__empty">No downstream column lineage</p>
+          } @else {
+            <ul class="lineage-detail__list">
+              @for (item of columnDownstream(); track item.node.id + item.column.name) {
+                <li>
+                  <button
+                    type="button"
+                    class="lineage-detail__list-item lineage-detail__list-item--clickable"
+                    (click)="selectRelatedColumn(item.node.id, item.column.name)"
+                  >
+                    <span class="lineage-detail__list-type">{{ typeLabel(item.node.type) }}</span>
+                    <span class="lineage-detail__list-name">{{ item.node.name }}.{{ item.column.name }}</span>
+                  </button>
+                </li>
+              }
+            </ul>
+          }
+        </section>
+      }
+    } @else {
+      @if (hasSelectedColumn()) {
+        <section class="lineage-detail__section">
+          <h3 class="lineage-detail__section-title">Column lineage</h3>
+          <p class="lineage-detail__selected-col">{{ selectedColumn()!.columnName }}</p>
+          <p class="lineage-detail__column-context">
+            on {{ selectedColumnNodeName() }}
+          </p>
+        </section>
+
+        <section class="lineage-detail__section">
+          <h3 class="lineage-detail__section-title">
+            <mat-icon>arrow_upward</mat-icon>
+            Derived from ({{ lineageColumnUpstream().length }})
+          </h3>
+          @if (lineageColumnUpstream().length === 0) {
+            <p class="lineage-detail__empty">No upstream column lineage</p>
+          } @else {
+            <ul class="lineage-detail__list">
+              @for (item of lineageColumnUpstream(); track item.node.id + item.column.name) {
+                <li>
+                  <button
+                    type="button"
+                    class="lineage-detail__list-item lineage-detail__list-item--clickable"
+                    (click)="selectRelatedColumn(item.node.id, item.column.name)"
+                  >
+                    <span class="lineage-detail__list-type">{{ typeLabel(item.node.type) }}</span>
+                    <span class="lineage-detail__list-name">{{ item.node.name }}.{{ item.column.name }}</span>
+                    @if (item.node.dbtPath) {
+                      <span class="lineage-detail__list-path">{{ item.node.dbtPath }}</span>
+                    }
+                  </button>
+                </li>
+              }
+            </ul>
+          }
+        </section>
+
+        <section class="lineage-detail__section">
+          <h3 class="lineage-detail__section-title">
+            <mat-icon>arrow_downward</mat-icon>
+            Used by ({{ lineageColumnDownstream().length }})
+          </h3>
+          @if (lineageColumnDownstream().length === 0) {
+            <p class="lineage-detail__empty">No downstream column lineage</p>
+          } @else {
+            <ul class="lineage-detail__list">
+              @for (item of lineageColumnDownstream(); track item.node.id + item.column.name) {
+                <li>
+                  <button
+                    type="button"
+                    class="lineage-detail__list-item lineage-detail__list-item--clickable"
+                    (click)="selectRelatedColumn(item.node.id, item.column.name)"
+                  >
+                    <span class="lineage-detail__list-type">{{ typeLabel(item.node.type) }}</span>
+                    <span class="lineage-detail__list-name">{{ item.node.name }}.{{ item.column.name }}</span>
+                    @if (item.node.dbtPath) {
+                      <span class="lineage-detail__list-path">{{ item.node.dbtPath }}</span>
+                    }
+                  </button>
+                </li>
+              }
+            </ul>
+          }
+        </section>
+      } @else {
+        <section class="lineage-detail__section">
+          <h3 class="lineage-detail__section-title">
+            <mat-icon>arrow_upward</mat-icon>
+            Upstream ({{ upstream().length }})
+          </h3>
+          @if (upstream().length === 0) {
+            <p class="lineage-detail__empty">No upstream dependencies</p>
+          } @else {
+            <ul class="lineage-detail__list">
+              @for (item of upstream(); track item.id) {
+                <li>
+                  <button type="button" class="lineage-detail__list-item lineage-detail__list-item--clickable" (click)="selectRelatedNode(item.id)">
+                    <span class="lineage-detail__list-type">{{ typeLabel(item.type) }}</span>
+                    <span class="lineage-detail__list-name">{{ item.name }}</span>
+                    @if (item.dbtPath) {
+                      <span class="lineage-detail__list-path">{{ item.dbtPath }}</span>
+                    }
+                  </button>
+                </li>
+              }
+            </ul>
+          }
+        </section>
+
+        <section class="lineage-detail__section">
+          <h3 class="lineage-detail__section-title">
+            <mat-icon>arrow_downward</mat-icon>
+            Downstream ({{ downstream().length }})
+          </h3>
+          @if (downstream().length === 0) {
+            <p class="lineage-detail__empty">No downstream dependencies</p>
+          } @else {
+            <ul class="lineage-detail__list">
+              @for (item of downstream(); track item.id) {
+                <li>
+                  <button type="button" class="lineage-detail__list-item lineage-detail__list-item--clickable" (click)="selectRelatedNode(item.id)">
+                    <span class="lineage-detail__list-type">{{ typeLabel(item.type) }}</span>
+                    <span class="lineage-detail__list-name">{{ item.name }}</span>
+                    @if (item.dbtPath) {
+                      <span class="lineage-detail__list-path">{{ item.dbtPath }}</span>
+                    }
+                  </button>
+                </li>
+              }
+            </ul>
+          }
+        </section>
+      }
+    }
+  </aside>
+}

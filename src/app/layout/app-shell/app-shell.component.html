@@ -1,0 +1,57 @@
+<div class="shell" id="navbar-header" data-ld-navbar>
+  <header class="shell__navbar">
+    <div class="shell__navbar-left">
+      <a routerLink="/projects" class="shell__logo" title="Home">
+        <img src="assets/logo-icon.svg" alt="LightDash" width="32" height="32" />
+      </a>
+
+      @if (activeProjectService.activeProjectUuid()) {
+        <div class="shell__nav-group shell__nav-group--primary">
+          <button mat-button class="shell__nav-btn" disabled>
+            <mat-icon>add_box</mat-icon>
+            New
+          </button>
+          <a
+            mat-button
+            class="shell__nav-btn"
+            [routerLink]="['/projects', activeProjectService.activeProjectUuid(), 'tables']"
+          >
+            <mat-icon>table_chart</mat-icon>
+            Tables
+          </a>
+          <a
+            mat-button
+            class="shell__nav-btn"
+            [routerLink]="['/projects', activeProjectService.activeProjectUuid(), 'dashboards']"
+          >
+            <mat-icon>category</mat-icon>
+            Browse
+          </a>
+        </div>
+      }
+    </div>
+
+    <div class="shell__navbar-spacer"></div>
+
+    <div class="shell__navbar-right">
+      <div class="shell__nav-group shell__nav-group--secondary">
+        <button mat-button class="shell__nav-btn shell__nav-btn--icon" disabled aria-label="Settings">
+          <mat-icon>settings</mat-icon>
+        </button>
+        <button mat-button class="shell__nav-btn shell__nav-btn--icon" disabled aria-label="Help">
+          <mat-icon>help_outline</mat-icon>
+        </button>
+        @if (activeProjectService.activeProjectUuid()) {
+          <app-navbar-project-switcher />
+        }
+      </div>
+      <app-navbar-user-menu />
+    </div>
+  </header>
+
+  <div class="shell__navbar-placeholder"></div>
+
+  <main class="shell__content">
+    <router-outlet />
+  </main>
+</div>

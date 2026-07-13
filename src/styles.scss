@@ -1,0 +1,59 @@
+@use 'styles/lightdash-theme';
+@use 'styles/page-layout';
+@use 'styles/navbar';
+
+html,
+body {
+  height: 100%;
+  margin: 0;
+}
+
+body {
+  font-family: Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu,
+    Cantarell, 'Helvetica Neue', sans-serif;
+  font-size: var(--ld-font-size-sm);
+  line-height: 1.4;
+  color: var(--ld-foreground);
+  background-color: var(--ld-gray-0);
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  margin: 0;
+  font-weight: 500;
+  color: var(--ld-gray-9);
+}
+
+p {
+  margin: 0 0 10px;
+}
+
+strong {
+  font-weight: 600;
+}
+
+.mat-mdc-button,
+.mat-mdc-outlined-button,
+.mat-mdc-unelevated-button,
+.mat-mdc-raised-button {
+  letter-spacing: normal;
+}
+
+.page {
+  padding: 0;
+}
+
+.page__container {
+  margin-left: auto;
+  margin-right: auto;
+  width: 100%;
+  max-width: var(--ld-page-content-width);
+}
+
+.page__container--wide {
+  max-width: var(--ld-page-content-max-width-large);
+}

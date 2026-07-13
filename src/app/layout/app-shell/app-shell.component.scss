@@ -1,0 +1,131 @@
+.shell {
+  min-height: 100vh;
+  background-color: var(--ld-gray-0);
+}
+
+.shell__navbar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 200;
+  display: flex;
+  align-items: center;
+  height: var(--ld-navbar-height);
+  padding: 0 var(--ld-spacing-md);
+  background-color: var(--ld-dark-0);
+  box-shadow: 0 1px 0 0 var(--ld-dark-1);
+}
+
+.shell__navbar-placeholder {
+  height: var(--ld-navbar-height);
+  flex-shrink: 0;
+}
+
+.shell__navbar-left,
+.shell__navbar-right {
+  display: flex;
+  align-items: center;
+  gap: var(--ld-spacing-xs);
+  flex-shrink: 0;
+}
+
+.shell__navbar-right {
+  gap: var(--ld-spacing-sm);
+}
+
+.shell__navbar-spacer {
+  flex: 1;
+}
+
+.shell__logo {
+  display: inline-flex;
+  align-items: center;
+  height: 34px;
+  padding: 0;
+  border-radius: var(--ld-radius-sm);
+  line-height: 0;
+
+  img {
+    display: block;
+    height: 32px;
+    width: auto;
+  }
+
+  &:hover {
+    opacity: 0.9;
+  }
+}
+
+.shell__nav-group {
+  display: flex;
+  align-items: stretch;
+  margin-left: var(--ld-spacing-xs);
+
+  &--primary {
+    margin-left: var(--ld-spacing-sm);
+  }
+}
+
+.shell__nav-btn {
+  min-width: 0;
+  height: 30px;
+  padding: 0 10px;
+  border: 1px solid var(--ld-dark-4);
+  background-color: var(--ld-dark-3);
+  color: var(--ld-dark-9);
+  font-size: var(--ld-font-size-xs);
+  font-weight: 500;
+  line-height: 1;
+
+  mat-icon {
+    width: 16px;
+    height: 16px;
+    font-size: 16px;
+    margin-right: 4px;
+    color: var(--ld-gray-6);
+  }
+
+  &:hover:not([disabled]) {
+    background-color: var(--ld-dark-4);
+  }
+
+  &[disabled] {
+    opacity: 1;
+    cursor: default;
+  }
+
+  & + & {
+    margin-left: -1px;
+    border-top-left-radius: 0;
+    border-bottom-left-radius: 0;
+  }
+
+  &:not(:last-child) {
+    border-top-right-radius: 0;
+    border-bottom-right-radius: 0;
+  }
+
+  &:first-child {
+    border-top-left-radius: var(--ld-radius-md);
+    border-bottom-left-radius: var(--ld-radius-md);
+  }
+
+  &:last-child {
+    border-top-right-radius: var(--ld-radius-md);
+    border-bottom-right-radius: var(--ld-radius-md);
+  }
+
+  &--icon {
+    width: 30px;
+    padding: 0;
+
+    mat-icon {
+      margin-right: 0;
+    }
+  }
+}
+
+.shell__content {
+  min-height: calc(100vh - var(--ld-navbar-height));
+}
