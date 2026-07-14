@@ -1,0 +1,136 @@
+<div class="page-layout">
+  <aside class="page-layout__sidebar" appResizableSidebar>
+    <div class="page-sidebar">
+      <header class="page-sidebar__header">
+        <p class="page-sidebar__breadcrumb">Browse</p>
+        @if (activeProjectService.activeProject(); as project) {
+          <p class="page-sidebar__org">{{ project.name }}</p>
+        }
+      </header>
+
+      <nav class="page-sidebar__nav" aria-label="Browse navigation">
+        <p class="page-sidebar__section-label">Content</p>
+        <a
+          class="page-sidebar__link page-sidebar__link--active page-sidebar__link--clickable"
+          [routerLink]="['/projects', projectUuid(), 'dashboards']"
+        >
+          <mat-icon>dashboard</mat-icon>
+          Dashboards
+        </a>
+        <a
+          class="page-sidebar__link page-sidebar__link--clickable"
+          [routerLink]="['/projects', projectUuid(), 'charts']"
+        >
+          <mat-icon>bar_chart</mat-icon>
+          Charts
+        </a>
+        <a
+          class="page-sidebar__link page-sidebar__link--clickable"
+          [routerLink]="['/projects', projectUuid(), 'tables']"
+        >
+          <mat-icon>table_chart</mat-icon>
+          Tables
+        </a>
+        <a
+          class="page-sidebar__link page-sidebar__link--clickable"
+          [routerLink]="['/projects', projectUuid(), 'lineage']"
+        >
+          <mat-icon>account_tree</mat-icon>
+          Lineage
+        </a>
+      </nav>
+    </div>
+  </aside>
+
+  <div class="page-layout__content">
+    <section class="dashboard-create">
+      <div class="page__container">
+        <header class="dashboard-create__header">
+          <nav class="dashboard-create__breadcrumbs" aria-label="Breadcrumb">
+            <a routerLink="/projects" class="dashboard-create__breadcrumb-link">Home</a>
+            <mat-icon>chevron_right</mat-icon>
+            <a
+              class="dashboard-create__breadcrumb-link"
+              [routerLink]="['/projects', projectUuid(), 'dashboards']"
+            >
+              Dashboards
+            </a>
+            <mat-icon>chevron_right</mat-icon>
+            <span class="dashboard-create__breadcrumb-current">Create dashboard</span>
+          </nav>
+        </header>
+
+        <h1 class="dashboard-create__title">Create dashboard</h1>
+        <p class="dashboard-create__subtitle">
+          Add a new dashboard to organize charts and insights.
+        </p>
+
+        <form class="dashboard-create__form" (ngSubmit)="submit()">
+          <mat-form-field appearance="outline" class="dashboard-create__field">
+            <mat-label>Dashboard name</mat-label>
+            <input
+              matInput
+              name="name"
+              [(ngModel)]="name"
+              required
+              autocomplete="off"
+              [disabled]="submitting()"
+            />
+          </mat-form-field>
+
+          <mat-form-field appearance="outline" class="dashboard-create__field">
+            <mat-label>Description</mat-label>
+            <textarea
+              matInput
+              name="description"
+              [(ngModel)]="description"
+              rows="3"
+              [disabled]="submitting()"
+            ></textarea>
+          </mat-form-field>
+
+          <mat-form-field appearance="outline" class="dashboard-create__field">
+            <mat-label>Space</mat-label>
+            <mat-select
+              name="spaceUuid"
+              [(ngModel)]="spaceUuid"
+              [disabled]="submitting() || spacesLoading()"
+            >
+              @for (space of spaces(); track space.uuid) {
+                <mat-option [value]="space.uuid">{{ space.name }}</mat-option>
+              }
+            </mat-select>
+          </mat-form-field>
+
+          @if (error()) {
+            <div class="dashboard-create__error">{{ error() }}</div>
+          }
+
+          <div class="dashboard-create__actions">
+            <button
+              mat-stroked-button
+              type="button"
+              class="dashboard-create__cancel-btn"
+              (click)="cancel()"
+              [disabled]="submitting()"
+            >
+              Cancel
+            </button>
+            <button
+              mat-flat-button
+              type="submit"
+              class="dashboard-create__submit-btn"
+              [disabled]="submitting() || !name.trim()"
+            >
+              @if (submitting()) {
+                <mat-spinner diameter="18" />
+              } @else {
+                Create dashboard
+              }
+            </button>
+          </div>
+        </form>
+      </div>
+    </section>
+  </div>
+</div>

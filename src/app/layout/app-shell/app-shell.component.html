@@ -7,10 +7,23 @@
 
       @if (activeProjectService.activeProjectUuid()) {
         <div class="shell__nav-group shell__nav-group--primary">
-          <button mat-button class="shell__nav-btn" disabled>
+          <button
+            mat-button
+            class="shell__nav-btn"
+            [matMenuTriggerFor]="newMenu"
+          >
             <mat-icon>add_box</mat-icon>
             New
           </button>
+          <mat-menu #newMenu="matMenu" panelClass="ld-navbar-menu">
+            <a
+              mat-menu-item
+              [routerLink]="['/projects', activeProjectService.activeProjectUuid(), 'dashboards', 'create']"
+            >
+              <mat-icon>dashboard</mat-icon>
+              Dashboard
+            </a>
+          </mat-menu>
           <a
             mat-button
             class="shell__nav-btn"

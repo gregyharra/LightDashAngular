@@ -17,6 +17,105 @@ import {
 
 const MOCK_TAB_UUID = 'a1a1a1a1-b1b1-4c1c-d1d1-e1e1e1e1e1e1';
 
+const SPACE_NAMES: Record<string, string> = {
+  [MOCK_SPACE_UUID]: 'Shared',
+  'f6a7b8c9-d0e1-2345-f012-456789012345': 'Private',
+};
+
+function slugify(name: string): string {
+  return (
+    name
+      .toLowerCase()
+      .trim()
+      .replace(/[^\w\s-]/g, '')
+      .replace(/[\s_-]+/g, '-')
+      .replace(/^-+|-+$/g, '') || 'dashboard'
+  );
+}
+
+function resolveSpaceName(spaceUuid: string): string {
+  return SPACE_NAMES[spaceUuid] ?? 'Shared';
+}
+
+export type CreateMockDashboardInput = {
+  name: string;
+  description?: string;
+  projectUuid: string;
+  spaceUuid?: string;
+};
+
+export function createMockDashboard(input: CreateMockDashboardInput): Dashboard {
+  const uuid = crypto.randomUUID();
+  const tabUuid = crypto.randomUUID();
+  const spaceUuid = input.spaceUuid ?? MOCK_SPACE_UUID;
+  const now = new Date().toISOString();
+
+  const dashboard: Dashboard = {
+    uuid,
+    name: input.name,
+    description: input.description,
+    slug: slugify(input.name),
+    projectUuid: input.projectUuid,
+    organizationUuid: MOCK_ORG_UUID,
+    spaceUuid,
+    spaceName: resolveSpaceName(spaceUuid),
+    dashboardVersionId: 1,
+    versionUuid: crypto.randomUUID(),
+    updatedAt: now,
+    updatedByUser: {
+      userUuid: MOCK_USER_UUID,
+      firstName: 'Demo',
+      lastName: 'Analyst',
+    },
+    views: 0,
+    firstViewedAt: null,
+    pinnedListUuid: null,
+    pinnedListOrder: null,
+    tabs: [
+      {
+        uuid: tabUuid,
+        name: 'Tab 1',
+        order: 0,
+      },
+    ],
+    filters: {
+      dimensions: [],
+      metrics: [],
+      tableCalculations: [],
+    },
+    inheritsFromOrgOrProject: false,
+    access: [],
+    colorPaletteUuid: null,
+    verification: null,
+    config: {
+      isDateZoomDisabled: false,
+      isAddFilterDisabled: false,
+    },
+    tiles: [],
+  };
+
+  mockDashboardDetails[uuid] = dashboard;
+  mockDashboardsList.push({
+    uuid,
+    name: dashboard.name,
+    description: dashboard.description,
+    projectUuid: dashboard.projectUuid,
+    organizationUuid: dashboard.organizationUuid,
+    spaceUuid: dashboard.spaceUuid,
+    spaceName: dashboard.spaceName,
+    updatedAt: dashboard.updatedAt,
+    updatedByUser: dashboard.updatedByUser,
+    views: dashboard.views,
+    firstViewedAt: dashboard.firstViewedAt,
+    pinnedListUuid: dashboard.pinnedListUuid,
+    pinnedListOrder: dashboard.pinnedListOrder,
+    verification: dashboard.verification,
+    tileTypes: [],
+  });
+
+  return dashboard;
+}
+
 export const mockDashboardDetails: Record<string, Dashboard> = {
   [MOCK_DASHBOARD_UUID]: {
     uuid: MOCK_DASHBOARD_UUID,

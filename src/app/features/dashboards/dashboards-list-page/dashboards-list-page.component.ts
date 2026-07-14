@@ -81,4 +81,13 @@ export class DashboardsListPageComponent {
       dashboardUuid,
     ]);
   }
+
+  protected openCreatePage(): void {
+    const projectUuid = this.projectUuid();
+    if (!projectUuid) {
+      return;
+    }
+
+    void this.router.navigate(['/projects', projectUuid, 'dashboards', 'create']);
+  }
 }

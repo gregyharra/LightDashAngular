@@ -52,12 +52,14 @@
             <span class="dashboards-list__breadcrumb-current">All dashboards</span>
           </nav>
 
-          @if (dashboards().length > 0) {
-            <button mat-flat-button class="dashboards-list__create-btn" disabled>
-              <mat-icon>add</mat-icon>
-              Create dashboard
-            </button>
-          }
+          <button
+            mat-flat-button
+            class="dashboards-list__create-btn"
+            (click)="openCreatePage()"
+          >
+            <mat-icon>add</mat-icon>
+            Create dashboard
+          </button>
         </header>
 
         <h1 class="dashboards-list__title">Dashboards</h1>
@@ -72,6 +74,10 @@
           <div class="dashboards-list__empty">
             <mat-icon>dashboard</mat-icon>
             <p>No dashboards yet.</p>
+            <button mat-flat-button class="dashboards-list__create-btn" (click)="openCreatePage()">
+              <mat-icon>add</mat-icon>
+              Create dashboard
+            </button>
           </div>
         } @else {
           <div class="dashboards-list__table-wrap">

@@ -1,0 +1,105 @@
+.dashboard-create__header {
+  margin-bottom: var(--ld-spacing-md);
+}
+
+.dashboard-create__breadcrumbs {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: var(--ld-font-size-sm);
+  color: var(--ld-gray-6);
+
+  mat-icon {
+    width: 16px;
+    height: 16px;
+    font-size: 16px;
+    color: var(--ld-gray-5);
+  }
+}
+
+.dashboard-create__breadcrumb-link {
+  color: var(--ld-gray-7);
+  text-decoration: none;
+
+  &:hover {
+    color: var(--ld-blue-6);
+    text-decoration: underline;
+  }
+}
+
+.dashboard-create__breadcrumb-current {
+  color: var(--ld-gray-9);
+  font-weight: 500;
+}
+
+.dashboard-create__title {
+  margin: 0 0 var(--ld-spacing-xs);
+  font-size: 18px;
+  font-weight: 600;
+  line-height: 1.3;
+  color: var(--ld-gray-9);
+}
+
+.dashboard-create__subtitle {
+  margin: 0 0 var(--ld-spacing-lg);
+  font-size: var(--ld-font-size-sm);
+  color: var(--ld-gray-6);
+}
+
+.dashboard-create__form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ld-spacing-md);
+  max-width: 480px;
+  padding: var(--ld-spacing-lg);
+  border: 1px solid var(--ld-gray-2);
+  border-radius: var(--ld-radius-md);
+  background-color: var(--ld-background);
+  box-shadow: var(--ld-shadow-subtle);
+}
+
+.dashboard-create__field {
+  width: 100%;
+}
+
+.dashboard-create__error {
+  padding: var(--ld-spacing-sm) var(--ld-spacing-md);
+  border: 1px solid #fa5252;
+  border-radius: var(--ld-radius-md);
+  background-color: #fff5f5;
+  color: #c92a2a;
+  font-size: var(--ld-font-size-sm);
+}
+
+.dashboard-create__actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--ld-spacing-sm);
+  margin-top: var(--ld-spacing-xs);
+}
+
+.dashboard-create__cancel-btn,
+.dashboard-create__submit-btn {
+  min-width: 120px;
+  height: 36px;
+}
+
+.dashboard-create__submit-btn {
+  background-color: var(--ld-foreground) !important;
+  color: var(--ld-gray-0) !important;
+  font-weight: 500;
+
+  mat-spinner {
+    margin: 0 auto;
+  }
+}
+
+.page-sidebar__link--clickable {
+  text-decoration: none;
+  cursor: pointer;
+
+  &:hover {
+    background-color: var(--ld-gray-1);
+    color: var(--ld-gray-9);
+  }
+}

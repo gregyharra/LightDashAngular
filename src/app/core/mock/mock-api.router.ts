@@ -22,6 +22,7 @@ import {
   mockTablesConfiguration,
   mockUser,
 } from './fixtures/index.fixture';
+import { createMockDashboard } from './fixtures/dashboards.fixture';
 import { MOCK_CHART_UUID, MOCK_DASHBOARD_UUID, MOCK_PROJECT_UUID } from './fixtures/ids.fixture';
 import { getExploreDetail } from './fixtures/explore-detail.fixture';
 import { buildMockQueryResults, getMockQueryPollResult, registerMockQuery } from './fixtures/query-results.fixture';
@@ -72,6 +73,33 @@ const dashboardsList = (request: MockRequest) => {
   const match = request.path.match(/^\/projects\/([^/]+)\/dashboards$/);
   const projectUuid = match?.[1] ?? MOCK_PROJECT_UUID;
   return mockDashboards.filter((d) => d.projectUuid === projectUuid);
+};
+
+const dashboardCreate = (request: MockRequest) => {
+  const match = request.path.match(/^\/projects\/([^/]+)\/dashboards$/);
+  const projectUuid = match?.[1] ?? MOCK_PROJECT_UUID;
+  const body = request.body as
+    | {
+        name?: string;
+        description?: string;
+        spaceUuid?: string;
+      }
+    | null;
+
+  if (!body?.name?.trim()) {
+    return createMockDashboard({
+      name: 'Untitled dashboard',
+      projectUuid,
+      spaceUuid: body?.spaceUuid,
+    });
+  }
+
+  return createMockDashboard({
+    name: body.name.trim(),
+    description: body.description?.trim() || undefined,
+    projectUuid,
+    spaceUuid: body.spaceUuid,
+  });
 };
 
 const dashboardDetail = (request: MockRequest) => {
@@ -242,7 +270,8 @@ const routes: MockRoute[] = [
   { pattern: /^\/projects\/[^/]+\/hasDefaultUserSpaces$/, handler: () => ({ hasDefaultUserSpaces: true }) },
   { pattern: /^\/projects\/[^/]+\/spaces$/, handler: () => mockSpaces },
   { pattern: /^\/projects\/[^/]+\/spaces\//, handler: () => mockSpaces[0] },
-  { pattern: /^\/projects\/[^/]+\/dashboards$/, handler: dashboardsList },
+  { pattern: /^\/projects\/[^/]+\/dashboards$/, method: 'GET', handler: dashboardsList },
+  { pattern: /^\/projects\/[^/]+\/dashboards$/, method: 'POST', handler: dashboardCreate },
   { pattern: /^\/projects\/[^/]+\/dashboards\//, handler: dashboardDetail },
   { pattern: /^\/projects\/[^/]+\/saved$/, handler: savedChartsList },
   { pattern: /^\/projects\/[^/]+\/saved\//, handler: savedChartDetail },

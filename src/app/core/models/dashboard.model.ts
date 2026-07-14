@@ -84,6 +84,14 @@ export type DashboardTile =
   | DashboardMarkdownTile
   | DashboardHeadingTile;
 
+export type CreateDashboardPayload = {
+  name: string;
+  description?: string;
+  spaceUuid?: string;
+  tabs?: DashboardTab[];
+  tiles?: DashboardTile[];
+};
+
 export type Dashboard = {
   uuid: string;
   name: string;
