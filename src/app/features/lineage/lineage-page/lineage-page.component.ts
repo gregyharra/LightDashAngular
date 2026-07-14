@@ -18,6 +18,7 @@ import { LineageGraphComponent } from '../lineage-graph/lineage-graph.component'
 import { LineageDetailPanelComponent } from '../lineage-detail-panel/lineage-detail-panel.component';
 import { FolderSearchPanelComponent } from '../folder-search-panel/folder-search-panel.component';
 import { findTreeNodeByLineageId } from '../dbt-tree-utils';
+import { ResizableSidebarDirective } from '../../../layout/resizable-sidebar/resizable-sidebar.directive';
 
 @Component({
   selector: 'app-lineage-page',
@@ -28,6 +29,7 @@ import { findTreeNodeByLineageId } from '../dbt-tree-utils';
     LineageGraphComponent,
     LineageDetailPanelComponent,
     FolderSearchPanelComponent,
+    ResizableSidebarDirective,
   ],
   templateUrl: './lineage-page.component.html',
   styleUrl: './lineage-page.component.scss',

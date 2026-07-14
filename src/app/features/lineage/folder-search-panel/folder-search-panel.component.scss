@@ -1,4 +1,5 @@
 .folder-panel {
+  position: relative;
   display: flex;
   flex-direction: column;
   width: 280px;
@@ -6,12 +7,65 @@
   border-right: 1px solid var(--ld-gray-2);
   background: var(--ld-background);
   overflow: hidden;
+  transition: width 0.2s ease;
+
+  &--collapsed {
+    width: 44px;
+  }
+}
+
+.folder-panel__fold-btn {
+  position: absolute;
+  top: 10px;
+  right: 8px;
+  z-index: 2;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  border: 1px solid var(--ld-gray-3);
+  border-radius: var(--ld-radius-sm);
+  background: var(--ld-background);
+  color: var(--ld-gray-6);
+  cursor: pointer;
+  transition:
+    right 0.2s ease,
+    transform 0.2s ease,
+    background-color 0.15s ease,
+    color 0.15s ease;
+
+  mat-icon {
+    width: 18px;
+    height: 18px;
+    font-size: 18px;
+  }
+
+  &:hover {
+    background: var(--ld-gray-0);
+    color: var(--ld-gray-8);
+    border-color: var(--ld-gray-4);
+  }
+
+  .folder-panel--collapsed & {
+    right: 50%;
+    transform: translateX(50%);
+  }
 }
 
 .folder-panel__header {
   flex-shrink: 0;
   padding: var(--ld-spacing-md);
+  padding-right: 44px;
   border-bottom: 1px solid var(--ld-gray-2);
+  opacity: 1;
+  transition: opacity 0.15s ease;
+
+  .folder-panel--collapsed & {
+    opacity: 0;
+    pointer-events: none;
+  }
 }
 
 .folder-panel__title {
@@ -74,6 +128,14 @@
   flex: 1;
   overflow-y: auto;
   padding: var(--ld-spacing-xs) 0;
+  opacity: 1;
+  transition: opacity 0.15s ease;
+
+  .folder-panel--collapsed & {
+    opacity: 0;
+    pointer-events: none;
+    overflow: hidden;
+  }
 }
 
 .folder-panel__empty {

@@ -1,108 +1,140 @@
 <div class="lineage-graph">
   <div class="lineage-graph__toolbar">
-    <div class="lineage-graph__view-toggle" role="group" aria-label="Graph scope">
-      <button
-        type="button"
-        class="lineage-graph__view-btn"
-        [class.lineage-graph__view-btn--active]="graphMode() === 'focus'"
-        (click)="setGraphMode('focus')"
-      >
-        Focus
-      </button>
-      <button
-        type="button"
-        class="lineage-graph__view-btn"
-        [class.lineage-graph__view-btn--active]="graphMode() === 'full'"
-        (click)="setGraphMode('full')"
-      >
-        Full graph
-      </button>
+    <div class="lineage-graph__toolbar-group lineage-graph__toolbar-group--scope">
+      <div class="lineage-graph__view-toggle" role="group" aria-label="Graph scope">
+        <button
+          type="button"
+          class="lineage-graph__view-btn"
+          [class.lineage-graph__view-btn--active]="graphMode() === 'focus'"
+          (click)="setGraphMode('focus')"
+          aria-label="Focus on selection"
+          title="Focus on selection"
+        >
+          <mat-icon class="lineage-graph__btn-icon" aria-hidden="true">center_focus_strong</mat-icon>
+          <span class="lineage-graph__btn-label">Focus</span>
+        </button>
+        <button
+          type="button"
+          class="lineage-graph__view-btn lineage-graph__view-btn--full"
+          [class.lineage-graph__view-btn--active]="graphMode() === 'full'"
+          (click)="setGraphMode('full')"
+          aria-label="Full graph"
+          title="Full graph"
+        >
+          <mat-icon class="lineage-graph__btn-icon" aria-hidden="true">hub</mat-icon>
+          <span class="lineage-graph__btn-label">
+            <span class="lineage-graph__btn-label-full">Full graph</span>
+            <span class="lineage-graph__btn-label-short">Full</span>
+          </span>
+        </button>
+      </div>
     </div>
 
-    <div class="lineage-graph__toolbar-divider"></div>
+    <div class="lineage-graph__toolbar-divider" aria-hidden="true"></div>
 
-    <div
-      class="lineage-graph__hop-controls"
-      role="group"
-      aria-label="Lineage hop depth"
-      [class.lineage-graph__hop-controls--disabled]="!hopDepthControlsEnabled()"
-    >
-      <button
-        type="button"
-        class="lineage-graph__tool-btn"
-        (click)="decreaseHopDepth()"
-        [disabled]="!canDecreaseHopDepth()"
-        aria-label="Decrease hop depth"
-        title="Show fewer upstream/downstream levels"
+    <div class="lineage-graph__toolbar-group lineage-graph__toolbar-group--hop">
+      <div
+        class="lineage-graph__hop-controls"
+        role="group"
+        aria-label="Lineage hop depth"
+        [class.lineage-graph__hop-controls--disabled]="!hopDepthControlsEnabled()"
       >
+        <button
+          type="button"
+          class="lineage-graph__tool-btn"
+          (click)="decreaseHopDepth()"
+          [disabled]="!canDecreaseHopDepth()"
+          aria-label="Decrease hop depth"
+          title="Show fewer upstream/downstream levels"
+        >
+          −
+        </button>
+        <span class="lineage-graph__hop-label" [attr.aria-label]="'Hop depth: ' + hopDepthLabel()">
+          {{ hopDepthLabel() }}
+        </span>
+        <button
+          type="button"
+          class="lineage-graph__tool-btn"
+          (click)="increaseHopDepth()"
+          [disabled]="!canIncreaseHopDepth()"
+          aria-label="Increase hop depth"
+          title="Show more upstream/downstream levels"
+        >
+          +
+        </button>
+        <button
+          type="button"
+          class="lineage-graph__tool-btn lineage-graph__tool-btn--infinity"
+          [class.lineage-graph__tool-btn--active]="isUnlimitedHopDepth()"
+          (click)="setUnlimitedHopDepth()"
+          [disabled]="!hopDepthControlsEnabled()"
+          aria-label="Show full lineage"
+          title="Show full transitive closure"
+        >
+          ∞
+        </button>
+      </div>
+    </div>
+
+    <div class="lineage-graph__toolbar-divider" aria-hidden="true"></div>
+
+    <div class="lineage-graph__toolbar-group lineage-graph__toolbar-group--view">
+      <div class="lineage-graph__view-toggle" role="group" aria-label="Lineage view mode">
+        <button
+          type="button"
+          class="lineage-graph__view-btn"
+          [class.lineage-graph__view-btn--active]="viewMode() === 'models'"
+          (click)="setViewMode('models')"
+          aria-label="Models view"
+          title="Models view"
+        >
+          <mat-icon class="lineage-graph__btn-icon" aria-hidden="true">table_chart</mat-icon>
+          <span class="lineage-graph__btn-label">Models</span>
+        </button>
+        <button
+          type="button"
+          class="lineage-graph__view-btn"
+          [class.lineage-graph__view-btn--active]="viewMode() === 'columns'"
+          (click)="setViewMode('columns')"
+          aria-label="Columns view"
+          title="Columns view"
+        >
+          <mat-icon class="lineage-graph__btn-icon" aria-hidden="true">view_column</mat-icon>
+          <span class="lineage-graph__btn-label">Columns</span>
+        </button>
+      </div>
+    </div>
+
+    <div class="lineage-graph__toolbar-divider" aria-hidden="true"></div>
+
+    <div class="lineage-graph__toolbar-group lineage-graph__toolbar-group--zoom">
+      <button type="button" class="lineage-graph__tool-btn" (click)="zoomOut()" aria-label="Zoom out" title="Zoom out">
         −
       </button>
-      <span class="lineage-graph__hop-label" [attr.aria-label]="'Hop depth: ' + hopDepthLabel()">
-        {{ hopDepthLabel() }}
-      </span>
-      <button
-        type="button"
-        class="lineage-graph__tool-btn"
-        (click)="increaseHopDepth()"
-        [disabled]="!canIncreaseHopDepth()"
-        aria-label="Increase hop depth"
-        title="Show more upstream/downstream levels"
-      >
+      <span class="lineage-graph__zoom-label">{{ (zoom() * 100) | number: '1.0-0' }}%</span>
+      <button type="button" class="lineage-graph__tool-btn" (click)="zoomIn()" aria-label="Zoom in" title="Zoom in">
         +
       </button>
       <button
         type="button"
-        class="lineage-graph__tool-btn lineage-graph__tool-btn--infinity"
-        [class.lineage-graph__tool-btn--active]="isUnlimitedHopDepth()"
-        (click)="setUnlimitedHopDepth()"
-        [disabled]="!hopDepthControlsEnabled()"
-        aria-label="Show full lineage"
-        title="Show full transitive closure"
+        class="lineage-graph__tool-btn lineage-graph__tool-btn--fit"
+        (click)="resetView()"
+        aria-label="Fit to view"
+        title="Fit to view"
       >
-        ∞
-      </button>
-    </div>
-
-    <div class="lineage-graph__toolbar-divider"></div>
-
-    <div class="lineage-graph__view-toggle" role="group" aria-label="Lineage view mode">
-      <button
-        type="button"
-        class="lineage-graph__view-btn"
-        [class.lineage-graph__view-btn--active]="viewMode() === 'models'"
-        (click)="setViewMode('models')"
-      >
-        Models
+        <mat-icon class="lineage-graph__btn-icon" aria-hidden="true">fit_screen</mat-icon>
+        <span class="lineage-graph__btn-label">Fit</span>
       </button>
       <button
         type="button"
-        class="lineage-graph__view-btn"
-        [class.lineage-graph__view-btn--active]="viewMode() === 'columns'"
-        (click)="setViewMode('columns')"
+        class="lineage-graph__tool-btn lineage-graph__tool-btn--icon"
+        (click)="reorganizeLayout()"
+        aria-label="Reorganize layout"
+        title="Reorganize layout"
       >
-        Columns
+        <mat-icon>account_tree</mat-icon>
       </button>
     </div>
-
-    <div class="lineage-graph__toolbar-divider"></div>
-
-    <button type="button" class="lineage-graph__tool-btn" (click)="zoomOut()" aria-label="Zoom out">
-      −
-    </button>
-    <span class="lineage-graph__zoom-label">{{ (zoom() * 100) | number: '1.0-0' }}%</span>
-    <button type="button" class="lineage-graph__tool-btn" (click)="zoomIn()" aria-label="Zoom in">
-      +
-    </button>
-    <button type="button" class="lineage-graph__tool-btn" (click)="resetView()">Fit</button>
-    <button
-      type="button"
-      class="lineage-graph__tool-btn lineage-graph__tool-btn--icon"
-      (click)="reorganizeLayout()"
-      aria-label="Reorganize layout"
-      title="Reorganize layout"
-    >
-      <mat-icon>account_tree</mat-icon>
-    </button>
   </div>
 
   <div

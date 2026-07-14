@@ -1,4 +1,16 @@
-import { Component, ElementRef, computed, effect, input, output, signal, viewChild } from '@angular/core';
+import { isPlatformBrowser } from '@angular/common';
+import {
+  Component,
+  ElementRef,
+  PLATFORM_ID,
+  computed,
+  effect,
+  inject,
+  input,
+  output,
+  signal,
+  viewChild,
+} from '@angular/core';
 import { MatIconModule } from '@angular/material/icon';
 import {
   ColumnLineageEdge,
@@ -21,6 +33,8 @@ import {
 type DetailTab = LineageDetailTab;
 type ColumnSortKey = 'name' | 'type';
 
+const COLLAPSED_STORAGE_KEY = 'lightdash-lineage-detail-panel-collapsed';
+
 @Component({
   selector: 'app-lineage-detail-panel',
   imports: [MatIconModule],
@@ -28,6 +42,8 @@ type ColumnSortKey = 'name' | 'type';
   styleUrl: './lineage-detail-panel.component.scss',
 })
 export class LineageDetailPanelComponent {
+  private readonly platformId = inject(PLATFORM_ID);
+
   readonly node = input.required<LineageNode>();
   readonly nodes = input.required<LineageNode[]>();
   readonly edges = input.required<LineageEdge[]>();
@@ -38,6 +54,7 @@ export class LineageDetailPanelComponent {
   readonly nodeSelected = output<string>();
   readonly columnSelected = output<ColumnSelectionEvent>();
 
+  protected readonly collapsed = signal(this.readCollapsedState());
   protected readonly activeTab = signal<DetailTab>('overview');
   protected readonly columnSortKey = signal<ColumnSortKey>('name');
   protected readonly columnSortAsc = signal(true);
@@ -164,6 +181,14 @@ export class LineageDetailPanelComponent {
     return this.nodes().find((n) => n.id === selected.nodeId)?.name ?? '';
   });
 
+  protected toggleCollapsed(): void {
+    const next = !this.collapsed();
+    this.collapsed.set(next);
+    if (isPlatformBrowser(this.platformId)) {
+      localStorage.setItem(COLLAPSED_STORAGE_KEY, String(next));
+    }
+  }
+
   protected setTab(tab: DetailTab): void {
     this.activeTab.set(tab);
   }
@@ -224,6 +249,13 @@ export class LineageDetailPanelComponent {
       ref: { nodeId, columnName },
       detailTab: 'lineage',
     });
+  }
+
+  private readCollapsedState(): boolean {
+    if (!isPlatformBrowser(this.platformId)) {
+      return false;
+    }
+    return localStorage.getItem(COLLAPSED_STORAGE_KEY) === 'true';
   }
 
   protected typeLabel(type: string): string {

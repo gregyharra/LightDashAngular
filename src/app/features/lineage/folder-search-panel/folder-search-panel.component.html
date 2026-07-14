@@ -1,4 +1,14 @@
-<aside class="folder-panel">
+<aside class="folder-panel" [class.folder-panel--collapsed]="collapsed()">
+  <button
+    type="button"
+    class="folder-panel__fold-btn"
+    [attr.aria-expanded]="!collapsed()"
+    [attr.aria-label]="collapsed() ? 'Expand project panel' : 'Collapse project panel'"
+    (click)="toggleCollapsed()"
+  >
+    <mat-icon>{{ collapsed() ? 'chevron_right' : 'chevron_left' }}</mat-icon>
+  </button>
+
   <header class="folder-panel__header">
     <h2 class="folder-panel__title">Project</h2>
     <div class="folder-panel__search-wrap">

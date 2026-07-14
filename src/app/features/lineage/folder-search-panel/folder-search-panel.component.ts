@@ -1,8 +1,11 @@
+import { isPlatformBrowser } from '@angular/common';
 import {
   Component,
   ElementRef,
+  PLATFORM_ID,
   computed,
   effect,
+  inject,
   input,
   output,
   signal,
@@ -19,6 +22,8 @@ import {
   getDefaultExpandedPaths,
 } from '../dbt-tree-utils';
 
+const COLLAPSED_STORAGE_KEY = 'lightdash-lineage-folder-panel-collapsed';
+
 @Component({
   selector: 'app-folder-search-panel',
   imports: [FormsModule, MatIconModule],
@@ -26,6 +31,8 @@ import {
   styleUrl: './folder-search-panel.component.scss',
 })
 export class FolderSearchPanelComponent {
+  private readonly platformId = inject(PLATFORM_ID);
+
   readonly tree = input.required<DbtTreeNode[]>();
   readonly selectedNodeId = input<string | null>(null);
 
@@ -34,6 +41,7 @@ export class FolderSearchPanelComponent {
 
   private readonly treeNavRef = viewChild<ElementRef<HTMLElement>>('treeNav');
 
+  protected readonly collapsed = signal(this.readCollapsedState());
   protected readonly searchQuery = signal('');
   protected readonly expandedPaths = signal<Set<string>>(new Set());
 
@@ -111,6 +119,14 @@ export class FolderSearchPanelComponent {
     }
   }
 
+  protected toggleCollapsed(): void {
+    const next = !this.collapsed();
+    this.collapsed.set(next);
+    if (isPlatformBrowser(this.platformId)) {
+      localStorage.setItem(COLLAPSED_STORAGE_KEY, String(next));
+    }
+  }
+
   protected toggleFolder(path: string, event: Event): void {
     event.stopPropagation();
     const next = new Set(this.expandedPaths());
@@ -132,6 +148,13 @@ export class FolderSearchPanelComponent {
 
   protected isSelected(item: DbtTreeNode): boolean {
     return !!item.lineageNodeId && item.lineageNodeId === this.selectedNodeId();
+  }
+
+  private readCollapsedState(): boolean {
+    if (!isPlatformBrowser(this.platformId)) {
+      return false;
+    }
+    return localStorage.getItem(COLLAPSED_STORAGE_KEY) === 'true';
   }
 
   protected iconForType(type: DbtTreeNode['type']): string {

@@ -17,6 +17,7 @@ import {
   LineageGraphMode,
   LineageHopDepth,
   LineageNode,
+  LineageNodePosition,
   LineageViewMode,
   SelectedColumnRef,
 } from '../../../core/models/lineage.model';
@@ -28,6 +29,7 @@ import {
   computeColumnLineageHighlight,
   getColumnIndex,
   getColumnY,
+  getExpandedNodeHeight,
   getNodeIdsFromColumnKeys,
   parseColumnRefKey,
 } from '../lineage-column-utils';
@@ -88,6 +90,8 @@ export class LineageGraphComponent implements AfterViewInit {
   protected readonly panY = signal(0);
   protected readonly isPanning = signal(false);
   protected readonly expandedNodeIds = signal<Set<string>>(new Set());
+  /** Expanded nodes baked into the last auto-layout (reorganize or columns view). */
+  private readonly layoutExpandedNodeIds = signal<ReadonlySet<string>>(new Set());
   protected readonly customPositions = signal<Map<string, { x: number; y: number }>>(new Map());
   protected readonly layoutRevision = signal(0);
   protected readonly isReorganizing = signal(false);
@@ -110,18 +114,25 @@ export class LineageGraphComponent implements AfterViewInit {
 
   protected readonly positions = computed(() => {
     this.layoutRevision();
-    const auto = layoutLineageNodes(
-      this.displayNodes(),
-      this.displayEdges(),
-      this.effectiveViewMode(),
-      this.expandedNodeIds(),
-    );
+    const nodes = this.displayNodes();
+    const edges = this.displayEdges();
+    const viewMode = this.effectiveViewMode();
+    const expanded = this.expandedNodeIds();
+
+    const layoutExpandedIds =
+      viewMode === 'columns'
+        ? new Set(nodes.map((node) => node.id))
+        : this.layoutExpandedNodeIds();
+
+    let positions = layoutLineageNodes(nodes, edges, viewMode, layoutExpandedIds);
+    positions = this.applyExpandedHeights(positions, nodes, expanded, viewMode);
+
     const custom = this.customPositions();
     if (custom.size === 0) {
-      return auto;
+      return positions;
     }
 
-    const merged = new Map(auto);
+    const merged = new Map(positions);
     for (const [nodeId, offset] of custom) {
       const base = merged.get(nodeId);
       if (base) {
@@ -278,7 +289,6 @@ export class LineageGraphComponent implements AfterViewInit {
     effect(() => {
       const selectedColumn = this.selectedColumn();
       this.viewMode();
-      this.expandedNodeIds();
       if (selectedColumn) {
         this.scheduleFocusOnColumnLineage();
         return;
@@ -293,22 +303,31 @@ export class LineageGraphComponent implements AfterViewInit {
     effect(() => {
       const mode = this.viewMode();
       const selectedColumn = this.selectedColumn();
-      const nextIds =
-        mode === 'columns'
-          ? this.displayNodes().map((n) => n.id)
-          : selectedColumn
-            ? [...this.columnLineageNodeIds()]
-            : [];
 
-      const current = this.expandedNodeIds();
-      if (
-        nextIds.length === current.size &&
-        nextIds.every((id) => current.has(id))
-      ) {
+      if (mode === 'columns') {
+        const nextIds = this.displayNodes().map((n) => n.id);
+        const current = this.expandedNodeIds();
+        if (
+          nextIds.length === current.size &&
+          nextIds.every((id) => current.has(id))
+        ) {
+          return;
+        }
+        this.expandedNodeIds.set(new Set(nextIds));
         return;
       }
 
-      this.expandedNodeIds.set(new Set(nextIds));
+      if (selectedColumn) {
+        const nextIds = [...this.columnLineageNodeIds()];
+        const current = this.expandedNodeIds();
+        if (
+          nextIds.length === current.size &&
+          nextIds.every((id) => current.has(id))
+        ) {
+          return;
+        }
+        this.expandedNodeIds.set(new Set(nextIds));
+      }
     });
   }
 
@@ -362,7 +381,6 @@ export class LineageGraphComponent implements AfterViewInit {
       next.add(nodeId);
     }
     this.expandedNodeIds.set(next);
-    this.scheduleFitToView();
   }
 
   protected onNodeDoubleClick(nodeId: string, event: Event): void {
@@ -374,7 +392,6 @@ export class LineageGraphComponent implements AfterViewInit {
     const next = new Set(this.expandedNodeIds());
     next.add(nodeId);
     this.expandedNodeIds.set(next);
-    this.scheduleFitToView();
   }
 
   protected hasColumnFocus(): boolean {
@@ -651,11 +668,41 @@ export class LineageGraphComponent implements AfterViewInit {
   }
 
   protected reorganizeLayout(): void {
+    const nodes = this.displayNodes();
+    const viewMode = this.effectiveViewMode();
+    const layoutExpanded =
+      viewMode === 'columns'
+        ? new Set(nodes.map((node) => node.id))
+        : new Set(this.expandedNodeIds());
+    this.layoutExpandedNodeIds.set(layoutExpanded);
     this.customPositions.set(new Map());
     this.layoutRevision.update((revision) => revision + 1);
     this.isReorganizing.set(true);
     this.scheduleFitToView();
     window.setTimeout(() => this.isReorganizing.set(false), REORGANIZE_TRANSITION_MS);
+  }
+
+  private applyExpandedHeights(
+    positions: Map<string, LineageNodePosition>,
+    nodes: LineageNode[],
+    expandedIds: ReadonlySet<string>,
+    viewMode: LineageViewMode,
+  ): Map<string, LineageNodePosition> {
+    if (viewMode === 'columns') {
+      return positions;
+    }
+
+    const result = new Map(positions);
+    for (const node of nodes) {
+      if (!expandedIds.has(node.id) || !node.columns?.length) {
+        continue;
+      }
+      const pos = result.get(node.id);
+      if (pos) {
+        result.set(node.id, { ...pos, height: getExpandedNodeHeight(node) });
+      }
+    }
+    return result;
   }
 
   protected onWheel(event: WheelEvent): void {

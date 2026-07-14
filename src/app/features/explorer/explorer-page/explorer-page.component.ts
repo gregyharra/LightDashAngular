@@ -15,6 +15,7 @@ import {
   getFieldId,
 } from '../../../core/models/explore.model';
 import { ExplorerService } from '../explorer.service';
+import { ResizableSidebarDirective } from '../../../layout/resizable-sidebar/resizable-sidebar.directive';
 
 type TableFieldGroup = {
   table: CompiledTable;
@@ -32,6 +33,7 @@ type TableFieldGroup = {
     MatIconModule,
     MatProgressSpinnerModule,
     MatTableModule,
+    ResizableSidebarDirective,
   ],
   templateUrl: './explorer-page.component.html',
   styleUrl: './explorer-page.component.scss',

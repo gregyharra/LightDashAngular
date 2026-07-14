@@ -6,6 +6,7 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { ActiveProjectService } from '../../../core/services/active-project.service';
 import { ExploreSummary } from '../../../core/models/explore.model';
 import { ExplorerService } from '../explorer.service';
+import { ResizableSidebarDirective } from '../../../layout/resizable-sidebar/resizable-sidebar.directive';
 
 @Component({
   selector: 'app-explorer-list-page',
@@ -14,6 +15,7 @@ import { ExplorerService } from '../explorer.service';
     MatButtonModule,
     MatIconModule,
     MatProgressSpinnerModule,
+    ResizableSidebarDirective,
   ],
   templateUrl: './explorer-list-page.component.html',
   styleUrl: './explorer-list-page.component.scss',

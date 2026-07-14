@@ -6,6 +6,7 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { ActiveProjectService } from '../../../core/services/active-project.service';
 import { DashboardBasicDetailsWithTileTypes } from '../../../core/models/dashboard.model';
 import { DashboardService } from '../dashboard.service';
+import { ResizableSidebarDirective } from '../../../layout/resizable-sidebar/resizable-sidebar.directive';
 
 @Component({
   selector: 'app-dashboards-list-page',
@@ -14,6 +15,7 @@ import { DashboardService } from '../dashboard.service';
     MatButtonModule,
     MatIconModule,
     MatProgressSpinnerModule,
+    ResizableSidebarDirective,
   ],
   templateUrl: './dashboards-list-page.component.html',
   styleUrl: './dashboards-list-page.component.scss',

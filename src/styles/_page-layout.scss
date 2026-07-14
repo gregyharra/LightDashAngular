@@ -5,11 +5,56 @@
 }
 
 .page-layout__sidebar {
+  position: relative;
   flex-shrink: 0;
   width: var(--ld-sidebar-default-width);
   min-width: var(--ld-sidebar-min-width);
+  max-width: var(--ld-sidebar-max-width);
   border-right: 1px solid var(--ld-gray-2);
   background-color: var(--ld-background);
+  transition: width 0.2s ease;
+
+  &--resizing {
+    user-select: none;
+    transition: none;
+  }
+
+  &--collapsed {
+    min-width: var(--ld-sidebar-collapsed-width);
+    max-width: var(--ld-sidebar-collapsed-width);
+  }
+}
+
+.page-sidebar__resize-handle {
+  position: absolute;
+  top: 0;
+  right: -2px;
+  z-index: 2;
+  width: 4px;
+  height: 100%;
+  cursor: col-resize;
+  touch-action: none;
+  transition: opacity 0.15s ease;
+
+  &:hover {
+    background-color: var(--ld-blue-6);
+    opacity: 0.35;
+  }
+
+  .page-layout__sidebar--collapsed & {
+    opacity: 0;
+    pointer-events: none;
+  }
+}
+
+.page-layout__sidebar--resizing .page-sidebar__resize-handle {
+  background-color: var(--ld-blue-6);
+  opacity: 0.55;
+}
+
+body.page-layout--sidebar-resizing {
+  cursor: col-resize !important;
+  user-select: none;
 }
 
 .page-layout__content {
@@ -19,16 +64,70 @@
 }
 
 .page-sidebar {
+  position: relative;
   display: flex;
   flex-direction: column;
   height: 100%;
   padding: var(--ld-spacing-md);
   padding-bottom: 0;
+  overflow: hidden;
+
+  &--collapsed {
+    padding-inline: var(--ld-spacing-xs);
+  }
+}
+
+.page-sidebar__fold-btn {
+  position: absolute;
+  top: 10px;
+  right: 8px;
+  z-index: 2;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  border: 1px solid var(--ld-gray-3);
+  border-radius: var(--ld-radius-sm);
+  background: var(--ld-background);
+  color: var(--ld-gray-6);
+  cursor: pointer;
+  transition:
+    right 0.2s ease,
+    transform 0.2s ease,
+    background-color 0.15s ease,
+    color 0.15s ease;
+
+  .mat-icon {
+    width: 18px;
+    height: 18px;
+    font-size: 18px;
+  }
+
+  &:hover {
+    background: var(--ld-gray-0);
+    color: var(--ld-gray-8);
+    border-color: var(--ld-gray-4);
+  }
+
+  .page-sidebar--collapsed & {
+    right: 50%;
+    transform: translateX(50%);
+  }
 }
 
 .page-sidebar__header {
   flex-shrink: 0;
   margin-bottom: var(--ld-spacing-md);
+  padding-right: 36px;
+  opacity: 1;
+  transition: opacity 0.15s ease;
+
+  .page-sidebar--collapsed & {
+    opacity: 0;
+    pointer-events: none;
+  }
 }
 
 .page-sidebar__breadcrumb {
@@ -48,6 +147,10 @@
   display: flex;
   flex-direction: column;
   gap: 2px;
+
+  .page-sidebar--collapsed & {
+    margin-top: 40px;
+  }
 }
 
 .page-sidebar__section-label {
@@ -56,6 +159,13 @@
   font-weight: 600;
   letter-spacing: 0.01em;
   color: var(--ld-gray-6);
+  opacity: 1;
+  transition: opacity 0.15s ease;
+
+  .page-sidebar--collapsed & {
+    opacity: 0;
+    pointer-events: none;
+  }
 }
 
 .page-sidebar__link {
@@ -75,9 +185,12 @@
   cursor: default;
   transition:
     background-color 150ms ease,
-    color 150ms ease;
+    color 150ms ease,
+    padding 0.2s ease,
+    justify-content 0.2s ease;
 
   mat-icon {
+    flex-shrink: 0;
     width: 16px;
     height: 16px;
     font-size: 16px;
@@ -92,5 +205,155 @@
     mat-icon {
       color: var(--ld-gray-9);
     }
+  }
+
+  .page-sidebar--collapsed & {
+    justify-content: center;
+    gap: 0;
+    padding: 8px;
+    font-size: 0;
+
+    mat-icon {
+      font-size: 16px;
+    }
+  }
+}
+
+// Lineage graph toolbar — responsive layout (global to avoid component style budget)
+.lineage-graph {
+  container-type: inline-size;
+  container-name: lineage-graph;
+}
+
+.lineage-graph__toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--ld-spacing-xs);
+  row-gap: var(--ld-spacing-xxs);
+  padding: var(--ld-spacing-xs) var(--ld-spacing-sm);
+  border-bottom: 1px solid var(--ld-gray-2);
+  background: var(--ld-gray-0);
+}
+
+.lineage-graph__toolbar-group {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--ld-spacing-xxs);
+  flex-shrink: 0;
+}
+
+.lineage-graph__btn-icon {
+  display: none;
+  width: 16px;
+  height: 16px;
+  font-size: 16px;
+  line-height: 16px;
+}
+
+button.lineage-graph__view-btn mat-icon.lineage-graph__btn-icon,
+button.lineage-graph__tool-btn--fit mat-icon.lineage-graph__btn-icon {
+  display: none;
+}
+
+.lineage-graph__btn-label-short {
+  display: none;
+}
+
+.lineage-graph__view-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  white-space: nowrap;
+
+  &--active .lineage-graph__btn-icon {
+    color: #fff;
+  }
+}
+
+.lineage-graph__tool-btn--fit {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 6px;
+  gap: 4px;
+
+  mat-icon {
+    width: 18px;
+    height: 18px;
+    font-size: 18px;
+    line-height: 18px;
+  }
+}
+
+// Lineage graph toolbar — container-query responsive layout
+@container lineage-graph (max-width: 560px) {
+  .lineage-graph__view-btn--full .lineage-graph__btn-label-full {
+    display: none;
+  }
+
+  .lineage-graph__view-btn--full .lineage-graph__btn-label-short {
+    display: inline;
+  }
+}
+
+@container lineage-graph (max-width: 420px) {
+  .lineage-graph__toolbar {
+    gap: var(--ld-spacing-xxs);
+    padding: var(--ld-spacing-xxs) var(--ld-spacing-xs);
+  }
+
+  .lineage-graph__toolbar-divider {
+    display: none;
+  }
+
+  .lineage-graph__btn-icon {
+    display: inline-flex;
+  }
+
+  button.lineage-graph__view-btn mat-icon.lineage-graph__btn-icon,
+  button.lineage-graph__tool-btn--fit mat-icon.lineage-graph__btn-icon {
+    display: inline-flex;
+  }
+
+  .lineage-graph__btn-label {
+    display: none;
+  }
+
+  .lineage-graph__view-btn {
+    min-width: 28px;
+    padding: 4px 6px;
+  }
+
+  .lineage-graph__tool-btn {
+    min-width: 26px;
+    height: 26px;
+    padding: 0 4px;
+  }
+
+  .lineage-graph__tool-btn--icon mat-icon,
+  .lineage-graph__tool-btn--fit mat-icon {
+    width: 16px;
+    height: 16px;
+    font-size: 16px;
+    line-height: 16px;
+  }
+
+  .lineage-graph__hop-label {
+    min-width: 24px;
+    height: 26px;
+    font-size: var(--ld-font-size-xs);
+  }
+
+  .lineage-graph__zoom-label {
+    min-width: 36px;
+    font-size: 11px;
+  }
+}
+
+@container lineage-graph (max-width: 300px) {
+  .lineage-graph__zoom-label {
+    display: none;
   }
 }

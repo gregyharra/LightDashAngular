@@ -1,5 +1,15 @@
 @if (node(); as selected) {
-  <aside class="lineage-detail" #panelRoot>
+  <aside class="lineage-detail" [class.lineage-detail--collapsed]="collapsed()" #panelRoot>
+    <button
+      type="button"
+      class="lineage-detail__fold-btn"
+      [attr.aria-expanded]="!collapsed()"
+      [attr.aria-label]="collapsed() ? 'Expand detail panel' : 'Collapse detail panel'"
+      (click)="toggleCollapsed()"
+    >
+      <mat-icon>{{ collapsed() ? 'chevron_left' : 'chevron_right' }}</mat-icon>
+    </button>
+
     <header class="lineage-detail__header">
       <span class="lineage-detail__type lineage-detail__type--{{ selected.type }}">
         {{ typeLabel(selected.type) }}
