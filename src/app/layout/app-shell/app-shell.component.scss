@@ -64,6 +64,24 @@
 
   &--primary {
     margin-left: var(--ld-spacing-sm);
+
+    .shell__nav-btn {
+      --mdc-text-button-label-text-color: #fff;
+      --mdc-text-button-disabled-label-text-color: rgba(255, 255, 255, 0.5);
+      color: #fff;
+
+      mat-icon {
+        color: var(--ld-dark-8);
+      }
+
+      &:hover:not([disabled]) {
+        color: #fff;
+
+        mat-icon {
+          color: #fff;
+        }
+      }
+    }
   }
 }
 
@@ -79,6 +97,7 @@
   line-height: 1;
 
   mat-icon {
+    flex-shrink: 0;
     width: 16px;
     height: 16px;
     font-size: 16px;
@@ -121,7 +140,7 @@
     padding: 0;
 
     mat-icon {
-      margin-right: 0;
+      margin: 0;
     }
   }
 }

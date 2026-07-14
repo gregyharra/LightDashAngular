@@ -11,14 +11,14 @@
       <nav class="page-sidebar__nav" aria-label="Browse navigation">
         <p class="page-sidebar__section-label">Content</p>
         <a
-          class="page-sidebar__link page-sidebar__link--active page-sidebar__link--clickable"
+          class="page-sidebar__link page-sidebar__link--clickable"
           [routerLink]="['/projects', projectUuid(), 'dashboards']"
         >
           <mat-icon>dashboard</mat-icon>
           Dashboards
         </a>
         <a
-          class="page-sidebar__link page-sidebar__link--clickable"
+          class="page-sidebar__link page-sidebar__link--active page-sidebar__link--clickable"
           [routerLink]="['/projects', projectUuid(), 'charts']"
         >
           <mat-icon>bar_chart</mat-icon>
@@ -43,72 +43,76 @@
   </aside>
 
   <div class="page-layout__content">
-    <section class="dashboards-list">
+    <section class="charts-list">
       <div class="page__container page__container--wide">
-        <header class="dashboards-list__header">
-          <nav class="dashboards-list__breadcrumbs" aria-label="Breadcrumb">
-            <a routerLink="/projects" class="dashboards-list__breadcrumb-link">Home</a>
+        <header class="charts-list__header">
+          <nav class="charts-list__breadcrumbs" aria-label="Breadcrumb">
+            <a routerLink="/projects" class="charts-list__breadcrumb-link">Home</a>
             <mat-icon>chevron_right</mat-icon>
-            <span class="dashboards-list__breadcrumb-current">All dashboards</span>
+            <span class="charts-list__breadcrumb-current">All charts</span>
           </nav>
 
-          @if (dashboards().length > 0) {
-            <button mat-flat-button class="dashboards-list__create-btn" disabled>
+          @if (charts().length > 0) {
+            <button mat-flat-button class="charts-list__create-btn" disabled>
               <mat-icon>add</mat-icon>
-              Create dashboard
+              Create chart
             </button>
           }
         </header>
 
-        <h1 class="dashboards-list__title">Dashboards</h1>
+        <h1 class="charts-list__title">Charts</h1>
 
         @if (loading()) {
-          <div class="dashboards-list__loading">
+          <div class="charts-list__loading">
             <mat-spinner diameter="32" />
           </div>
         } @else if (error()) {
-          <div class="dashboards-list__error">{{ error() }}</div>
-        } @else if (dashboards().length === 0) {
-          <div class="dashboards-list__empty">
-            <mat-icon>dashboard</mat-icon>
-            <p>No dashboards yet.</p>
+          <div class="charts-list__error">{{ error() }}</div>
+        } @else if (charts().length === 0) {
+          <div class="charts-list__empty">
+            <mat-icon>bar_chart</mat-icon>
+            <p>No charts yet.</p>
           </div>
         } @else {
-          <div class="dashboards-list__table-wrap">
-            <table class="dashboards-list__table">
+          <div class="charts-list__table-wrap">
+            <table class="charts-list__table">
               <thead>
                 <tr>
                   <th scope="col">Name</th>
+                  <th scope="col">Type</th>
+                  <th scope="col">Table</th>
                   <th scope="col">Space</th>
                   <th scope="col">Last edited</th>
                   <th scope="col">Views</th>
                 </tr>
               </thead>
               <tbody>
-                @for (dashboard of dashboards(); track dashboard.uuid) {
+                @for (chart of charts(); track chart.uuid) {
                   <tr
-                    class="dashboards-list__row"
+                    class="charts-list__row"
                     tabindex="0"
                     role="link"
-                    (click)="openDashboard(dashboard.uuid)"
-                    (keydown.enter)="openDashboard(dashboard.uuid)"
+                    (click)="openChart(chart.uuid)"
+                    (keydown.enter)="openChart(chart.uuid)"
                   >
                     <td>
-                      <div class="dashboards-list__name-cell">
-                        <mat-icon class="dashboards-list__item-icon">dashboard</mat-icon>
+                      <div class="charts-list__name-cell">
+                        <mat-icon class="charts-list__item-icon">bar_chart</mat-icon>
                         <div>
-                          <span class="dashboards-list__item-name">{{ dashboard.name }}</span>
-                          @if (dashboard.description) {
-                            <span class="dashboards-list__item-description">
-                              {{ dashboard.description }}
+                          <span class="charts-list__item-name">{{ chart.name }}</span>
+                          @if (chart.description) {
+                            <span class="charts-list__item-description">
+                              {{ chart.description }}
                             </span>
                           }
                         </div>
                       </div>
                     </td>
-                    <td>{{ dashboard.spaceName ?? 'Shared' }}</td>
-                    <td>{{ formatDate(dashboard.updatedAt) }}</td>
-                    <td>{{ dashboard.views }}</td>
+                    <td>{{ chartKindLabel(chart.chartKind) }}</td>
+                    <td>{{ chart.tableName }}</td>
+                    <td>{{ chart.spaceName }}</td>
+                    <td>{{ formatDate(chart.updatedAt) }}</td>
+                    <td>{{ chart.views }}</td>
                   </tr>
                 }
               </tbody>

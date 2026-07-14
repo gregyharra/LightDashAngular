@@ -11,6 +11,7 @@ import {
   DashboardTileTypes,
 } from '../../../core/models/dashboard.model';
 import { DashboardService } from '../dashboard.service';
+import { ResizableSidebarDirective } from '../../../layout/resizable-sidebar/resizable-sidebar.directive';
 
 const GRID_COLS = 36;
 const GRID_ROW_HEIGHT_PX = 55;
@@ -24,6 +25,7 @@ const GRID_GAP_PX = 10;
     MatButtonModule,
     MatIconModule,
     MatProgressSpinnerModule,
+    ResizableSidebarDirective,
   ],
   templateUrl: './dashboard-view-page.component.html',
   styleUrl: './dashboard-view-page.component.scss',

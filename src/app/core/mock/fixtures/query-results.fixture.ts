@@ -86,11 +86,123 @@ type ExploreColumnMapping = Record<
   keyof RawOrderRow | 'total_revenue' | 'order_count' | 'average_order_value'
 >;
 
+function getDimensionValue(
+  row: RawOrderRow,
+  fieldId: FieldId,
+  columnMap: ExploreColumnMapping,
+): unknown {
+  const key = columnMap[fieldId];
+  if (!key || !(key in row)) {
+    return null;
+  }
+
+  const raw = row[key as keyof RawOrderRow];
+  if (fieldId.endsWith('_order_date') && raw) {
+    return String(raw).slice(0, 7);
+  }
+
+  return raw;
+}
+
+function aggregateMetric(
+  metricId: FieldId,
+  groupRows: RawOrderRow[],
+): number {
+  if (metricId.endsWith('_total_revenue')) {
+    return groupRows.reduce((sum, row) => sum + row.amount, 0);
+  }
+
+  if (metricId.endsWith('_order_count')) {
+    return groupRows.length;
+  }
+
+  if (metricId.endsWith('_average_order_value')) {
+    const total = groupRows.reduce((sum, row) => sum + row.amount, 0);
+    return total / groupRows.length;
+  }
+
+  return 0;
+}
+
+function buildGroupedRows(
+  columnMap: ExploreColumnMapping,
+  selectedDimensions: FieldId[],
+  selectedMetrics: FieldId[],
+): ResultRow[] {
+  const groups = new Map<
+    string,
+    { dimensionValues: Record<FieldId, unknown>; rows: RawOrderRow[] }
+  >();
+
+  for (const row of rawOrderRows) {
+    const dimensionValues: Record<FieldId, unknown> = {};
+    const keyParts: string[] = [];
+
+    for (const fieldId of selectedDimensions) {
+      const value = getDimensionValue(row, fieldId, columnMap);
+      dimensionValues[fieldId] = value;
+      keyParts.push(String(value));
+    }
+
+    const key = keyParts.join('|');
+    const existing = groups.get(key);
+    if (existing) {
+      existing.rows.push(row);
+    } else {
+      groups.set(key, { dimensionValues, rows: [row] });
+    }
+  }
+
+  return Array.from(groups.values())
+    .map(({ dimensionValues, rows }) => {
+      const resultRow: ResultRow = {};
+
+      for (const fieldId of selectedDimensions) {
+        const raw = dimensionValues[fieldId];
+        resultRow[fieldId] = {
+          value: { raw, formatted: formatValue(raw) },
+        };
+      }
+
+      for (const metricId of selectedMetrics) {
+        const raw = aggregateMetric(metricId, rows);
+        resultRow[metricId] = {
+          value: { raw, formatted: formatValue(raw) },
+        };
+      }
+
+      return resultRow;
+    })
+    .sort((left, right) => {
+      const firstDimension = selectedDimensions[0];
+      if (!firstDimension) {
+        return 0;
+      }
+
+      const leftValue = left[firstDimension]?.value.raw;
+      const rightValue = right[firstDimension]?.value.raw;
+      if (leftValue === rightValue) {
+        return 0;
+      }
+      if (leftValue === null || leftValue === undefined) {
+        return 1;
+      }
+      if (rightValue === null || rightValue === undefined) {
+        return -1;
+      }
+      return String(leftValue).localeCompare(String(rightValue));
+    });
+}
+
 function buildRows(
   columnMap: ExploreColumnMapping,
   selectedDimensions: FieldId[],
   selectedMetrics: FieldId[],
 ): ResultRow[] {
+  if (selectedMetrics.length > 0 && selectedDimensions.length > 0) {
+    return buildGroupedRows(columnMap, selectedDimensions, selectedMetrics);
+  }
+
   if (selectedMetrics.length > 0) {
     const totalRevenue = rawOrderRows.reduce((sum, row) => sum + row.amount, 0);
     const orderCount = rawOrderRows.length;

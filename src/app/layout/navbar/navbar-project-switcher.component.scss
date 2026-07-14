@@ -23,6 +23,7 @@
 }
 
 .project-switcher__chevron {
+  flex-shrink: 0;
   width: 16px;
   height: 16px;
   font-size: 16px;

@@ -253,3 +253,13 @@
   font-size: var(--ld-font-size-xs);
   color: var(--ld-gray-5);
 }
+
+.page-sidebar__link--clickable {
+  text-decoration: none;
+  cursor: pointer;
+
+  &:hover {
+    background-color: var(--ld-gray-1);
+    color: var(--ld-gray-9);
+  }
+}

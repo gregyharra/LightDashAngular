@@ -16,6 +16,7 @@ import { mockLineage } from './lineage.fixture';
 import { mockDbtProjectTree } from './dbt-project-tree.fixture';
 import { mockDbtSources } from './dbt-sources.fixture';
 import { mockExplores } from './explores.fixture';
+import { mockSavedChartsList } from './charts.fixture';
 
 export { mockExplores };
 
@@ -190,23 +191,7 @@ export const mockSpaces = [
 export const mockDashboards = mockDashboardsList;
 export { mockDashboardDetails };
 
-export const mockSavedCharts = [
-  {
-    uuid: MOCK_CHART_UUID,
-    name: 'Revenue by month',
-    description: 'Monthly revenue trend',
-    spaceUuid: MOCK_SPACE_UUID,
-    spaceName: 'Shared',
-    projectUuid: MOCK_PROJECT_UUID,
-    updatedAt: '2024-05-20T09:30:00.000Z',
-    pinnedListUuid: null,
-    pinnedListOrder: null,
-    views: 18,
-    firstViewedAt: '2024-02-01T10:00:00.000Z',
-    isPrivate: false,
-    access: [],
-  },
-];
+export const mockSavedCharts = mockSavedChartsList;
 
 export const mockFavorites = {
   charts: [MOCK_CHART_UUID],

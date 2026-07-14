@@ -20,6 +20,11 @@ export type HealthResults = {
   version: string;
   isAuthenticated: boolean;
   healthy?: boolean;
+  query?: {
+    defaultLimit?: number;
+    maxLimit?: number;
+    maxPageSize?: number;
+  };
 };
 
 export type UserProfile = {

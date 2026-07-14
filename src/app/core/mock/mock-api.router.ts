@@ -25,8 +25,48 @@ import {
 import { MOCK_CHART_UUID, MOCK_DASHBOARD_UUID, MOCK_PROJECT_UUID } from './fixtures/ids.fixture';
 import { getExploreDetail } from './fixtures/explore-detail.fixture';
 import { buildMockQueryResults, getMockQueryPollResult, registerMockQuery } from './fixtures/query-results.fixture';
+import { mockSavedChartDetails } from './fixtures/charts.fixture';
+import {
+  executeMockSqlQuery,
+  getMockSqlQueryPollResult,
+  getMockSqlQueryResultsStream,
+  getMockTableFields,
+  isSqlQueryUuid,
+  mockWarehouseTablesCatalog,
+} from './fixtures/sql-runner.fixture';
 import { MetricQuery } from '../models/explore.model';
 import { MockRequest, MockRoute } from './mock-api.types';
+
+const savedChartsList = (request: MockRequest) => {
+  const match = request.path.match(/^\/projects\/([^/]+)\/(?:saved|charts)$/);
+  const projectUuid = match?.[1] ?? MOCK_PROJECT_UUID;
+  return mockSavedCharts.filter((chart) => chart.projectUuid === projectUuid);
+};
+
+const savedChartDetailGlobal = (request: MockRequest) => {
+  const match = request.path.match(/^\/saved\/([^/]+)$/);
+  const chartUuid = match?.[1] ?? MOCK_CHART_UUID;
+  return (
+    mockSavedChartDetails[chartUuid] ?? {
+      ...mockSavedChartDetails[MOCK_CHART_UUID],
+      uuid: chartUuid,
+    }
+  );
+};
+
+const savedChartDetail = (request: MockRequest) => {
+  const match = request.path.match(
+    /^\/projects\/([^/]+)\/(?:saved|charts)\/([^/]+)$/,
+  );
+  const chartUuid = match?.[2] ?? MOCK_CHART_UUID;
+  const found = mockSavedChartDetails[chartUuid];
+  return (
+    found ?? {
+      ...mockSavedChartDetails[MOCK_CHART_UUID],
+      uuid: chartUuid,
+    }
+  );
+};
 
 const dashboardsList = (request: MockRequest) => {
   const match = request.path.match(/^\/projects\/([^/]+)\/dashboards$/);
@@ -120,7 +160,33 @@ const metricQuery = (request: MockRequest) => {
 const queryPoll = (request: MockRequest) => {
   const match = request.path.match(/^\/projects\/[^/]+\/query\/([^/]+)$/);
   const queryUuid = match?.[1] ?? '00000000-0000-0000-0000-000000000002';
+
+  if (isSqlQueryUuid(queryUuid)) {
+    return getMockSqlQueryPollResult(queryUuid);
+  }
+
   return getMockQueryPollResult(queryUuid);
+};
+
+const sqlQuery = (request: MockRequest) => {
+  const body = request.body as { sql?: string; limit?: number } | null;
+  return executeMockSqlQuery({
+    sql: body?.sql ?? '',
+    limit: body?.limit,
+  });
+};
+
+const sqlRunnerTables = () => mockWarehouseTablesCatalog;
+
+const sqlRunnerFields = (request: MockRequest) => {
+  const tableName = request.query.get('tableName');
+  return getMockTableFields(tableName);
+};
+
+const sqlQueryResultsStream = (request: MockRequest) => {
+  const match = request.path.match(/^\/projects\/[^/]+\/query\/([^/]+)\/results$/);
+  const queryUuid = match?.[1] ?? '';
+  return getMockSqlQueryResultsStream(queryUuid);
 };
 
 const fieldSearch = () => [];
@@ -178,9 +244,10 @@ const routes: MockRoute[] = [
   { pattern: /^\/projects\/[^/]+\/spaces\//, handler: () => mockSpaces[0] },
   { pattern: /^\/projects\/[^/]+\/dashboards$/, handler: dashboardsList },
   { pattern: /^\/projects\/[^/]+\/dashboards\//, handler: dashboardDetail },
-  { pattern: /^\/projects\/[^/]+\/saved$/, handler: () => mockSavedCharts },
-  { pattern: /^\/projects\/[^/]+\/saved\//, handler: () => mockSavedCharts[0] },
-  { pattern: /^\/projects\/[^/]+\/charts$/, handler: () => mockSavedCharts },
+  { pattern: /^\/projects\/[^/]+\/saved$/, handler: savedChartsList },
+  { pattern: /^\/projects\/[^/]+\/saved\//, handler: savedChartDetail },
+  { pattern: /^\/projects\/[^/]+\/charts$/, handler: savedChartsList },
+  { pattern: /^\/projects\/[^/]+\/charts\//, handler: savedChartDetail },
   { pattern: /^\/projects\/[^/]+\/favorites$/, handler: () => mockFavorites },
   { pattern: /^\/projects\/[^/]+\/pinned-lists/, handler: () => mockPinnedItems },
   { pattern: /^\/projects\/[^/]+\/tablesConfiguration$/, handler: () => mockTablesConfiguration },
@@ -194,6 +261,10 @@ const routes: MockRoute[] = [
   { pattern: /^\/projects\/[^/]+\/explores$/, handler: exploresList },
   { pattern: /^\/projects\/[^/]+\/explores\/[^/]+$/, handler: exploreDetail },
   { pattern: /^\/projects\/[^/]+\/query\/metric-query$/, method: 'POST', handler: metricQuery },
+  { pattern: /^\/projects\/[^/]+\/query\/sql$/, method: 'POST', handler: sqlQuery },
+  { pattern: /^\/projects\/[^/]+\/query\/[^/]+\/results$/, method: 'GET', handler: sqlQueryResultsStream },
+  { pattern: /^\/projects\/[^/]+\/sqlRunner\/tables$/, handler: sqlRunnerTables },
+  { pattern: /^\/projects\/[^/]+\/sqlRunner\/fields$/, handler: sqlRunnerFields },
   { pattern: /^\/projects\/[^/]+\/field\/[^/]+\/search$/, handler: fieldSearch },
   { pattern: /^\/projects\/[^/]+\/catalog/, handler: () => mockCatalog },
   { pattern: /^\/projects\/[^/]+\/content-verification$/, handler: () => [] },
@@ -210,7 +281,7 @@ const routes: MockRoute[] = [
   { pattern: /^\/projects\/[^/]+\/query\/[^/]+$/, method: 'GET', handler: queryPoll },
   { pattern: /^\/projects\/[^/]+$/, handler: project },
 
-  { pattern: /^\/saved\//, handler: () => mockSavedCharts[0] },
+  { pattern: /^\/saved\//, handler: savedChartDetailGlobal },
   { pattern: /^\/dashboards\//, handler: dashboardDetail },
   { pattern: /^\/dashboards$/, handler: () => mockDashboards },
   { pattern: /^\/content/, handler: () => ({ data: [], pagination: { page: 1, pageSize: 50, totalPageCount: 0, totalResults: 0 } }) },

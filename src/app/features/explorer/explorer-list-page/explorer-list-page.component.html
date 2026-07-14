@@ -18,6 +18,13 @@
           Dashboards
         </a>
         <a
+          class="page-sidebar__link page-sidebar__link--clickable"
+          [routerLink]="['/projects', projectUuid(), 'charts']"
+        >
+          <mat-icon>bar_chart</mat-icon>
+          Charts
+        </a>
+        <a
           class="page-sidebar__link page-sidebar__link--active page-sidebar__link--clickable"
           [routerLink]="['/projects', projectUuid(), 'tables']"
         >
