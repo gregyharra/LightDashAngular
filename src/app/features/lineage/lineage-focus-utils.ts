@@ -94,14 +94,24 @@ export function computeMaxHopDepth(nodeId: string, edges: LineageEdge[]): number
   const { upstream, downstream } = buildAdjacency(edges);
   let maxDepth = 0;
 
+  const visitedUpstream = new Set<string>();
   const walkUpstream = (id: string, depth: number): void => {
+    if (visitedUpstream.has(id)) {
+      return;
+    }
+    visitedUpstream.add(id);
     maxDepth = Math.max(maxDepth, depth);
     for (const parentId of upstream.get(id) ?? []) {
       walkUpstream(parentId, depth + 1);
     }
   };
 
+  const visitedDownstream = new Set<string>();
   const walkDownstream = (id: string, depth: number): void => {
+    if (visitedDownstream.has(id)) {
+      return;
+    }
+    visitedDownstream.add(id);
     maxDepth = Math.max(maxDepth, depth);
     for (const childId of downstream.get(id) ?? []) {
       walkDownstream(childId, depth + 1);

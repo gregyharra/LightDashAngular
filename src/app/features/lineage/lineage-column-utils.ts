@@ -6,7 +6,7 @@ import {
 
 /** Compact node header + one row per column when expanded in column view. */
 export const LINEAGE_NODE_HEADER_HEIGHT = 72;
-export const LINEAGE_COLUMN_ROW_HEIGHT = 22;
+export const LINEAGE_COLUMN_ROW_HEIGHT = 24;
 export const LINEAGE_NODE_WIDTH = 220;
 
 export function getExpandedNodeHeight(node: LineageNode): number {
@@ -18,7 +18,7 @@ export function getExpandedNodeHeight(node: LineageNode): number {
 }
 
 export function getColumnY(nodePos: { y: number }, columnIndex: number): number {
-  return nodePos.y + LINEAGE_NODE_HEADER_HEIGHT + columnIndex * LINEAGE_COLUMN_ROW_HEIGHT + 11;
+  return nodePos.y + LINEAGE_NODE_HEADER_HEIGHT + columnIndex * LINEAGE_COLUMN_ROW_HEIGHT + LINEAGE_COLUMN_ROW_HEIGHT / 2;
 }
 
 export function columnRefKey(nodeId: string, columnName: string): string {

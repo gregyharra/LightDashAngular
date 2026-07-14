@@ -21,6 +21,7 @@ import {
   SelectedColumnRef,
 } from '../../../core/models/lineage.model';
 import {
+  LINEAGE_COLUMN_ROW_HEIGHT,
   LINEAGE_NODE_HEADER_HEIGHT,
   buildColumnEdgePaths,
   columnRefKey,
@@ -75,6 +76,7 @@ export class LineageGraphComponent implements AfterViewInit {
   readonly nodeSelected = output<string>();
   readonly columnSelected = output<SelectedColumnRef>();
   readonly columnSelectionCleared = output<void>();
+  readonly nodeSelectionCleared = output<void>();
   readonly viewModeChange = output<LineageViewMode>();
   readonly graphModeChange = output<LineageGraphMode>();
   readonly hopDepthChange = output<LineageHopDepth>();
@@ -104,6 +106,7 @@ export class LineageGraphComponent implements AfterViewInit {
   private dragStartNodeX = 0;
   private dragStartNodeY = 0;
   private dragMoved = false;
+  private lastCanvasClickAt = 0;
 
   protected readonly positions = computed(() => {
     this.layoutRevision();
@@ -290,14 +293,22 @@ export class LineageGraphComponent implements AfterViewInit {
     effect(() => {
       const mode = this.viewMode();
       const selectedColumn = this.selectedColumn();
+      const nextIds =
+        mode === 'columns'
+          ? this.displayNodes().map((n) => n.id)
+          : selectedColumn
+            ? [...this.columnLineageNodeIds()]
+            : [];
 
-      if (mode === 'columns') {
-        this.expandedNodeIds.set(new Set(this.displayNodes().map((n) => n.id)));
-      } else if (selectedColumn) {
-        this.expandedNodeIds.set(new Set(this.columnLineageNodeIds()));
-      } else {
-        this.expandedNodeIds.set(new Set());
+      const current = this.expandedNodeIds();
+      if (
+        nextIds.length === current.size &&
+        nextIds.every((id) => current.has(id))
+      ) {
+        return;
       }
+
+      this.expandedNodeIds.set(new Set(nextIds));
     });
   }
 
@@ -460,17 +471,11 @@ export class LineageGraphComponent implements AfterViewInit {
 
   protected selectNode(nodeId: string, event?: Event): void {
     event?.stopPropagation();
-    if (this.consumeDragClick()) {
-      return;
-    }
     this.nodeSelected.emit(nodeId);
   }
 
   protected selectColumn(nodeId: string, columnName: string, event: Event): void {
     event.stopPropagation();
-    if (this.consumeDragClick()) {
-      return;
-    }
 
     if (this.viewMode() === 'models' && !this.isNodeExpanded(nodeId)) {
       const next = new Set(this.expandedNodeIds());
@@ -479,6 +484,15 @@ export class LineageGraphComponent implements AfterViewInit {
     }
 
     this.columnSelected.emit({ nodeId, columnName });
+  }
+
+  protected onNodeBodyPointerUp(nodeId: string, event: PointerEvent): void {
+    const target = event.target as Element;
+    if (target.closest('.lineage-graph__column-row')) {
+      return;
+    }
+    event.stopPropagation();
+    this.selectNode(nodeId, event);
   }
 
   protected isColumnPathHighlighted(nodeId: string, columnName: string): boolean {
@@ -510,6 +524,7 @@ export class LineageGraphComponent implements AfterViewInit {
   protected onNodePointerDown(nodeId: string, event: PointerEvent): void {
     const target = event.target as Element;
     if (
+      !target.closest('.lineage-graph__node-drag-handle') ||
       target.closest('.lineage-graph__expand-btn') ||
       target.closest('.lineage-graph__column-row')
     ) {
@@ -534,14 +549,41 @@ export class LineageGraphComponent implements AfterViewInit {
     canvas?.setPointerCapture(event.pointerId);
   }
 
+  protected onNodePointerUp(nodeId: string, event: PointerEvent): void {
+    const target = event.target as Element;
+    const wasDrag = this.dragNodeId === nodeId && this.dragMoved;
+
+    if (this.dragNodeId === nodeId) {
+      this.endNodeDrag(event);
+    }
+
+    if (
+      wasDrag ||
+      target.closest('.lineage-graph__node-drag-handle') ||
+      target.closest('.lineage-graph__expand-btn') ||
+      target.closest('.lineage-graph__column-row')
+    ) {
+      return;
+    }
+
+    event.stopPropagation();
+    this.selectNode(nodeId, event);
+  }
+
   protected onColumnPointerDown(event: PointerEvent): void {
     event.stopPropagation();
+  }
+
+  protected onColumnPointerUp(nodeId: string, columnName: string, event: PointerEvent): void {
+    event.stopPropagation();
+    this.selectColumn(nodeId, columnName, event);
   }
 
   protected onCanvasPointerDown(event: PointerEvent): void {
     const target = event.target as HTMLElement;
     if (
       target.closest('.lineage-graph__node-header') ||
+      target.closest('.lineage-graph__node-body') ||
       target.closest('.lineage-graph__column-row')
     ) {
       return;
@@ -594,12 +636,18 @@ export class LineageGraphComponent implements AfterViewInit {
     if (wasCanvasClick && this.hasColumnFocus()) {
       this.columnSelectionCleared.emit();
     }
+
+    if (wasCanvasClick) {
+      const now = Date.now();
+      if (now - this.lastCanvasClickAt < 400) {
+        this.nodeSelectionCleared.emit();
+      }
+      this.lastCanvasClickAt = now;
+    }
   }
 
-  protected onNodePointerUp(nodeId: string, event: PointerEvent): void {
-    if (this.dragNodeId === nodeId) {
-      this.endNodeDrag(event);
-    }
+  protected columnRowHeight(): number {
+    return LINEAGE_COLUMN_ROW_HEIGHT;
   }
 
   protected reorganizeLayout(): void {
@@ -676,14 +724,6 @@ export class LineageGraphComponent implements AfterViewInit {
     }, 0);
   }
 
-  private consumeDragClick(): boolean {
-    if (!this.dragMoved) {
-      return false;
-    }
-    this.dragMoved = false;
-    return true;
-  }
-
   private snapToGrid(value: number): number {
     return Math.round(value / SNAP_GRID) * SNAP_GRID;
   }
@@ -732,8 +772,8 @@ export class LineageGraphComponent implements AfterViewInit {
 
       const columnIndex = getColumnIndex(node, columnName);
       const columnY = columnIndex >= 0 ? getColumnY(pos, columnIndex) : pos.y + pos.height / 2;
-      const rowTop = columnIndex >= 0 ? columnY - 11 : pos.y;
-      const rowBottom = columnIndex >= 0 ? columnY + 11 : pos.y + pos.height;
+      const rowTop = columnIndex >= 0 ? columnY - LINEAGE_COLUMN_ROW_HEIGHT / 2 : pos.y;
+      const rowBottom = columnIndex >= 0 ? columnY + LINEAGE_COLUMN_ROW_HEIGHT / 2 : pos.y + pos.height;
 
       minX = Math.min(minX, pos.x);
       minY = Math.min(minY, rowTop);

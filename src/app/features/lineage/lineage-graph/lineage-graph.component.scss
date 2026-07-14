@@ -260,7 +260,7 @@
 }
 
 .lineage-graph__node-header {
-  cursor: grab;
+  cursor: pointer;
   outline: none;
 
   &:hover .lineage-graph__node-header-hit {
@@ -271,10 +271,38 @@
     stroke: var(--ld-brand);
     stroke-width: 2;
   }
+}
+
+.lineage-graph__node-drag-handle {
+  cursor: grab;
+
+  &:hover .lineage-graph__drag-grip {
+    fill: var(--ld-gray-6);
+  }
 
   &:active {
     cursor: grabbing;
   }
+}
+
+.lineage-graph__drag-grip {
+  fill: var(--ld-gray-4);
+  font-size: 10px;
+  font-weight: 700;
+  pointer-events: none;
+}
+
+.lineage-graph__node-body {
+  pointer-events: none;
+
+  .lineage-graph__column-row,
+  .lineage-graph__node-body-hit {
+    pointer-events: all;
+  }
+}
+
+.lineage-graph__node-body-hit {
+  cursor: pointer;
 }
 
 .lineage-graph__node-header-hit {

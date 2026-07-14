@@ -154,6 +154,12 @@ export class LineagePageComponent {
     this.requestedDetailTab.set('overview');
   }
 
+  protected onNodeSelectionCleared(): void {
+    this.selectedColumn.set(null);
+    this.selectedNodeId.set(null);
+    this.requestedDetailTab.set(null);
+  }
+
   protected onViewModeChange(mode: LineageViewMode): void {
     this.viewMode.set(mode);
   }

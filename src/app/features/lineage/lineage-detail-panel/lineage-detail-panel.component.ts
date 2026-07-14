@@ -1,4 +1,4 @@
-import { Component, computed, effect, input, output, signal } from '@angular/core';
+import { Component, ElementRef, computed, effect, input, output, signal, viewChild } from '@angular/core';
 import { MatIconModule } from '@angular/material/icon';
 import {
   ColumnLineageEdge,
@@ -43,6 +43,8 @@ export class LineageDetailPanelComponent {
   protected readonly columnSortAsc = signal(true);
   protected readonly columnSearch = signal('');
 
+  private readonly panelRef = viewChild<ElementRef<HTMLElement>>('panelRoot');
+
   constructor() {
     effect(() => {
       if (!this.selectedColumn()) {
@@ -54,6 +56,25 @@ export class LineageDetailPanelComponent {
       if (requested) {
         this.activeTab.set(requested);
       }
+    });
+
+    effect(() => {
+      const selected = this.selectedColumn();
+      const node = this.node();
+      const tab = this.activeTab();
+      if (!selected || selected.nodeId !== node.id || tab !== 'columns') {
+        return;
+      }
+
+      queueMicrotask(() => {
+        requestAnimationFrame(() => {
+          const panel = this.panelRef()?.nativeElement;
+          const row = panel?.querySelector(
+            `.lineage-detail__table-row[data-column-name="${selected.columnName}"]`,
+          );
+          row?.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+        });
+      });
     });
   }
 

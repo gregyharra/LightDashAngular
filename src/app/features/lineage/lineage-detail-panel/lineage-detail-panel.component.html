@@ -1,5 +1,5 @@
 @if (node(); as selected) {
-  <aside class="lineage-detail">
+  <aside class="lineage-detail" #panelRoot>
     <header class="lineage-detail__header">
       <span class="lineage-detail__type lineage-detail__type--{{ selected.type }}">
         {{ typeLabel(selected.type) }}
@@ -139,6 +139,7 @@
                     class="lineage-detail__table-row lineage-detail__table-row--clickable"
                     [class.lineage-detail__table-row--selected]="isSelectedColumn(col)"
                     [class.lineage-detail__table-row--path]="isColumnInLineagePath(col)"
+                    [attr.data-column-name]="col.name"
                     (click)="selectColumn(col)"
                   >
                     <td>

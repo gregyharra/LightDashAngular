@@ -73,11 +73,15 @@ export class FolderSearchPanelComponent {
 
       const folderPaths = findAncestorFolderPaths(tree, selectedId);
       if (folderPaths.length > 0) {
-        const next = new Set(this.expandedPaths());
-        for (const path of folderPaths) {
-          next.add(path);
+        const current = this.expandedPaths();
+        const hasMissingPath = folderPaths.some((path) => !current.has(path));
+        if (hasMissingPath) {
+          const next = new Set(current);
+          for (const path of folderPaths) {
+            next.add(path);
+          }
+          this.expandedPaths.set(next);
         }
-        this.expandedPaths.set(next);
       }
 
       queueMicrotask(() => {
