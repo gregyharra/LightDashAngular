@@ -1,0 +1,50 @@
+:host {
+  display: flex;
+  flex: 1;
+  min-height: 0;
+  min-width: 0;
+}
+
+.dashboard-chart-tile {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-height: 0;
+  min-width: 0;
+  overflow: hidden;
+
+  app-chart-visualization {
+    flex: 1;
+    min-height: 0;
+    min-width: 0;
+    overflow: hidden;
+  }
+}
+
+.dashboard-chart-tile__state {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--ld-spacing-xxs);
+  padding: var(--ld-spacing-sm);
+  text-align: center;
+  font-size: var(--ld-font-size-xs);
+  color: var(--ld-gray-6);
+
+  mat-icon {
+    width: 28px;
+    height: 28px;
+    font-size: 28px;
+    color: var(--ld-gray-5);
+  }
+
+  &--error {
+    color: #c92a2a;
+
+    mat-icon {
+      color: #fa5252;
+    }
+  }
+}

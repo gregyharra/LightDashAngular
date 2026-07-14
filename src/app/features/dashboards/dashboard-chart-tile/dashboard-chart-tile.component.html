@@ -1,0 +1,29 @@
+<div class="dashboard-chart-tile">
+  @if (!savedChartUuid()) {
+    <div class="dashboard-chart-tile__state dashboard-chart-tile__state--empty">
+      <mat-icon>bar_chart</mat-icon>
+      <span>Chart not configured</span>
+    </div>
+  } @else if (loading()) {
+    <div class="dashboard-chart-tile__state dashboard-chart-tile__state--loading">
+      <mat-spinner diameter="24" />
+    </div>
+  } @else if (error()) {
+    <div class="dashboard-chart-tile__state dashboard-chart-tile__state--error">
+      <mat-icon>error_outline</mat-icon>
+      <span>{{ error() }}</span>
+    </div>
+  } @else if (queryResults() && queryResults()!.rows.length > 0) {
+    <app-chart-visualization
+      [chartKind]="chartKind()"
+      [queryResults]="queryResults()"
+      [xField]="xField()"
+      [yField]="yField()"
+    />
+  } @else {
+    <div class="dashboard-chart-tile__state dashboard-chart-tile__state--empty">
+      <mat-icon>bar_chart</mat-icon>
+      <span>No data available</span>
+    </div>
+  }
+</div>

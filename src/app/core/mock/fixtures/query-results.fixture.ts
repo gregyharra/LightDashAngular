@@ -6,7 +6,6 @@ import {
   ResultRow,
   getFieldId,
 } from '../../models/explore.model';
-import { MOCK_QUERY_UUID } from './ids.fixture';
 import { ordersExplore } from './explore-detail.fixture';
 import { fctOrdersExplore } from './explore-fct-orders.fixture';
 
@@ -39,6 +38,10 @@ const rawOrderRows: RawOrderRow[] = [
 ];
 
 const pendingQueries = new Map<string, QueryResults>();
+
+function createQueryUuid(): string {
+  return crypto.randomUUID();
+}
 
 function formatValue(value: unknown): string {
   if (value === null || value === undefined) {
@@ -282,7 +285,7 @@ export function buildMockQueryResults(metricQuery: MetricQuery): QueryResults {
     const rows = buildRows(ordersColumnMap, selectedDimensions, selectedMetrics);
 
     return {
-      queryUuid: MOCK_QUERY_UUID,
+      queryUuid: createQueryUuid(),
       metricQuery,
       rows: rows.slice(0, metricQuery.limit),
       fields,
@@ -295,7 +298,7 @@ export function buildMockQueryResults(metricQuery: MetricQuery): QueryResults {
     const rows = buildRows(fctOrdersColumnMap, selectedDimensions, selectedMetrics);
 
     return {
-      queryUuid: MOCK_QUERY_UUID,
+      queryUuid: createQueryUuid(),
       metricQuery,
       rows: rows.slice(0, metricQuery.limit),
       fields,
@@ -304,7 +307,7 @@ export function buildMockQueryResults(metricQuery: MetricQuery): QueryResults {
   }
 
   return {
-    queryUuid: MOCK_QUERY_UUID,
+    queryUuid: createQueryUuid(),
     metricQuery,
     rows: [],
     fields: {},

@@ -4,6 +4,8 @@ import {
   DashboardTileTypes,
 } from '../../models/dashboard.model';
 import {
+  MOCK_CHART_2_UUID,
+  MOCK_CHART_3_UUID,
   MOCK_CHART_UUID,
   MOCK_DASHBOARD_2_UUID,
   MOCK_DASHBOARD_UUID,
@@ -96,7 +98,7 @@ export const mockDashboardDetails: Record<string, Dashboard> = {
         tabUuid: MOCK_TAB_UUID,
         properties: {
           title: 'Orders trend',
-          savedChartUuid: 'f5f6a7b8-c9d0-1234-ef01-345678901299',
+          savedChartUuid: MOCK_CHART_2_UUID,
           chartName: 'Orders trend',
           lastVersionChartKind: 'line',
         },
@@ -168,7 +170,7 @@ export const mockDashboardDetails: Record<string, Dashboard> = {
         tabUuid: 'b2b2b2b2-c2c2-4d2d-e2e2-f2f2f2f2f2f2',
         properties: {
           title: 'Channel attribution',
-          savedChartUuid: 'f5f6a7b8-c9d0-1234-ef01-345678901298',
+          savedChartUuid: MOCK_CHART_3_UUID,
           chartName: 'Channel attribution',
           lastVersionChartKind: 'horizontal_bar',
         },

@@ -11,6 +11,7 @@ import {
   DashboardTileTypes,
 } from '../../../core/models/dashboard.model';
 import { DashboardService } from '../dashboard.service';
+import { DashboardChartTileComponent } from '../dashboard-chart-tile/dashboard-chart-tile.component';
 import { ResizableSidebarDirective } from '../../../layout/resizable-sidebar/resizable-sidebar.directive';
 
 const GRID_COLS = 36;
@@ -25,6 +26,7 @@ const GRID_GAP_PX = 10;
     MatButtonModule,
     MatIconModule,
     MatProgressSpinnerModule,
+    DashboardChartTileComponent,
     ResizableSidebarDirective,
   ],
   templateUrl: './dashboard-view-page.component.html',
@@ -116,17 +118,6 @@ export class DashboardViewPageComponent {
       '--tile-h': tile.h,
       '--grid-cols': GRID_COLS,
     };
-  }
-
-  protected chartKindLabel(kind: string | null | undefined): string {
-    if (!kind) {
-      return 'Chart';
-    }
-
-    return kind
-      .split('_')
-      .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
-      .join(' ');
   }
 
   protected formatDate(iso: string): string {

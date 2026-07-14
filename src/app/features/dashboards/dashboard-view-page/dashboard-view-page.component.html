@@ -147,11 +147,27 @@
                     <h3 class="dashboard-tile__title">
                       {{ tile.properties.title ?? tile.properties.chartName ?? 'Chart' }}
                     </h3>
+                    @if (tile.properties.savedChartUuid) {
+                      <a
+                        mat-stroked-button
+                        class="dashboard-tile__edit-btn"
+                        [routerLink]="[
+                          '/projects',
+                          projectUuid(),
+                          'charts',
+                          tile.properties.savedChartUuid,
+                        ]"
+                      >
+                        <mat-icon>edit</mat-icon>
+                        Edit
+                      </a>
+                    }
                   </header>
-                  <div class="dashboard-tile__chart-placeholder" aria-hidden="true">
-                    <mat-icon>bar_chart</mat-icon>
-                    <span>{{ chartKindLabel(tile.properties.lastVersionChartKind) }}</span>
-                    <p class="dashboard-tile__chart-stub">Chart rendering coming soon</p>
+                  <div class="dashboard-tile__chart-body">
+                    <app-dashboard-chart-tile
+                      [projectUuid]="projectUuid()!"
+                      [savedChartUuid]="tile.properties.savedChartUuid"
+                    />
                   </div>
                 </div>
               }

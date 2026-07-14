@@ -67,6 +67,7 @@ export class ChartVisualizationComponent implements AfterViewInit, OnDestroy
 
   private chart: Chart | null = null;
   private viewReady = false;
+  private resizeObserver?: ResizeObserver;
 
   protected displayedColumns: string[] = [];
   protected tableRows: Record<string, string>[] = [];
@@ -87,10 +88,31 @@ export class ChartVisualizationComponent implements AfterViewInit, OnDestroy
   ngAfterViewInit(): void {
     this.viewReady = true;
     this.render();
+    this.observeContainerResize();
   }
 
   ngOnDestroy(): void {
+    this.resizeObserver?.disconnect();
     this.destroyChart();
+  }
+
+  private observeContainerResize(): void {
+    const wrap = this.chartCanvas?.nativeElement?.parentElement;
+    if (!wrap || typeof ResizeObserver === 'undefined') {
+      return;
+    }
+
+    this.resizeObserver = new ResizeObserver(() => {
+      if (this.chart) {
+        this.chart.resize();
+        return;
+      }
+
+      if (this.viewReady && this.queryResults()) {
+        this.render();
+      }
+    });
+    this.resizeObserver.observe(wrap);
   }
 
   private render(): void {
