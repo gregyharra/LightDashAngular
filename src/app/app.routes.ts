@@ -30,6 +30,13 @@ export const routes: Routes = [
           ).then((m) => m.DashboardCreatePageComponent),
       },
       {
+        path: 'projects/:projectUuid/dashboards/:dashboardUuid/edit',
+        loadComponent: () =>
+          import(
+            './features/dashboards/dashboard-edit-page/dashboard-edit-page.component'
+          ).then((m) => m.DashboardEditPageComponent),
+      },
+      {
         path: 'projects/:projectUuid/dashboards/:dashboardUuid',
         loadComponent: () =>
           import(

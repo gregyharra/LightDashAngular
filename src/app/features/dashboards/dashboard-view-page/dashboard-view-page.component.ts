@@ -14,9 +14,11 @@ import { DashboardService } from '../dashboard.service';
 import { DashboardChartTileComponent } from '../dashboard-chart-tile/dashboard-chart-tile.component';
 import { ResizableSidebarDirective } from '../../../layout/resizable-sidebar/resizable-sidebar.directive';
 
-const GRID_COLS = 36;
-const GRID_ROW_HEIGHT_PX = 55;
-const GRID_GAP_PX = 10;
+import {
+  DASHBOARD_GRID_COLS,
+  DASHBOARD_GRID_GAP_PX,
+  DASHBOARD_GRID_ROW_HEIGHT_PX,
+} from '../dashboard-grid.constants';
 
 @Component({
   selector: 'app-dashboard-view-page',
@@ -44,8 +46,8 @@ export class DashboardViewPageComponent {
   protected readonly error = signal<string | null>(null);
   protected readonly activeTabUuid = signal<string | null>(null);
 
-  protected readonly gridRowHeight = GRID_ROW_HEIGHT_PX;
-  protected readonly gridGap = GRID_GAP_PX;
+  protected readonly gridRowHeight = DASHBOARD_GRID_ROW_HEIGHT_PX;
+  protected readonly gridGap = DASHBOARD_GRID_GAP_PX;
 
   protected readonly activeTab = computed(() => {
     const dash = this.dashboard();
@@ -116,7 +118,7 @@ export class DashboardViewPageComponent {
       '--tile-y': tile.y,
       '--tile-w': tile.w,
       '--tile-h': tile.h,
-      '--grid-cols': GRID_COLS,
+      '--grid-cols': DASHBOARD_GRID_COLS,
     };
   }
 
@@ -127,4 +129,5 @@ export class DashboardViewPageComponent {
       day: 'numeric',
     });
   }
+
 }

@@ -92,6 +92,13 @@ export type CreateDashboardPayload = {
   tiles?: DashboardTile[];
 };
 
+export type UpdateDashboardPayload = {
+  name?: string;
+  description?: string;
+  tabs?: DashboardTab[];
+  tiles?: DashboardTile[];
+};
+
 export type Dashboard = {
   uuid: string;
   name: string;

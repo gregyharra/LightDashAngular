@@ -1,6 +1,8 @@
 import {
   Dashboard,
   DashboardBasicDetailsWithTileTypes,
+  DashboardTab,
+  DashboardTile,
   DashboardTileTypes,
 } from '../../models/dashboard.model';
 import {
@@ -114,6 +116,55 @@ export function createMockDashboard(input: CreateMockDashboardInput): Dashboard 
   });
 
   return dashboard;
+}
+
+export type UpdateMockDashboardInput = {
+  name?: string;
+  description?: string;
+  tabs?: DashboardTab[];
+  tiles?: DashboardTile[];
+};
+
+export function updateMockDashboard(
+  dashboardUuid: string,
+  input: UpdateMockDashboardInput,
+): Dashboard | null {
+  const existing = mockDashboardDetails[dashboardUuid];
+  if (!existing) {
+    return null;
+  }
+
+  const now = new Date().toISOString();
+  const name = input.name?.trim() ?? existing.name;
+  const updated: Dashboard = {
+    ...existing,
+    name,
+    description:
+      input.description !== undefined
+        ? input.description.trim() || undefined
+        : existing.description,
+    slug: input.name ? slugify(name) : existing.slug,
+    tabs: input.tabs ?? existing.tabs,
+    tiles: input.tiles ?? existing.tiles,
+    updatedAt: now,
+    dashboardVersionId: existing.dashboardVersionId + 1,
+    versionUuid: crypto.randomUUID(),
+  };
+
+  mockDashboardDetails[dashboardUuid] = updated;
+
+  const listIndex = mockDashboardsList.findIndex((d) => d.uuid === dashboardUuid);
+  if (listIndex >= 0) {
+    mockDashboardsList[listIndex] = {
+      ...mockDashboardsList[listIndex],
+      name: updated.name,
+      description: updated.description,
+      updatedAt: updated.updatedAt,
+      tileTypes: [...new Set(updated.tiles.map((tile) => tile.type))],
+    };
+  }
+
+  return updated;
 }
 
 export const mockDashboardDetails: Record<string, Dashboard> = {

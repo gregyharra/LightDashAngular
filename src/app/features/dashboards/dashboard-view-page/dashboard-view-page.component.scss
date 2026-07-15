@@ -1,3 +1,7 @@
+.page-layout__content--flush {
+  padding: 0;
+}
+
 .dashboard-view__loading,
 .dashboard-view__error-wrap {
   display: flex;
@@ -29,14 +33,14 @@
 }
 
 .dashboard-view__header-inner {
-  padding: var(--ld-spacing-md) 0 var(--ld-spacing-sm);
+  padding: var(--ld-spacing-lg) var(--ld-spacing-lg) var(--ld-spacing-md);
 }
 
 .dashboard-view__breadcrumbs {
   display: inline-flex;
   align-items: center;
   gap: 4px;
-  margin-bottom: var(--ld-spacing-sm);
+  margin-bottom: var(--ld-spacing-xs);
   font-size: var(--ld-font-size-sm);
   color: var(--ld-gray-6);
 
@@ -68,7 +72,7 @@
   align-items: flex-start;
   justify-content: space-between;
   gap: var(--ld-spacing-md);
-  margin-bottom: var(--ld-spacing-xs);
+  margin-bottom: var(--ld-spacing-sm);
 }
 
 .dashboard-view__title {
@@ -85,6 +89,8 @@
 }
 
 .dashboard-view__actions {
+  position: relative;
+  z-index: 1;
   display: flex;
   flex-shrink: 0;
   gap: var(--ld-spacing-xs);
@@ -96,6 +102,7 @@
   border-color: var(--ld-gray-3) !important;
   color: var(--ld-gray-7) !important;
   font-size: var(--ld-font-size-sm);
+  text-decoration: none;
 
   mat-icon {
     width: 16px;
@@ -112,7 +119,7 @@
 .dashboard-view__tabs {
   display: flex;
   gap: 4px;
-  margin-bottom: var(--ld-spacing-xs);
+  margin-bottom: var(--ld-spacing-sm);
 }
 
 .dashboard-view__tab {
@@ -151,7 +158,7 @@
 }
 
 .dashboard-view__content {
-  padding: var(--ld-spacing-md) 0 var(--ld-spacing-xl);
+  padding: var(--ld-spacing-md) var(--ld-spacing-lg) var(--ld-spacing-xl);
 }
 
 .dashboard-view__grid {

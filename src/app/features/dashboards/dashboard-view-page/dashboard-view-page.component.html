@@ -42,7 +42,7 @@
     </div>
   </aside>
 
-  <div class="page-layout__content">
+  <div class="page-layout__content page-layout__content--flush">
 @if (loading()) {
   <div class="dashboard-view__loading">
     <mat-spinner diameter="32" />
@@ -82,10 +82,20 @@
               <mat-icon>refresh</mat-icon>
               Refresh
             </button>
-            <button mat-stroked-button class="dashboard-view__action-btn" disabled>
+            <a
+              mat-stroked-button
+              class="dashboard-view__action-btn"
+              [routerLink]="[
+                '/projects',
+                projectUuid(),
+                'dashboards',
+                dashboardUuid(),
+                'edit',
+              ]"
+            >
               <mat-icon>edit</mat-icon>
               Edit
-            </button>
+            </a>
           </div>
         </div>
 

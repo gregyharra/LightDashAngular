@@ -22,7 +22,7 @@ import {
   mockTablesConfiguration,
   mockUser,
 } from './fixtures/index.fixture';
-import { createMockDashboard } from './fixtures/dashboards.fixture';
+import { createMockDashboard, updateMockDashboard, UpdateMockDashboardInput } from './fixtures/dashboards.fixture';
 import { MOCK_CHART_UUID, MOCK_DASHBOARD_UUID, MOCK_PROJECT_UUID } from './fixtures/ids.fixture';
 import { getExploreDetail } from './fixtures/explore-detail.fixture';
 import { buildMockQueryResults, getMockQueryPollResult, registerMockQuery } from './fixtures/query-results.fixture';
@@ -112,6 +112,18 @@ const dashboardDetail = (request: MockRequest) => {
       uuid: dashboardUuid,
     }
   );
+};
+
+const dashboardUpdate = (request: MockRequest) => {
+  const match = request.path.match(/^\/projects\/([^/]+)\/dashboards\/([^/]+)$/);
+  const dashboardUuid = match?.[2];
+  if (!dashboardUuid) {
+    return null;
+  }
+
+  const body = request.body as UpdateMockDashboardInput | null;
+
+  return updateMockDashboard(dashboardUuid, body ?? {});
 };
 
 const projectLineage = (request: MockRequest) => {
@@ -272,7 +284,8 @@ const routes: MockRoute[] = [
   { pattern: /^\/projects\/[^/]+\/spaces\//, handler: () => mockSpaces[0] },
   { pattern: /^\/projects\/[^/]+\/dashboards$/, method: 'GET', handler: dashboardsList },
   { pattern: /^\/projects\/[^/]+\/dashboards$/, method: 'POST', handler: dashboardCreate },
-  { pattern: /^\/projects\/[^/]+\/dashboards\//, handler: dashboardDetail },
+  { pattern: /^\/projects\/[^/]+\/dashboards\/[^/]+$/, method: 'PATCH', handler: dashboardUpdate },
+  { pattern: /^\/projects\/[^/]+\/dashboards\/[^/]+$/, method: 'GET', handler: dashboardDetail },
   { pattern: /^\/projects\/[^/]+\/saved$/, handler: savedChartsList },
   { pattern: /^\/projects\/[^/]+\/saved\//, handler: savedChartDetail },
   { pattern: /^\/projects\/[^/]+\/charts$/, handler: savedChartsList },

@@ -5,6 +5,7 @@ import {
   CreateDashboardPayload,
   Dashboard,
   DashboardBasicDetailsWithTileTypes,
+  UpdateDashboardPayload,
 } from '../../core/models/dashboard.model';
 
 @Injectable({ providedIn: 'root' })
@@ -37,5 +38,17 @@ export class DashboardService {
       tabs: payload.tabs ?? [],
       tiles: payload.tiles ?? [],
     });
+  }
+
+  update(
+    projectUuid: string,
+    dashboardUuid: string,
+    payload: UpdateDashboardPayload,
+  ): Observable<Dashboard> {
+    return this.api.patch<Dashboard>(
+      `/projects/${projectUuid}/dashboards/${dashboardUuid}`,
+      payload,
+      { apiVersion: 'v2' },
+    );
   }
 }
