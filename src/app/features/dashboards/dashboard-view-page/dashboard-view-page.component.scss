@@ -191,6 +191,29 @@
   box-shadow: none;
 }
 
+.dashboard-tile--markdown-frameless {
+  border: none;
+  background: transparent;
+  box-shadow: none;
+}
+
+.dashboard-tile--markdown-frameless .dashboard-tile__markdown {
+  padding: 0 var(--ld-spacing-md);
+  color: var(--ld-gray-7);
+}
+
+.dashboard-tile--chart-kpi .dashboard-tile__header {
+  border-bottom: none;
+  padding-bottom: 0;
+}
+
+.dashboard-tile--chart-kpi .dashboard-tile__title {
+  font-size: var(--ld-font-size-xs);
+  font-weight: 500;
+  color: var(--ld-gray-6);
+  white-space: normal;
+}
+
 .dashboard-tile__heading-text {
   margin: 0;
   font-size: 16px;

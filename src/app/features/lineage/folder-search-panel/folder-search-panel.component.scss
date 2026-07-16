@@ -1,16 +1,43 @@
+:host.folder-panel-host {
+  display: block;
+  flex-shrink: 0;
+}
+
 .folder-panel {
   position: relative;
   display: flex;
   flex-direction: column;
-  width: 280px;
-  flex-shrink: 0;
+  min-width: 44px;
+  height: 100%;
   border-right: 1px solid var(--ld-gray-2);
   background: var(--ld-background);
   overflow: hidden;
   transition: width 0.2s ease;
 
-  &--collapsed {
-    width: 44px;
+  &--resizing {
+    transition: none;
+  }
+}
+
+.folder-panel__resize-handle {
+  position: absolute;
+  top: 0;
+  right: -2px;
+  z-index: 2;
+  width: 4px;
+  height: 100%;
+  cursor: col-resize;
+  touch-action: none;
+  transition: opacity 0.15s ease;
+
+  &:hover {
+    background-color: var(--ld-blue-6);
+    opacity: 0.35;
+  }
+
+  .folder-panel--collapsed & {
+    opacity: 0;
+    pointer-events: none;
   }
 }
 

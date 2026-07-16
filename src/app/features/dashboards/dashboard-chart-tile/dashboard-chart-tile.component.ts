@@ -3,10 +3,15 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { EMPTY, catchError, switchMap } from 'rxjs';
 import { ChartKind } from '../../../core/models/chart.model';
-import { FieldId, QueryResults } from '../../../core/models/explore.model';
+import {
+  DashboardDimensionFilter,
+  DateZoomGranularity,
+} from '../../../core/models/dashboard.model';
+import { FieldId, MetricQuery, QueryResults } from '../../../core/models/explore.model';
 import { ChartService } from '../../charts/chart.service';
 import { ChartVisualizationComponent } from '../../charts/chart-visualization/chart-visualization.component';
 import { ExplorerService } from '../../explorer/explorer.service';
+import { mergeDashboardFiltersIntoMetricQuery } from '../dashboard-filters';
 
 @Component({
   selector: 'app-dashboard-chart-tile',
@@ -20,6 +25,8 @@ export class DashboardChartTileComponent {
 
   readonly projectUuid = input.required<string>();
   readonly savedChartUuid = input<string | null>(null);
+  readonly dashboardFilters = input<DashboardDimensionFilter[]>([]);
+  readonly dateZoomGranularity = input<DateZoomGranularity>('Month');
 
   protected readonly loading = signal(false);
   protected readonly error = signal<string | null>(null);
@@ -32,6 +39,8 @@ export class DashboardChartTileComponent {
     effect((onCleanup) => {
       const projectUuid = this.projectUuid();
       const savedChartUuid = this.savedChartUuid();
+      const dashboardFilters = this.dashboardFilters();
+      const dateZoomGranularity = this.dateZoomGranularity();
 
       if (!savedChartUuid) {
         this.loading.set(false);
@@ -55,7 +64,14 @@ export class DashboardChartTileComponent {
             this.yField.set(
               chart.chartConfig.yField ?? chart.metricQuery.metrics[0] ?? null,
             );
-            return this.explorerService.runQuery(projectUuid, chart.metricQuery);
+
+            const metricQuery = this.applyDashboardContext(
+              chart.metricQuery,
+              dashboardFilters,
+              dateZoomGranularity,
+            );
+
+            return this.explorerService.runQuery(projectUuid, metricQuery);
           }),
           catchError(() => {
             this.error.set('Failed to load chart.');
@@ -72,5 +88,13 @@ export class DashboardChartTileComponent {
 
       onCleanup(() => sub.unsubscribe());
     });
+  }
+
+  private applyDashboardContext(
+    metricQuery: MetricQuery,
+    dashboardFilters: DashboardDimensionFilter[],
+    _dateZoomGranularity: DateZoomGranularity,
+  ): MetricQuery {
+    return mergeDashboardFiltersIntoMetricQuery(metricQuery, dashboardFilters);
   }
 }

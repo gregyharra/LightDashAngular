@@ -5,7 +5,8 @@ export type ChartKind =
   | 'horizontal_bar'
   | 'line'
   | 'pie'
-  | 'table';
+  | 'table'
+  | 'big_number';
 
 export type SavedChartBasic = {
   uuid: string;

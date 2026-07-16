@@ -9,4 +9,7 @@ export const MOCK_DASHBOARD_2_UUID = 'e5f6a7b8-c9d0-1234-ef01-345678901235';
 export const MOCK_CHART_UUID = 'e5f6a7b8-c9d0-1234-ef01-345678901234';
 export const MOCK_CHART_2_UUID = 'f5f6a7b8-c9d0-1234-ef01-345678901299';
 export const MOCK_CHART_3_UUID = 'f5f6a7b8-c9d0-1234-ef01-345678901298';
+export const MOCK_CHART_4_UUID = 'a4b5c6d7-e8f9-4012-abcd-ef1234567894';
+export const MOCK_CHART_5_UUID = 'b5c6d7e8-f9a0-4123-bcde-f12345678905';
+export const MOCK_CHART_6_UUID = 'c6d7e8f9-a0b1-4234-cdef-123456789016';
 export const MOCK_QUERY_UUID = 'a3b4c5d6-e7f8-9012-abcd-ef1234567891';

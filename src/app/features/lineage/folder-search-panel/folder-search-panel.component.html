@@ -1,4 +1,9 @@
-<aside class="folder-panel" [class.folder-panel--collapsed]="collapsed()">
+<aside
+  class="folder-panel"
+  [class.folder-panel--collapsed]="collapsed()"
+  [class.folder-panel--resizing]="resizing()"
+  [style.width.px]="collapsed() ? collapsedWidth : panelWidth()"
+>
   <button
     type="button"
     class="folder-panel__fold-btn"
@@ -10,14 +15,14 @@
   </button>
 
   <header class="folder-panel__header">
-    <h2 class="folder-panel__title">Project</h2>
+    <h2 class="folder-panel__title">{{ title() }}</h2>
     <div class="folder-panel__search-wrap">
       <mat-icon class="folder-panel__search-icon">search</mat-icon>
       <input
         class="folder-panel__search"
         type="search"
-        placeholder="Search models…"
-        aria-label="Search dbt project tree"
+        [placeholder]="searchPlaceholder()"
+        [attr.aria-label]="searchPlaceholder()"
         [ngModel]="searchQuery()"
         (ngModelChange)="onSearchInput($event)"
         (keydown)="onSearchKeydown($event)"
@@ -31,9 +36,9 @@
     }
   </header>
 
-  <nav #treeNav class="folder-panel__tree" aria-label="dbt project folder tree">
+  <nav #treeNav class="folder-panel__tree" [attr.aria-label]="treeAriaLabel()">
     @if (visibleItems().length === 0) {
-      <p class="folder-panel__empty">No models match your search</p>
+      <p class="folder-panel__empty">{{ emptyMessage() }}</p>
     } @else {
       <ul class="folder-panel__list">
         @for (item of visibleItems(); track item.node.id) {
@@ -76,4 +81,15 @@
       </ul>
     }
   </nav>
+
+  @if (resizable()) {
+    <div
+      class="folder-panel__resize-handle"
+      role="separator"
+      aria-orientation="vertical"
+      aria-label="Resize panel"
+      tabindex="0"
+      (pointerdown)="onResizeStart($event)"
+    ></div>
+  }
 </aside>

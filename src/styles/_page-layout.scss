@@ -57,6 +57,16 @@ body.page-layout--sidebar-resizing {
   user-select: none;
 }
 
+body.folder-panel--resizing {
+  cursor: col-resize !important;
+  user-select: none;
+}
+
+body.tables-fields-panel--resizing {
+  cursor: col-resize !important;
+  user-select: none;
+}
+
 .page-layout__content {
   flex: 1;
   min-width: 0;
@@ -73,6 +83,7 @@ body.page-layout--sidebar-resizing {
   overflow: hidden;
 
   &--collapsed {
+    padding-top: var(--ld-spacing-xs);
     padding-inline: var(--ld-spacing-xs);
   }
 }
@@ -125,6 +136,9 @@ body.page-layout--sidebar-resizing {
   transition: opacity 0.15s ease;
 
   .page-sidebar--collapsed & {
+    height: 0;
+    margin: 0;
+    overflow: hidden;
     opacity: 0;
     pointer-events: none;
   }
@@ -163,6 +177,9 @@ body.page-layout--sidebar-resizing {
   transition: opacity 0.15s ease;
 
   .page-sidebar--collapsed & {
+    height: 0;
+    margin: 0;
+    overflow: hidden;
     opacity: 0;
     pointer-events: none;
   }

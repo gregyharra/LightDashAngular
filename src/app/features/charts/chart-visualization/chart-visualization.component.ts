@@ -4,6 +4,7 @@ import {
   ElementRef,
   OnDestroy,
   ViewChild,
+  computed,
   effect,
   input,
 } from '@angular/core';
@@ -72,6 +73,34 @@ export class ChartVisualizationComponent implements AfterViewInit, OnDestroy
   protected displayedColumns: string[] = [];
   protected tableRows: Record<string, string>[] = [];
 
+  protected readonly bigNumberValue = computed(() => {
+    const results = this.queryResults();
+    if (!results || results.rows.length === 0) {
+      return null;
+    }
+
+    const yFieldId = this.yField() ?? this.inferMetricField(results);
+    if (!yFieldId) {
+      return null;
+    }
+
+    return results.rows[0][yFieldId]?.value.formatted ?? null;
+  });
+
+  protected readonly bigNumberLabel = computed(() => {
+    const results = this.queryResults();
+    if (!results) {
+      return null;
+    }
+
+    const yFieldId = this.yField() ?? this.inferMetricField(results);
+    if (!yFieldId) {
+      return null;
+    }
+
+    return results.fields[yFieldId]?.label ?? yFieldId;
+  });
+
   constructor() {
     effect(() => {
       this.chartKind();
@@ -129,9 +158,11 @@ export class ChartVisualizationComponent implements AfterViewInit, OnDestroy
       return;
     }
 
-    if (kind === 'table') {
+    if (kind === 'table' || kind === 'big_number') {
       this.destroyChart();
-      this.renderTable(results);
+      if (kind === 'table') {
+        this.renderTable(results);
+      }
       return;
     }
 

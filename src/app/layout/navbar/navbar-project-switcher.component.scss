@@ -1,9 +1,14 @@
+:host {
+  display: flex;
+  min-width: 0;
+}
+
 .project-switcher__trigger {
   max-width: 260px;
   height: 30px;
   padding: 0 10px;
   border: 1px solid var(--ld-dark-4);
-  border-radius: var(--ld-radius-md);
+  border-radius: 0;
   background-color: var(--ld-dark-3);
   color: var(--ld-dark-9);
   font-size: var(--ld-font-size-xs);
@@ -12,6 +17,16 @@
 
   &:hover {
     background-color: var(--ld-dark-4);
+  }
+}
+
+:host-context(.shell__nav-group--secondary) {
+  .project-switcher__trigger {
+    margin-left: -1px;
+    border-top-left-radius: 0;
+    border-bottom-left-radius: 0;
+    border-top-right-radius: var(--ld-radius-md);
+    border-bottom-right-radius: var(--ld-radius-md);
   }
 }
 

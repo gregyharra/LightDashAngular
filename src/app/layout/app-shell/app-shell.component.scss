@@ -83,6 +83,13 @@
       }
     }
   }
+
+  &--secondary {
+    app-navbar-project-switcher {
+      display: flex;
+      min-width: 0;
+    }
+  }
 }
 
 .shell__nav-btn {
@@ -90,6 +97,7 @@
   height: 30px;
   padding: 0 10px;
   border: 1px solid var(--ld-dark-4);
+  border-radius: 0;
   background-color: var(--ld-dark-3);
   color: var(--ld-dark-9);
   font-size: var(--ld-font-size-xs);
@@ -114,7 +122,7 @@
     cursor: default;
   }
 
-  & + & {
+  &:not(:first-child) {
     margin-left: -1px;
     border-top-left-radius: 0;
     border-bottom-left-radius: 0;

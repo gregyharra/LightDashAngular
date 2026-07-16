@@ -23,6 +23,30 @@
   }
 }
 
+.chart-viz__big-number {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--ld-spacing-xs);
+  min-height: 0;
+  padding: var(--ld-spacing-md);
+  text-align: center;
+}
+
+.chart-viz__big-number-value {
+  font-size: 32px;
+  font-weight: 700;
+  line-height: 1.1;
+  color: var(--ld-gray-9);
+}
+
+.chart-viz__big-number-label {
+  font-size: var(--ld-font-size-sm);
+  color: var(--ld-gray-6);
+}
+
 .chart-viz__table-wrap {
   height: 100%;
   overflow: auto;

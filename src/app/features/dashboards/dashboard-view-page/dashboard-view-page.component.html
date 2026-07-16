@@ -126,6 +126,16 @@
       </div>
     </header>
 
+    @if (dash.filters.dimensions.length > 0 || dash.config?.isDateZoomDisabled !== true) {
+      <app-dashboard-filters-bar
+        [filters]="dashboardFilters()"
+        [config]="dash.config"
+        [dateZoomGranularity]="dateZoomGranularity()"
+        (filtersChange)="onFiltersChange($event)"
+        (dateZoomChange)="onDateZoomChange($event)"
+      />
+    }
+
     <div class="dashboard-view__content">
       <div class="page__container page__container--wide">
         <div
@@ -144,20 +154,30 @@
                 </div>
               }
               @case (DashboardTileTypes.MARKDOWN) {
-                <div class="dashboard-tile dashboard-tile--markdown" [ngStyle]="tileGridStyle(tile)">
-                  <header class="dashboard-tile__header">
-                    <h3 class="dashboard-tile__title">{{ tile.properties.title }}</h3>
-                  </header>
+                <div
+                  class="dashboard-tile dashboard-tile--markdown"
+                  [class.dashboard-tile--markdown-frameless]="tile.properties.hideFrame"
+                  [ngStyle]="tileGridStyle(tile)"
+                >
+                  @if (tile.properties.title) {
+                    <header class="dashboard-tile__header">
+                      <h3 class="dashboard-tile__title">{{ tile.properties.title }}</h3>
+                    </header>
+                  }
                   <div class="dashboard-tile__markdown">{{ tile.properties.content }}</div>
                 </div>
               }
               @case (DashboardTileTypes.SAVED_CHART) {
-                <div class="dashboard-tile dashboard-tile--chart" [ngStyle]="tileGridStyle(tile)">
+                <div
+                  class="dashboard-tile dashboard-tile--chart"
+                  [class.dashboard-tile--chart-kpi]="tile.properties.lastVersionChartKind === 'big_number'"
+                  [ngStyle]="tileGridStyle(tile)"
+                >
                   <header class="dashboard-tile__header">
                     <h3 class="dashboard-tile__title">
                       {{ tile.properties.title ?? tile.properties.chartName ?? 'Chart' }}
                     </h3>
-                    @if (tile.properties.savedChartUuid) {
+                    @if (tile.properties.savedChartUuid && tile.properties.lastVersionChartKind !== 'big_number') {
                       <a
                         mat-stroked-button
                         class="dashboard-tile__edit-btn"
@@ -177,6 +197,8 @@
                     <app-dashboard-chart-tile
                       [projectUuid]="projectUuid()!"
                       [savedChartUuid]="tile.properties.savedChartUuid"
+                      [dashboardFilters]="dashboardFilters()"
+                      [dateZoomGranularity]="dateZoomGranularity()"
                     />
                   </div>
                 </div>

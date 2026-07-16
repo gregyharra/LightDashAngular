@@ -242,21 +242,21 @@ export const mockExploreDetails: Record<string, Explore> = {
   orders: ordersExplore,
   customers: buildMinimalExplore(
     'customers',
-    'Customers',
-    'Customer dimension with lifetime value metrics',
+    'Users',
+    'User accounts and profile information',
     ['ecommerce', 'dimension'],
   ),
   products: buildMinimalExplore(
     'products',
-    'Products',
-    'Product catalog with pricing and supply chain info',
+    'Baskets',
+    'Basket and product catalog data',
     ['ecommerce', 'dimension'],
   ),
-  dim_customers: buildMinimalExplore(
-    'dim_customers',
-    'Dim Customers',
-    'Customer dimension table from dbt marts',
-    ['dimension', 'dbt'],
+  support_requests: buildMinimalExplore(
+    'support_requests',
+    'Support requests',
+    'Customer support requests and feedback',
+    ['support', 'fact'],
   ),
   fct_orders: fctOrdersExplore,
 };

@@ -1,0 +1,96 @@
+.dashboard-filters-bar {
+  border-bottom: 1px solid var(--ld-gray-2);
+  background-color: var(--ld-background);
+}
+
+.dashboard-filters-bar__main {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--ld-spacing-md);
+  padding: var(--ld-spacing-sm) var(--ld-spacing-lg);
+  min-height: 48px;
+}
+
+.dashboard-filters-bar--hidden .dashboard-filters-bar__main {
+  display: none;
+}
+
+.dashboard-filters-bar__filters,
+.dashboard-filters-bar__controls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--ld-spacing-xs);
+}
+
+.dashboard-filters-bar__add-btn {
+  height: 32px;
+  padding: 0 12px;
+  border-style: dashed !important;
+  border-color: var(--ld-gray-4) !important;
+  color: var(--ld-gray-7) !important;
+  font-size: var(--ld-font-size-sm);
+
+  mat-icon {
+    width: 16px;
+    height: 16px;
+    font-size: 16px;
+    margin-right: 4px;
+  }
+}
+
+.dashboard-filters-bar__pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 32px;
+  padding: 0 12px;
+  border: 1px solid var(--ld-gray-3);
+  border-radius: 999px;
+  background-color: var(--ld-gray-0);
+  color: var(--ld-gray-8);
+  font-family: inherit;
+  font-size: var(--ld-font-size-sm);
+  cursor: pointer;
+  transition:
+    background-color 0.15s ease,
+    border-color 0.15s ease;
+
+  &:hover {
+    background-color: var(--ld-gray-1);
+    border-color: var(--ld-gray-4);
+  }
+
+  mat-icon {
+    width: 16px;
+    height: 16px;
+    font-size: 16px;
+    color: var(--ld-gray-6);
+  }
+}
+
+.dashboard-filters-bar__pill-label {
+  font-weight: 600;
+  color: var(--ld-gray-9);
+}
+
+.dashboard-filters-bar__pill-value {
+  color: var(--ld-gray-6);
+}
+
+.dashboard-filters-bar__pill--date-zoom {
+  background-color: var(--ld-background);
+}
+
+.dashboard-filters-bar__hide-btn {
+  height: 32px;
+  padding: 0 8px;
+  color: var(--ld-gray-6) !important;
+  font-size: var(--ld-font-size-sm);
+}
+
+.dashboard-filters-bar__menu-item--active {
+  font-weight: 600;
+  color: var(--ld-blue-6);
+}

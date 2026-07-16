@@ -7,11 +7,14 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { ActiveProjectService } from '../../../core/services/active-project.service';
 import {
   Dashboard,
+  DashboardDimensionFilter,
   DashboardTile,
   DashboardTileTypes,
+  DateZoomGranularity,
 } from '../../../core/models/dashboard.model';
 import { DashboardService } from '../dashboard.service';
 import { DashboardChartTileComponent } from '../dashboard-chart-tile/dashboard-chart-tile.component';
+import { DashboardFiltersBarComponent } from '../dashboard-filters-bar/dashboard-filters-bar.component';
 import { ResizableSidebarDirective } from '../../../layout/resizable-sidebar/resizable-sidebar.directive';
 
 import {
@@ -29,6 +32,7 @@ import {
     MatIconModule,
     MatProgressSpinnerModule,
     DashboardChartTileComponent,
+    DashboardFiltersBarComponent,
     ResizableSidebarDirective,
   ],
   templateUrl: './dashboard-view-page.component.html',
@@ -45,6 +49,8 @@ export class DashboardViewPageComponent {
   protected readonly loading = signal(true);
   protected readonly error = signal<string | null>(null);
   protected readonly activeTabUuid = signal<string | null>(null);
+  protected readonly dashboardFilters = signal<DashboardDimensionFilter[]>([]);
+  protected readonly dateZoomGranularity = signal<DateZoomGranularity>('Month');
 
   protected readonly gridRowHeight = DASHBOARD_GRID_ROW_HEIGHT_PX;
   protected readonly gridGap = DASHBOARD_GRID_GAP_PX;
@@ -99,6 +105,10 @@ export class DashboardViewPageComponent {
       next: (dashboard) => {
         this.dashboard.set(dashboard);
         this.activeTabUuid.set(dashboard.tabs[0]?.uuid ?? null);
+        this.dashboardFilters.set(dashboard.filters.dimensions);
+        this.dateZoomGranularity.set(
+          dashboard.config?.defaultDateZoomGranularity ?? 'Month',
+        );
         this.loading.set(false);
       },
       error: () => {
@@ -110,6 +120,14 @@ export class DashboardViewPageComponent {
 
   protected setActiveTab(tabUuid: string): void {
     this.activeTabUuid.set(tabUuid);
+  }
+
+  protected onFiltersChange(filters: DashboardDimensionFilter[]): void {
+    this.dashboardFilters.set(filters);
+  }
+
+  protected onDateZoomChange(granularity: DateZoomGranularity): void {
+    this.dateZoomGranularity.set(granularity);
   }
 
   protected tileGridStyle(tile: DashboardTile): Record<string, string | number> {

@@ -68,15 +68,15 @@ export const routes: Routes = [
         path: 'projects/:projectUuid/tables',
         loadComponent: () =>
           import(
-            './features/explorer/explorer-list-page/explorer-list-page.component'
-          ).then((m) => m.ExplorerListPageComponent),
+            './features/explorer/tables-workspace-page/tables-workspace-page.component'
+          ).then((m) => m.TablesWorkspacePageComponent),
       },
       {
         path: 'projects/:projectUuid/tables/:tableId',
         loadComponent: () =>
-          import('./features/explorer/explorer-page/explorer-page.component').then(
-            (m) => m.ExplorerPageComponent,
-          ),
+          import(
+            './features/explorer/tables-workspace-page/tables-workspace-page.component'
+          ).then((m) => m.TablesWorkspacePageComponent),
       },
       { path: '**', redirectTo: 'projects' },
     ],

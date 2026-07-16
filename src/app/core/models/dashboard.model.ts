@@ -99,6 +99,78 @@ export type UpdateDashboardPayload = {
   tiles?: DashboardTile[];
 };
 
+export type DashboardFilterOperator =
+  | 'equals'
+  | 'notEquals'
+  | 'isNull'
+  | 'notNull'
+  | 'startsWith'
+  | 'endsWith'
+  | 'include'
+  | 'doesNotInclude'
+  | 'lessThan'
+  | 'lessThanOrEqual'
+  | 'greaterThan'
+  | 'greaterThanOrEqual'
+  | 'inThePast'
+  | 'notInThePast'
+  | 'inTheNext'
+  | 'inTheCurrent'
+  | 'notInTheCurrent'
+  | 'inBetween'
+  | 'notInBetween';
+
+export type DashboardFilterUnitOfTime =
+  | 'days'
+  | 'weeks'
+  | 'months'
+  | 'quarters'
+  | 'years';
+
+export type DashboardFilterTarget = {
+  fieldId: string;
+  tableName: string;
+};
+
+export type DashboardFilterSettings = {
+  completed?: boolean;
+  unitOfTime?: DashboardFilterUnitOfTime;
+};
+
+export type DashboardDimensionFilter = {
+  id: string;
+  label: string;
+  operator: DashboardFilterOperator;
+  target: DashboardFilterTarget;
+  values: unknown[];
+  disabled?: boolean;
+  required?: boolean;
+  singleValue?: boolean;
+  settings?: DashboardFilterSettings;
+  tileTargets?: Record<string, DashboardFilterTarget | false>;
+};
+
+export type DashboardFilters = {
+  dimensions: DashboardDimensionFilter[];
+  metrics: unknown[];
+  tableCalculations: unknown[];
+};
+
+export type DateZoomGranularity =
+  | 'Day'
+  | 'Week'
+  | 'Month'
+  | 'Quarter'
+  | 'Year';
+
+export type DashboardConfig = {
+  isDateZoomDisabled: boolean;
+  isAddFilterDisabled?: boolean;
+  dateZoomGranularities?: DateZoomGranularity[];
+  defaultDateZoomGranularity?: DateZoomGranularity;
+  pinnedParameters?: string[];
+};
+
 export type Dashboard = {
   uuid: string;
   name: string;
@@ -122,17 +194,10 @@ export type Dashboard = {
   pinnedListOrder: number | null;
   tiles: DashboardTile[];
   tabs: DashboardTab[];
-  filters: {
-    dimensions: unknown[];
-    metrics: unknown[];
-    tableCalculations: unknown[];
-  };
+  filters: DashboardFilters;
   inheritsFromOrgOrProject: boolean;
   access: unknown[] | null;
   colorPaletteUuid: string | null;
   verification: unknown | null;
-  config?: {
-    isDateZoomDisabled: boolean;
-    isAddFilterDisabled?: boolean;
-  };
+  config?: DashboardConfig;
 };

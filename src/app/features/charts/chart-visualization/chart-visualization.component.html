@@ -1,4 +1,13 @@
-@if (chartKind() === 'table' && queryResults()) {
+@if (chartKind() === 'big_number' && queryResults()) {
+  <div class="chart-viz__big-number">
+    @if (bigNumberValue(); as value) {
+      <div class="chart-viz__big-number-value">{{ value }}</div>
+      @if (bigNumberLabel()) {
+        <div class="chart-viz__big-number-label">{{ bigNumberLabel() }}</div>
+      }
+    }
+  </div>
+} @else if (chartKind() === 'table' && queryResults()) {
   <div class="chart-viz__table-wrap">
     <table mat-table [dataSource]="tableRows" class="chart-viz__table">
       @for (column of displayedColumns; track column) {
