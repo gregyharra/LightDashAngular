@@ -157,7 +157,9 @@
                     [filters]="dimensionFilters()"
                     (filtersChange)="onDimensionFiltersChange($event)"
                   />
-                } @else if (tableId() && !explore() && !exploreLoading() && !isExploreableNode()) {
+                } @else if (exploreError()) {
+                  <div class="tables-workspace__panel-error">{{ exploreError() }}</div>
+                } @else if (!explore() && !exploreLoading() && !isExploreableNode()) {
                   <div class="tables-workspace__panel-empty">
                     <p>Select a dbt model to explore its fields.</p>
                   </div>
@@ -190,13 +192,19 @@
                     <h2>Select a table</h2>
                     <p>To configure a chart, first select the table that you would like to explore.</p>
                   </div>
+                } @else if (exploreError()) {
+                  <div class="tables-workspace__panel-empty tables-workspace__panel-empty--centered">
+                    <mat-icon>error_outline</mat-icon>
+                    <h2>Unable to load table</h2>
+                    <p>{{ exploreError() }}</p>
+                  </div>
                 } @else if (!explore() && !exploreLoading() && !isExploreableNode()) {
                   <div class="tables-workspace__panel-empty tables-workspace__panel-empty--centered">
                     <mat-icon>info</mat-icon>
                     <h2>Select a dbt model</h2>
                     <p>Select a dbt model from the project tree to explore its fields.</p>
                   </div>
-                } @else if (!explore()) {
+                } @else if (exploreLoading() || !explore()) {
                   <div class="tables-workspace__panel-loading">
                     <mat-spinner diameter="32" />
                   </div>
@@ -301,11 +309,17 @@
                     <h2>Select a table</h2>
                     <p>To run a query, first select the table that you would like to explore.</p>
                   </div>
+                } @else if (exploreError()) {
+                  <div class="tables-workspace__panel-error">{{ exploreError() }}</div>
                 } @else if (!explore() && !exploreLoading() && !isExploreableNode()) {
                   <div class="tables-workspace__panel-empty tables-workspace__panel-empty--centered">
                     <mat-icon>info</mat-icon>
                     <h2>Select a dbt model</h2>
                     <p>Select a dbt model from the project tree to explore its fields.</p>
+                  </div>
+                } @else if (exploreLoading() || !explore()) {
+                  <div class="tables-workspace__panel-loading">
+                    <mat-spinner diameter="32" />
                   </div>
                 } @else if (queryLoading()) {
                   <div class="tables-workspace__panel-loading">
@@ -363,6 +377,12 @@
                 } @else if (!explore() && !exploreLoading() && !isExploreableNode()) {
                   <div class="tables-workspace__panel-empty">
                     <p>Select a dbt model to view SQL.</p>
+                  </div>
+                } @else if (exploreError()) {
+                  <div class="tables-workspace__panel-error">{{ exploreError() }}</div>
+                } @else if (exploreLoading() || !explore()) {
+                  <div class="tables-workspace__panel-loading">
+                    <mat-spinner diameter="32" />
                   </div>
                 } @else if (!generatedSql()) {
                   <div class="tables-workspace__panel-empty">

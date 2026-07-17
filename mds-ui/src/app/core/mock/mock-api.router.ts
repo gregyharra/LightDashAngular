@@ -154,20 +154,7 @@ const exploresList = (request: MockRequest) => {
 const exploreDetail = (request: MockRequest) => {
   const match = request.path.match(/^\/projects\/([^/]+)\/explores\/([^/]+)$/);
   const tableId = match?.[2] ?? 'orders';
-  const explore = getExploreDetail(tableId);
-  if (explore) {
-    return explore;
-  }
-
-  return {
-    name: tableId,
-    label: tableId,
-    tags: [],
-    baseTable: tableId,
-    joinedTables: [],
-    tables: {},
-    targetDatabase: 'trino',
-  };
+  return getExploreDetail(tableId);
 };
 
 const metricQuery = (request: MockRequest) => {

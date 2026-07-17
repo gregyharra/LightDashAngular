@@ -34,6 +34,7 @@ import {
   findExploreForLineageNode,
 } from '../explore-lineage.utils';
 import {
+  exploreHasFields,
   isExploreableDbtTreeNode,
   resolveExploreNameForSelection,
 } from '../explore-from-dbt.utils';
@@ -368,11 +369,15 @@ export class TablesWorkspacePageComponent {
     const exploreName = resolveExploreNameForSelection(
       exploreSummary?.name,
       treeNode,
+      lineageNodeId,
     );
 
     if (!exploreName) {
       this.explore.set(null);
       this.exploreLoading.set(false);
+      if (isExploreableDbtTreeNode(treeNode)) {
+        this.exploreError.set('Unable to load fields for this model.');
+      }
       return;
     }
 
@@ -380,9 +385,15 @@ export class TablesWorkspacePageComponent {
       .getExplore(projectUuid, exploreName)
       .subscribe({
         next: (explore) => {
-          this.explore.set(explore);
+          if (!exploreHasFields(explore)) {
+            this.explore.set(null);
+            this.exploreError.set('Unable to load fields for this model.');
+          } else {
+            this.explore.set(explore);
+            this.exploreError.set(null);
+            this.setDefaultSelection(explore);
+          }
           this.exploreLoading.set(false);
-          this.setDefaultSelection(explore);
         },
         error: () => {
           this.exploreError.set('Failed to load table.');
@@ -428,6 +439,11 @@ export class TablesWorkspacePageComponent {
         const firstDim = Object.values(firstTable.dimensions)[0];
         if (firstDim) {
           defaults.add(getFieldId(firstTable.name, firstDim.name));
+        }
+
+        const firstMetric = Object.values(firstTable.metrics)[0];
+        if (firstMetric) {
+          defaults.add(getFieldId(firstTable.name, firstMetric.name));
         }
       }
     }

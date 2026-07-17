@@ -5,7 +5,6 @@ import {
   DimensionType,
   Explore,
   Metric,
-  MetricType,
 } from '../../core/models/explore.model';
 
 export function isExploreableDbtTreeNode(node?: DbtTreeNode | null): boolean {
@@ -216,6 +215,7 @@ export function buildExploreFromLineageNode(node: LineageNode): Explore {
 export function resolveExploreNameForSelection(
   exploreSummaryName: string | undefined,
   treeNode: DbtTreeNode | null,
+  lineageNodeId?: string | null,
 ): string | null {
   if (exploreSummaryName) {
     return exploreSummaryName;
@@ -225,5 +225,21 @@ export function resolveExploreNameForSelection(
     return treeNode.name;
   }
 
+  if (lineageNodeId) {
+    return lineageNodeId;
+  }
+
   return null;
+}
+
+export function exploreHasFields(explore: Explore | null | undefined): boolean {
+  if (!explore) {
+    return false;
+  }
+
+  return Object.values(explore.tables).some(
+    (table) =>
+      Object.keys(table.dimensions).length > 0 ||
+      Object.keys(table.metrics).length > 0,
+  );
 }
