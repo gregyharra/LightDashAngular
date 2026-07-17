@@ -38,6 +38,7 @@ class Project(Base):
     )
     name: Mapped[str] = mapped_column(String(255), nullable=False)
     warehouse_type: Mapped[str] = mapped_column(String(50), default="trino")
+    dbt_project_path: Mapped[str | None] = mapped_column(String(1024), nullable=True)
     created_by_user_uuid: Mapped[uuid.UUID] = mapped_column(Uuid, ForeignKey("users.uuid"))
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
 

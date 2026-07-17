@@ -33,15 +33,17 @@ npm start
 
 Open http://localhost:4200/projects
 
-### 3. Frontend + real backend (dashboards)
+### 3. Frontend + real backend (dashboards + dbt lineage)
 
-In `mds-ui/src/environments/environment.ts` set `useMockApi: false`, then:
+1. Compile dbt artifacts (see [`mds-backend/README.md`](./mds-backend/README.md)):
+   ```bash
+   cd mds-transform && dbt compile && dbt docs generate
+   ```
+2. Set `DBT_PROJECT_PATH` in `mds-backend/.env` (default: `../mds-transform`)
+3. In `mds-ui/src/environments/environment.ts` set `useMockApi: false`
+4. Start backend + frontend
 
-```bash
-# terminal 1: backend on :8080
-# terminal 2:
-cd mds-ui && npm start
-```
+Lineage, Tables tree, and explores load from `{DBT_PROJECT_PATH}/target/manifest.json` — no Git required.
 
 ## Documentation
 

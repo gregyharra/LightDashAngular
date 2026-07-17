@@ -25,7 +25,17 @@ dbt docs generate    # → target/catalog.json (columns)
 dbt run              # materialize tables in Trino
 ```
 
-## Artifacts consumed by mds-backend
+## Pointing at a different dbt project
+
+The UI reads dbt metadata from the backend, which loads compiled artifacts from a **local directory** configured in `mds-backend/.env`:
+
+```env
+DBT_PROJECT_PATH=/absolute/path/to/my/dbt/project
+```
+
+Then run `dbt compile && dbt docs generate` in that directory. To switch projects, change the path and restart the backend (or call `POST /api/v1/projects/{uuid}/refresh`).
+
+You can also keep using this folder as the default sample project, or replace its contents with your own models.
 
 | File | Used for |
 |---|---|

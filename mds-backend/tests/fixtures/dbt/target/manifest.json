@@ -1,0 +1,67 @@
+{
+  "metadata": {
+    "dbt_schema_version": "https://schemas.getdbt.com/dbt/manifest/v12.json",
+    "dbt_version": "1.8.0",
+    "project_name": "jaffle_shop",
+    "project_version": "1.0.0",
+    "profile_name": "jaffle_shop_trino"
+  },
+  "nodes": {
+    "model.jaffle_shop.staging.stg_orders": {
+      "resource_type": "model",
+      "name": "stg_orders",
+      "package_name": "jaffle_shop",
+      "path": "staging/stg_orders.sql",
+      "original_file_path": "models/staging/stg_orders.sql",
+      "schema": "staging",
+      "database": "jaffle_shop",
+      "description": "Typed order records",
+      "tags": ["staging"],
+      "config": { "materialized": "view", "schema": "staging" },
+      "depends_on": { "nodes": ["source.jaffle_shop.raw.raw_orders"] },
+      "columns": {}
+    },
+    "model.jaffle_shop.marts.fct_orders": {
+      "resource_type": "model",
+      "name": "fct_orders",
+      "package_name": "jaffle_shop",
+      "path": "marts/fct_orders.sql",
+      "original_file_path": "models/marts/fct_orders.sql",
+      "schema": "marts",
+      "database": "jaffle_shop",
+      "description": "Order-level fact table",
+      "tags": ["mart"],
+      "config": { "materialized": "table", "schema": "marts" },
+      "depends_on": { "nodes": ["model.jaffle_shop.staging.stg_orders"] },
+      "columns": {}
+    },
+    "seed.jaffle_shop.seeds.country_codes": {
+      "resource_type": "seed",
+      "name": "country_codes",
+      "package_name": "jaffle_shop",
+      "path": "country_codes.csv",
+      "original_file_path": "seeds/country_codes.csv",
+      "schema": "seeds",
+      "database": "jaffle_shop",
+      "description": "Country codes",
+      "tags": ["seed"],
+      "config": { "schema": "seeds" },
+      "depends_on": { "nodes": [] },
+      "columns": {}
+    }
+  },
+  "sources": {
+    "source.jaffle_shop.raw.raw_orders": {
+      "resource_type": "source",
+      "source_name": "raw",
+      "name": "raw_orders",
+      "package_name": "jaffle_shop",
+      "schema": "raw",
+      "database": "jaffle_shop",
+      "description": "Order headers from POS",
+      "tags": ["raw", "source"],
+      "depends_on": { "nodes": [] },
+      "columns": {}
+    }
+  }
+}

@@ -23,7 +23,7 @@ Run the API:
 uvicorn mds.main:app --reload --port 8080
 ```
 
-## Implemented endpoints (Phase B0 + B1)
+## Implemented endpoints (Phase B0 + B1 + local dbt)
 
 | Method | Path | Notes |
 |---|---|---|
@@ -33,8 +33,40 @@ uvicorn mds.main:app --reload --port 8080
 | GET | `/api/v1/projects/{uuid}/spaces` | Spaces for project |
 | GET/POST | `/api/v1/projects/{uuid}/dashboards` | List / create |
 | GET/PATCH | `/api/v2/projects/{uuid}/dashboards/{uuid}` | Get / update |
+| GET | `/api/v1/projects/{uuid}/lineage` | Lineage graph from local dbt artifacts |
+| GET | `/api/v1/projects/{uuid}/dbt-tree` | dbt folder tree from local artifacts |
+| GET | `/api/v1/projects/{uuid}/explores` | Explore list (auto-generated from dbt models) |
+| GET | `/api/v1/projects/{uuid}/explores/{tableId}` | Explore detail with dimensions/metrics |
+| POST | `/api/v1/projects/{uuid}/refresh` | Re-read manifest/catalog from disk |
 
-Other routes still require `useMockApi: true` in the frontend or future backend phases.
+Query execution (`/query/*`) still requires `useMockApi: true` in the frontend or future backend phases.
+
+## Local dbt project (no Git)
+
+The backend reads compiled dbt artifacts from a **filesystem path** — no Git clone.
+
+1. Point `DBT_PROJECT_PATH` in `.env` at your dbt project directory:
+
+```env
+DBT_PROJECT_PATH=../mds-transform
+# or an absolute path:
+# DBT_PROJECT_PATH=/data/dbt/my_project
+```
+
+2. Compile artifacts in that directory:
+
+```bash
+cd /path/to/your/dbt/project
+dbt deps
+dbt compile
+dbt docs generate
+```
+
+3. Restart the backend (or call `POST /projects/{uuid}/refresh` to reload without restart).
+
+**Per-project override:** set `dbt_project_path` on a row in the `projects` table (nullable). When set, it overrides `DBT_PROJECT_PATH` for that project only.
+
+**Custom artifact location:** set `DBT_ARTIFACTS_PATH` if `manifest.json` is not in `{DBT_PROJECT_PATH}/target`.
 
 ## Tests
 
