@@ -1,0 +1,380 @@
+<div class="tables-chart-config">
+  <section class="tables-chart-config__section">
+    <h3 class="tables-chart-config__heading">Chart type</h3>
+    <button
+      mat-stroked-button
+      class="tables-chart-config__type-trigger"
+      [matMenuTriggerFor]="chartTypeMenu"
+      [disabled]="!hasQueryResults()"
+      [matTooltip]="hasQueryResults() ? '' : 'Run a query to change chart type'"
+    >
+      <mat-icon>{{ selectedChartType().icon }}</mat-icon>
+      <span>{{ selectedChartType().label }}</span>
+      <mat-icon class="tables-chart-config__type-chevron">expand_more</mat-icon>
+    </button>
+
+    <mat-menu #chartTypeMenu="matMenu" class="tables-chart-config__type-menu">
+      @for (option of chartTypeOptions; track option.value) {
+        <button
+          mat-menu-item
+          [class.tables-chart-config__type-item--active]="chartKind() === option.value"
+          (click)="setChartKind(option.value)"
+        >
+          <mat-icon>{{ option.icon }}</mat-icon>
+          <span>{{ option.label }}</span>
+        </button>
+      }
+    </mat-menu>
+  </section>
+
+  @if (isCartesianChart()) {
+    <mat-accordion class="tables-chart-config__accordion" displayMode="flat">
+      @for (section of cartesianSections; track section.id) {
+        <mat-expansion-panel
+          class="tables-chart-config__panel"
+          [expanded]="section.id === 'layout'"
+        >
+          <mat-expansion-panel-header>
+            <mat-panel-title>{{ section.label }}</mat-panel-title>
+          </mat-expansion-panel-header>
+
+          @switch (section.id) {
+            @case ('layout') {
+              <div class="tables-chart-config__group">
+                <div class="tables-chart-config__group-header">
+                  <span class="tables-chart-config__subheading">{{ xAxisHeading() }}</span>
+                  <button
+                    mat-icon-button
+                    type="button"
+                    class="tables-chart-config__icon-action"
+                    matTooltip="Flip axes"
+                    (click)="toggleFlipAxes()"
+                  >
+                    <mat-icon>swap_horiz</mat-icon>
+                  </button>
+                </div>
+
+                @if (selectedDimensions().length > 0) {
+                  <mat-form-field appearance="outline" subscriptSizing="dynamic">
+                    <mat-label>Field</mat-label>
+                    <mat-select
+                      [value]="chartXField()"
+                      (valueChange)="setChartXField($event)"
+                    >
+                      @for (fieldId of selectedDimensions(); track fieldId) {
+                        <mat-option [value]="fieldId">
+                          {{ getFieldLabel()(fieldId) }}
+                        </mat-option>
+                      }
+                    </mat-select>
+                  </mat-form-field>
+                } @else {
+                  <p class="tables-chart-config__hint">Select a dimension to set the X-axis.</p>
+                }
+              </div>
+
+              <div class="tables-chart-config__group">
+                <div class="tables-chart-config__group-header">
+                  <span class="tables-chart-config__subheading">{{ yAxisHeading() }}</span>
+                  @if (availableYFields().length > 0) {
+                    <button
+                      mat-button
+                      type="button"
+                      class="tables-chart-config__text-action"
+                      (click)="addYField()"
+                    >
+                      <mat-icon>add</mat-icon>
+                      Add
+                    </button>
+                  }
+                </div>
+
+                @if (chartYFields().length > 0) {
+                  @for (fieldId of chartYFields(); track fieldId; let index = $index) {
+                    <mat-form-field appearance="outline" subscriptSizing="dynamic">
+                      <mat-label>Metric</mat-label>
+                      <mat-select
+                        [value]="fieldId"
+                        (valueChange)="setChartYField(index, $event)"
+                      >
+                        @for (metricId of yFieldOptions(fieldId); track metricId) {
+                          <mat-option [value]="metricId">
+                            {{ getFieldLabel()(metricId) }}
+                          </mat-option>
+                        }
+                      </mat-select>
+                      @if (chartYFields().length > 1) {
+                        <button
+                          mat-icon-button
+                          matSuffix
+                          type="button"
+                          aria-label="Remove metric"
+                          (click)="removeYField(index)"
+                        >
+                          <mat-icon>close</mat-icon>
+                        </button>
+                      }
+                    </mat-form-field>
+                  }
+                } @else {
+                  <p class="tables-chart-config__hint">Select a metric to set the Y-axis.</p>
+                }
+              </div>
+
+              <div class="tables-chart-config__group">
+                <span class="tables-chart-config__subheading">Stacking</span>
+                <div class="tables-chart-config__segmented">
+                  <button
+                    type="button"
+                    class="tables-chart-config__segment"
+                    [class.tables-chart-config__segment--active]="displayConfig().stackMode === 'none'"
+                    (click)="setStackMode('none')"
+                  >
+                    None
+                  </button>
+                  <button
+                    type="button"
+                    class="tables-chart-config__segment"
+                    [class.tables-chart-config__segment--active]="displayConfig().stackMode === 'stack'"
+                    (click)="setStackMode('stack')"
+                  >
+                    Stack
+                  </button>
+                  <button
+                    type="button"
+                    class="tables-chart-config__segment"
+                    [class.tables-chart-config__segment--active]="displayConfig().stackMode === 'percent'"
+                    (click)="setStackMode('percent')"
+                  >
+                    100%
+                  </button>
+                </div>
+              </div>
+
+              <div class="tables-chart-config__group">
+                <span class="tables-chart-config__subheading">Data</span>
+                <mat-form-field appearance="outline" subscriptSizing="dynamic">
+                  <mat-label>Row limit</mat-label>
+                  <input
+                    matInput
+                    type="number"
+                    min="1"
+                    [ngModel]="displayConfig().rowLimit"
+                    (ngModelChange)="patchDisplayConfig({ rowLimit: $event })"
+                  />
+                </mat-form-field>
+              </div>
+            }
+
+            @case ('series') {
+              @if (chartYFields().length > 0) {
+                @for (fieldId of chartYFields(); track fieldId) {
+                  <div class="tables-chart-config__series-row">
+                    <span class="tables-chart-config__series-swatch"></span>
+                    <span>{{ getFieldLabel()(fieldId) }}</span>
+                  </div>
+                }
+              } @else {
+                <p class="tables-chart-config__hint">Add metrics in Layout to configure series.</p>
+              }
+            }
+
+            @case ('axes') {
+              <div class="tables-chart-config__group">
+                <span class="tables-chart-config__subheading">{{ xAxisHeading() }} label</span>
+                <mat-form-field appearance="outline" subscriptSizing="dynamic">
+                  <mat-label>Label</mat-label>
+                  <input
+                    matInput
+                    [ngModel]="displayConfig().xAxisLabel"
+                    (ngModelChange)="patchDisplayConfig({ xAxisLabel: $event })"
+                  />
+                </mat-form-field>
+              </div>
+
+              <div class="tables-chart-config__group">
+                <span class="tables-chart-config__subheading">{{ yAxisHeading() }} label</span>
+                <mat-form-field appearance="outline" subscriptSizing="dynamic">
+                  <mat-label>Label</mat-label>
+                  <input
+                    matInput
+                    [ngModel]="displayConfig().yAxisLabel"
+                    (ngModelChange)="patchDisplayConfig({ yAxisLabel: $event })"
+                  />
+                </mat-form-field>
+              </div>
+
+              <div class="tables-chart-config__group">
+                <span class="tables-chart-config__subheading">Show grid</span>
+                <mat-checkbox
+                  [checked]="displayConfig().showGridX"
+                  (change)="patchDisplayConfig({ showGridX: $event.checked })"
+                >
+                  X-axis grid
+                </mat-checkbox>
+                <mat-checkbox
+                  [checked]="displayConfig().showGridY"
+                  (change)="patchDisplayConfig({ showGridY: $event.checked })"
+                >
+                  Y-axis grid
+                </mat-checkbox>
+              </div>
+
+              <div class="tables-chart-config__group">
+                <span class="tables-chart-config__subheading">Show axis</span>
+                <mat-checkbox
+                  [checked]="displayConfig().showXAxis"
+                  (change)="patchDisplayConfig({ showXAxis: $event.checked })"
+                >
+                  X-axis
+                </mat-checkbox>
+                <mat-checkbox
+                  [checked]="displayConfig().showYAxis"
+                  (change)="patchDisplayConfig({ showYAxis: $event.checked })"
+                >
+                  Y-axis
+                </mat-checkbox>
+              </div>
+            }
+
+            @case ('display') {
+              <div class="tables-chart-config__group">
+                <span class="tables-chart-config__subheading">Legend</span>
+                <mat-slide-toggle
+                  [checked]="displayConfig().showLegend"
+                  (change)="patchDisplayConfig({ showLegend: $event.checked })"
+                >
+                  Show legend
+                </mat-slide-toggle>
+
+                <span class="tables-chart-config__label">Placement</span>
+                <div class="tables-chart-config__segmented tables-chart-config__segmented--wrap">
+                  <button
+                    type="button"
+                    class="tables-chart-config__segment"
+                    [class.tables-chart-config__segment--active]="displayConfig().legendPlacement === 'chart'"
+                    (click)="setLegendPlacement('chart')"
+                  >
+                    Chart area
+                  </button>
+                  <button
+                    type="button"
+                    class="tables-chart-config__segment"
+                    [class.tables-chart-config__segment--active]="displayConfig().legendPlacement === 'outside-right'"
+                    (click)="setLegendPlacement('outside-right')"
+                  >
+                    Outside right
+                  </button>
+                  <button
+                    type="button"
+                    class="tables-chart-config__segment"
+                    [class.tables-chart-config__segment--active]="displayConfig().legendPlacement === 'outside-left'"
+                    (click)="setLegendPlacement('outside-left')"
+                  >
+                    Outside left
+                  </button>
+                </div>
+              </div>
+            }
+
+            @case ('margins') {
+              <div class="tables-chart-config__margins">
+                @for (side of marginSides; track side) {
+                  <mat-form-field appearance="outline" subscriptSizing="dynamic">
+                    <mat-label>{{ side | titlecase }}</mat-label>
+                    <input
+                      matInput
+                      type="number"
+                      min="0"
+                      [ngModel]="marginValue(side)"
+                      (ngModelChange)="patchMargins(side, $event)"
+                    />
+                  </mat-form-field>
+                }
+              </div>
+            }
+          }
+        </mat-expansion-panel>
+      }
+    </mat-accordion>
+  } @else if (isTableChart()) {
+    <mat-accordion class="tables-chart-config__accordion" displayMode="flat">
+      @for (section of tableSections; track section.id) {
+        <mat-expansion-panel
+          class="tables-chart-config__panel"
+          [expanded]="section.id === 'general'"
+        >
+          <mat-expansion-panel-header>
+            <mat-panel-title>{{ section.label }}</mat-panel-title>
+          </mat-expansion-panel-header>
+
+          @switch (section.id) {
+            @case ('general') {
+              <div class="tables-chart-config__group">
+                <span class="tables-chart-config__subheading">Display</span>
+                <mat-slide-toggle
+                  [checked]="displayConfig().showTableNames"
+                  (change)="patchDisplayConfig({ showTableNames: $event.checked })"
+                >
+                  Show table names
+                </mat-slide-toggle>
+                <mat-slide-toggle
+                  [checked]="displayConfig().showColumnTotals"
+                  (change)="patchDisplayConfig({ showColumnTotals: $event.checked })"
+                >
+                  Show column totals
+                </mat-slide-toggle>
+              </div>
+
+              <div class="tables-chart-config__group">
+                <span class="tables-chart-config__subheading">Data</span>
+                <mat-form-field appearance="outline" subscriptSizing="dynamic">
+                  <mat-label>Row limit</mat-label>
+                  <input
+                    matInput
+                    type="number"
+                    min="1"
+                    [ngModel]="displayConfig().rowLimit"
+                    (ngModelChange)="patchDisplayConfig({ rowLimit: $event })"
+                  />
+                </mat-form-field>
+              </div>
+            }
+            @default {
+              <p class="tables-chart-config__hint tables-chart-config__hint--disabled">
+                Available after saving a chart in Lightdash.
+              </p>
+            }
+          }
+        </mat-expansion-panel>
+      }
+    </mat-accordion>
+  } @else if (isBigNumberChart()) {
+    <section class="tables-chart-config__section">
+      <h3 class="tables-chart-config__heading">Fields</h3>
+      @if (selectedMetrics().length > 0) {
+        <mat-form-field appearance="outline" subscriptSizing="dynamic">
+          <mat-label>Metric</mat-label>
+          <mat-select
+            [value]="bigNumberMetric()"
+            (valueChange)="setBigNumberMetric($event)"
+          >
+            @for (metricId of selectedMetrics(); track metricId) {
+              <mat-option [value]="metricId">
+                {{ getFieldLabel()(metricId) }}
+              </mat-option>
+            }
+          </mat-select>
+        </mat-form-field>
+      } @else {
+        <p class="tables-chart-config__hint">Select a metric to display as the big value.</p>
+      }
+    </section>
+  } @else {
+    <section class="tables-chart-config__section">
+      <p class="tables-chart-config__hint">
+        Switch to a bar, line, or table chart for additional configuration options.
+      </p>
+    </section>
+  }
+</div>

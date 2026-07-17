@@ -1,0 +1,12 @@
+jaffle_shop_trino:
+  target: dev
+  outputs:
+    dev:
+      type: trino
+      method: none
+      host: localhost
+      port: 8080
+      user: mds
+      catalog: jaffle_shop
+      schema: marts
+      threads: 4

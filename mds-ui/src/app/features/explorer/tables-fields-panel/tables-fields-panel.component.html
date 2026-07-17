@@ -1,0 +1,152 @@
+<aside
+  class="tables-fields-panel"
+  [class.tables-fields-panel--collapsed]="collapsed()"
+  [class.tables-fields-panel--resizing]="resizing()"
+  [style.width.px]="collapsed() ? collapsedWidth : panelWidth()"
+  aria-label="Dimensions and metrics"
+>
+  <button
+    type="button"
+    class="tables-fields-panel__fold-btn"
+    [attr.aria-expanded]="!collapsed()"
+    [attr.aria-label]="collapsed() ? 'Expand fields panel' : 'Collapse fields panel'"
+    (click)="toggleCollapsed()"
+  >
+    <mat-icon>{{ collapsed() ? 'chevron_right' : 'chevron_left' }}</mat-icon>
+  </button>
+
+  <header class="tables-fields-panel__header">
+    <nav class="tables-fields-panel__breadcrumb" aria-label="Breadcrumb">
+      <a
+        class="tables-fields-panel__breadcrumb-link"
+        [routerLink]="['/projects', projectUuid(), 'tables']"
+      >
+        Tables
+      </a>
+      <mat-icon>chevron_right</mat-icon>
+      <span class="tables-fields-panel__breadcrumb-current">{{ tableLabel() }}</span>
+    </nav>
+  </header>
+
+  <div class="tables-fields-panel__search">
+    <mat-icon>search</mat-icon>
+    <input
+      type="search"
+      class="tables-fields-panel__search-input"
+      placeholder="Search metrics + dimensions"
+      [value]="fieldSearch()"
+      (input)="onFieldSearch($any($event.target).value)"
+    />
+  </div>
+
+  @if (exploreLoading()) {
+    <div class="tables-fields-panel__loading">
+      <mat-spinner diameter="24" />
+    </div>
+  } @else if (exploreError()) {
+    <div class="tables-fields-panel__error">{{ exploreError() }}</div>
+  } @else if (hasExplore()) {
+    <div class="tables-fields-panel__fields">
+      @for (group of fieldGroups(); track group.table.name) {
+        <section class="tables-fields-panel__section">
+          <div class="tables-fields-panel__section-header">
+            <button type="button" class="tables-fields-panel__table-selector">
+              <mat-icon>table_chart</mat-icon>
+              {{ group.table.label }}
+            </button>
+          </div>
+
+          @if (group.dimensions.length > 0) {
+            <div class="tables-fields-panel__group">
+              <div class="tables-fields-panel__group-label">
+                <span>Dimensions</span>
+                <button type="button" class="tables-fields-panel__add-btn" disabled>
+                  <mat-icon>add</mat-icon>
+                  Add
+                </button>
+              </div>
+              <ul class="tables-fields-panel__list">
+                @for (field of group.dimensions; track field.fieldId) {
+                  <li>
+                    <button
+                      type="button"
+                      class="tables-fields-panel__item"
+                      [class.tables-fields-panel__item--selected]="isFieldSelected(field.fieldId)"
+                      (click)="toggleField(field.fieldId)"
+                    >
+                      <span class="tables-fields-panel__type">
+                        @switch (field.type) {
+                          @case ('date') {
+                            <mat-icon>calendar_month</mat-icon>
+                          }
+                          @case ('timestamp') {
+                            <mat-icon>calendar_month</mat-icon>
+                          }
+                          @case ('boolean') {
+                            <mat-icon>toggle_on</mat-icon>
+                          }
+                          @case ('number') {
+                            123
+                          }
+                          @case ('count') {
+                            123
+                          }
+                          @default {
+                            abc
+                          }
+                        }
+                      </span>
+                      {{ field.label }}
+                    </button>
+                  </li>
+                }
+              </ul>
+            </div>
+          }
+
+          @if (group.metrics.length > 0) {
+            <div class="tables-fields-panel__group">
+              <p class="tables-fields-panel__group-label">Metrics</p>
+              <ul class="tables-fields-panel__list">
+                @for (field of group.metrics; track field.fieldId) {
+                  <li>
+                    <button
+                      type="button"
+                      class="tables-fields-panel__item tables-fields-panel__item--metric"
+                      [class.tables-fields-panel__item--selected]="isFieldSelected(field.fieldId)"
+                      (click)="toggleField(field.fieldId)"
+                    >
+                      <span class="tables-fields-panel__type">fx</span>
+                      {{ field.label }}
+                    </button>
+                  </li>
+                }
+              </ul>
+            </div>
+          }
+        </section>
+      }
+    </div>
+  } @else if (!isExploreableNode()) {
+    <div class="tables-fields-panel__empty">
+      <mat-icon>info</mat-icon>
+      <p>Select a dbt model to explore its fields.</p>
+    </div>
+  } @else {
+    <div class="tables-fields-panel__empty">
+      <mat-icon>info</mat-icon>
+      <p>Unable to load fields for this selection.</p>
+    </div>
+  }
+
+  @if (resizable()) {
+    <div
+      class="tables-fields-panel__resize-handle"
+      role="separator"
+      aria-orientation="vertical"
+      aria-label="Resize fields panel"
+      tabindex="0"
+      (pointerdown)="onResizeStart($event)"
+    ></div>
+  }
+</aside>

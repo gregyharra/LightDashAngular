@@ -1,0 +1,381 @@
+<div class="page-layout">
+  <aside class="page-layout__sidebar" appResizableSidebar>
+    <div class="page-sidebar">
+      <header class="page-sidebar__header">
+        <p class="page-sidebar__breadcrumb">Browse</p>
+        @if (activeProjectService.activeProject(); as project) {
+          <p class="page-sidebar__org">{{ project.name }}</p>
+        }
+      </header>
+
+      <nav class="page-sidebar__nav" aria-label="Browse navigation">
+        <p class="page-sidebar__section-label">Content</p>
+        <a
+          class="page-sidebar__link page-sidebar__link--clickable"
+          [routerLink]="['/projects', projectUuid(), 'dashboards']"
+        >
+          <mat-icon>dashboard</mat-icon>
+          Dashboards
+        </a>
+        <a
+          class="page-sidebar__link page-sidebar__link--clickable"
+          [routerLink]="['/projects', projectUuid(), 'charts']"
+        >
+          <mat-icon>bar_chart</mat-icon>
+          Charts
+        </a>
+        <a
+          class="page-sidebar__link page-sidebar__link--active page-sidebar__link--clickable"
+          [routerLink]="['/projects', projectUuid(), 'tables']"
+        >
+          <mat-icon>table_chart</mat-icon>
+          Tables
+        </a>
+        <a
+          class="page-sidebar__link page-sidebar__link--clickable"
+          [routerLink]="['/projects', projectUuid(), 'lineage']"
+        >
+          <mat-icon>account_tree</mat-icon>
+          Lineage
+        </a>
+      </nav>
+    </div>
+  </aside>
+
+  <div class="page-layout__content page-layout__content--flush">
+    <div class="tables-workspace">
+      @if (listLoading()) {
+        <div class="tables-workspace__loading">
+          <mat-spinner diameter="32" />
+        </div>
+      } @else if (listError()) {
+        <div class="tables-workspace__loading">{{ listError() }}</div>
+      } @else {
+        <app-folder-search-panel
+          [tree]="dbtTree()"
+          [selectedNodeId]="tableId()"
+          searchPlaceholder="Search models…"
+          emptyMessage="No models match your search"
+          collapsedStorageKey="lightdash-tables-folder-panel-collapsed"
+          treeAriaLabel="dbt project folder tree"
+          (nodeSelected)="onNodeSelected($event)"
+        />
+
+        @if (tableId(); as selectedNodeId) {
+          <app-tables-fields-panel
+            [projectUuid]="projectUuid()!"
+            [tableId]="selectedNodeId"
+            [tableLabel]="selectedNodeLabel()"
+            [fieldSearch]="fieldSearch()"
+            [fieldGroups]="filteredTableGroups()"
+            [exploreLoading]="exploreLoading()"
+            [exploreError]="exploreError()"
+            [hasExplore]="!!explore()"
+            [isExploreableNode]="isExploreableNode()"
+            [selectedFieldIds]="selectedFields()"
+            (fieldSearchChange)="onFieldSearch($event)"
+            (fieldToggled)="toggleField($event)"
+          />
+        }
+
+        <main class="tables-workspace__main">
+          <header class="tables-workspace__toolbar">
+            <button
+              mat-stroked-button
+              class="tables-workspace__toolbar-btn"
+              type="button"
+              aria-label="Refresh dbt"
+              title="Refresh dbt"
+              disabled
+            >
+              <mat-icon>sync</mat-icon>
+              <span class="tables-workspace__toolbar-btn-label">Refresh dbt</span>
+            </button>
+
+            <div class="tables-workspace__toolbar-actions">
+              @if (explore()) {
+                <button
+                  mat-flat-button
+                  class="tables-workspace__run-btn"
+                  type="button"
+                  aria-label="Run query (500)"
+                  title="Run query (500)"
+                  [disabled]="selectedFieldList().length === 0 || queryLoading()"
+                  (click)="runQuery()"
+                >
+                  @if (queryLoading()) {
+                    <mat-spinner diameter="18" />
+                  } @else {
+                    <mat-icon>play_arrow</mat-icon>
+                  }
+                  <span class="tables-workspace__toolbar-btn-label">Run query ( 500 )</span>
+                </button>
+                <button
+                  mat-stroked-button
+                  class="tables-workspace__toolbar-btn"
+                  type="button"
+                  aria-label="Save chart"
+                  title="Save chart"
+                  disabled
+                >
+                  <mat-icon>save</mat-icon>
+                  <span class="tables-workspace__toolbar-btn-label">Save chart</span>
+                </button>
+              }
+              <button
+                mat-icon-button
+                class="tables-workspace__icon-btn"
+                type="button"
+                aria-label="Search"
+                title="Search"
+                disabled
+              >
+                <mat-icon>search</mat-icon>
+              </button>
+              <button
+                mat-icon-button
+                class="tables-workspace__icon-btn"
+                type="button"
+                aria-label="Expand"
+                title="Expand"
+                disabled
+              >
+                <mat-icon>open_in_full</mat-icon>
+              </button>
+            </div>
+          </header>
+
+          <div class="tables-workspace__sections">
+            <mat-accordion class="tables-workspace__accordion" multi>
+              <mat-expansion-panel class="tables-workspace__panel">
+                <mat-expansion-panel-header>
+                  <mat-panel-title>Filters</mat-panel-title>
+                </mat-expansion-panel-header>
+                @if (explore()) {
+                  <app-tables-filters-panel
+                    [dimensions]="filterableDimensions()"
+                    [filters]="dimensionFilters()"
+                    (filtersChange)="onDimensionFiltersChange($event)"
+                  />
+                } @else if (tableId() && !explore() && !exploreLoading() && !isExploreableNode()) {
+                  <div class="tables-workspace__panel-empty">
+                    <p>Select a dbt model to explore its fields.</p>
+                  </div>
+                } @else {
+                  <div class="tables-workspace__panel-empty">
+                    <p>Select a table to add filters.</p>
+                  </div>
+                }
+              </mat-expansion-panel>
+
+              <mat-expansion-panel class="tables-workspace__panel tables-workspace__panel--header-actions">
+                <mat-expansion-panel-header>
+                  <mat-panel-title>{{ tableId() ? 'Chart' : 'Charts' }}</mat-panel-title>
+                  @if (explore()) {
+                    <mat-panel-description>
+                      <button
+                        type="button"
+                        class="tables-workspace__configure-btn"
+                        (click)="toggleChartConfig($event)"
+                      >
+                        {{ chartConfigOpen() ? 'Close configure' : 'Configure' }}
+                      </button>
+                    </mat-panel-description>
+                  }
+                </mat-expansion-panel-header>
+
+                @if (!tableId()) {
+                  <div class="tables-workspace__panel-empty tables-workspace__panel-empty--centered">
+                    <mat-icon>bar_chart</mat-icon>
+                    <h2>Select a table</h2>
+                    <p>To configure a chart, first select the table that you would like to explore.</p>
+                  </div>
+                } @else if (!explore() && !exploreLoading() && !isExploreableNode()) {
+                  <div class="tables-workspace__panel-empty tables-workspace__panel-empty--centered">
+                    <mat-icon>info</mat-icon>
+                    <h2>Select a dbt model</h2>
+                    <p>Select a dbt model from the project tree to explore its fields.</p>
+                  </div>
+                } @else if (!explore()) {
+                  <div class="tables-workspace__panel-loading">
+                    <mat-spinner diameter="32" />
+                  </div>
+                } @else {
+                  <div
+                    class="tables-workspace__chart-workspace"
+                    [class.tables-workspace__chart-workspace--config-open]="chartConfigOpen()"
+                  >
+                    @if (chartConfigOpen()) {
+                      <div class="tables-workspace__chart-config">
+                        <app-tables-chart-config-panel
+                          [chartKind]="chartKind()"
+                          [chartXField]="chartXField()"
+                          [chartYFields]="chartYFields()"
+                          [selectedDimensions]="selectedDimensionList()"
+                          [selectedMetrics]="selectedMetricList()"
+                          [displayConfig]="chartDisplayConfig()"
+                          [hasQueryResults]="hasRunQuery() && !!queryResults()"
+                          [getFieldLabel]="getFieldLabelFn"
+                          (chartKindChange)="setChartKind($event)"
+                          (chartXFieldChange)="setChartXField($event)"
+                          (chartYFieldsChange)="setChartYFields($event)"
+                          (displayConfigChange)="setChartDisplayConfig($event)"
+                        />
+                      </div>
+                    }
+
+                    <div class="tables-workspace__chart-viz">
+                      @if (queryLoading()) {
+                        <div class="tables-workspace__chart-viz-state">
+                          <mat-spinner diameter="28" />
+                          <p>Running query…</p>
+                        </div>
+                      } @else if (queryError()) {
+                        <div class="tables-workspace__chart-viz-state tables-workspace__chart-viz-state--error">
+                          {{ queryError() }}
+                        </div>
+                      } @else if (!hasRunQuery()) {
+                        <div class="tables-workspace__chart-viz-state">
+                          <mat-icon>bar_chart</mat-icon>
+                          <h2>Pick a metric &amp; select its dimensions</h2>
+                          <p>
+                            eg. How many total signups per day? eg. What is the total order count by
+                            location?
+                          </p>
+                        </div>
+                      } @else if (
+                        chartKind() !== 'table' &&
+                        chartKind() !== 'big_number' &&
+                        (selectedDimensionList().length === 0 || selectedMetricList().length === 0)
+                      ) {
+                        <div class="tables-workspace__chart-viz-state">
+                          <mat-icon>bar_chart</mat-icon>
+                          <h2>Add a dimension and a metric</h2>
+                          <p>
+                            Charts need at least one dimension and one metric.
+                          </p>
+                        </div>
+                      } @else if (!canRenderChart()) {
+                        <div class="tables-workspace__chart-viz-state">
+                          <mat-icon>search_off</mat-icon>
+                          <h2>No results to chart</h2>
+                          <p>Try adjusting your selected fields or filters.</p>
+                        </div>
+                      } @else {
+                        <app-chart-visualization
+                          [chartKind]="chartKind()"
+                          [queryResults]="queryResults()!"
+                          [xField]="chartXField()"
+                          [yField]="chartYFields()[0]"
+                          [displayConfig]="chartDisplayConfig()"
+                        />
+                      }
+                    </div>
+                  </div>
+                }
+              </mat-expansion-panel>
+
+              <mat-expansion-panel
+                class="tables-workspace__panel tables-workspace__panel--header-actions"
+                [expanded]="true"
+              >
+                <mat-expansion-panel-header>
+                  <mat-panel-title>Results</mat-panel-title>
+                  @if (explore()) {
+                    <mat-panel-description>
+                      <button
+                        type="button"
+                        class="tables-workspace__table-calc-btn"
+                        disabled
+                      >
+                        <mat-icon>add</mat-icon>
+                        Table calculation
+                      </button>
+                    </mat-panel-description>
+                  }
+                </mat-expansion-panel-header>
+
+                @if (!tableId()) {
+                  <div class="tables-workspace__panel-empty tables-workspace__panel-empty--centered">
+                    <mat-icon>table_rows</mat-icon>
+                    <h2>Select a table</h2>
+                    <p>To run a query, first select the table that you would like to explore.</p>
+                  </div>
+                } @else if (!explore() && !exploreLoading() && !isExploreableNode()) {
+                  <div class="tables-workspace__panel-empty tables-workspace__panel-empty--centered">
+                    <mat-icon>info</mat-icon>
+                    <h2>Select a dbt model</h2>
+                    <p>Select a dbt model from the project tree to explore its fields.</p>
+                  </div>
+                } @else if (queryLoading()) {
+                  <div class="tables-workspace__panel-loading">
+                    <mat-spinner diameter="32" />
+                    <p>Running query…</p>
+                  </div>
+                } @else if (queryError()) {
+                  <div class="tables-workspace__panel-error">{{ queryError() }}</div>
+                } @else if (!hasRunQuery()) {
+                  <div class="tables-workspace__panel-empty tables-workspace__panel-empty--centered">
+                    <mat-icon>table_view</mat-icon>
+                    <h2>Pick a metric &amp; select its dimensions</h2>
+                    <p>
+                      Select fields from the sidebar, then click
+                      <strong>Run query</strong> to see results.
+                    </p>
+                  </div>
+                } @else if (resultRows().length === 0) {
+                  <div class="tables-workspace__panel-empty tables-workspace__panel-empty--centered">
+                    <mat-icon>search_off</mat-icon>
+                    <h2>No results</h2>
+                    <p>Try adjusting your selected fields or filters.</p>
+                  </div>
+                } @else {
+                  <div class="tables-workspace__results-table-wrap">
+                    <table
+                      mat-table
+                      [dataSource]="resultRows()"
+                      class="tables-workspace__results-table"
+                    >
+                      @for (column of displayedColumns(); track column) {
+                        <ng-container [matColumnDef]="column">
+                          <th mat-header-cell *matHeaderCellDef>
+                            {{ getColumnLabel(column) }}
+                          </th>
+                          <td mat-cell *matCellDef="let row">{{ row[column] }}</td>
+                        </ng-container>
+                      }
+
+                      <tr mat-header-row *matHeaderRowDef="displayedColumns()"></tr>
+                      <tr mat-row *matRowDef="let row; columns: displayedColumns()"></tr>
+                    </table>
+                  </div>
+                }
+              </mat-expansion-panel>
+
+              <mat-expansion-panel class="tables-workspace__panel">
+                <mat-expansion-panel-header>
+                  <mat-panel-title>SQL</mat-panel-title>
+                </mat-expansion-panel-header>
+                @if (!tableId()) {
+                  <div class="tables-workspace__panel-empty">
+                    <p>Select a table to view SQL.</p>
+                  </div>
+                } @else if (!explore() && !exploreLoading() && !isExploreableNode()) {
+                  <div class="tables-workspace__panel-empty">
+                    <p>Select a dbt model to view SQL.</p>
+                  </div>
+                } @else if (!generatedSql()) {
+                  <div class="tables-workspace__panel-empty">
+                    <p>Select dimensions or metrics to generate SQL.</p>
+                  </div>
+                } @else {
+                  <pre class="tables-workspace__sql-block"><code>{{ generatedSql() }}</code></pre>
+                }
+              </mat-expansion-panel>
+            </mat-accordion>
+          </div>
+        </main>
+      }
+    </div>
+  </div>
+</div>

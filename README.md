@@ -1,68 +1,49 @@
-# LightDash Angular
+# MDS Data Platform
 
-Angular + Material rewrite of the [LightDash](https://github.com/lightdash/lightdash) frontend. The existing Node/Express backend and `@lightdash/common` package stay unchanged; this repo replaces `packages/frontend` in a big-bang migration.
+Monorepo for the MDS (Metadata & Data Services) platform.
 
-## Prerequisites
+| Directory | Description |
+|---|---|
+| [`mds-ui/`](./mds-ui/) | Angular frontend (Lightdash-compatible API client) |
+| [`mds-backend/`](./mds-backend/) | FastAPI backend — metadata, queries, artifact ingestion |
+| [`mds-worker/`](./mds-worker/) | Background jobs — dbt compile/run, artifact upload |
+| [`mds-transform/`](./mds-transform/) | dbt project (Jaffle Shop sample) |
+| [`docs/`](./docs/) | Platform architecture and API documentation |
 
-- Node.js 18.19+ or 20+
-- **No backend required** for local UI development (mock API is enabled by default)
+## Quick start (local)
 
-## Quick start
+### 1. Infrastructure + backend
 
 ```bash
+docker compose up -d postgres
+cd mds-backend
+python -m venv .venv && source .venv/bin/activate
+pip install -e ".[dev]"
+cp .env.example .env
+uvicorn mds.main:app --reload --port 8080
+```
+
+### 2. Frontend (mock mode — no backend)
+
+```bash
+cd mds-ui
 npm install
 npm start
 ```
 
-Open `http://localhost:4200/projects`. The dev server auto-opens the browser.
+Open http://localhost:4200/projects
 
-If port 4200 is already in use, stop the existing process (`lsof -i :4200`) or run `ng serve --port 4201` and open the matching URL.
+### 3. Frontend + real backend (dashboards)
 
-### Mock mode (default)
-
-`src/environments/environment.ts` sets `useMockApi: true`. All `/api/v1/*` requests are intercepted and served from in-memory fixtures in `src/app/core/mock/`. No sign-in is required.
-
-To connect to a real LightDash backend instead:
-
-1. Set `useMockApi: false` in `environment.ts`
-2. Start LightDash on port `8080` (proxied via `proxy.conf.json`)
-
-## Reference source
-
-Clone upstream LightDash locally for side-by-side porting (not committed):
+In `mds-ui/src/environments/environment.ts` set `useMockApi: false`, then:
 
 ```bash
-git clone --depth 1 https://github.com/lightdash/lightdash.git reference/lightdash
+# terminal 1: backend on :8080
+# terminal 2:
+cd mds-ui && npm start
 ```
 
-React source to port lives in `reference/lightdash/packages/frontend/`.
+## Documentation
 
-## Project layout
-
-```
-src/app/
-  core/
-    api/           # LightdashApiService
-    mock/          # Mock interceptor, router, fixtures
-    services/      # AppStateService (health + user bootstrap)
-  features/        # Domain modules (projects, charts, …)
-  layout/          # App shell
-```
-
-## Migration phases
-
-See [MIGRATION.md](./MIGRATION.md) for the full route inventory, stack mapping, and phased plan.
-
-## Stack
-
-| Layer | Choice |
-|-------|--------|
-| Framework | Angular 19 (standalone components, signals) |
-| UI | Angular Material |
-| HTTP | `HttpClient` + `LightdashApiService` + mock interceptor |
-| State | Signals + feature services (NgRx only where needed) |
-| Charts | ECharts / Vega (TBD per feature) |
-
-## License
-
-Match upstream LightDash licensing when publishing. This is an independent migration effort unless contributed back to the main project.
+- [Backend implementation guide (current UI)](./docs/MDS_BACKEND_PLATFORM_SETUP.md)
+- [Dashboard API spec](./docs/dashboard/fastapi-api-spec.md)

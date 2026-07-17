@@ -1,0 +1,127 @@
+<div class="tables-filters-panel">
+  @if (filters().length === 0 && !addingFilter()) {
+    <p class="tables-filters-panel__empty">
+      No filters applied. Add a filter to narrow your results.
+    </p>
+  }
+
+  <div class="tables-filters-panel__list">
+    @for (filter of filters(); track filter.id) {
+      <div class="tables-filters-panel__row">
+        <div class="tables-filters-panel__pill">
+          <span class="tables-filters-panel__pill-label">{{ filter.label }}</span>
+          <span class="tables-filters-panel__pill-value">
+            {{ formatFilterSummary(filter).replace(filter.label + ' ', '') }}
+          </span>
+        </div>
+        <button
+          mat-icon-button
+          type="button"
+          class="tables-filters-panel__remove-btn"
+          aria-label="Remove filter"
+          (click)="removeFilter(filter.id)"
+        >
+          <mat-icon>close</mat-icon>
+        </button>
+      </div>
+    }
+
+    @if (addingFilter()) {
+      <div class="tables-filters-panel__draft">
+        <mat-form-field appearance="outline" subscriptSizing="dynamic">
+          <mat-label>Field</mat-label>
+          <mat-select
+            [value]="draftFieldId()"
+            (valueChange)="onDraftFieldChange($event)"
+          >
+            @for (dimension of dimensions(); track dimension.fieldId) {
+              <mat-option [value]="dimension.fieldId">
+                {{ dimension.label }}
+              </mat-option>
+            }
+          </mat-select>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" subscriptSizing="dynamic">
+          <mat-label>Operator</mat-label>
+          <mat-select
+            [value]="draftOperator()"
+            (valueChange)="onDraftOperatorChange($event)"
+          >
+            @for (operator of draftOperators(); track operator) {
+              <mat-option [value]="operator">
+                {{ formatOperator(operator) }}
+              </mat-option>
+            }
+          </mat-select>
+        </mat-form-field>
+
+        @if (showDraftValue()) {
+          <mat-form-field appearance="outline" subscriptSizing="dynamic">
+            <mat-label>{{ showDraftSecondValue() ? 'From' : 'Value' }}</mat-label>
+            <input
+              matInput
+              [ngModel]="draftValue()"
+              (ngModelChange)="draftValue.set($event)"
+            />
+          </mat-form-field>
+        }
+
+        @if (showDraftSecondValue()) {
+          <mat-form-field appearance="outline" subscriptSizing="dynamic">
+            <mat-label>To</mat-label>
+            <input
+              matInput
+              [ngModel]="draftValue2()"
+              (ngModelChange)="draftValue2.set($event)"
+            />
+          </mat-form-field>
+        }
+
+        @if (showDraftUnitOfTime()) {
+          <mat-form-field appearance="outline" subscriptSizing="dynamic">
+            <mat-label>Unit</mat-label>
+            <mat-select
+              [value]="draftUnitOfTime()"
+              (valueChange)="draftUnitOfTime.set($event)"
+            >
+              @for (unit of unitOfTimeOptions; track unit) {
+                <mat-option [value]="unit">{{ unit }}</mat-option>
+              }
+            </mat-select>
+          </mat-form-field>
+        }
+
+        <div class="tables-filters-panel__draft-actions">
+          <button
+            mat-stroked-button
+            type="button"
+            (click)="cancelAddFilter()"
+          >
+            Cancel
+          </button>
+          <button
+            mat-flat-button
+            type="button"
+            [disabled]="!canApplyDraft()"
+            (click)="applyDraftFilter()"
+          >
+            Apply
+          </button>
+        </div>
+      </div>
+    }
+  </div>
+
+  @if (!addingFilter() && dimensions().length > 0) {
+    <button
+      mat-stroked-button
+      type="button"
+      class="tables-filters-panel__add-btn"
+      (click)="startAddFilter()"
+    >
+      <mat-icon>add</mat-icon>
+      Add filter
+    </button>
+  }
+</div>
