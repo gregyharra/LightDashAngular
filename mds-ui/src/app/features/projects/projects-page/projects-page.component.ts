@@ -69,9 +69,9 @@ export class ProjectsPageComponent {
     void this.router.navigate(['/projects', projectUuid, 'dashboards']);
   }
 
-  protected openWarehouseSettings(event: Event, projectUuid: string): void {
+  protected openProjectEdit(event: Event, projectUuid: string): void {
     event.stopPropagation();
     this.activeProjectService.setActiveProject(projectUuid);
-    void this.router.navigate(['/projects', projectUuid, 'settings', 'warehouse']);
+    void this.router.navigate(['/projects', projectUuid, 'edit']);
   }
 }

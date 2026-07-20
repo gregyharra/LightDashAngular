@@ -62,10 +62,22 @@
                 "
               >
                 <div class="project-card__header">
-                  <h2 class="project-card__name">{{ project.name }}</h2>
-                  @if (project.projectUuid === activeProjectService.activeProjectUuid()) {
-                    <span class="project-card__badge">Current</span>
-                  }
+                  <div class="project-card__header-main">
+                    <h2 class="project-card__name">{{ project.name }}</h2>
+                    @if (project.projectUuid === activeProjectService.activeProjectUuid()) {
+                      <span class="project-card__badge">Current</span>
+                    }
+                  </div>
+                  <button
+                    mat-icon-button
+                    type="button"
+                    class="project-card__settings-btn"
+                    aria-label="Edit project settings"
+                    title="Edit project settings"
+                    (click)="openProjectEdit($event, project.projectUuid)"
+                  >
+                    <mat-icon>settings</mat-icon>
+                  </button>
                 </div>
 
                 <div class="project-card__meta">
@@ -87,21 +99,10 @@
                   <span class="project-card__date">
                     Created {{ formatDate(project.createdAt) }}
                   </span>
-                  <div class="project-card__footer-actions">
-                    <button
-                      mat-stroked-button
-                      type="button"
-                      class="project-card__settings-btn"
-                      (click)="openWarehouseSettings($event, project.projectUuid)"
-                    >
-                      <mat-icon>settings</mat-icon>
-                      Warehouse
-                    </button>
-                    <span class="project-card__action">
-                      Open
-                      <mat-icon>arrow_forward</mat-icon>
-                    </span>
-                  </div>
+                  <span class="project-card__action">
+                    Open
+                    <mat-icon>arrow_forward</mat-icon>
+                  </span>
                 </div>
               </article>
             }

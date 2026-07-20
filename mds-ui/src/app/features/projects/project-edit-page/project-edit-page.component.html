@@ -1,0 +1,82 @@
+<div class="page-layout">
+  <aside class="page-layout__sidebar" appResizableSidebar>
+    <div class="page-sidebar">
+      <header class="page-sidebar__header">
+        <p class="page-sidebar__breadcrumb">Settings</p>
+        @if (activeProjectService.activeProject(); as project) {
+          <p class="page-sidebar__org">{{ project.name }}</p>
+        }
+      </header>
+
+      <nav class="page-sidebar__nav" aria-label="Settings navigation">
+        <p class="page-sidebar__section-label">Project</p>
+        <a class="page-sidebar__link page-sidebar__link--clickable" routerLink="/projects">
+          <mat-icon>folder</mat-icon>
+          Projects
+        </a>
+        <div class="page-sidebar__link page-sidebar__link--active">
+          <mat-icon>edit</mat-icon>
+          Edit
+        </div>
+      </nav>
+    </div>
+  </aside>
+
+  <div class="page-layout__content">
+    <section class="project-edit">
+      <div class="page__container">
+        <header class="project-edit__header">
+          <nav class="project-edit__breadcrumbs" aria-label="Breadcrumb">
+            <a routerLink="/projects" class="project-edit__breadcrumb-link">Home</a>
+            <mat-icon>chevron_right</mat-icon>
+            <a routerLink="/projects" class="project-edit__breadcrumb-link">Projects</a>
+            <mat-icon>chevron_right</mat-icon>
+            @if (activeProjectService.activeProject(); as project) {
+              <span class="project-edit__breadcrumb-current">{{ project.name }}</span>
+              <mat-icon>chevron_right</mat-icon>
+            }
+            <span class="project-edit__breadcrumb-current">Edit</span>
+          </nav>
+
+          <div class="project-edit__title-row">
+            <div>
+              <h1 class="project-edit__title">Project settings</h1>
+              <p class="project-edit__subtitle">
+                Manage general information and database connection for this project.
+              </p>
+            </div>
+          </div>
+        </header>
+
+        <nav
+          mat-tab-nav-bar
+          class="project-edit__tabs"
+          [tabPanel]="tabPanel"
+          aria-label="Project settings tabs"
+        >
+          <a
+            mat-tab-link
+            [routerLink]="['general']"
+            routerLinkActive
+            #generalLink="routerLinkActive"
+            [active]="generalLink.isActive"
+          >
+            General
+          </a>
+          <a
+            mat-tab-link
+            [routerLink]="['database']"
+            routerLinkActive
+            #databaseLink="routerLinkActive"
+            [active]="databaseLink.isActive"
+          >
+            Database connection
+          </a>
+        </nav>
+        <mat-tab-nav-panel #tabPanel class="project-edit__tab-panel">
+          <router-outlet />
+        </mat-tab-nav-panel>
+      </div>
+    </section>
+  </div>
+</div>

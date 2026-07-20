@@ -1,40 +1,32 @@
-import { Component, inject, signal } from '@angular/core';
+import { Component, effect, inject, input, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { ActivatedRoute, RouterLink } from '@angular/router';
 import { MatButtonModule } from '@angular/material/button';
 import { MatFormFieldModule } from '@angular/material/form-field';
-import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatSlideToggleModule } from '@angular/material/slide-toggle';
 import { apiErrorMessage } from '../../../core/api/lightdash-api.service';
 import { WarehouseConnection } from '../../../core/models/warehouse.model';
-import { ActiveProjectService } from '../../../core/services/active-project.service';
-import { ResizableSidebarDirective } from '../../../layout/resizable-sidebar/resizable-sidebar.directive';
 import { WarehouseService } from '../warehouse.service';
 
 @Component({
-  selector: 'app-project-warehouse-page',
+  selector: 'app-project-warehouse-form',
   imports: [
     FormsModule,
-    RouterLink,
     MatButtonModule,
     MatFormFieldModule,
-    MatIconModule,
     MatInputModule,
     MatProgressSpinnerModule,
     MatSlideToggleModule,
-    ResizableSidebarDirective,
   ],
-  templateUrl: './project-warehouse-page.component.html',
-  styleUrl: './project-warehouse-page.component.scss',
+  templateUrl: './project-warehouse-form.component.html',
+  styleUrl: './project-warehouse-form.component.scss',
 })
-export class ProjectWarehousePageComponent {
+export class ProjectWarehouseFormComponent {
   private readonly warehouseService = inject(WarehouseService);
-  private readonly route = inject(ActivatedRoute);
-  protected readonly activeProjectService = inject(ActiveProjectService);
 
-  protected readonly projectUuid = signal<string | null>(null);
+  readonly projectUuid = input.required<string>();
+
   protected readonly loading = signal(true);
   protected readonly saving = signal(false);
   protected readonly testing = signal(false);
@@ -53,16 +45,15 @@ export class ProjectWarehousePageComponent {
   protected clearPassword = false;
   protected hasExistingPassword = false;
 
-  constructor() {
-    this.route.paramMap.subscribe((params) => {
-      const projectUuid = params.get('projectUuid');
-      if (!projectUuid) {
-        return;
-      }
+  private loadedFor: string | null = null;
 
-      this.projectUuid.set(projectUuid);
-      this.activeProjectService.setActiveProject(projectUuid);
-      this.loadConnection(projectUuid);
+  constructor() {
+    effect(() => {
+      const uuid = this.projectUuid();
+      if (uuid && uuid !== this.loadedFor) {
+        this.loadedFor = uuid;
+        this.loadConnection(uuid);
+      }
     });
   }
 
@@ -103,14 +94,13 @@ export class ProjectWarehousePageComponent {
   }
 
   protected connectionStatusClass(): string {
-    return this.isEditing() ? 'warehouse-settings__status--ok' : 'warehouse-settings__status--missing';
+    return this.isEditing()
+      ? 'project-warehouse-form__status--ok'
+      : 'project-warehouse-form__status--missing';
   }
 
   protected save(): void {
     const projectUuid = this.projectUuid();
-    if (!projectUuid) {
-      return;
-    }
 
     this.saving.set(true);
     this.error.set(null);
@@ -145,9 +135,6 @@ export class ProjectWarehousePageComponent {
 
   protected testConnection(): void {
     const projectUuid = this.projectUuid();
-    if (!projectUuid) {
-      return;
-    }
 
     this.testing.set(true);
     this.testResult.set(null);

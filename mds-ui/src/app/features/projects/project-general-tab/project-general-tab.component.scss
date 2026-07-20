@@ -1,0 +1,64 @@
+.project-general-tab__loading {
+  display: flex;
+  justify-content: center;
+  padding: var(--ld-spacing-xxl);
+}
+
+.project-general-tab__error {
+  padding: var(--ld-spacing-md);
+  border: 1px solid #fa5252;
+  border-radius: var(--ld-radius-md);
+  background-color: #fff5f5;
+  color: #c92a2a;
+  font-size: var(--ld-font-size-sm);
+}
+
+.project-general-tab__header {
+  margin-bottom: var(--ld-spacing-lg);
+}
+
+.project-general-tab__title {
+  margin-bottom: var(--ld-spacing-xxs);
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--ld-gray-9);
+}
+
+.project-general-tab__subtitle {
+  margin: 0;
+  font-size: var(--ld-font-size-sm);
+  color: var(--ld-gray-6);
+}
+
+.project-general-tab__fields {
+  display: grid;
+  gap: var(--ld-spacing-md);
+  max-width: 560px;
+  margin: 0;
+}
+
+.project-general-tab__field {
+  display: grid;
+  gap: 4px;
+
+  dt {
+    margin: 0;
+    font-size: var(--ld-font-size-xs);
+    font-weight: 600;
+    color: var(--ld-gray-6);
+    text-transform: uppercase;
+    letter-spacing: 0.02em;
+  }
+
+  dd {
+    margin: 0;
+    font-size: var(--ld-font-size-sm);
+    color: var(--ld-gray-9);
+  }
+}
+
+.project-general-tab__mono {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-size: var(--ld-font-size-xs);
+  word-break: break-all;
+}

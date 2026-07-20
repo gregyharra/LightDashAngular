@@ -16,11 +16,33 @@ export const routes: Routes = [
           ),
       },
       {
-        path: 'projects/:projectUuid/settings/warehouse',
+        path: 'projects/:projectUuid/edit',
         loadComponent: () =>
-          import(
-            './features/projects/project-warehouse-page/project-warehouse-page.component'
-          ).then((m) => m.ProjectWarehousePageComponent),
+          import('./features/projects/project-edit-page/project-edit-page.component').then(
+            (m) => m.ProjectEditPageComponent,
+          ),
+        children: [
+          { path: '', pathMatch: 'full', redirectTo: 'general' },
+          {
+            path: 'general',
+            loadComponent: () =>
+              import(
+                './features/projects/project-general-tab/project-general-tab.component'
+              ).then((m) => m.ProjectGeneralTabComponent),
+          },
+          {
+            path: 'database',
+            loadComponent: () =>
+              import(
+                './features/projects/project-database-tab/project-database-tab.component'
+              ).then((m) => m.ProjectDatabaseTabComponent),
+          },
+        ],
+      },
+      {
+        path: 'projects/:projectUuid/settings/warehouse',
+        redirectTo: (route) =>
+          `/projects/${route.params['projectUuid']}/edit/database`,
       },
       {
         path: 'projects/:projectUuid/dashboards',

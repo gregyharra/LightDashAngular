@@ -1,0 +1,124 @@
+@if (loading()) {
+  <div class="project-warehouse-form__loading">
+    <mat-spinner diameter="32" />
+  </div>
+} @else {
+  <div class="project-warehouse-form__header">
+    <div>
+      <h2 class="project-warehouse-form__title">Database connection</h2>
+      <p class="project-warehouse-form__subtitle">
+        Connect this project to Trino so queries can fetch live data.
+      </p>
+    </div>
+    <span class="project-warehouse-form__status" [class]="connectionStatusClass()">
+      {{ connectionStatusLabel() }}
+    </span>
+  </div>
+
+  @if (error()) {
+    <div class="project-warehouse-form__alert project-warehouse-form__alert--error">
+      {{ error() }}
+    </div>
+  }
+
+  @if (success()) {
+    <div class="project-warehouse-form__alert project-warehouse-form__alert--success">
+      {{ success() }}
+    </div>
+  }
+
+  @if (testResult(); as result) {
+    <div
+      class="project-warehouse-form__alert"
+      [class.project-warehouse-form__alert--success]="result.success"
+      [class.project-warehouse-form__alert--error]="!result.success"
+    >
+      {{ result.message }}
+    </div>
+  }
+
+  <form class="project-warehouse-form__form" (ngSubmit)="save()">
+    <div class="project-warehouse-form__grid">
+      <mat-form-field appearance="outline">
+        <mat-label>Host</mat-label>
+        <input matInput name="host" [(ngModel)]="host" required autocomplete="off" />
+      </mat-form-field>
+
+      <mat-form-field appearance="outline">
+        <mat-label>Port</mat-label>
+        <input
+          matInput
+          name="port"
+          type="number"
+          [(ngModel)]="port"
+          required
+          min="1"
+          max="65535"
+        />
+      </mat-form-field>
+
+      <mat-form-field appearance="outline">
+        <mat-label>Catalog</mat-label>
+        <input matInput name="catalog" [(ngModel)]="catalog" required autocomplete="off" />
+      </mat-form-field>
+
+      <mat-form-field appearance="outline">
+        <mat-label>Schema</mat-label>
+        <input matInput name="schema" [(ngModel)]="schema" required autocomplete="off" />
+      </mat-form-field>
+
+      <mat-form-field appearance="outline">
+        <mat-label>Username</mat-label>
+        <input matInput name="user" [(ngModel)]="user" required autocomplete="username" />
+      </mat-form-field>
+
+      <mat-form-field appearance="outline">
+        <mat-label>Password</mat-label>
+        <input
+          matInput
+          name="password"
+          type="password"
+          [(ngModel)]="password"
+          [placeholder]="isEditing() ? 'Leave blank to keep existing' : 'Optional'"
+          autocomplete="new-password"
+        />
+        @if (isEditing() && hasExistingPassword) {
+          <mat-hint>A password is stored for this connection.</mat-hint>
+        }
+      </mat-form-field>
+    </div>
+
+    <div class="project-warehouse-form__toggles">
+      <mat-slide-toggle name="ssl" [(ngModel)]="ssl">Use SSL (HTTPS)</mat-slide-toggle>
+
+      @if (isEditing() && hasExistingPassword) {
+        <mat-slide-toggle name="clearPassword" [(ngModel)]="clearPassword">
+          Remove stored password
+        </mat-slide-toggle>
+      }
+    </div>
+
+    <div class="project-warehouse-form__actions">
+      <button
+        mat-stroked-button
+        type="button"
+        (click)="testConnection()"
+        [disabled]="testing() || saving() || !isEditing()"
+      >
+        @if (testing()) {
+          Testing…
+        } @else {
+          Test connection
+        }
+      </button>
+
+      <button mat-flat-button type="submit" [disabled]="saving() || testing()">
+        @if (saving()) {
+          Saving…
+        } @else {
+          Save connection
+        }
+      </button>
+    </div>
+  </form>
+}

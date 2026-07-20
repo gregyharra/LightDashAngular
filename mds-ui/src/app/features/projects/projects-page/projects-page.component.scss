@@ -127,9 +127,18 @@
 
 .project-card__header {
   display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--ld-spacing-xs);
+  min-width: 0;
+}
+
+.project-card__header-main {
+  display: flex;
   align-items: center;
   gap: var(--ld-spacing-xs);
   min-width: 0;
+  flex: 1;
 }
 
 .project-card__name {
@@ -188,22 +197,21 @@
   border-top: 1px solid var(--ld-gray-2);
 }
 
-.project-card__footer-actions {
-  display: inline-flex;
-  align-items: center;
-  gap: var(--ld-spacing-xs);
-}
-
 .project-card__settings-btn {
+  flex-shrink: 0;
+  width: 28px;
   height: 28px;
-  padding: 0 8px;
-  font-size: var(--ld-font-size-xs);
+  margin: -6px -6px 0 0;
 
   mat-icon {
-    width: 14px;
-    height: 14px;
-    font-size: 14px;
-    margin-right: 4px;
+    width: 18px;
+    height: 18px;
+    font-size: 18px;
+    color: var(--ld-gray-6);
+  }
+
+  &:hover mat-icon {
+    color: var(--ld-gray-8);
   }
 }
 
