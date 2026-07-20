@@ -57,7 +57,10 @@ def seed_demo_data(db: Session) -> None:
         name="Shared",
         is_private=False,
     )
-    db.add_all([org, user, project1, project2, space])
+    db.add_all([org, user])
+    db.flush()
+    db.add_all([project1, project2, space])
+    db.flush()
 
     dashboard = Dashboard(
         uuid=MOCK_DASHBOARD_UUID,
