@@ -1,0 +1,84 @@
+<div class="content-list-filter-bar">
+  <div class="content-list-filter-bar__search-wrap">
+    <mat-icon class="content-list-filter-bar__search-icon">search</mat-icon>
+    <input
+      class="content-list-filter-bar__search"
+      type="search"
+      [placeholder]="searchPlaceholder()"
+      [attr.aria-label]="searchPlaceholder()"
+      [ngModel]="searchInput()"
+      (ngModelChange)="onSearchInput($event)"
+    />
+    @if (searchInput().trim()) {
+      <button
+        type="button"
+        class="content-list-filter-bar__clear-search"
+        aria-label="Clear search"
+        (click)="clearSearch()"
+      >
+        <mat-icon>close</mat-icon>
+      </button>
+    }
+  </div>
+
+  @if (spaces().length > 1) {
+    <mat-form-field
+      appearance="outline"
+      subscriptSizing="dynamic"
+      class="content-list-filter-bar__space-field"
+    >
+      <mat-label>{{ spaceFilterLabel() }}</mat-label>
+      <mat-select
+        [value]="spaceFilter()"
+        (valueChange)="onSpaceChange($event)"
+      >
+        <mat-option [value]="null">All spaces</mat-option>
+        @for (space of spaces(); track space) {
+          <mat-option [value]="space">{{ space }}</mat-option>
+        }
+      </mat-select>
+    </mat-form-field>
+  }
+
+  @if (hasActiveFilters()) {
+    <div class="content-list-filter-bar__active-filters">
+      @if (searchInput().trim()) {
+        <div class="content-list-filter-bar__chip">
+          <span class="content-list-filter-bar__chip-label">Name</span>
+          <span class="content-list-filter-bar__chip-value">{{ searchInput().trim() }}</span>
+          <button
+            type="button"
+            class="content-list-filter-bar__chip-remove"
+            aria-label="Remove name filter"
+            (click)="clearSearch()"
+          >
+            <mat-icon>close</mat-icon>
+          </button>
+        </div>
+      }
+
+      @if (spaceFilter(); as space) {
+        <div class="content-list-filter-bar__chip">
+          <span class="content-list-filter-bar__chip-label">{{ spaceFilterLabel() }}</span>
+          <span class="content-list-filter-bar__chip-value">{{ space }}</span>
+          <button
+            type="button"
+            class="content-list-filter-bar__chip-remove"
+            aria-label="Remove space filter"
+            (click)="clearSpace()"
+          >
+            <mat-icon>close</mat-icon>
+          </button>
+        </div>
+      }
+
+      <button
+        type="button"
+        class="content-list-filter-bar__clear-all"
+        (click)="clearAll()"
+      >
+        Clear all
+      </button>
+    </div>
+  }
+</div>

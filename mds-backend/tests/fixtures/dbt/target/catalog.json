@@ -12,5 +12,16 @@
       }
     }
   },
-  "sources": {}
+  "sources": {
+    "source.jaffle_shop.raw.raw_orders": {
+      "metadata": { "type": "table", "schema": "raw", "name": "raw_orders", "database": "jaffle_shop" },
+      "columns": {
+        "id": { "type": "bigint", "index": 1, "comment": null },
+        "customer_id": { "type": "bigint", "index": 2, "comment": null },
+        "order_date": { "type": "date", "index": 3, "comment": null },
+        "status": { "type": "varchar", "index": 4, "comment": null },
+        "amount": { "type": "decimal(12,2)", "index": 5, "comment": null }
+      }
+    }
+  }
 }

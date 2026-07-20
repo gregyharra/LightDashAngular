@@ -23,7 +23,7 @@ Run the API:
 uvicorn mds.main:app --reload --port 8080
 ```
 
-The database starts empty by default. To load demo org, projects, and dashboards:
+On startup the API creates all database tables automatically (`init_db` in the app lifespan). No demo rows are inserted by default, so endpoints like `GET /api/v1/org/projects` return an empty list until you seed data. To load demo org, projects, and dashboards:
 
 ```bash
 python -m mds.scripts.seed_demo

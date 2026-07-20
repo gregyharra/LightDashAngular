@@ -13,6 +13,8 @@ import {
 import { MatIconModule } from '@angular/material/icon';
 import {
   ColumnLineageEdge,
+  ColumnTransformationType,
+  LineageColumn,
   LineageEdge,
   LineageGraphMode,
   LineageHopDepth,
@@ -44,6 +46,15 @@ import {
   isEdgeInSubgraph,
   UNLIMITED_HOP_DEPTH,
 } from '../lineage-focus-utils';
+import {
+  inferColumnTransformation,
+  transformationChipLabel,
+  transformationChipWidth,
+  transformationCssVar,
+  transformationDescription,
+  TransformationChipMode,
+} from '../column-transformation.utils';
+import { TransformationLegendComponent } from '../transformation-legend/transformation-legend.component';
 
 const NODE_COLORS: Record<string, { fill: string; stroke: string; badge: string }> = {
   source: { fill: '#edf2ff', stroke: '#748ffc', badge: '#4263eb' },
@@ -61,7 +72,7 @@ const REORGANIZE_TRANSITION_MS = 280;
 
 @Component({
   selector: 'app-lineage-graph',
-  imports: [DecimalPipe, MatIconModule],
+  imports: [DecimalPipe, MatIconModule, TransformationLegendComponent],
   templateUrl: './lineage-graph.component.html',
   styleUrl: './lineage-graph.component.scss',
 })
@@ -96,6 +107,8 @@ export class LineageGraphComponent implements AfterViewInit {
   protected readonly layoutRevision = signal(0);
   protected readonly isReorganizing = signal(false);
   protected readonly draggingNodeId = signal<string | null>(null);
+  protected readonly transformationChipMode = signal<TransformationChipMode>('compact');
+  protected readonly transformationFilter = signal<ColumnTransformationType | null>(null);
 
   private panStartX = 0;
   private panStartY = 0;
@@ -777,6 +790,62 @@ export class LineageGraphComponent implements AfterViewInit {
 
   protected headerHeight(): number {
     return LINEAGE_NODE_HEADER_HEIGHT;
+  }
+
+  protected columnTransformation(node: LineageNode, column: LineageColumn): ColumnTransformationType {
+    return inferColumnTransformation(node, column, this.columnEdges(), this.nodes());
+  }
+
+  protected isColumnFilteredOut(node: LineageNode, column: LineageColumn): boolean {
+    const filter = this.transformationFilter();
+    if (!filter) {
+      return false;
+    }
+    return this.columnTransformation(node, column) !== filter;
+  }
+
+  protected transformationChipText(type: ColumnTransformationType): string {
+    return transformationChipLabel(type, this.transformationChipMode());
+  }
+
+  protected transformationChipTitle(type: ColumnTransformationType): string {
+    return transformationDescription(type);
+  }
+
+  protected transformChipFill(type: ColumnTransformationType): string {
+    return transformationCssVar(type, 'bg');
+  }
+
+  protected transformChipStroke(type: ColumnTransformationType): string {
+    return transformationCssVar(type, 'border');
+  }
+
+  protected transformChipTextFill(type: ColumnTransformationType): string {
+    return transformationCssVar(type, 'text');
+  }
+
+  protected columnTypeX(nodeWidth: number, transformType: ColumnTransformationType): number {
+    return nodeWidth - 10 - transformationChipWidth(transformType, this.transformationChipMode()) - 6;
+  }
+
+  protected transformChipX(nodeWidth: number, transformType: ColumnTransformationType): number {
+    return nodeWidth - 8 - transformationChipWidth(transformType, this.transformationChipMode());
+  }
+
+  protected transformChipW(type: ColumnTransformationType): number {
+    return transformationChipWidth(type, this.transformationChipMode());
+  }
+
+  protected transformChipH(): number {
+    return 18;
+  }
+
+  protected setTransformationChipMode(mode: TransformationChipMode): void {
+    this.transformationChipMode.set(mode);
+  }
+
+  protected setTransformationFilter(type: ColumnTransformationType | null): void {
+    this.transformationFilter.set(type);
   }
 
   private scheduleCenterOnNode(nodeId: string): void {

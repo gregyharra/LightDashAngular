@@ -70,7 +70,262 @@ def _node_columns(artifacts: DbtArtifacts, node_id: str, node: dict[str, Any]) -
     catalog_cols = _catalog_columns(artifacts, node_id)
     if catalog_cols:
         return catalog_cols
-    return _manifest_columns(node)
+    manifest_cols = _manifest_columns(node)
+    if manifest_cols:
+        return manifest_cols
+    sql = _node_sql(artifacts, node)
+    if sql:
+        return _columns_from_sql(sql, node)
+    return []
+
+
+def _columns_from_sql(sql: str, node: dict[str, Any]) -> list[dict[str, Any]]:
+    parsed = _parse_select_output_columns(sql)
+    if not parsed:
+        return []
+    if parsed == ["*"]:
+        return []
+    return [{"name": name, "type": "string", "description": None} for name in parsed]
+
+
+_NUMERIC_TYPE_PATTERN = re.compile(
+    r"^(?:bigint|int(?:eger)?|smallint|tinyint|decimal|numeric|float|double|real|number)",
+    re.IGNORECASE,
+)
+
+
+def _normalize_column_type(type_str: str) -> str:
+    base = (type_str or "string").strip().lower().split("(", 1)[0]
+    if _NUMERIC_TYPE_PATTERN.match(base):
+        return "number"
+    if "bool" in base:
+        return "boolean"
+    if base == "date":
+        return "date"
+    if "timestamp" in base or "datetime" in base:
+        return "timestamp"
+    return base or "string"
+
+
+def _infer_edge_transformation(
+    source_col: dict[str, Any],
+    target_col: dict[str, Any],
+    source_name: str,
+    target_name: str,
+) -> str:
+    same_name = source_name.lower() == target_name.lower()
+    same_type = _normalize_column_type(source_col.get("type", "")) == _normalize_column_type(
+        target_col.get("type", "")
+    )
+    if same_name and same_type:
+        return "pass-through"
+    if not same_name and same_type:
+        return "rename"
+    if same_name and not same_type:
+        return "cast"
+    # Name changed and types differ — often SQL-inferred target types default to string.
+    if not same_name:
+        return "rename"
+    return "cast"
+
+
+_SELECT_BODY_PATTERN = re.compile(r"\bselect\b(.*?)\bfrom\b", re.IGNORECASE | re.DOTALL)
+_ALIAS_PATTERN = re.compile(r"\bas\s+([`\"]?)([A-Za-z_][\w$]*)\1\s*$", re.IGNORECASE)
+_IDENTIFIER_PATTERN = re.compile(r"([`\"]?)([A-Za-z_][\w$]*)\1\s*$")
+
+
+def _split_select_list(select_clause: str) -> list[str]:
+    parts: list[str] = []
+    current: list[str] = []
+    depth = 0
+    for char in select_clause:
+        if char == "(":
+            depth += 1
+        elif char == ")":
+            depth = max(0, depth - 1)
+        if char == "," and depth == 0:
+            part = "".join(current).strip()
+            if part:
+                parts.append(part)
+            current = []
+            continue
+        current.append(char)
+    tail = "".join(current).strip()
+    if tail:
+        parts.append(tail)
+    return parts
+
+
+def _parse_select_output_columns(sql: str) -> list[str]:
+    match = _SELECT_BODY_PATTERN.search(sql)
+    if not match:
+        return []
+    select_clause = match.group(1).strip()
+    if select_clause == "*":
+        return ["*"]
+    columns: list[str] = []
+    for part in _split_select_list(select_clause):
+        alias_match = _ALIAS_PATTERN.search(part.strip())
+        if alias_match:
+            columns.append(alias_match.group(2))
+            continue
+        ident_match = _IDENTIFIER_PATTERN.search(part.strip())
+        if ident_match:
+            columns.append(ident_match.group(2))
+    return columns
+
+
+def _column_by_name(columns: list[dict[str, Any]], name: str) -> dict[str, Any] | None:
+    lowered = name.lower()
+    for column in columns:
+        if column["name"].lower() == lowered:
+            return column
+    return None
+
+
+def _rename_id_candidate(source_columns: list[dict[str, Any]], target_name: str) -> str | None:
+    if not target_name.lower().endswith("_id"):
+        return None
+    if _column_by_name(source_columns, "id") is None:
+        return None
+    if _column_by_name(source_columns, target_name) is not None:
+        return None
+    return "id"
+
+
+def _match_source_column(
+    source_columns: list[dict[str, Any]],
+    target_column: dict[str, Any],
+    matched_sources: set[str],
+) -> str | None:
+    target_name = target_column["name"]
+    if target_name in matched_sources:
+        return None
+
+    exact = _column_by_name(source_columns, target_name)
+    if exact and exact["name"] not in matched_sources:
+        return exact["name"]
+
+    rename_from_id = _rename_id_candidate(source_columns, target_name)
+    if rename_from_id and rename_from_id not in matched_sources:
+        return rename_from_id
+
+    return None
+
+
+def _build_column_edges_for_dependency(
+    source_node_id: str,
+    source_columns: list[dict[str, Any]],
+    target_node_id: str,
+    target_columns: list[dict[str, Any]],
+) -> list[dict[str, Any]]:
+    if not source_columns or not target_columns:
+        return []
+
+    edges: list[dict[str, Any]] = []
+    matched_sources: set[str] = set()
+
+    for target_col in target_columns:
+        source_name = _match_source_column(source_columns, target_col, matched_sources)
+        if not source_name:
+            continue
+        source_col = _column_by_name(source_columns, source_name)
+        if not source_col:
+            continue
+        matched_sources.add(source_name)
+        edges.append(
+            {
+                "sourceNodeId": source_node_id,
+                "sourceColumn": source_name,
+                "targetNodeId": target_node_id,
+                "targetColumn": target_col["name"],
+                "transformationType": _infer_edge_transformation(
+                    source_col,
+                    target_col,
+                    source_name,
+                    target_col["name"],
+                ),
+            }
+        )
+
+    return edges
+
+
+def _build_column_edges(
+    lineage_nodes: list[dict[str, Any]],
+    edges: list[dict[str, str]],
+) -> list[dict[str, Any]]:
+    nodes_by_id = {node["id"]: node for node in lineage_nodes}
+    upstream_by_target: dict[str, list[str]] = {}
+    for edge in edges:
+        upstream_by_target.setdefault(edge["target"], []).append(edge["source"])
+
+    column_edges: list[dict[str, Any]] = []
+    seen: set[tuple[str, str, str, str]] = set()
+
+    for target_id, source_ids in upstream_by_target.items():
+        target_node = nodes_by_id.get(target_id)
+        if not target_node:
+            continue
+        target_columns = target_node.get("columns") or []
+        if not target_columns:
+            continue
+
+        for source_id in source_ids:
+            source_node = nodes_by_id.get(source_id)
+            if not source_node:
+                continue
+            source_columns = source_node.get("columns") or []
+            for edge in _build_column_edges_for_dependency(
+                source_id,
+                source_columns,
+                target_id,
+                target_columns,
+            ):
+                key = (
+                    edge["sourceNodeId"],
+                    edge["sourceColumn"],
+                    edge["targetNodeId"],
+                    edge["targetColumn"],
+                )
+                if key in seen:
+                    continue
+                seen.add(key)
+                column_edges.append(edge)
+
+    return column_edges
+
+
+def _node_sql(artifacts: DbtArtifacts, node: dict[str, Any]) -> str | None:
+    resource_type = node.get("resource_type")
+    if resource_type not in {"model", "snapshot"}:
+        return None
+
+    raw_code = node.get("raw_code")
+    if raw_code:
+        text = str(raw_code).strip()
+        if text:
+            return text
+
+    compiled_code = node.get("compiled_code")
+    if compiled_code:
+        text = str(compiled_code).strip()
+        if text:
+            return text
+
+    dbt_path = _dbt_path(node)
+    if not dbt_path:
+        return None
+
+    file_path = artifacts.project_path / dbt_path
+    if not file_path.is_file():
+        return None
+
+    try:
+        text = file_path.read_text(encoding="utf-8").strip()
+    except OSError:
+        return None
+    return text or None
 
 
 def _dbt_path(node: dict[str, Any]) -> str | None:
@@ -131,29 +386,32 @@ def build_project_lineage(
         schema = node.get("schema") or "default"
         catalog = database
 
-        lineage_nodes.append(
-            {
-                "id": node_id,
-                "name": node.get("name") or node_id.split(".")[-1],
-                "type": _infer_lineage_type(node_id, node),
-                "schema": schema,
-                "database": database,
-                "catalog": catalog,
-                "columnCount": len(columns),
-                "columns": columns,
-                "description": node.get("description") or None,
-                "materialization": (node.get("config") or {}).get("materialized"),
-                "tags": list(node.get("tags") or []),
-                "packageName": node.get("package_name"),
-                "dbtPath": _dbt_path(node),
-            }
-        )
+        lineage_node: dict[str, Any] = {
+            "id": node_id,
+            "name": node.get("name") or node_id.split(".")[-1],
+            "type": _infer_lineage_type(node_id, node),
+            "schema": schema,
+            "database": database,
+            "catalog": catalog,
+            "columnCount": len(columns),
+            "columns": columns,
+            "description": node.get("description") or None,
+            "materialization": (node.get("config") or {}).get("materialized"),
+            "tags": list(node.get("tags") or []),
+            "packageName": node.get("package_name"),
+            "dbtPath": _dbt_path(node),
+        }
+        sql = _node_sql(artifacts, node)
+        if sql:
+            lineage_node["sql"] = sql
+        lineage_nodes.append(lineage_node)
 
         for dependency in (node.get("depends_on") or {}).get("nodes") or []:
             edges.append({"source": dependency, "target": node_id})
 
     metadata = artifacts.metadata
-    return {
+    column_edges = _build_column_edges(lineage_nodes, edges)
+    result: dict[str, Any] = {
         "projectUuid": project_uuid,
         "projectName": project_name,
         "warehouseType": warehouse_type,
@@ -169,6 +427,9 @@ def build_project_lineage(
         "nodes": lineage_nodes,
         "edges": edges,
     }
+    if column_edges:
+        result["columnEdges"] = column_edges
+    return result
 
 
 def _tree_leaf(

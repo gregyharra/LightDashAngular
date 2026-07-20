@@ -80,18 +80,66 @@
             </button>
           </div>
         } @else {
+          <app-content-list-filter-chips
+            [chips]="activeFilterChips()"
+            (clearChip)="clearFilterChip($event)"
+            (clearAll)="clearAllFilters()"
+          />
+
+          @if (filteredDashboards().length === 0) {
+            <div class="dashboards-list__empty dashboards-list__empty--filtered">
+              <mat-icon>search_off</mat-icon>
+              <p>
+                @if (hasActiveFilters()) {
+                  No dashboards match your filters.
+                } @else {
+                  No dashboards found.
+                }
+              </p>
+            </div>
+          } @else {
           <div class="dashboards-list__table-wrap">
             <table class="dashboards-list__table">
               <thead>
                 <tr>
-                  <th scope="col">Name</th>
-                  <th scope="col">Space</th>
-                  <th scope="col">Last edited</th>
-                  <th scope="col">Views</th>
+                  <th scope="col">
+                    <app-content-list-column-header
+                      label="Name"
+                      filterType="text"
+                      textPlaceholder="Search dashboards…"
+                      [value]="columnFilters().name"
+                      (valueChange)="updateColumnFilter('name', $event)"
+                    />
+                  </th>
+                  <th scope="col">
+                    <app-content-list-column-header
+                      label="Space"
+                      filterType="select"
+                      [options]="spaceOptions()"
+                      [value]="columnFilters().space"
+                      (valueChange)="updateColumnFilter('space', $event)"
+                    />
+                  </th>
+                  <th scope="col">
+                    <app-content-list-column-header
+                      label="Last edited"
+                      filterType="date"
+                      [value]="columnFilters().lastEdited"
+                      (valueChange)="updateColumnFilter('lastEdited', $event)"
+                    />
+                  </th>
+                  <th scope="col">
+                    <app-content-list-column-header
+                      label="Views"
+                      filterType="number"
+                      [value]="columnFilters().views"
+                      (valueChange)="updateColumnFilter('views', $event)"
+                    />
+                  </th>
                 </tr>
               </thead>
               <tbody>
-                @for (dashboard of dashboards(); track dashboard.uuid) {
+                @for (dashboard of filteredDashboards(); track dashboard.uuid) {
                   <tr
                     class="dashboards-list__row"
                     tabindex="0"
@@ -120,6 +168,7 @@
               </tbody>
             </table>
           </div>
+          }
         }
       </div>
     </section>

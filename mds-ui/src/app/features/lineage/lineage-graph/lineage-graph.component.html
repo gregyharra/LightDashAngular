@@ -327,7 +327,7 @@
                       class="lineage-graph__column-row"
                       [class.lineage-graph__column-row--highlight]="isColumnPathHighlighted(node.id, col.name)"
                       [class.lineage-graph__column-row--selected]="isColumnSelected(node.id, col.name)"
-                      [class.lineage-graph__column-row--dimmed]="isColumnDimmed(node.id, col.name)"
+                      [class.lineage-graph__column-row--dimmed]="isColumnDimmed(node.id, col.name) || isColumnFilteredOut(node, col)"
                       [attr.transform]="'translate(0, ' + (headerHeight() + i * columnRowHeight()) + ')'"
                       (pointerdown)="onColumnPointerDown($event)"
                       (pointerup)="onColumnPointerUp(node.id, col.name, $event)"
@@ -336,7 +336,7 @@
                       [attr.aria-label]="'Select column ' + col.name + ' on ' + node.name"
                       (keydown.enter)="selectColumn(node.id, col.name, $event)"
                     >
-                      <title>Select {{ col.name }} ({{ col.type }})</title>
+                      <title>Select {{ col.name }} ({{ col.type }}) — {{ transformationChipTitle(columnTransformation(node, col)) }}</title>
                       <rect
                         class="lineage-graph__column-bg"
                         x="8"
@@ -347,9 +347,33 @@
                       />
                       <circle class="lineage-graph__column-dot" cx="18" [attr.cy]="columnRowHeight() / 2" r="3" />
                       <text class="lineage-graph__column-name" x="28" [attr.y]="columnRowHeight() / 2 + 4">{{ col.name }}</text>
+                      @if (columnTransformation(node, col); as transformType) {
+                        <g class="lineage-graph__column-transform">
+                          <rect
+                            class="lineage-graph__column-transform-chip"
+                            [attr.x]="transformChipX(pos.width, transformType)"
+                            y="5"
+                            [attr.width]="transformChipW(transformType)"
+                            [attr.height]="transformChipH()"
+                            [attr.rx]="transformChipH() / 2"
+                            [attr.fill]="transformChipFill(transformType)"
+                            [attr.stroke]="transformChipStroke(transformType)"
+                          />
+                          <text
+                            class="lineage-graph__column-transform-text"
+                            [class.lineage-graph__column-transform-text--compact]="transformationChipMode() === 'compact'"
+                            [attr.x]="transformChipX(pos.width, transformType) + transformChipW(transformType) / 2"
+                            [attr.y]="columnRowHeight() / 2 + 3"
+                            text-anchor="middle"
+                            [attr.fill]="transformChipTextFill(transformType)"
+                          >
+                            {{ transformationChipText(transformType) }}
+                          </text>
+                        </g>
+                      }
                       <text
                         class="lineage-graph__column-type"
-                        [attr.x]="pos.width - 12"
+                        [attr.x]="columnTypeX(pos.width, columnTransformation(node, col))"
                         [attr.y]="columnRowHeight() / 2 + 4"
                         text-anchor="end"
                       >
@@ -406,12 +430,25 @@
   </div>
 
   <div class="lineage-graph__legend">
-    <span class="lineage-graph__legend-item lineage-graph__legend-item--source">Source</span>
-    <span class="lineage-graph__legend-item lineage-graph__legend-item--seed">Seed</span>
-    <span class="lineage-graph__legend-item lineage-graph__legend-item--staging">Staging</span>
-    <span class="lineage-graph__legend-item lineage-graph__legend-item--mart">Mart</span>
-    @if (viewMode() === 'columns' || hasColumnFocus()) {
-      <span class="lineage-graph__legend-item lineage-graph__legend-item--column-edge">Column lineage</span>
-    }
+    <div class="lineage-graph__legend-section">
+      <span class="lineage-graph__legend-heading">Models</span>
+      <div class="lineage-graph__legend-items">
+        <span class="lineage-graph__legend-item lineage-graph__legend-item--source">Source</span>
+        <span class="lineage-graph__legend-item lineage-graph__legend-item--seed">Seed</span>
+        <span class="lineage-graph__legend-item lineage-graph__legend-item--staging">Staging</span>
+        <span class="lineage-graph__legend-item lineage-graph__legend-item--mart">Mart</span>
+        @if (viewMode() === 'columns' || hasColumnFocus()) {
+          <span class="lineage-graph__legend-item lineage-graph__legend-item--column-edge">Column lineage</span>
+        }
+      </div>
+    </div>
+    <div class="lineage-graph__legend-divider" aria-hidden="true"></div>
+    <app-transformation-legend
+      class="lineage-graph__legend-section lineage-graph__legend-section--transforms"
+      [chipMode]="transformationChipMode()"
+      [activeFilter]="transformationFilter()"
+      (chipModeChange)="setTransformationChipMode($event)"
+      (filterChange)="setTransformationFilter($event)"
+    />
   </div>
 </div>

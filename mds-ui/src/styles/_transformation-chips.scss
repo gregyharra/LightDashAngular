@@ -1,0 +1,117 @@
+// Column transformation chip palette (inspired by dbt-colibri badge colors).
+:root {
+  --ld-transform-source-bg: #d3f9d8;
+  --ld-transform-source-text: #2b8a3e;
+  --ld-transform-source-border: #8ce99a;
+
+  --ld-transform-pass-through-bg: #f1f3f5;
+  --ld-transform-pass-through-text: #495057;
+  --ld-transform-pass-through-border: #dee2e6;
+
+  --ld-transform-rename-bg: #dbeafe;
+  --ld-transform-rename-text: #1d4ed8;
+  --ld-transform-rename-border: #bfdbfe;
+
+  --ld-transform-cast-bg: #fff3bf;
+  --ld-transform-cast-text: #e67700;
+  --ld-transform-cast-border: #ffe066;
+
+  --ld-transform-derived-bg: #f3e8ff;
+  --ld-transform-derived-text: #6b21a8;
+  --ld-transform-derived-border: #e9d5ff;
+
+  --ld-transform-coalesce-bg: #edf2ff;
+  --ld-transform-coalesce-text: #364fc7;
+  --ld-transform-coalesce-border: #bac8ff;
+
+  --ld-transform-aggregate-bg: #ffe3e3;
+  --ld-transform-aggregate-text: #c92a2a;
+  --ld-transform-aggregate-border: #ffc9c9;
+
+  --ld-transform-join-key-bg: #c5f6fa;
+  --ld-transform-join-key-text: #0b7285;
+  --ld-transform-join-key-border: #99e9f2;
+}
+
+.ld-transform-chip {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid transparent;
+  border-radius: 999px;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  white-space: nowrap;
+  box-shadow: 0 1px 2px rgba(10, 13, 18, 0.06);
+  line-height: 1;
+
+  &--sm {
+    min-width: 18px;
+    height: 18px;
+    padding: 0 6px;
+    font-size: 10px;
+  }
+
+  &--md {
+    min-width: 22px;
+    height: 22px;
+    padding: 0 8px;
+    font-size: 11px;
+  }
+
+  &--compact {
+    min-width: 18px;
+    width: 18px;
+    padding: 0;
+    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+    font-size: 10px;
+  }
+
+  &--source {
+    background: var(--ld-transform-source-bg);
+    color: var(--ld-transform-source-text);
+    border-color: var(--ld-transform-source-border);
+  }
+
+  &--pass-through {
+    background: var(--ld-transform-pass-through-bg);
+    color: var(--ld-transform-pass-through-text);
+    border-color: var(--ld-transform-pass-through-border);
+  }
+
+  &--rename {
+    background: var(--ld-transform-rename-bg);
+    color: var(--ld-transform-rename-text);
+    border-color: var(--ld-transform-rename-border);
+  }
+
+  &--cast {
+    background: var(--ld-transform-cast-bg);
+    color: var(--ld-transform-cast-text);
+    border-color: var(--ld-transform-cast-border);
+  }
+
+  &--derived {
+    background: var(--ld-transform-derived-bg);
+    color: var(--ld-transform-derived-text);
+    border-color: var(--ld-transform-derived-border);
+  }
+
+  &--coalesce {
+    background: var(--ld-transform-coalesce-bg);
+    color: var(--ld-transform-coalesce-text);
+    border-color: var(--ld-transform-coalesce-border);
+  }
+
+  &--aggregate {
+    background: var(--ld-transform-aggregate-bg);
+    color: var(--ld-transform-aggregate-text);
+    border-color: var(--ld-transform-aggregate-border);
+  }
+
+  &--join-key {
+    background: var(--ld-transform-join-key-bg);
+    color: var(--ld-transform-join-key-text);
+    border-color: var(--ld-transform-join-key-border);
+  }
+}

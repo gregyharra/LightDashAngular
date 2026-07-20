@@ -50,6 +50,16 @@
       <button
         type="button"
         class="lineage-detail__tab"
+        [class.lineage-detail__tab--active]="activeTab() === 'sql'"
+        role="tab"
+        [attr.aria-selected]="activeTab() === 'sql'"
+        (click)="setTab('sql')"
+      >
+        SQL
+      </button>
+      <button
+        type="button"
+        class="lineage-detail__tab"
         [class.lineage-detail__tab--active]="activeTab() === 'lineage'"
         role="tab"
         [attr.aria-selected]="activeTab() === 'lineage'"
@@ -141,6 +151,7 @@
                       Type {{ sortIndicator('type') }}
                     </button>
                   </th>
+                  <th>Transform</th>
                 </tr>
               </thead>
               <tbody>
@@ -166,6 +177,13 @@
                       }
                     </td>
                     <td class="lineage-detail__col-type">{{ col.type }}</td>
+                    <td>
+                      <app-transformation-chip
+                        [type]="columnTransformation(col)"
+                        mode="full"
+                        size="md"
+                      />
+                    </td>
                   </tr>
                 }
               </tbody>
@@ -226,6 +244,15 @@
           }
         </section>
       }
+    } @else if (activeTab() === 'sql') {
+      <section class="lineage-detail__section">
+        <h3 class="lineage-detail__section-title">Model SQL</h3>
+        @if (selected.sql) {
+          <pre class="lineage-detail__sql-block"><code>{{ selected.sql }}</code></pre>
+        } @else {
+          <p class="lineage-detail__empty">No SQL available for this node</p>
+        }
+      </section>
     } @else {
       @if (hasSelectedColumn()) {
         <section class="lineage-detail__section">
@@ -289,9 +316,18 @@
                 </li>
               }
             </ul>
-          }
-        </section>
-      } @else {
+        }
+      </section>
+    } @else if (activeTab() === 'sql') {
+      <section class="lineage-detail__section">
+        <h3 class="lineage-detail__section-title">Model SQL</h3>
+        @if (selected.sql) {
+          <pre class="lineage-detail__sql-block"><code>{{ selected.sql }}</code></pre>
+        } @else {
+          <p class="lineage-detail__empty">No SQL available for this node</p>
+        }
+      </section>
+    } @else {
         <section class="lineage-detail__section">
           <h3 class="lineage-detail__section-title">
             <mat-icon>arrow_upward</mat-icon>

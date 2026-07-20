@@ -44,7 +44,8 @@ export class TablesFiltersPanelComponent {
 
   readonly filtersChange = output<DashboardDimensionFilter[]>();
 
-  protected readonly addingFilter = signal(false);
+  protected readonly draftOpen = signal(false);
+  protected readonly editingFilterId = signal<string | null>(null);
   protected readonly draftFieldId = signal<string | null>(null);
   protected readonly draftOperator = signal<DashboardFilterOperator>('equals');
   protected readonly draftValue = signal('');
@@ -109,7 +110,8 @@ export class TablesFiltersPanelComponent {
 
   protected startAddFilter(): void {
     const firstDimension = this.dimensions()[0];
-    this.addingFilter.set(true);
+    this.draftOpen.set(true);
+    this.editingFilterId.set(null);
     this.draftFieldId.set(firstDimension?.fieldId ?? null);
     this.draftOperator.set(
       firstDimension
@@ -121,8 +123,19 @@ export class TablesFiltersPanelComponent {
     this.draftUnitOfTime.set('months');
   }
 
-  protected cancelAddFilter(): void {
-    this.addingFilter.set(false);
+  protected startEditFilter(filter: DashboardDimensionFilter): void {
+    this.draftOpen.set(true);
+    this.editingFilterId.set(filter.id);
+    this.draftFieldId.set(filter.target.fieldId);
+    this.draftOperator.set(filter.operator);
+    this.draftValue.set(filter.values[0] != null ? String(filter.values[0]) : '');
+    this.draftValue2.set(filter.values[1] != null ? String(filter.values[1]) : '');
+    this.draftUnitOfTime.set(filter.settings?.unitOfTime ?? 'months');
+  }
+
+  protected cancelDraft(): void {
+    this.draftOpen.set(false);
+    this.editingFilterId.set(null);
   }
 
   protected onDraftFieldChange(fieldId: string): void {
@@ -164,11 +177,25 @@ export class TablesFiltersPanelComponent {
         : undefined,
     );
 
-    this.filtersChange.emit([...this.filters(), filter]);
-    this.addingFilter.set(false);
+    const editingId = this.editingFilterId();
+    if (editingId) {
+      this.filtersChange.emit(
+        this.filters().map((existing) =>
+          existing.id === editingId ? { ...filter, id: editingId } : existing,
+        ),
+      );
+    } else {
+      this.filtersChange.emit([...this.filters(), filter]);
+    }
+
+    this.cancelDraft();
   }
 
-  protected removeFilter(filterId: string): void {
+  protected removeFilter(event: Event, filterId: string): void {
+    event.stopPropagation();
+    if (this.editingFilterId() === filterId) {
+      this.cancelDraft();
+    }
     this.filtersChange.emit(this.filters().filter((filter) => filter.id !== filterId));
   }
 

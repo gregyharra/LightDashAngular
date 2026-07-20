@@ -46,6 +46,24 @@ def test_lineage_from_local_dbt_artifacts(client: TestClient) -> None:
     assert "source.jaffle_shop.raw.raw_orders" in node_ids
     assert any(edge["target"] == "model.jaffle_shop.marts.fct_orders" for edge in lineage["edges"])
 
+    nodes_by_id = {node["id"]: node for node in lineage["nodes"]}
+    fct_orders = nodes_by_id["model.jaffle_shop.marts.fct_orders"]
+    assert fct_orders["sql"] == "select * from {{ ref('stg_orders') }}"
+
+    stg_orders = nodes_by_id["model.jaffle_shop.staging.stg_orders"]
+    assert "from {{ source('raw', 'raw_orders') }}" in stg_orders["sql"]
+
+    assert "sql" not in nodes_by_id["source.jaffle_shop.raw.raw_orders"]
+
+    column_edges = lineage.get("columnEdges") or []
+    assert column_edges
+    rename_edges = [
+        edge
+        for edge in column_edges
+        if edge.get("transformationType") == "rename" and edge.get("targetColumn") == "order_id"
+    ]
+    assert rename_edges
+
 
 def test_dbt_tree_from_local_dbt_artifacts(client: TestClient) -> None:
     response = client.get(f"/api/v1/projects/{MOCK_PROJECT_UUID}/dbt-tree")

@@ -26,11 +26,28 @@ export interface ProjectDbtTree {
   root: DbtTreeNode[];
 }
 
+/** How a column was produced from its upstream inputs (dbt-colibri-style). */
+export type ColumnTransformationType =
+  | 'source'
+  | 'pass-through'
+  | 'rename'
+  | 'cast'
+  | 'derived'
+  | 'coalesce'
+  | 'aggregate'
+  | 'join-key';
+
 export interface LineageColumn {
   name: string;
   type: string;
   description?: string;
   tags?: string[];
+  /** Explicit transformation when known; otherwise inferred from column edges. */
+  transformationType?: ColumnTransformationType;
+  /** Primary upstream column name when renamed or derived from a single source. */
+  sourceColumn?: string;
+  /** SQL expression hint when the column is computed. */
+  expression?: string;
 }
 
 export interface ColumnLineageEdge {
@@ -38,6 +55,8 @@ export interface ColumnLineageEdge {
   sourceColumn: string;
   targetNodeId: string;
   targetColumn: string;
+  transformationType?: ColumnTransformationType;
+  expression?: string;
 }
 
 export interface LineageNode {
@@ -55,6 +74,8 @@ export interface LineageNode {
   packageName?: string;
   /** dbt project file path, e.g. models/marts/fct_orders.sql */
   dbtPath?: string;
+  /** Model SQL from dbt manifest raw_code or project file */
+  sql?: string;
 }
 
 export interface LineageEdge {
@@ -95,7 +116,7 @@ export interface SelectedColumnRef {
   columnName: string;
 }
 
-export type LineageDetailTab = 'overview' | 'columns' | 'lineage';
+export type LineageDetailTab = 'overview' | 'columns' | 'sql' | 'lineage';
 
 export interface ColumnSelectionEvent {
   ref: SelectedColumnRef;

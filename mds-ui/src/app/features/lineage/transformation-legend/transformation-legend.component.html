@@ -1,0 +1,47 @@
+<div class="transformation-legend">
+  <div class="transformation-legend__header">
+    <span class="transformation-legend__title">Transformations</span>
+    <div class="transformation-legend__mode-toggle" role="radiogroup" aria-label="Transformation chip display">
+      <button
+        type="button"
+        class="transformation-legend__mode-btn"
+        [class.transformation-legend__mode-btn--active]="chipMode() === 'compact'"
+        role="radio"
+        [attr.aria-checked]="chipMode() === 'compact'"
+        (click)="setChipMode('compact')"
+        title="Compact badges"
+      >
+        A
+      </button>
+      <button
+        type="button"
+        class="transformation-legend__mode-btn"
+        [class.transformation-legend__mode-btn--active]="chipMode() === 'full'"
+        role="radio"
+        [attr.aria-checked]="chipMode() === 'full'"
+        (click)="setChipMode('full')"
+        title="Full labels"
+      >
+        Abc
+      </button>
+    </div>
+  </div>
+
+  <ul class="transformation-legend__list">
+    @for (type of types; track type) {
+      <li class="transformation-legend__item">
+        <button
+          type="button"
+          class="transformation-legend__filter-btn"
+          [class.transformation-legend__filter-btn--active]="activeFilter() === type"
+          [attr.aria-pressed]="activeFilter() === type"
+          [title]="descriptions[type]"
+          (click)="toggleFilter(type)"
+        >
+          <app-transformation-chip [type]="type" [mode]="chipMode()" size="sm" />
+          <span class="transformation-legend__label">{{ labels[type] }}</span>
+        </button>
+      </li>
+    }
+  </ul>
+</div>

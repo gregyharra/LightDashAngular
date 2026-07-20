@@ -15,6 +15,7 @@ import { MatIconModule } from '@angular/material/icon';
 import {
   ColumnLineageEdge,
   ColumnSelectionEvent,
+  ColumnTransformationType,
   LineageColumn,
   LineageDetailTab,
   LineageEdge,
@@ -29,6 +30,10 @@ import {
   resolveColumnRefs,
   sortColumns,
 } from '../lineage-column-utils';
+import {
+  inferColumnTransformation,
+} from '../column-transformation.utils';
+import { TransformationChipComponent } from '../transformation-chip/transformation-chip.component';
 
 type DetailTab = LineageDetailTab;
 type ColumnSortKey = 'name' | 'type';
@@ -37,7 +42,7 @@ const COLLAPSED_STORAGE_KEY = 'lightdash-lineage-detail-panel-collapsed';
 
 @Component({
   selector: 'app-lineage-detail-panel',
-  imports: [MatIconModule],
+  imports: [MatIconModule, TransformationChipComponent],
   templateUrl: './lineage-detail-panel.component.html',
   styleUrl: './lineage-detail-panel.component.scss',
 })
@@ -271,5 +276,10 @@ export class LineageDetailPanelComponent {
       default:
         return type;
     }
+  }
+
+  protected columnTransformation(column: LineageColumn): ColumnTransformationType {
+    const node = this.node();
+    return inferColumnTransformation(node, column, this.columnEdges(), this.nodes());
   }
 }

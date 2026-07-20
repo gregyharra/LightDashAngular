@@ -37,7 +37,7 @@
 }
 
 .charts-list__title {
-  margin-bottom: var(--ld-spacing-lg);
+  margin-bottom: var(--ld-spacing-md);
   font-size: 18px;
   font-weight: 600;
   line-height: 1.3;
@@ -103,6 +103,10 @@
 
   p {
     margin: 0;
+  }
+
+  &--filtered {
+    min-height: 160px;
   }
 }
 

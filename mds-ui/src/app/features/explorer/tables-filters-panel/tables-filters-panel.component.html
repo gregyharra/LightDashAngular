@@ -1,5 +1,5 @@
 <div class="tables-filters-panel">
-  @if (filters().length === 0 && !addingFilter()) {
+  @if (filters().length === 0 && !draftOpen()) {
     <p class="tables-filters-panel__empty">
       No filters applied. Add a filter to narrow your results.
     </p>
@@ -7,26 +7,32 @@
 
   <div class="tables-filters-panel__list">
     @for (filter of filters(); track filter.id) {
-      <div class="tables-filters-panel__row">
-        <div class="tables-filters-panel__pill">
-          <span class="tables-filters-panel__pill-label">{{ filter.label }}</span>
-          <span class="tables-filters-panel__pill-value">
-            {{ formatFilterSummary(filter).replace(filter.label + ' ', '') }}
-          </span>
+      @if (editingFilterId() !== filter.id) {
+        <div class="tables-filters-panel__chip">
+          <button
+            type="button"
+            class="tables-filters-panel__chip-body"
+            [attr.aria-label]="'Edit filter: ' + formatFilterSummary(filter)"
+            (click)="startEditFilter(filter)"
+          >
+            <span class="tables-filters-panel__chip-label">{{ filter.label }}</span>
+            <span class="tables-filters-panel__chip-value">
+              {{ formatFilterSummary(filter).replace(filter.label + ' ', '') }}
+            </span>
+          </button>
+          <button
+            type="button"
+            class="tables-filters-panel__chip-remove"
+            aria-label="Remove filter"
+            (click)="removeFilter($event, filter.id)"
+          >
+            <mat-icon>close</mat-icon>
+          </button>
         </div>
-        <button
-          mat-icon-button
-          type="button"
-          class="tables-filters-panel__remove-btn"
-          aria-label="Remove filter"
-          (click)="removeFilter(filter.id)"
-        >
-          <mat-icon>close</mat-icon>
-        </button>
-      </div>
+      }
     }
 
-    @if (addingFilter()) {
+    @if (draftOpen()) {
       <div class="tables-filters-panel__draft">
         <mat-form-field appearance="outline" subscriptSizing="dynamic">
           <mat-label>Field</mat-label>
@@ -96,7 +102,7 @@
           <button
             mat-stroked-button
             type="button"
-            (click)="cancelAddFilter()"
+            (click)="cancelDraft()"
           >
             Cancel
           </button>
@@ -113,7 +119,7 @@
     }
   </div>
 
-  @if (!addingFilter() && dimensions().length > 0) {
+  @if (!draftOpen() && dimensions().length > 0) {
     <button
       mat-stroked-button
       type="button"

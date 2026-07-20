@@ -74,20 +74,84 @@
             <p>No charts yet.</p>
           </div>
         } @else {
+          <app-content-list-filter-chips
+            [chips]="activeFilterChips()"
+            (clearChip)="clearFilterChip($event)"
+            (clearAll)="clearAllFilters()"
+          />
+
+          @if (filteredCharts().length === 0) {
+            <div class="charts-list__empty charts-list__empty--filtered">
+              <mat-icon>search_off</mat-icon>
+              <p>
+                @if (hasActiveFilters()) {
+                  No charts match your filters.
+                } @else {
+                  No charts found.
+                }
+              </p>
+            </div>
+          } @else {
           <div class="charts-list__table-wrap">
             <table class="charts-list__table">
               <thead>
                 <tr>
-                  <th scope="col">Name</th>
-                  <th scope="col">Type</th>
-                  <th scope="col">Table</th>
-                  <th scope="col">Space</th>
-                  <th scope="col">Last edited</th>
-                  <th scope="col">Views</th>
+                  <th scope="col">
+                    <app-content-list-column-header
+                      label="Name"
+                      filterType="text"
+                      textPlaceholder="Search charts…"
+                      [value]="columnFilters().name"
+                      (valueChange)="updateColumnFilter('name', $event)"
+                    />
+                  </th>
+                  <th scope="col">
+                    <app-content-list-column-header
+                      label="Type"
+                      filterType="select"
+                      [options]="typeOptions()"
+                      [value]="columnFilters().type"
+                      (valueChange)="updateColumnFilter('type', $event)"
+                    />
+                  </th>
+                  <th scope="col">
+                    <app-content-list-column-header
+                      label="Table"
+                      filterType="text"
+                      textPlaceholder="Search tables…"
+                      [value]="columnFilters().table"
+                      (valueChange)="updateColumnFilter('table', $event)"
+                    />
+                  </th>
+                  <th scope="col">
+                    <app-content-list-column-header
+                      label="Space"
+                      filterType="select"
+                      [options]="spaceOptions()"
+                      [value]="columnFilters().space"
+                      (valueChange)="updateColumnFilter('space', $event)"
+                    />
+                  </th>
+                  <th scope="col">
+                    <app-content-list-column-header
+                      label="Last edited"
+                      filterType="date"
+                      [value]="columnFilters().lastEdited"
+                      (valueChange)="updateColumnFilter('lastEdited', $event)"
+                    />
+                  </th>
+                  <th scope="col">
+                    <app-content-list-column-header
+                      label="Views"
+                      filterType="number"
+                      [value]="columnFilters().views"
+                      (valueChange)="updateColumnFilter('views', $event)"
+                    />
+                  </th>
                 </tr>
               </thead>
               <tbody>
-                @for (chart of charts(); track chart.uuid) {
+                @for (chart of filteredCharts(); track chart.uuid) {
                   <tr
                     class="charts-list__row"
                     tabindex="0"
@@ -118,6 +182,7 @@
               </tbody>
             </table>
           </div>
+          }
         }
       </div>
     </section>

@@ -88,7 +88,7 @@ const STG_CUSTOMERS_COLS: LineageColumn[] = [
   { name: 'customer_id', type: 'bigint', description: 'Renamed from id' },
   { name: 'first_name', type: 'varchar' },
   { name: 'last_name', type: 'varchar' },
-  { name: 'full_name', type: 'varchar', description: 'Concatenated display name' },
+  { name: 'full_name', type: 'varchar', description: 'Concatenated display name', transformationType: 'derived', expression: "first_name || ' ' || last_name" },
   { name: 'email', type: 'varchar', tags: ['pii'] },
   { name: 'country_code', type: 'varchar(2)', description: 'ISO code from seed join' },
   { name: 'state_abbr', type: 'varchar(2)' },
@@ -140,6 +140,7 @@ const DIM_CUSTOMERS_COLS: LineageColumn[] = [
   { name: 'customer_id', type: 'bigint' },
   { name: 'full_name', type: 'varchar' },
   { name: 'email', type: 'varchar', tags: ['pii'] },
+  { name: 'contact_email', type: 'varchar', description: 'coalesce(email, backup_email)', transformationType: 'coalesce' },
   { name: 'country_code', type: 'varchar(2)' },
   { name: 'state_abbr', type: 'varchar(2)' },
   { name: 'first_order_date', type: 'date' },
@@ -221,56 +222,58 @@ const CUSTOMER_ORDER_SUMMARY_COLS: LineageColumn[] = [
 
 const COLUMN_EDGES: ColumnLineageEdge[] = [
   // raw_orders → stg_orders
-  { sourceNodeId: 'source.jaffle_shop.raw.raw_orders', sourceColumn: 'id', targetNodeId: 'model.jaffle_shop.staging.stg_orders', targetColumn: 'order_id' },
-  { sourceNodeId: 'source.jaffle_shop.raw.raw_orders', sourceColumn: 'customer_id', targetNodeId: 'model.jaffle_shop.staging.stg_orders', targetColumn: 'customer_id' },
-  { sourceNodeId: 'source.jaffle_shop.raw.raw_orders', sourceColumn: 'order_date', targetNodeId: 'model.jaffle_shop.staging.stg_orders', targetColumn: 'order_date' },
-  { sourceNodeId: 'source.jaffle_shop.raw.raw_orders', sourceColumn: 'status', targetNodeId: 'model.jaffle_shop.staging.stg_orders', targetColumn: 'status' },
-  { sourceNodeId: 'source.jaffle_shop.raw.raw_orders', sourceColumn: 'amount', targetNodeId: 'model.jaffle_shop.staging.stg_orders', targetColumn: 'amount' },
-  { sourceNodeId: 'source.jaffle_shop.raw.raw_orders', sourceColumn: 'tax_paid', targetNodeId: 'model.jaffle_shop.staging.stg_orders', targetColumn: 'tax_paid' },
-  { sourceNodeId: 'source.jaffle_shop.raw.raw_orders', sourceColumn: 'updated_at', targetNodeId: 'model.jaffle_shop.staging.stg_orders', targetColumn: 'updated_at' },
+  { sourceNodeId: 'source.jaffle_shop.raw.raw_orders', sourceColumn: 'id', targetNodeId: 'model.jaffle_shop.staging.stg_orders', targetColumn: 'order_id', transformationType: 'rename' },
+  { sourceNodeId: 'source.jaffle_shop.raw.raw_orders', sourceColumn: 'customer_id', targetNodeId: 'model.jaffle_shop.staging.stg_orders', targetColumn: 'customer_id', transformationType: 'pass-through' },
+  { sourceNodeId: 'source.jaffle_shop.raw.raw_orders', sourceColumn: 'order_date', targetNodeId: 'model.jaffle_shop.staging.stg_orders', targetColumn: 'order_date', transformationType: 'pass-through' },
+  { sourceNodeId: 'source.jaffle_shop.raw.raw_orders', sourceColumn: 'status', targetNodeId: 'model.jaffle_shop.staging.stg_orders', targetColumn: 'status', transformationType: 'pass-through' },
+  { sourceNodeId: 'source.jaffle_shop.raw.raw_orders', sourceColumn: 'amount', targetNodeId: 'model.jaffle_shop.staging.stg_orders', targetColumn: 'amount', transformationType: 'pass-through' },
+  { sourceNodeId: 'source.jaffle_shop.raw.raw_orders', sourceColumn: 'tax_paid', targetNodeId: 'model.jaffle_shop.staging.stg_orders', targetColumn: 'tax_paid', transformationType: 'pass-through' },
+  { sourceNodeId: 'source.jaffle_shop.raw.raw_orders', sourceColumn: 'updated_at', targetNodeId: 'model.jaffle_shop.staging.stg_orders', targetColumn: 'updated_at', transformationType: 'cast' },
 
   // stg_orders → fct_orders
-  { sourceNodeId: 'model.jaffle_shop.staging.stg_orders', sourceColumn: 'order_id', targetNodeId: 'model.jaffle_shop.marts.fct_orders', targetColumn: 'order_id' },
-  { sourceNodeId: 'model.jaffle_shop.staging.stg_orders', sourceColumn: 'customer_id', targetNodeId: 'model.jaffle_shop.marts.fct_orders', targetColumn: 'customer_id' },
-  { sourceNodeId: 'model.jaffle_shop.staging.stg_orders', sourceColumn: 'order_date', targetNodeId: 'model.jaffle_shop.marts.fct_orders', targetColumn: 'order_date' },
-  { sourceNodeId: 'model.jaffle_shop.staging.stg_orders', sourceColumn: 'status', targetNodeId: 'model.jaffle_shop.marts.fct_orders', targetColumn: 'status' },
-  { sourceNodeId: 'model.jaffle_shop.staging.stg_orders', sourceColumn: 'amount', targetNodeId: 'model.jaffle_shop.marts.fct_orders', targetColumn: 'amount' },
-  { sourceNodeId: 'model.jaffle_shop.staging.stg_orders', sourceColumn: 'tax_paid', targetNodeId: 'model.jaffle_shop.marts.fct_orders', targetColumn: 'tax_paid' },
-  { sourceNodeId: 'model.jaffle_shop.staging.stg_orders', sourceColumn: 'amount_with_tax', targetNodeId: 'model.jaffle_shop.marts.fct_orders', targetColumn: 'amount_with_tax' },
-  { sourceNodeId: 'model.jaffle_shop.staging.stg_orders', sourceColumn: 'is_completed', targetNodeId: 'model.jaffle_shop.marts.fct_orders', targetColumn: 'is_completed' },
-  { sourceNodeId: 'model.jaffle_shop.staging.stg_orders', sourceColumn: 'updated_at', targetNodeId: 'model.jaffle_shop.marts.fct_orders', targetColumn: 'updated_at' },
+  { sourceNodeId: 'model.jaffle_shop.staging.stg_orders', sourceColumn: 'order_id', targetNodeId: 'model.jaffle_shop.marts.fct_orders', targetColumn: 'order_id', transformationType: 'pass-through' },
+  { sourceNodeId: 'model.jaffle_shop.staging.stg_orders', sourceColumn: 'customer_id', targetNodeId: 'model.jaffle_shop.marts.fct_orders', targetColumn: 'customer_id', transformationType: 'pass-through' },
+  { sourceNodeId: 'model.jaffle_shop.staging.stg_orders', sourceColumn: 'order_date', targetNodeId: 'model.jaffle_shop.marts.fct_orders', targetColumn: 'order_date', transformationType: 'pass-through' },
+  { sourceNodeId: 'model.jaffle_shop.staging.stg_orders', sourceColumn: 'status', targetNodeId: 'model.jaffle_shop.marts.fct_orders', targetColumn: 'status', transformationType: 'pass-through' },
+  { sourceNodeId: 'model.jaffle_shop.staging.stg_orders', sourceColumn: 'amount', targetNodeId: 'model.jaffle_shop.marts.fct_orders', targetColumn: 'amount', transformationType: 'pass-through' },
+  { sourceNodeId: 'model.jaffle_shop.staging.stg_orders', sourceColumn: 'tax_paid', targetNodeId: 'model.jaffle_shop.marts.fct_orders', targetColumn: 'tax_paid', transformationType: 'pass-through' },
+  { sourceNodeId: 'model.jaffle_shop.staging.stg_orders', sourceColumn: 'amount_with_tax', targetNodeId: 'model.jaffle_shop.marts.fct_orders', targetColumn: 'amount_with_tax', transformationType: 'derived', expression: 'amount + tax_paid' },
+  { sourceNodeId: 'model.jaffle_shop.staging.stg_orders', sourceColumn: 'is_completed', targetNodeId: 'model.jaffle_shop.marts.fct_orders', targetColumn: 'is_completed', transformationType: 'derived' },
+  { sourceNodeId: 'model.jaffle_shop.staging.stg_orders', sourceColumn: 'updated_at', targetNodeId: 'model.jaffle_shop.marts.fct_orders', targetColumn: 'updated_at', transformationType: 'pass-through' },
 
   // raw_customers → stg_customers
-  { sourceNodeId: 'source.jaffle_shop.raw.raw_customers', sourceColumn: 'id', targetNodeId: 'model.jaffle_shop.staging.stg_customers', targetColumn: 'customer_id' },
-  { sourceNodeId: 'source.jaffle_shop.raw.raw_customers', sourceColumn: 'first_name', targetNodeId: 'model.jaffle_shop.staging.stg_customers', targetColumn: 'first_name' },
-  { sourceNodeId: 'source.jaffle_shop.raw.raw_customers', sourceColumn: 'last_name', targetNodeId: 'model.jaffle_shop.staging.stg_customers', targetColumn: 'last_name' },
-  { sourceNodeId: 'source.jaffle_shop.raw.raw_customers', sourceColumn: 'email', targetNodeId: 'model.jaffle_shop.staging.stg_customers', targetColumn: 'email' },
+  { sourceNodeId: 'source.jaffle_shop.raw.raw_customers', sourceColumn: 'id', targetNodeId: 'model.jaffle_shop.staging.stg_customers', targetColumn: 'customer_id', transformationType: 'rename' },
+  { sourceNodeId: 'source.jaffle_shop.raw.raw_customers', sourceColumn: 'first_name', targetNodeId: 'model.jaffle_shop.staging.stg_customers', targetColumn: 'first_name', transformationType: 'pass-through' },
+  { sourceNodeId: 'source.jaffle_shop.raw.raw_customers', sourceColumn: 'last_name', targetNodeId: 'model.jaffle_shop.staging.stg_customers', targetColumn: 'last_name', transformationType: 'pass-through' },
+  { sourceNodeId: 'source.jaffle_shop.raw.raw_customers', sourceColumn: 'email', targetNodeId: 'model.jaffle_shop.staging.stg_customers', targetColumn: 'email', transformationType: 'pass-through' },
 
   // seeds → stg_customers
-  { sourceNodeId: 'seed.jaffle_shop.seeds.country_codes', sourceColumn: 'country_code', targetNodeId: 'model.jaffle_shop.staging.stg_customers', targetColumn: 'country_code' },
-  { sourceNodeId: 'seed.jaffle_shop.seeds.us_state_abbreviations', sourceColumn: 'state_abbr', targetNodeId: 'model.jaffle_shop.staging.stg_customers', targetColumn: 'state_abbr' },
+  { sourceNodeId: 'seed.jaffle_shop.seeds.country_codes', sourceColumn: 'country_code', targetNodeId: 'model.jaffle_shop.staging.stg_customers', targetColumn: 'country_code', transformationType: 'join-key' },
+  { sourceNodeId: 'seed.jaffle_shop.seeds.us_state_abbreviations', sourceColumn: 'state_abbr', targetNodeId: 'model.jaffle_shop.staging.stg_customers', targetColumn: 'state_abbr', transformationType: 'join-key' },
 
   // stg_customers → dim_customers / fct_orders enrichments
-  { sourceNodeId: 'model.jaffle_shop.staging.stg_customers', sourceColumn: 'customer_id', targetNodeId: 'model.jaffle_shop.marts.dim_customers', targetColumn: 'customer_id' },
-  { sourceNodeId: 'model.jaffle_shop.staging.stg_customers', sourceColumn: 'full_name', targetNodeId: 'model.jaffle_shop.marts.fct_orders', targetColumn: 'customer_name' },
-  { sourceNodeId: 'model.jaffle_shop.staging.stg_customers', sourceColumn: 'country_code', targetNodeId: 'model.jaffle_shop.marts.fct_orders', targetColumn: 'country_code' },
+  { sourceNodeId: 'model.jaffle_shop.staging.stg_customers', sourceColumn: 'customer_id', targetNodeId: 'model.jaffle_shop.marts.dim_customers', targetColumn: 'customer_id', transformationType: 'pass-through' },
+  { sourceNodeId: 'model.jaffle_shop.staging.stg_customers', sourceColumn: 'email', targetNodeId: 'model.jaffle_shop.marts.dim_customers', targetColumn: 'contact_email', transformationType: 'coalesce', expression: 'coalesce(email, backup_email)' },
+  { sourceNodeId: 'model.jaffle_shop.staging.stg_customers', sourceColumn: 'full_name', targetNodeId: 'model.jaffle_shop.marts.dim_customers', targetColumn: 'full_name', transformationType: 'pass-through' },
+  { sourceNodeId: 'model.jaffle_shop.staging.stg_customers', sourceColumn: 'full_name', targetNodeId: 'model.jaffle_shop.marts.fct_orders', targetColumn: 'customer_name', transformationType: 'rename' },
+  { sourceNodeId: 'model.jaffle_shop.staging.stg_customers', sourceColumn: 'country_code', targetNodeId: 'model.jaffle_shop.marts.fct_orders', targetColumn: 'country_code', transformationType: 'join-key' },
 
   // raw_order_items → stg_order_items → fct_order_items
-  { sourceNodeId: 'source.jaffle_shop.raw.raw_order_items', sourceColumn: 'order_id', targetNodeId: 'model.jaffle_shop.staging.stg_order_items', targetColumn: 'order_id' },
-  { sourceNodeId: 'source.jaffle_shop.raw.raw_order_items', sourceColumn: 'product_id', targetNodeId: 'model.jaffle_shop.staging.stg_order_items', targetColumn: 'product_id' },
-  { sourceNodeId: 'source.jaffle_shop.raw.raw_order_items', sourceColumn: 'quantity', targetNodeId: 'model.jaffle_shop.staging.stg_order_items', targetColumn: 'quantity' },
-  { sourceNodeId: 'model.jaffle_shop.staging.stg_order_items', sourceColumn: 'order_item_id', targetNodeId: 'model.jaffle_shop.marts.fct_order_items', targetColumn: 'order_item_id' },
-  { sourceNodeId: 'model.jaffle_shop.staging.stg_order_items', sourceColumn: 'extended_price', targetNodeId: 'model.jaffle_shop.marts.fct_order_items', targetColumn: 'extended_price' },
+  { sourceNodeId: 'source.jaffle_shop.raw.raw_order_items', sourceColumn: 'order_id', targetNodeId: 'model.jaffle_shop.staging.stg_order_items', targetColumn: 'order_id', transformationType: 'pass-through' },
+  { sourceNodeId: 'source.jaffle_shop.raw.raw_order_items', sourceColumn: 'product_id', targetNodeId: 'model.jaffle_shop.staging.stg_order_items', targetColumn: 'product_id', transformationType: 'pass-through' },
+  { sourceNodeId: 'source.jaffle_shop.raw.raw_order_items', sourceColumn: 'quantity', targetNodeId: 'model.jaffle_shop.staging.stg_order_items', targetColumn: 'quantity', transformationType: 'pass-through' },
+  { sourceNodeId: 'model.jaffle_shop.staging.stg_order_items', sourceColumn: 'order_item_id', targetNodeId: 'model.jaffle_shop.marts.fct_order_items', targetColumn: 'order_item_id', transformationType: 'pass-through' },
+  { sourceNodeId: 'model.jaffle_shop.staging.stg_order_items', sourceColumn: 'extended_price', targetNodeId: 'model.jaffle_shop.marts.fct_order_items', targetColumn: 'extended_price', transformationType: 'derived', expression: 'quantity * unit_price' },
 
   // products / supplies → dims & facts
-  { sourceNodeId: 'model.jaffle_shop.staging.stg_products', sourceColumn: 'product_name', targetNodeId: 'model.jaffle_shop.marts.fct_order_items', targetColumn: 'product_name' },
-  { sourceNodeId: 'model.jaffle_shop.staging.stg_supplies', sourceColumn: 'unit_cost', targetNodeId: 'model.jaffle_shop.marts.dim_products', targetColumn: 'supply_unit_cost' },
+  { sourceNodeId: 'model.jaffle_shop.staging.stg_products', sourceColumn: 'product_name', targetNodeId: 'model.jaffle_shop.marts.fct_order_items', targetColumn: 'product_name', transformationType: 'pass-through' },
+  { sourceNodeId: 'model.jaffle_shop.staging.stg_supplies', sourceColumn: 'unit_cost', targetNodeId: 'model.jaffle_shop.marts.dim_products', targetColumn: 'supply_unit_cost', transformationType: 'rename' },
 
   // facts → metrics
-  { sourceNodeId: 'model.jaffle_shop.marts.fct_orders', sourceColumn: 'order_date', targetNodeId: 'model.jaffle_shop.marts.revenue_daily', targetColumn: 'order_date' },
-  { sourceNodeId: 'model.jaffle_shop.marts.fct_orders', sourceColumn: 'amount_with_tax', targetNodeId: 'model.jaffle_shop.marts.revenue_daily', targetColumn: 'revenue' },
-  { sourceNodeId: 'model.jaffle_shop.marts.fct_orders', sourceColumn: 'customer_id', targetNodeId: 'model.jaffle_shop.marts.customer_order_summary', targetColumn: 'customer_id' },
-  { sourceNodeId: 'model.jaffle_shop.marts.dim_customers', sourceColumn: 'full_name', targetNodeId: 'model.jaffle_shop.marts.customer_order_summary', targetColumn: 'full_name' },
+  { sourceNodeId: 'model.jaffle_shop.marts.fct_orders', sourceColumn: 'order_date', targetNodeId: 'model.jaffle_shop.marts.revenue_daily', targetColumn: 'order_date', transformationType: 'pass-through' },
+  { sourceNodeId: 'model.jaffle_shop.marts.fct_orders', sourceColumn: 'amount_with_tax', targetNodeId: 'model.jaffle_shop.marts.revenue_daily', targetColumn: 'revenue', transformationType: 'aggregate', expression: 'sum(amount_with_tax)' },
+  { sourceNodeId: 'model.jaffle_shop.marts.fct_orders', sourceColumn: 'customer_id', targetNodeId: 'model.jaffle_shop.marts.customer_order_summary', targetColumn: 'customer_id', transformationType: 'pass-through' },
+  { sourceNodeId: 'model.jaffle_shop.marts.dim_customers', sourceColumn: 'full_name', targetNodeId: 'model.jaffle_shop.marts.customer_order_summary', targetColumn: 'full_name', transformationType: 'pass-through' },
 ];
 
 /** Jaffle Shop dbt lineage on Trino — raw → staging → marts (18 nodes). */
@@ -479,6 +482,18 @@ const LINEAGE_NODES: LineageNode[] = [
       materialization: 'table',
       tags: ['mart', 'fact'],
       packageName: PACKAGE,
+      sql: `select
+  orders.order_id,
+  orders.customer_id,
+  customers.full_name as customer_name,
+  orders.order_date,
+  orders.status,
+  orders.amount,
+  orders.tax_paid,
+  orders.amount_with_tax
+from {{ ref('stg_orders') }} as orders
+left join {{ ref('stg_customers') }} as customers
+  on orders.customer_id = customers.customer_id`,
     },
     {
       id: 'model.jaffle_shop.marts.fct_order_items',
