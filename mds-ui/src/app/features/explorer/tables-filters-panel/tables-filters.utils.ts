@@ -4,7 +4,8 @@ import {
   DashboardFilterSettings,
   DashboardFilterUnitOfTime,
 } from '../../../core/models/dashboard.model';
-import { DimensionType, Explore, FieldId, getFieldId } from '../../../core/models/explore.model';
+import { DimensionType, Explore, FieldId, TimeTravelConfig, getFieldId } from '../../../core/models/explore.model';
+import { getDateAnchor } from '../time-travel.utils';
 
 export type FilterableDimension = {
   fieldId: FieldId;
@@ -181,17 +182,19 @@ function buildRelativeDateCondition(
   operator: DashboardFilterOperator,
   count: unknown,
   unit: DashboardFilterUnitOfTime,
+  timeTravel?: TimeTravelConfig | null,
 ): string {
   const amount = Number(count) || 0;
   const interval = `${amount} ${unit}`;
+  const anchor = getDateAnchor(timeTravel);
 
   switch (operator) {
     case 'inThePast':
-      return `${expression} >= (CURRENT_DATE - INTERVAL '${interval}')`;
+      return `${expression} >= (${anchor} - INTERVAL '${interval}')`;
     case 'notInThePast':
-      return `${expression} < (CURRENT_DATE - INTERVAL '${interval}')`;
+      return `${expression} < (${anchor} - INTERVAL '${interval}')`;
     case 'inTheNext':
-      return `${expression} <= (CURRENT_DATE + INTERVAL '${interval}')`;
+      return `${expression} <= (${anchor} + INTERVAL '${interval}')`;
     default:
       return `${expression} IS NOT NULL`;
   }
@@ -200,6 +203,7 @@ function buildRelativeDateCondition(
 export function buildFilterSqlCondition(
   explore: Explore,
   filter: DashboardDimensionFilter,
+  timeTravel?: TimeTravelConfig | null,
 ): string | null {
   const resolved = resolveFieldExpression(explore, filter.target.fieldId);
   if (!resolved) {
@@ -246,6 +250,7 @@ export function buildFilterSqlCondition(
         operator,
         values[0],
         filter.settings?.unitOfTime ?? 'months',
+        timeTravel,
       );
     default:
       return null;
@@ -255,10 +260,11 @@ export function buildFilterSqlCondition(
 export function buildFiltersWhereClause(
   explore: Explore,
   filters: DashboardDimensionFilter[],
+  timeTravel?: TimeTravelConfig | null,
 ): string | null {
   const conditions = filters
     .filter((filter) => operatorNeedsValue(filter.operator) ? filter.values.length > 0 : true)
-    .map((filter) => buildFilterSqlCondition(explore, filter))
+    .map((filter) => buildFilterSqlCondition(explore, filter, timeTravel))
     .filter((condition): condition is string => condition !== null);
 
   if (conditions.length === 0) {

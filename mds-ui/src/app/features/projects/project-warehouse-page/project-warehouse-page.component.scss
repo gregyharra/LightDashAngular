@@ -1,0 +1,127 @@
+.warehouse-settings__header {
+  margin-bottom: var(--ld-spacing-xl);
+}
+
+.warehouse-settings__breadcrumbs {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin-bottom: var(--ld-spacing-sm);
+  font-size: var(--ld-font-size-xs);
+  color: var(--ld-gray-6);
+
+  mat-icon {
+    width: 16px;
+    height: 16px;
+    font-size: 16px;
+  }
+}
+
+.warehouse-settings__breadcrumb-link {
+  color: var(--ld-gray-7);
+  text-decoration: none;
+
+  &:hover {
+    color: var(--ld-blue-6);
+  }
+}
+
+.warehouse-settings__breadcrumb-current {
+  color: var(--ld-gray-8);
+}
+
+.warehouse-settings__title-row {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--ld-spacing-md);
+}
+
+.warehouse-settings__title {
+  margin-bottom: var(--ld-spacing-xxs);
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--ld-gray-9);
+}
+
+.warehouse-settings__subtitle {
+  margin: 0;
+  font-size: var(--ld-font-size-sm);
+  color: var(--ld-gray-6);
+}
+
+.warehouse-settings__status {
+  flex-shrink: 0;
+  padding: 4px 10px;
+  border-radius: var(--ld-radius-sm);
+  font-size: var(--ld-font-size-xs);
+  font-weight: 600;
+
+  &--ok {
+    background-color: rgba(64, 192, 87, 0.12);
+    color: #2b8a3e;
+  }
+
+  &--missing {
+    background-color: var(--ld-gray-1);
+    color: var(--ld-gray-7);
+  }
+}
+
+.warehouse-settings__loading {
+  display: flex;
+  justify-content: center;
+  padding: var(--ld-spacing-xxl);
+}
+
+.warehouse-settings__alert {
+  margin-bottom: var(--ld-spacing-md);
+  padding: var(--ld-spacing-sm) var(--ld-spacing-md);
+  border-radius: var(--ld-radius-md);
+  font-size: var(--ld-font-size-sm);
+
+  &--error {
+    border: 1px solid #fa5252;
+    background-color: #fff5f5;
+    color: #c92a2a;
+  }
+
+  &--success {
+    border: 1px solid #51cf66;
+    background-color: #ebfbee;
+    color: #2b8a3e;
+  }
+}
+
+.warehouse-settings__form {
+  max-width: 720px;
+}
+
+.warehouse-settings__grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--ld-spacing-md);
+}
+
+.warehouse-settings__toggles {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ld-spacing-sm);
+  margin: var(--ld-spacing-md) 0 var(--ld-spacing-lg);
+}
+
+.warehouse-settings__actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--ld-spacing-sm);
+}
+
+@media (max-width: 768px) {
+  .warehouse-settings__grid {
+    grid-template-columns: 1fr;
+  }
+
+  .warehouse-settings__title-row {
+    flex-direction: column;
+  }
+}

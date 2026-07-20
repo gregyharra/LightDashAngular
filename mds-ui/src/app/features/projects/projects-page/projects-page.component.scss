@@ -188,6 +188,25 @@
   border-top: 1px solid var(--ld-gray-2);
 }
 
+.project-card__footer-actions {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--ld-spacing-xs);
+}
+
+.project-card__settings-btn {
+  height: 28px;
+  padding: 0 8px;
+  font-size: var(--ld-font-size-xs);
+
+  mat-icon {
+    width: 14px;
+    height: 14px;
+    font-size: 14px;
+    margin-right: 4px;
+  }
+}
+
 .project-card__date {
   font-size: var(--ld-font-size-xs);
   color: var(--ld-gray-6);

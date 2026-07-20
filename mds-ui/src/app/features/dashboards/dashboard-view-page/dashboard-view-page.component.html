@@ -126,15 +126,15 @@
       </div>
     </header>
 
-    @if (dash.filters.dimensions.length > 0 || dash.config?.isDateZoomDisabled !== true) {
-      <app-dashboard-filters-bar
-        [filters]="dashboardFilters()"
-        [config]="dash.config"
-        [dateZoomGranularity]="dateZoomGranularity()"
-        (filtersChange)="onFiltersChange($event)"
-        (dateZoomChange)="onDateZoomChange($event)"
-      />
-    }
+    <app-dashboard-filters-bar
+      [filters]="dashboardFilters()"
+      [config]="dash.config"
+      [dateZoomGranularity]="dateZoomGranularity()"
+      [timeTravel]="timeTravel()"
+      (filtersChange)="onFiltersChange($event)"
+      (dateZoomChange)="onDateZoomChange($event)"
+      (timeTravelChange)="onTimeTravelChange($event)"
+    />
 
     <div class="dashboard-view__content">
       <div class="page__container page__container--wide">
@@ -199,6 +199,7 @@
                       [savedChartUuid]="tile.properties.savedChartUuid"
                       [dashboardFilters]="dashboardFilters()"
                       [dateZoomGranularity]="dateZoomGranularity()"
+                      [timeTravel]="timeTravel()"
                     />
                   </div>
                 </div>

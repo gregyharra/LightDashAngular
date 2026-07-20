@@ -7,11 +7,13 @@ import {
   DashboardDimensionFilter,
   DateZoomGranularity,
 } from '../../../core/models/dashboard.model';
-import { FieldId, MetricQuery, QueryResults } from '../../../core/models/explore.model';
+import { FieldId, MetricQuery, QueryResults, TimeTravelConfig } from '../../../core/models/explore.model';
 import { ChartService } from '../../charts/chart.service';
 import { ChartVisualizationComponent } from '../../charts/chart-visualization/chart-visualization.component';
 import { ExplorerService } from '../../explorer/explorer.service';
-import { mergeDashboardFiltersIntoMetricQuery } from '../dashboard-filters';
+import {
+  applyDashboardContextToMetricQuery,
+} from '../dashboard-filters';
 
 @Component({
   selector: 'app-dashboard-chart-tile',
@@ -27,6 +29,7 @@ export class DashboardChartTileComponent {
   readonly savedChartUuid = input<string | null>(null);
   readonly dashboardFilters = input<DashboardDimensionFilter[]>([]);
   readonly dateZoomGranularity = input<DateZoomGranularity>('Month');
+  readonly timeTravel = input<TimeTravelConfig | null>(null);
 
   protected readonly loading = signal(false);
   protected readonly error = signal<string | null>(null);
@@ -41,6 +44,7 @@ export class DashboardChartTileComponent {
       const savedChartUuid = this.savedChartUuid();
       const dashboardFilters = this.dashboardFilters();
       const dateZoomGranularity = this.dateZoomGranularity();
+      const timeTravel = this.timeTravel();
 
       if (!savedChartUuid) {
         this.loading.set(false);
@@ -69,6 +73,7 @@ export class DashboardChartTileComponent {
               chart.metricQuery,
               dashboardFilters,
               dateZoomGranularity,
+              timeTravel,
             );
 
             return this.explorerService.runQuery(projectUuid, metricQuery);
@@ -94,7 +99,12 @@ export class DashboardChartTileComponent {
     metricQuery: MetricQuery,
     dashboardFilters: DashboardDimensionFilter[],
     _dateZoomGranularity: DateZoomGranularity,
+    timeTravel: TimeTravelConfig | null,
   ): MetricQuery {
-    return mergeDashboardFiltersIntoMetricQuery(metricQuery, dashboardFilters);
+    return applyDashboardContextToMetricQuery(
+      metricQuery,
+      dashboardFilters,
+      timeTravel,
+    );
   }
 }

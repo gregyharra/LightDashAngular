@@ -620,6 +620,9 @@ def build_explore_from_lineage_node(node: dict[str, Any]) -> dict[str, Any]:
                 "description": f"Sum of {_format_words(sum_column['name'])}",
             }
 
+    node_type = node.get("type")
+    temporal_type = "none" if node_type == "seed" else "iceberg"
+
     compiled_table = {
         "name": table_name,
         "label": table_label,
@@ -627,6 +630,7 @@ def build_explore_from_lineage_node(node: dict[str, Any]) -> dict[str, Any]:
         "schema": node["schema"],
         "sqlTable": f"{node['schema']}.{table_name}",
         "description": node.get("description"),
+        "temporalType": temporal_type,
         "dimensions": dimensions,
         "metrics": metrics,
     }

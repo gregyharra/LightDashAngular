@@ -3,10 +3,12 @@ import {
   Explore,
   FieldId,
   Metric,
+  TimeTravelConfig,
   getFieldId,
 } from '../../core/models/explore.model';
 import { DashboardDimensionFilter } from '../../core/models/dashboard.model';
 import { buildFiltersWhereClause } from './tables-filters-panel/tables-filters.utils';
+import { resolveSqlTableWithTimeTravel } from './time-travel.utils';
 
 type ResolvedField = {
   tableName: string;
@@ -72,6 +74,7 @@ function formatJoinType(type: string | undefined): string {
 function buildFromClause(
   explore: Explore,
   requiredTables: Set<string>,
+  timeTravel?: TimeTravelConfig | null,
 ): string {
   const baseTable = explore.tables[explore.baseTable];
   if (!baseTable) {
@@ -79,9 +82,12 @@ function buildFromClause(
   }
 
   const joined = new Set<string>([explore.baseTable]);
-  const lines = [
-    `FROM ${baseTable.sqlTable} AS ${baseTable.name}`,
-  ];
+  const baseRef = resolveSqlTableWithTimeTravel(
+    baseTable.sqlTable,
+    timeTravel,
+    baseTable.temporalType,
+  );
+  const lines = [`FROM ${baseRef.sqlRef} AS ${baseTable.name}`];
 
   for (const join of explore.joinedTables) {
     if (!requiredTables.has(join.table) || joined.has(join.table)) {
@@ -93,8 +99,13 @@ function buildFromClause(
       continue;
     }
 
+    const joinedRef = resolveSqlTableWithTimeTravel(
+      joinedTable.sqlTable,
+      timeTravel,
+      joinedTable.temporalType,
+    );
     lines.push(
-      `${formatJoinType(join.type)} ${joinedTable.sqlTable} AS ${joinedTable.name} ON ${resolveJoinSql(join.sqlOn)}`,
+      `${formatJoinType(join.type)} ${joinedRef.sqlRef} AS ${joinedTable.name} ON ${resolveJoinSql(join.sqlOn)}`,
     );
     joined.add(join.table);
   }
@@ -108,6 +119,7 @@ export function buildMetricQuerySql(
   metrics: FieldId[],
   limit = 500,
   filters: DashboardDimensionFilter[] = [],
+  timeTravel?: TimeTravelConfig | null,
 ): string | null {
   if (dimensions.length === 0 && metrics.length === 0) {
     return null;
@@ -155,14 +167,14 @@ export function buildMetricQuerySql(
   const lines = [
     'SELECT',
     selectParts.map((part) => `  ${part}`).join(',\n'),
-    buildFromClause(explore, requiredTables),
+    buildFromClause(explore, requiredTables, timeTravel),
   ];
 
   if (metrics.length > 0 && groupByParts.length > 0) {
     lines.push(`GROUP BY ${groupByParts.join(', ')}`);
   }
 
-  const whereClause = buildFiltersWhereClause(explore, filters);
+  const whereClause = buildFiltersWhereClause(explore, filters, timeTravel);
   if (whereClause) {
     lines.push(`WHERE ${whereClause}`);
   }

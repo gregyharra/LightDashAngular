@@ -44,6 +44,7 @@ export class ExplorerService {
               rows: poll.rows,
               fields: response.fields,
               cacheMetadata: response.cacheMetadata,
+              warnings: response.warnings ?? [],
             })),
           ),
         ),

@@ -16,6 +16,8 @@ import {
   ExploreSummary,
   FieldId,
   QueryResults,
+  QueryWarning,
+  TimeTravelConfig,
   getFieldId,
 } from '../../../core/models/explore.model';
 import { FolderSearchPanelComponent } from '../../lineage/folder-search-panel/folder-search-panel.component';
@@ -41,8 +43,11 @@ import {
 import { buildMetricQuerySql } from '../metric-query-sql.utils';
 import { ExplorerService } from '../explorer.service';
 import { mergeDashboardFiltersIntoMetricQuery } from '../../dashboards/dashboard-filters';
+import { mergeTimeTravelIntoMetricQuery } from '../time-travel.utils';
 import { getFilterableDimensions } from '../tables-filters-panel/tables-filters.utils';
 import { TablesFiltersPanelComponent } from '../tables-filters-panel/tables-filters-panel.component';
+import { TimeTravelControlComponent } from '../../../shared/time-travel-control/time-travel-control.component';
+import { QueryWarningsBannerComponent } from '../../../shared/query-warnings-banner/query-warnings-banner.component';
 
 type TableFieldGroup = {
   table: CompiledTable;
@@ -64,6 +69,8 @@ type TableFieldGroup = {
     TablesChartConfigPanelComponent,
     ChartVisualizationComponent,
     TablesFiltersPanelComponent,
+    TimeTravelControlComponent,
+    QueryWarningsBannerComponent,
     ResizableSidebarDirective,
   ],
   templateUrl: './tables-workspace-page.component.html',
@@ -100,6 +107,8 @@ export class TablesWorkspacePageComponent {
   );
   protected readonly chartConfigOpen = signal(false);
   protected readonly dimensionFilters = signal<DashboardDimensionFilter[]>([]);
+  protected readonly timeTravel = signal<TimeTravelConfig | null>(null);
+  protected readonly queryWarnings = signal<QueryWarning[]>([]);
 
   protected readonly selectedTreeNode = computed(() => {
     const nodeId = this.tableId();
@@ -269,6 +278,7 @@ export class TablesWorkspacePageComponent {
       metrics,
       500,
       this.dimensionFilters(),
+      this.timeTravel(),
     );
   });
 
@@ -414,6 +424,8 @@ export class TablesWorkspacePageComponent {
     this.chartDisplayConfig.set(DEFAULT_CHART_DISPLAY_CONFIG);
     this.chartConfigOpen.set(false);
     this.dimensionFilters.set([]);
+    this.timeTravel.set(null);
+    this.queryWarnings.set([]);
   }
 
   private setDefaultSelection(explore: Explore): void {
@@ -621,6 +633,10 @@ export class TablesWorkspacePageComponent {
     this.dimensionFilters.set(filters);
   }
 
+  protected onTimeTravelChange(timeTravel: TimeTravelConfig | null): void {
+    this.timeTravel.set(timeTravel);
+  }
+
   protected runQuery(): void {
     const projectUuid = this.projectUuid();
     const explore = this.explore();
@@ -635,28 +651,33 @@ export class TablesWorkspacePageComponent {
 
     this.queryLoading.set(true);
     this.queryError.set(null);
+    this.queryWarnings.set([]);
     this.hasRunQuery.set(true);
 
     this.explorerService
       .runQuery(
         projectUuid,
-        mergeDashboardFiltersIntoMetricQuery(
-          {
-            exploreName: explore.name,
-            dimensions,
-            metrics,
-            filters: {},
-            sorts: [],
-            limit: 500,
-            tableCalculations: [],
-            additionalMetrics: [],
-          },
-          this.dimensionFilters(),
+        mergeTimeTravelIntoMetricQuery(
+          mergeDashboardFiltersIntoMetricQuery(
+            {
+              exploreName: explore.name,
+              dimensions,
+              metrics,
+              filters: {},
+              sorts: [],
+              limit: 500,
+              tableCalculations: [],
+              additionalMetrics: [],
+            },
+            this.dimensionFilters(),
+          ),
+          this.timeTravel(),
         ),
       )
       .subscribe({
         next: (results) => {
           this.queryResults.set(results);
+          this.queryWarnings.set(results.warnings ?? []);
           this.queryLoading.set(false);
         },
         error: () => {

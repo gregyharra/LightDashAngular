@@ -12,6 +12,7 @@ import {
   DashboardTileTypes,
   DateZoomGranularity,
 } from '../../../core/models/dashboard.model';
+import { TimeTravelConfig } from '../../../core/models/explore.model';
 import { DashboardService } from '../dashboard.service';
 import { DashboardChartTileComponent } from '../dashboard-chart-tile/dashboard-chart-tile.component';
 import { DashboardFiltersBarComponent } from '../dashboard-filters-bar/dashboard-filters-bar.component';
@@ -51,6 +52,7 @@ export class DashboardViewPageComponent {
   protected readonly activeTabUuid = signal<string | null>(null);
   protected readonly dashboardFilters = signal<DashboardDimensionFilter[]>([]);
   protected readonly dateZoomGranularity = signal<DateZoomGranularity>('Month');
+  protected readonly timeTravel = signal<TimeTravelConfig | null>(null);
 
   protected readonly gridRowHeight = DASHBOARD_GRID_ROW_HEIGHT_PX;
   protected readonly gridGap = DASHBOARD_GRID_GAP_PX;
@@ -128,6 +130,10 @@ export class DashboardViewPageComponent {
 
   protected onDateZoomChange(granularity: DateZoomGranularity): void {
     this.dateZoomGranularity.set(granularity);
+  }
+
+  protected onTimeTravelChange(timeTravel: TimeTravelConfig | null): void {
+    this.timeTravel.set(timeTravel);
   }
 
   protected tileGridStyle(tile: DashboardTile): Record<string, string | number> {

@@ -194,6 +194,7 @@ export function buildExploreFromLineageNode(node: LineageNode): Explore {
     schema: node.schema,
     sqlTable: `${node.schema}.${tableName}`,
     description: node.description,
+    temporalType: node.type === 'seed' ? 'none' : 'iceberg',
     dimensions,
     metrics,
   };

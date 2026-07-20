@@ -43,6 +43,26 @@ class Project(Base):
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
 
 
+class WarehouseConnection(Base):
+    __tablename__ = "warehouse_connections"
+
+    project_uuid: Mapped[uuid_lib.UUID] = mapped_column(
+        Uuid, ForeignKey("projects.uuid"), primary_key=True
+    )
+    type: Mapped[str] = mapped_column(String(50), default="trino", nullable=False)
+    host: Mapped[str] = mapped_column(String(255), nullable=False)
+    port: Mapped[int] = mapped_column(Integer, default=8080, nullable=False)
+    catalog: Mapped[str] = mapped_column(String(255), nullable=False)
+    schema_name: Mapped[str] = mapped_column("schema", String(255), nullable=False)
+    user: Mapped[str] = mapped_column(String(255), nullable=False)
+    encrypted_password: Mapped[str | None] = mapped_column(Text, nullable=True)
+    ssl: Mapped[bool] = mapped_column(Boolean, default=False)
+    extra_config: Mapped[dict] = mapped_column(JSON, default=dict)
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now(), onupdate=func.now()
+    )
+
+
 class Space(Base):
     __tablename__ = "spaces"
 

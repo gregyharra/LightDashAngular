@@ -35,7 +35,13 @@ import {
   isSqlQueryUuid,
   mockWarehouseTablesCatalog,
 } from './fixtures/sql-runner.fixture';
+import {
+  getMockWarehouseConnection,
+  testMockWarehouseConnection,
+  upsertMockWarehouseConnection,
+} from './fixtures/warehouse.fixture';
 import { MetricQuery } from '../models/explore.model';
+import { WarehouseConnectionUpsert } from '../models/warehouse.model';
 import { MockRequest, MockRoute } from './mock-api.types';
 
 const savedChartsList = (request: MockRequest) => {
@@ -182,7 +188,7 @@ const metricQuery = (request: MockRequest) => {
     resolvedTimezone: 'UTC',
     metricQuery: results.metricQuery,
     fields: results.fields,
-    warnings: [],
+    warnings: results.warnings ?? [],
   };
 };
 
@@ -231,6 +237,24 @@ const project = (request: MockRequest) => {
       name: 'Mock project',
     }
   );
+};
+
+const projectWarehouseGet = (request: MockRequest) => {
+  const match = request.path.match(/^\/projects\/([^/]+)\/warehouse$/);
+  const projectUuid = match?.[1] ?? MOCK_PROJECT_UUID;
+  return getMockWarehouseConnection(projectUuid);
+};
+
+const projectWarehouseUpsert = (request: MockRequest) => {
+  const match = request.path.match(/^\/projects\/([^/]+)\/warehouse$/);
+  const projectUuid = match?.[1] ?? MOCK_PROJECT_UUID;
+  return upsertMockWarehouseConnection(projectUuid, request.body as WarehouseConnectionUpsert);
+};
+
+const projectWarehouseTest = (request: MockRequest) => {
+  const match = request.path.match(/^\/projects\/([^/]+)\/warehouse\/test$/);
+  const projectUuid = match?.[1] ?? MOCK_PROJECT_UUID;
+  return testMockWarehouseConnection(projectUuid);
 };
 
 const routes: MockRoute[] = [
@@ -308,6 +332,9 @@ const routes: MockRoute[] = [
   { pattern: /^\/projects\/[^/]+\/colorPalette/, handler: () => ({}) },
   { pattern: /^\/projects\/[^/]+\/queryTimezoneSettings$/, handler: () => ({}) },
   { pattern: /^\/projects\/[^/]+\/schedulerSettings$/, handler: () => ({}) },
+  { pattern: /^\/projects\/[^/]+\/warehouse\/test$/, method: 'POST', handler: projectWarehouseTest },
+  { pattern: /^\/projects\/[^/]+\/warehouse$/, method: 'GET', handler: projectWarehouseGet },
+  { pattern: /^\/projects\/[^/]+\/warehouse$/, method: 'PUT', handler: projectWarehouseUpsert },
   { pattern: /^\/projects\/[^/]+\/warehouse-credentials$/, handler: () => [] },
   { pattern: /^\/projects\/[^/]+\/query\/[^/]+$/, method: 'GET', handler: queryPoll },
   { pattern: /^\/projects\/[^/]+$/, handler: project },

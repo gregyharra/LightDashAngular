@@ -4,7 +4,8 @@ import {
   DashboardFilterSettings,
   DateZoomGranularity,
 } from '../../core/models/dashboard.model';
-import { MetricQuery } from '../../core/models/explore.model';
+import { MetricQuery, TimeTravelConfig } from '../../core/models/explore.model';
+import { mergeTimeTravelIntoMetricQuery } from '../explorer/time-travel.utils';
 
 const OPERATOR_LABELS: Record<DashboardFilterOperator, string> = {
   equals: 'is',
@@ -76,6 +77,17 @@ export function formatDashboardFilterSummary(
 
 export function formatDateZoomLabel(granularity: DateZoomGranularity): string {
   return granularity;
+}
+
+export function applyDashboardContextToMetricQuery(
+  metricQuery: MetricQuery,
+  filters: DashboardDimensionFilter[],
+  timeTravel?: TimeTravelConfig | null,
+): MetricQuery {
+  return mergeTimeTravelIntoMetricQuery(
+    mergeDashboardFiltersIntoMetricQuery(metricQuery, filters),
+    timeTravel,
+  );
 }
 
 export function mergeDashboardFiltersIntoMetricQuery(

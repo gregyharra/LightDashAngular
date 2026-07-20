@@ -156,9 +156,17 @@
 }
 
 .tables-workspace__sections {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ld-spacing-sm);
   flex: 1;
   min-height: 0;
-  overflow-y: auto;
+  overflow: auto;
+  padding: var(--ld-spacing-md);
+}
+
+.tables-workspace__warnings {
+  flex-shrink: 0;
 }
 
 .tables-workspace__accordion {

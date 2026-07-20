@@ -7,14 +7,16 @@ import {
   DashboardDimensionFilter,
   DateZoomGranularity,
 } from '../../../core/models/dashboard.model';
+import { TimeTravelConfig } from '../../../core/models/explore.model';
 import {
   formatDashboardFilterSummary,
   formatDateZoomLabel,
 } from '../dashboard-filters';
+import { TimeTravelControlComponent } from '../../../shared/time-travel-control/time-travel-control.component';
 
 @Component({
   selector: 'app-dashboard-filters-bar',
-  imports: [MatButtonModule, MatIconModule, MatMenuModule],
+  imports: [MatButtonModule, MatIconModule, MatMenuModule, TimeTravelControlComponent],
   templateUrl: './dashboard-filters-bar.component.html',
   styleUrl: './dashboard-filters-bar.component.scss',
 })
@@ -22,9 +24,11 @@ export class DashboardFiltersBarComponent {
   readonly filters = input.required<DashboardDimensionFilter[]>();
   readonly config = input<DashboardConfig | undefined>();
   readonly dateZoomGranularity = input<DateZoomGranularity>('Month');
+  readonly timeTravel = input<TimeTravelConfig | null>(null);
 
   readonly filtersChange = output<DashboardDimensionFilter[]>();
   readonly dateZoomChange = output<DateZoomGranularity>();
+  readonly timeTravelChange = output<TimeTravelConfig | null>();
 
   protected readonly hidden = signal(false);
 

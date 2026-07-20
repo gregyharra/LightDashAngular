@@ -12,6 +12,7 @@ const ordersTable = {
   database: 'jaffle_shop',
   schema: 'marts',
   sqlTable: 'marts.fct_orders',
+  temporalType: 'iceberg' as const,
   description: 'Order-level fact table enriched with customer context',
   dimensions: {
     order_id: {
@@ -123,6 +124,7 @@ const customersTable = {
   database: 'jaffle_shop',
   schema: 'marts',
   sqlTable: 'marts.dim_customers',
+  temporalType: 'iceberg' as const,
   description: 'Customer dimension',
   dimensions: {
     first_name: {

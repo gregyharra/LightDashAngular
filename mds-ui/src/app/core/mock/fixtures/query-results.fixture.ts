@@ -9,6 +9,11 @@ import {
 } from '../../models/explore.model';
 import { getExploreDetail, ordersExplore } from './explore-detail.fixture';
 import { fctOrdersExplore } from './explore-fct-orders.fixture';
+import {
+  buildMockTimeTravelWarnings,
+  exploreSupportsTimeTravel,
+  filterRowsByAsOf,
+} from './mock-time-travel.utils';
 
 type RawOrderRow = {
   order_id: number;
@@ -132,13 +137,14 @@ function buildGroupedRows(
   columnMap: ExploreColumnMapping,
   selectedDimensions: FieldId[],
   selectedMetrics: FieldId[],
+  sourceRows: RawOrderRow[] = rawOrderRows,
 ): ResultRow[] {
   const groups = new Map<
     string,
     { dimensionValues: Record<FieldId, unknown>; rows: RawOrderRow[] }
   >();
 
-  for (const row of rawOrderRows) {
+  for (const row of sourceRows) {
     const dimensionValues: Record<FieldId, unknown> = {};
     const keyParts: string[] = [];
 
@@ -202,20 +208,21 @@ function buildRows(
   columnMap: ExploreColumnMapping,
   selectedDimensions: FieldId[],
   selectedMetrics: FieldId[],
+  sourceRows: RawOrderRow[] = rawOrderRows,
 ): ResultRow[] {
   if (selectedMetrics.length > 0 && selectedDimensions.length > 0) {
-    return buildGroupedRows(columnMap, selectedDimensions, selectedMetrics);
+    return buildGroupedRows(columnMap, selectedDimensions, selectedMetrics, sourceRows);
   }
 
   if (selectedMetrics.length > 0) {
-    const totalRevenue = rawOrderRows.reduce((sum, row) => sum + row.amount, 0);
-    const orderCount = rawOrderRows.length;
-    const avgOrderValue = totalRevenue / orderCount;
+    const totalRevenue = sourceRows.reduce((sum, row) => sum + row.amount, 0);
+    const orderCount = sourceRows.length;
+    const avgOrderValue = orderCount > 0 ? totalRevenue / orderCount : 0;
 
     const aggregateRow: ResultRow = {};
     for (const fieldId of selectedDimensions) {
       const key = columnMap[fieldId];
-      if (key && key in rawOrderRows[0]) {
+      if (key && sourceRows[0] && key in sourceRows[0]) {
         aggregateRow[fieldId] = { value: { raw: null, formatted: '' } };
       }
     }
@@ -239,7 +246,7 @@ function buildRows(
     return [aggregateRow];
   }
 
-  return rawOrderRows.map((row) => {
+  return sourceRows.map((row) => {
     const resultRow: ResultRow = {};
 
     for (const fieldId of selectedDimensions) {
@@ -417,6 +424,34 @@ function buildSyntheticRows(
   });
 }
 
+function resolveSourceOrderRows(metricQuery: MetricQuery): RawOrderRow[] {
+  const timeTravel = metricQuery.timeTravel;
+  if (!timeTravel?.asOfTimestamp) {
+    return rawOrderRows;
+  }
+
+  return filterRowsByAsOf(rawOrderRows, timeTravel.asOfTimestamp, 'order_date');
+}
+
+function finalizeMockQueryResults(
+  metricQuery: MetricQuery,
+  explore: Explore | null,
+  rows: ResultRow[],
+  fields: Record<FieldId, FieldItem>,
+  cacheHit: boolean,
+): QueryResults {
+  const warnings = buildMockTimeTravelWarnings(metricQuery, explore, rows.length);
+
+  return {
+    queryUuid: createQueryUuid(),
+    metricQuery,
+    rows: rows.slice(0, metricQuery.limit),
+    fields,
+    cacheMetadata: { cacheHit },
+    warnings,
+  };
+}
+
 function buildGenericMockQueryResults(
   metricQuery: MetricQuery,
   explore: Explore,
@@ -425,51 +460,43 @@ function buildGenericMockQueryResults(
   const selectedMetrics = metricQuery.metrics;
   const allSelected = [...selectedDimensions, ...selectedMetrics];
   const fields = buildFieldsFromExplore(explore, allSelected);
-  const rows = buildSyntheticRows(
+  let rows = buildSyntheticRows(
     explore,
     selectedDimensions,
     selectedMetrics,
     fields,
   );
 
-  return {
-    queryUuid: createQueryUuid(),
-    metricQuery,
-    rows: rows.slice(0, metricQuery.limit),
-    fields,
-    cacheMetadata: { cacheHit: false },
-  };
+  if (
+    metricQuery.timeTravel?.asOfTimestamp &&
+    exploreSupportsTimeTravel(explore)
+  ) {
+    const asOfDate = new Date(metricQuery.timeTravel.asOfTimestamp);
+    const day = asOfDate.getUTCDate();
+    rows = rows.slice(0, Math.max(0, Math.min(rows.length, day % rows.length || 1)));
+  }
+
+  return finalizeMockQueryResults(metricQuery, explore, rows, fields, false);
 }
 
 export function buildMockQueryResults(metricQuery: MetricQuery): QueryResults {
   const selectedDimensions = metricQuery.dimensions;
   const selectedMetrics = metricQuery.metrics;
   const allSelected = [...selectedDimensions, ...selectedMetrics];
+  const sourceRows = resolveSourceOrderRows(metricQuery);
 
   if (metricQuery.exploreName === 'orders') {
     const fields = buildFieldsFromExplore(ordersExplore, allSelected);
-    const rows = buildRows(ordersColumnMap, selectedDimensions, selectedMetrics);
+    const rows = buildRows(ordersColumnMap, selectedDimensions, selectedMetrics, sourceRows);
 
-    return {
-      queryUuid: createQueryUuid(),
-      metricQuery,
-      rows: rows.slice(0, metricQuery.limit),
-      fields,
-      cacheMetadata: { cacheHit: true },
-    };
+    return finalizeMockQueryResults(metricQuery, ordersExplore, rows, fields, true);
   }
 
   if (metricQuery.exploreName === 'fct_orders') {
     const fields = buildFieldsFromExplore(fctOrdersExplore, allSelected);
-    const rows = buildRows(fctOrdersColumnMap, selectedDimensions, selectedMetrics);
+    const rows = buildRows(fctOrdersColumnMap, selectedDimensions, selectedMetrics, sourceRows);
 
-    return {
-      queryUuid: createQueryUuid(),
-      metricQuery,
-      rows: rows.slice(0, metricQuery.limit),
-      fields,
-      cacheMetadata: { cacheHit: true },
-    };
+    return finalizeMockQueryResults(metricQuery, fctOrdersExplore, rows, fields, true);
   }
 
   const generatedExplore = getExploreDetail(metricQuery.exploreName);
@@ -477,13 +504,7 @@ export function buildMockQueryResults(metricQuery: MetricQuery): QueryResults {
     return buildGenericMockQueryResults(metricQuery, generatedExplore);
   }
 
-  return {
-    queryUuid: createQueryUuid(),
-    metricQuery,
-    rows: [],
-    fields: {},
-    cacheMetadata: { cacheHit: false },
-  };
+  return finalizeMockQueryResults(metricQuery, null, [], {}, false);
 }
 
 export function registerMockQuery(results: QueryResults): void {

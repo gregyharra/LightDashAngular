@@ -6,6 +6,7 @@ const fctOrdersTable = {
   database: 'jaffle_shop',
   schema: 'marts',
   sqlTable: 'marts.fct_orders',
+  temporalType: 'iceberg' as const,
   description: 'Order fact table enriched with customer attributes',
   dimensions: {
     order_id: {

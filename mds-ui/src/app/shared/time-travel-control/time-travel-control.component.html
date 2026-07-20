@@ -1,0 +1,36 @@
+<div
+  class="time-travel-control"
+  [class.time-travel-control--compact]="compact()"
+  [class.time-travel-control--active]="!!value()"
+>
+  <label class="time-travel-control__label">
+    <mat-icon>history</mat-icon>
+    @if (!compact()) {
+      <span>View data as of</span>
+    }
+  </label>
+
+  <input
+    class="time-travel-control__input"
+    type="datetime-local"
+    [value]="inputValue()"
+    (change)="onDatetimeChange($any($event.target).value)"
+    aria-label="View data as of timestamp"
+  />
+
+  @if (value(); as active) {
+    <span class="time-travel-control__active-label">
+      {{ formatTimeTravelLabel(active.asOfTimestamp) }}
+    </span>
+    <button
+      type="button"
+      mat-icon-button
+      class="time-travel-control__clear-btn"
+      aria-label="Clear time travel"
+      title="Clear time travel"
+      (click)="clearTimeTravel()"
+    >
+      <mat-icon>close</mat-icon>
+    </button>
+  }
+</div>

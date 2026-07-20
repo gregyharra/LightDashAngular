@@ -16,6 +16,13 @@ export const routes: Routes = [
           ),
       },
       {
+        path: 'projects/:projectUuid/settings/warehouse',
+        loadComponent: () =>
+          import(
+            './features/projects/project-warehouse-page/project-warehouse-page.component'
+          ).then((m) => m.ProjectWarehousePageComponent),
+      },
+      {
         path: 'projects/:projectUuid/dashboards',
         loadComponent: () =>
           import(

@@ -94,6 +94,10 @@
 
             <div class="tables-workspace__toolbar-actions">
               @if (explore()) {
+                <app-time-travel-control
+                  [value]="timeTravel()"
+                  (valueChange)="onTimeTravelChange($event)"
+                />
                 <button
                   mat-flat-button
                   class="tables-workspace__run-btn"
@@ -146,6 +150,11 @@
           </header>
 
           <div class="tables-workspace__sections">
+            @if (queryWarnings().length > 0) {
+              <div class="tables-workspace__warnings">
+                <app-query-warnings-banner [warnings]="queryWarnings()" />
+              </div>
+            }
             <mat-accordion class="tables-workspace__accordion" multi>
               <mat-expansion-panel class="tables-workspace__panel">
                 <mat-expansion-panel-header>

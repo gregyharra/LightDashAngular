@@ -87,10 +87,21 @@
                   <span class="project-card__date">
                     Created {{ formatDate(project.createdAt) }}
                   </span>
-                  <span class="project-card__action">
-                    Open
-                    <mat-icon>arrow_forward</mat-icon>
-                  </span>
+                  <div class="project-card__footer-actions">
+                    <button
+                      mat-stroked-button
+                      type="button"
+                      class="project-card__settings-btn"
+                      (click)="openWarehouseSettings($event, project.projectUuid)"
+                    >
+                      <mat-icon>settings</mat-icon>
+                      Warehouse
+                    </button>
+                    <span class="project-card__action">
+                      Open
+                      <mat-icon>arrow_forward</mat-icon>
+                    </span>
+                  </div>
                 </div>
               </article>
             }

@@ -1,0 +1,15 @@
+@if (visibleWarnings().length > 0) {
+  <div class="query-warnings-banner" role="status" aria-live="polite">
+    @for (warning of visibleWarnings(); track warning.code + warning.message) {
+      <div
+        class="query-warnings-banner__item"
+        [class.query-warnings-banner__item--info]="warning.severity === 'info'"
+        [class.query-warnings-banner__item--warning]="warning.severity === 'warning'"
+        [class.query-warnings-banner__item--error]="warning.severity === 'error'"
+      >
+        <mat-icon>{{ iconForSeverity(warning.severity) }}</mat-icon>
+        <span>{{ warning.message }}</span>
+      </div>
+    }
+  </div>
+}

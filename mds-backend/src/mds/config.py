@@ -11,6 +11,9 @@ class Settings(BaseSettings):
     dbt_project_path: str = "../mds-transform"
     # Optional override for manifest/catalog location (defaults to {dbt_project_path}/target).
     dbt_artifacts_path: str = ""
+    # Fernet key for encrypting warehouse passwords at rest.
+    # Generate with: python -c "from cryptography.fernet import Fernet; print(Fernet.generate_key().decode())"
+    encryption_key: str = ""
 
     @property
     def cors_origin_list(self) -> list[str]:

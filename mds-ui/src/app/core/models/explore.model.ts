@@ -36,6 +36,8 @@ export type Metric = {
   description?: string;
 };
 
+export type TemporalTableType = 'none' | 'iceberg' | 'delta';
+
 export type CompiledTable = {
   name: string;
   label: string;
@@ -43,8 +45,25 @@ export type CompiledTable = {
   schema: string;
   sqlTable: string;
   description?: string;
+  /** Whether the warehouse table supports point-in-time reads. Defaults to iceberg. */
+  temporalType?: TemporalTableType;
   dimensions: Record<string, Dimension>;
   metrics: Record<string, Metric>;
+};
+
+export type TimeTravelTableFormat = 'iceberg' | 'delta';
+
+export type TimeTravelConfig = {
+  /** ISO-8601 timestamp for point-in-time reads. */
+  asOfTimestamp: string;
+  /** Override table format for Trino time travel syntax. */
+  tableFormat?: TimeTravelTableFormat;
+};
+
+export type QueryWarning = {
+  code: string;
+  message: string;
+  severity: 'info' | 'warning' | 'error';
 };
 
 export type ExploreJoin = {
@@ -94,6 +113,8 @@ export type MetricQuery = {
   tableCalculations: unknown[];
   additionalMetrics: unknown[];
   timezone?: string;
+  /** When set, queries read table snapshots as of this timestamp. */
+  timeTravel?: TimeTravelConfig;
 };
 
 export type ResultValue = {
@@ -113,6 +134,7 @@ export type QueryResults = {
   cacheMetadata: {
     cacheHit: boolean;
   };
+  warnings?: QueryWarning[];
 };
 
 export type ExecuteAsyncMetricQueryResponse = {
@@ -125,7 +147,7 @@ export type ExecuteAsyncMetricQueryResponse = {
   parameterReferences: string[];
   usedParametersValues: Record<string, unknown>;
   resolvedTimezone: string | null;
-  warnings: unknown[];
+  warnings: QueryWarning[];
 };
 
 export type AsyncQueryPollResponse =
