@@ -23,6 +23,14 @@ Run the API:
 uvicorn mds.main:app --reload --port 8080
 ```
 
+The database starts empty by default. To load demo org, projects, and dashboards:
+
+```bash
+python -m mds.scripts.seed_demo
+```
+
+Alternatively, set `SEED_DEMO_DATA=true` in `.env` to seed automatically on startup.
+
 ## Implemented endpoints (Phase B0 + B1 + local dbt)
 
 | Method | Path | Notes |
