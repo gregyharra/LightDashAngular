@@ -1,0 +1,58 @@
+<div class="page-layout">
+  <aside class="page-layout__sidebar" appResizableSidebar>
+    <div class="page-sidebar">
+      <header class="page-sidebar__header">
+        <p class="page-sidebar__breadcrumb">Settings</p>
+        @if (organizationName()) {
+          <p class="page-sidebar__org">{{ organizationName() }}</p>
+        }
+      </header>
+
+      <app-settings-sidebar-nav active="warehouses" />
+    </div>
+  </aside>
+
+  <div class="page-layout__content">
+    <section class="warehouse-edit">
+      <div class="page__container">
+        <header class="warehouse-edit__header">
+          <nav class="warehouse-edit__breadcrumbs" aria-label="Breadcrumb">
+            <a routerLink="/projects" class="warehouse-edit__breadcrumb-link">Home</a>
+            <mat-icon>chevron_right</mat-icon>
+            <a routerLink="/warehouses" class="warehouse-edit__breadcrumb-link">Warehouses</a>
+            <mat-icon>chevron_right</mat-icon>
+            <span class="warehouse-edit__breadcrumb-current">
+              @if (isCreateMode()) {
+                Create
+              } @else {
+                Edit
+              }
+            </span>
+          </nav>
+
+          <div class="warehouse-edit__title-row">
+            <div>
+              <h1 class="warehouse-edit__title">
+                @if (isCreateMode()) {
+                  Create warehouse
+                } @else {
+                  Edit warehouse
+                }
+              </h1>
+              <p class="warehouse-edit__subtitle">
+                Configure a reusable Trino connection for your organization.
+              </p>
+            </div>
+          </div>
+        </header>
+
+        <app-warehouse-form
+          [mode]="isCreateMode() ? 'create' : 'edit'"
+          [warehouseUuid]="warehouseUuid()"
+          (saved)="onSaved()"
+          (cancelled)="onCancelled()"
+        />
+      </div>
+    </section>
+  </div>
+</div>

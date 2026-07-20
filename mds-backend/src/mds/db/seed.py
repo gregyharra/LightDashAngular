@@ -4,7 +4,7 @@ from datetime import datetime, timezone
 
 from sqlalchemy.orm import Session
 
-from mds.db.models import Dashboard, Organization, Project, Space, User
+from mds.db.models import Dashboard, Organization, Project, Space, User, Warehouse
 
 MOCK_ORG_UUID = uuid.UUID("172a2270-000f-42be-9c68-c4752c23ae51")
 MOCK_USER_UUID = uuid.UUID("b264d83a-9000-426a-85ec-3f9c20f368ce")

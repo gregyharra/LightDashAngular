@@ -7,5 +7,7 @@ export type OrganizationProject = {
   createdAt: string;
   upstreamProjectUuid: string | null;
   warehouseType?: string;
+  warehouseUuid?: string | null;
+  warehouseName?: string | null;
   expiresAt: string | null;
 };

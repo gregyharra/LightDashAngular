@@ -29,26 +29,14 @@ class User(Base):
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
 
 
-class Project(Base):
-    __tablename__ = "projects"
+class Warehouse(Base):
+    __tablename__ = "warehouses"
 
     uuid: Mapped[uuid_lib.UUID] = mapped_column(Uuid, primary_key=True)
     organization_uuid: Mapped[uuid_lib.UUID] = mapped_column(
         Uuid, ForeignKey("organizations.uuid"), nullable=False
     )
     name: Mapped[str] = mapped_column(String(255), nullable=False)
-    warehouse_type: Mapped[str] = mapped_column(String(50), default="trino")
-    dbt_project_path: Mapped[str | None] = mapped_column(String(1024), nullable=True)
-    created_by_user_uuid: Mapped[uuid_lib.UUID] = mapped_column(Uuid, ForeignKey("users.uuid"))
-    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
-
-
-class WarehouseConnection(Base):
-    __tablename__ = "warehouse_connections"
-
-    project_uuid: Mapped[uuid_lib.UUID] = mapped_column(
-        Uuid, ForeignKey("projects.uuid"), primary_key=True
-    )
     type: Mapped[str] = mapped_column(String(50), default="trino", nullable=False)
     host: Mapped[str] = mapped_column(String(255), nullable=False)
     port: Mapped[int] = mapped_column(Integer, default=8080, nullable=False)
@@ -58,9 +46,29 @@ class WarehouseConnection(Base):
     encrypted_password: Mapped[str | None] = mapped_column(Text, nullable=True)
     ssl: Mapped[bool] = mapped_column(Boolean, default=False)
     extra_config: Mapped[dict] = mapped_column(JSON, default=dict)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now()
+    )
     updated_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now(), onupdate=func.now()
     )
+
+
+class Project(Base):
+    __tablename__ = "projects"
+
+    uuid: Mapped[uuid_lib.UUID] = mapped_column(Uuid, primary_key=True)
+    organization_uuid: Mapped[uuid_lib.UUID] = mapped_column(
+        Uuid, ForeignKey("organizations.uuid"), nullable=False
+    )
+    name: Mapped[str] = mapped_column(String(255), nullable=False)
+    warehouse_type: Mapped[str] = mapped_column(String(50), default="trino")
+    warehouse_uuid: Mapped[uuid_lib.UUID | None] = mapped_column(
+        Uuid, ForeignKey("warehouses.uuid"), nullable=True
+    )
+    dbt_project_path: Mapped[str | None] = mapped_column(String(1024), nullable=True)
+    created_by_user_uuid: Mapped[uuid_lib.UUID] = mapped_column(Uuid, ForeignKey("users.uuid"))
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
 
 
 class Space(Base):

@@ -1,14 +1,47 @@
 import uuid as uuid_lib
 
-from fastapi import APIRouter, Depends, Query
+from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
 
 from mds.api.envelope import ok
-from mds.db.models import Project, Space, User
+from mds.db.models import Project, Space, User, Warehouse
 from mds.db.seed import MOCK_ORG_UUID, MOCK_USER_UUID
 from mds.db.session import get_db
+from mds.schemas.project import ProjectUpdate
 
 router = APIRouter(tags=["platform"])
+
+
+def _format_dt(value) -> str:
+    return value.isoformat().replace("+00:00", "Z")
+
+
+def _project_payload(project: Project, warehouse: Warehouse | None = None) -> dict:
+    return {
+        "projectUuid": str(project.uuid),
+        "name": project.name,
+        "type": "DEFAULT",
+        "createdByUserUuid": str(project.created_by_user_uuid),
+        "createdByUserName": "Demo Analyst",
+        "createdAt": _format_dt(project.created_at),
+        "upstreamProjectUuid": None,
+        "warehouseType": project.warehouse_type,
+        "warehouseUuid": str(project.warehouse_uuid) if project.warehouse_uuid else None,
+        "warehouseName": warehouse.name if warehouse else None,
+        "expiresAt": None,
+    }
+
+
+def _get_project_or_404(db: Session, project_uuid: str) -> Project:
+    try:
+        project_id = uuid_lib.UUID(project_uuid)
+    except ValueError as exc:
+        raise HTTPException(status_code=404, detail="Project not found") from exc
+
+    project = db.get(Project, project_id)
+    if not project:
+        raise HTTPException(status_code=404, detail="Project not found")
+    return project
 
 
 @router.get("/health")
@@ -83,22 +116,69 @@ def get_user(db: Session = Depends(get_db)):
 @router.get("/org/projects")
 def list_org_projects(db: Session = Depends(get_db)):
     projects = db.query(Project).order_by(Project.created_at.asc()).all()
+    warehouse_ids = {p.warehouse_uuid for p in projects if p.warehouse_uuid}
+    warehouses: dict[uuid_lib.UUID, Warehouse] = {}
+    if warehouse_ids:
+        for wh in db.query(Warehouse).filter(Warehouse.uuid.in_(warehouse_ids)).all():
+            warehouses[wh.uuid] = wh
+
     return ok(
         [
-            {
-                "projectUuid": str(project.uuid),
-                "name": project.name,
-                "type": "DEFAULT",
-                "createdByUserUuid": str(project.created_by_user_uuid),
-                "createdByUserName": "Demo Analyst",
-                "createdAt": project.created_at.isoformat().replace("+00:00", "Z"),
-                "upstreamProjectUuid": None,
-                "warehouseType": project.warehouse_type,
-                "expiresAt": None,
-            }
+            _project_payload(project, warehouses.get(project.warehouse_uuid))
             for project in projects
         ]
     )
+
+
+@router.get("/projects/{project_uuid}")
+def get_project(project_uuid: str, db: Session = Depends(get_db)):
+    project = _get_project_or_404(db, project_uuid)
+    warehouse = None
+    if project.warehouse_uuid:
+        warehouse = db.get(Warehouse, project.warehouse_uuid)
+    return ok(_project_payload(project, warehouse))
+
+
+@router.patch("/projects/{project_uuid}")
+def update_project(
+    project_uuid: str,
+    body: ProjectUpdate,
+    db: Session = Depends(get_db),
+):
+    project = _get_project_or_404(db, project_uuid)
+
+    if body.name is not None:
+        name = body.name.strip()
+        if not name:
+            raise HTTPException(status_code=400, detail="Project name cannot be empty")
+        project.name = name
+
+    if "warehouse_uuid" in body.model_fields_set:
+        if body.warehouse_uuid is None:
+            project.warehouse_uuid = None
+        else:
+            try:
+                warehouse_id = uuid_lib.UUID(body.warehouse_uuid)
+            except ValueError as exc:
+                raise HTTPException(status_code=400, detail="Invalid warehouse UUID") from exc
+
+            warehouse = db.get(Warehouse, warehouse_id)
+            if not warehouse:
+                raise HTTPException(status_code=404, detail="Warehouse not found")
+            if warehouse.organization_uuid != project.organization_uuid:
+                raise HTTPException(
+                    status_code=400,
+                    detail="Warehouse must belong to the same organization as the project",
+                )
+            project.warehouse_uuid = warehouse_id
+
+    db.commit()
+    db.refresh(project)
+
+    warehouse = None
+    if project.warehouse_uuid:
+        warehouse = db.get(Warehouse, project.warehouse_uuid)
+    return ok(_project_payload(project, warehouse))
 
 
 @router.get("/projects/{project_uuid}/spaces")

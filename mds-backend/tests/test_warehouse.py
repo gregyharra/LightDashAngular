@@ -1,4 +1,5 @@
 import os
+import uuid as uuid_lib
 
 os.environ.setdefault("DATABASE_URL", "sqlite+pysqlite:///:memory:")
 os.environ.setdefault("SEED_DEMO_DATA", "true")
@@ -6,7 +7,7 @@ os.environ.setdefault("SEED_DEMO_DATA", "true")
 import pytest
 from fastapi.testclient import TestClient
 
-from mds.db.models import WarehouseConnection
+from mds.db.models import Project, Warehouse
 from mds.db.seed import MOCK_PROJECT_UUID
 from mds.db.session import SessionLocal
 from mds.main import app
@@ -19,18 +20,17 @@ def client() -> TestClient:
         yield test_client
 
 
-def test_get_warehouse_unconfigured(client: TestClient) -> None:
-    response = client.get(f"/api/v1/projects/{MOCK_PROJECT_UUID}/warehouse")
+def test_list_warehouses_empty(client: TestClient) -> None:
+    response = client.get("/api/v1/org/warehouses")
     assert response.status_code == 200
     body = response.json()
     assert body["status"] == "ok"
-    assert body["results"]["configured"] is False
-    assert body["results"]["hasPassword"] is False
-    assert "password" not in body["results"]
+    assert body["results"] == []
 
 
-def test_upsert_and_get_warehouse(client: TestClient) -> None:
+def test_create_get_update_warehouse(client: TestClient) -> None:
     payload = {
+        "name": "Demo Trino",
         "type": "trino",
         "host": "trino.example.com",
         "port": 8080,
@@ -41,25 +41,22 @@ def test_upsert_and_get_warehouse(client: TestClient) -> None:
         "ssl": False,
         "extraConfig": {"source": "test"},
     }
-    create = client.put(f"/api/v1/projects/{MOCK_PROJECT_UUID}/warehouse", json=payload)
+    create = client.post("/api/v1/org/warehouses", json=payload)
     assert create.status_code == 200
     created = create.json()["results"]
-    assert created["configured"] is True
-    assert created["host"] == "trino.example.com"
+    warehouse_uuid = created["warehouseUuid"]
+    assert created["name"] == "Demo Trino"
     assert created["hasPassword"] is True
     assert "password" not in created
 
-    get_resp = client.get(f"/api/v1/projects/{MOCK_PROJECT_UUID}/warehouse")
+    get_resp = client.get(f"/api/v1/warehouses/{warehouse_uuid}")
     fetched = get_resp.json()["results"]
+    assert fetched["host"] == "trino.example.com"
     assert fetched["hasPassword"] is True
-    assert "password" not in fetched
 
-    update = client.put(
-        f"/api/v1/projects/{MOCK_PROJECT_UUID}/warehouse",
-        json={
-            **payload,
-            "host": "trino-updated.example.com",
-        },
+    update = client.patch(
+        f"/api/v1/warehouses/{warehouse_uuid}",
+        json={"host": "trino-updated.example.com"},
     )
     updated = update.json()["results"]
     assert updated["host"] == "trino-updated.example.com"
@@ -67,7 +64,7 @@ def test_upsert_and_get_warehouse(client: TestClient) -> None:
 
     db = SessionLocal()
     try:
-        row = db.get(WarehouseConnection, MOCK_PROJECT_UUID)
+        row = db.get(Warehouse, uuid_lib.UUID(warehouse_uuid))
         assert row is not None
         assert decrypt_secret(row.encrypted_password) == "secret-pass"
     finally:
@@ -75,35 +72,33 @@ def test_upsert_and_get_warehouse(client: TestClient) -> None:
 
 
 def test_password_omitted_keeps_existing(client: TestClient) -> None:
-    payload = {
-        "type": "trino",
-        "host": "trino.example.com",
-        "port": 8080,
-        "catalog": "jaffle_shop",
-        "schema": "marts",
-        "user": "mds",
-        "password": "keep-me",
-        "ssl": False,
-    }
-    client.put(f"/api/v1/projects/{MOCK_PROJECT_UUID}/warehouse", json=payload)
-
-    update = client.put(
-        f"/api/v1/projects/{MOCK_PROJECT_UUID}/warehouse",
+    create = client.post(
+        "/api/v1/org/warehouses",
         json={
+            "name": "Keep password",
             "type": "trino",
             "host": "trino.example.com",
             "port": 8080,
             "catalog": "jaffle_shop",
             "schema": "marts",
             "user": "mds",
+            "password": "keep-me",
             "ssl": False,
+        },
+    )
+    warehouse_uuid = create.json()["results"]["warehouseUuid"]
+
+    update = client.patch(
+        f"/api/v1/warehouses/{warehouse_uuid}",
+        json={
+            "host": "trino.example.com",
         },
     )
     assert update.json()["results"]["hasPassword"] is True
 
     db = SessionLocal()
     try:
-        row = db.get(WarehouseConnection, MOCK_PROJECT_UUID)
+        row = db.get(Warehouse, uuid_lib.UUID(warehouse_uuid))
         assert row is not None
         assert decrypt_secret(row.encrypted_password) == "keep-me"
     finally:
@@ -111,38 +106,67 @@ def test_password_omitted_keeps_existing(client: TestClient) -> None:
 
 
 def test_clear_password(client: TestClient) -> None:
-    payload = {
-        "type": "trino",
-        "host": "trino.example.com",
-        "port": 8080,
-        "catalog": "jaffle_shop",
-        "schema": "marts",
-        "user": "mds",
-        "password": "to-clear",
-        "ssl": False,
-    }
-    client.put(f"/api/v1/projects/{MOCK_PROJECT_UUID}/warehouse", json=payload)
-
-    cleared = client.put(
-        f"/api/v1/projects/{MOCK_PROJECT_UUID}/warehouse",
+    create = client.post(
+        "/api/v1/org/warehouses",
         json={
+            "name": "Clear password",
             "type": "trino",
             "host": "trino.example.com",
             "port": 8080,
             "catalog": "jaffle_shop",
             "schema": "marts",
             "user": "mds",
-            "clearPassword": True,
+            "password": "to-clear",
             "ssl": False,
         },
+    )
+    warehouse_uuid = create.json()["results"]["warehouseUuid"]
+
+    cleared = client.patch(
+        f"/api/v1/warehouses/{warehouse_uuid}",
+        json={"clearPassword": True},
     )
     assert cleared.json()["results"]["hasPassword"] is False
 
     db = SessionLocal()
     try:
-        row = db.get(WarehouseConnection, MOCK_PROJECT_UUID)
+        row = db.get(Warehouse, uuid_lib.UUID(warehouse_uuid))
         assert row is not None
         assert row.encrypted_password is None
+    finally:
+        db.close()
+
+
+def test_assign_warehouse_to_project(client: TestClient) -> None:
+    create = client.post(
+        "/api/v1/org/warehouses",
+        json={
+            "name": "Project warehouse",
+            "type": "trino",
+            "host": "trino.example.com",
+            "port": 8080,
+            "catalog": "jaffle_shop",
+            "schema": "marts",
+            "user": "mds",
+            "ssl": False,
+        },
+    )
+    warehouse_uuid = create.json()["results"]["warehouseUuid"]
+
+    patch = client.patch(
+        f"/api/v1/projects/{MOCK_PROJECT_UUID}",
+        json={"warehouseUuid": warehouse_uuid},
+    )
+    assert patch.status_code == 200
+    updated = patch.json()["results"]
+    assert updated["warehouseUuid"] == warehouse_uuid
+    assert updated["warehouseName"] == "Project warehouse"
+
+    db = SessionLocal()
+    try:
+        project = db.get(Project, MOCK_PROJECT_UUID)
+        assert project is not None
+        assert str(project.warehouse_uuid) == warehouse_uuid
     finally:
         db.close()
 
@@ -153,7 +177,7 @@ def test_encryption_roundtrip() -> None:
     assert decrypt_secret(encrypted) == "warehouse-password"
 
 
-def test_test_warehouse_not_configured(client: TestClient) -> None:
-    unknown_project = "00000000-0000-0000-0000-000000000099"
-    response = client.post(f"/api/v1/projects/{unknown_project}/warehouse/test")
+def test_test_warehouse_not_found(client: TestClient) -> None:
+    unknown = "00000000-0000-0000-0000-000000000099"
+    response = client.post(f"/api/v1/warehouses/{unknown}/test")
     assert response.status_code == 404

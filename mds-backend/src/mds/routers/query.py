@@ -10,7 +10,7 @@ from mds.services.dbt.parse import build_explore_from_lineage_node, find_lineage
 from mds.services.query.compile import build_metric_query_sql
 from mds.services.query.store import create_query, get_query
 from mds.services.query.time_travel import validate_time_travel_for_explore
-from mds.services.warehouse.connection import get_connection
+from mds.services.warehouse.connection import get_connection_for_project
 from mds.services.warehouse.trino_client import execute_trino_query
 
 router = APIRouter(tags=["query"])
@@ -74,7 +74,7 @@ def execute_metric_query(
     fields = _build_fields(explore, metric_query)
     rows: list[dict] = []
     if compiled_sql:
-        warehouse = get_connection(db, _project.uuid)
+        warehouse = get_connection_for_project(db, _project)
         if warehouse and warehouse.type == "trino":
             field_ids = list(metric_query.dimensions) + list(metric_query.metrics)
             rows, execution_error = execute_trino_query(

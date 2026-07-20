@@ -4,78 +4,73 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
 from mds.api.envelope import ok
-from mds.db.models import Project
+from mds.db.models import Warehouse
+from mds.db.seed import MOCK_ORG_UUID
 from mds.db.session import get_db
-from mds.schemas.warehouse import WarehouseConnectionTestResult, WarehouseConnectionUpsert
+from mds.schemas.warehouse import WarehouseCreate, WarehouseUpdate
 from mds.services.warehouse.connection import (
-    get_connection,
-    get_connection_response,
-    upsert_connection,
+    _to_response,
+    create_warehouse,
+    delete_warehouse,
+    get_warehouse,
+    list_warehouses,
+    update_warehouse,
 )
 from mds.services.warehouse.trino_client import test_trino_connection
 
 router = APIRouter(tags=["warehouse"])
 
 
-def _get_project(db: Session, project_uuid: str) -> Project:
+def _get_warehouse_or_404(db: Session, warehouse_uuid: str) -> Warehouse:
     try:
-        project_id = uuid_lib.UUID(project_uuid)
+        warehouse_id = uuid_lib.UUID(warehouse_uuid)
     except ValueError as exc:
-        raise HTTPException(status_code=404, detail="Project not found") from exc
+        raise HTTPException(status_code=404, detail="Warehouse not found") from exc
 
-    project = db.get(Project, project_id)
-    if not project:
-        raise HTTPException(status_code=404, detail="Project not found")
-    return project
-
-
-@router.get("/projects/{project_uuid}/warehouse")
-def get_warehouse(project_uuid: str, db: Session = Depends(get_db)):
-    _get_project(db, project_uuid)
-    connection = get_connection_response(db, uuid_lib.UUID(project_uuid))
-    if connection is None:
-        return ok(
-            {
-                "projectUuid": project_uuid,
-                "type": "trino",
-                "host": "",
-                "port": 8080,
-                "catalog": "",
-                "schema": "",
-                "user": "",
-                "hasPassword": False,
-                "ssl": False,
-                "extraConfig": {},
-                "configured": False,
-            }
-        )
-    return ok(connection.model_dump(by_alias=True))
+    warehouse = get_warehouse(db, warehouse_id)
+    if not warehouse:
+        raise HTTPException(status_code=404, detail="Warehouse not found")
+    return warehouse
 
 
-@router.put("/projects/{project_uuid}/warehouse")
-def upsert_warehouse(
-    project_uuid: str,
-    body: WarehouseConnectionUpsert,
+@router.get("/org/warehouses")
+def list_org_warehouses(db: Session = Depends(get_db)):
+    items = list_warehouses(db, MOCK_ORG_UUID)
+    return ok([item.model_dump(by_alias=True) for item in items])
+
+
+@router.post("/org/warehouses")
+def create_org_warehouse(body: WarehouseCreate, db: Session = Depends(get_db)):
+    warehouse = create_warehouse(db, MOCK_ORG_UUID, body)
+    return ok(warehouse.model_dump(by_alias=True))
+
+
+@router.get("/warehouses/{warehouse_uuid}")
+def get_warehouse_detail(warehouse_uuid: str, db: Session = Depends(get_db)):
+    warehouse = _get_warehouse_or_404(db, warehouse_uuid)
+    return ok(_to_response(warehouse).model_dump(by_alias=True))
+
+
+@router.patch("/warehouses/{warehouse_uuid}")
+def patch_warehouse(
+    warehouse_uuid: str,
+    body: WarehouseUpdate,
     db: Session = Depends(get_db),
 ):
-    project = _get_project(db, project_uuid)
-    if project.warehouse_type != body.type:
-        raise HTTPException(
-            status_code=400,
-            detail=f"Project warehouse type is {project.warehouse_type}, not {body.type}",
-        )
-
-    connection = upsert_connection(db, project, body)
-    return ok(connection.model_dump(by_alias=True))
+    warehouse = _get_warehouse_or_404(db, warehouse_uuid)
+    updated = update_warehouse(db, warehouse, body)
+    return ok(updated.model_dump(by_alias=True))
 
 
-@router.post("/projects/{project_uuid}/warehouse/test")
-def test_warehouse(project_uuid: str, db: Session = Depends(get_db)):
-    _get_project(db, project_uuid)
-    connection = get_connection(db, uuid_lib.UUID(project_uuid))
-    if not connection:
-        raise HTTPException(status_code=404, detail="Warehouse connection is not configured")
+@router.delete("/warehouses/{warehouse_uuid}")
+def remove_warehouse(warehouse_uuid: str, db: Session = Depends(get_db)):
+    warehouse = _get_warehouse_or_404(db, warehouse_uuid)
+    delete_warehouse(db, warehouse)
+    return ok(None)
 
-    success, message = test_trino_connection(connection)
-    result = WarehouseConnectionTestResult(success=success, message=message)
-    return ok(result.model_dump(by_alias=True))
+
+@router.post("/warehouses/{warehouse_uuid}/test")
+def test_warehouse_connection(warehouse_uuid: str, db: Session = Depends(get_db)):
+    warehouse = _get_warehouse_or_404(db, warehouse_uuid)
+    success, message = test_trino_connection(warehouse)
+    return ok({"success": success, "message": message})

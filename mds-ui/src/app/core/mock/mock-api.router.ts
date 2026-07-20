@@ -36,12 +36,15 @@ import {
   mockWarehouseTablesCatalog,
 } from './fixtures/sql-runner.fixture';
 import {
-  getMockWarehouseConnection,
-  testMockWarehouseConnection,
-  upsertMockWarehouseConnection,
+  createMockWarehouse,
+  deleteMockWarehouse,
+  getMockWarehouse,
+  listMockWarehouses,
+  testMockWarehouse,
+  updateMockWarehouse,
 } from './fixtures/warehouse.fixture';
 import { MetricQuery } from '../models/explore.model';
-import { WarehouseConnectionUpsert } from '../models/warehouse.model';
+import { WarehouseCreate, WarehouseUpdate } from '../models/warehouse.model';
 import { MockRequest, MockRoute } from './mock-api.types';
 
 const savedChartsList = (request: MockRequest) => {
@@ -239,22 +242,79 @@ const project = (request: MockRequest) => {
   );
 };
 
-const projectWarehouseGet = (request: MockRequest) => {
-  const match = request.path.match(/^\/projects\/([^/]+)\/warehouse$/);
-  const projectUuid = match?.[1] ?? MOCK_PROJECT_UUID;
-  return getMockWarehouseConnection(projectUuid);
+const projectUpdate = (request: MockRequest) => {
+  const match = request.path.match(/^\/projects\/([^/]+)$/);
+  const projectUuid = match?.[1];
+  if (!projectUuid) {
+    return null;
+  }
+
+  const body = request.body as { name?: string; warehouseUuid?: string | null } | null;
+  const index = mockProjects.findIndex((p) => p.projectUuid === projectUuid);
+  const current = index >= 0 ? mockProjects[index] : { ...mockProjects[0], projectUuid };
+
+  const warehouseUuid = body?.warehouseUuid ?? current.warehouseUuid ?? null;
+  const warehouse = warehouseUuid ? getMockWarehouse(warehouseUuid) : null;
+
+  const updated = {
+    ...current,
+    name: body?.name?.trim() || current.name,
+    warehouseUuid,
+    warehouseName: warehouse?.name ?? null,
+  };
+
+  if (index >= 0) {
+    mockProjects[index] = updated;
+  }
+
+  return updated;
 };
 
-const projectWarehouseUpsert = (request: MockRequest) => {
-  const match = request.path.match(/^\/projects\/([^/]+)\/warehouse$/);
-  const projectUuid = match?.[1] ?? MOCK_PROJECT_UUID;
-  return upsertMockWarehouseConnection(projectUuid, request.body as WarehouseConnectionUpsert);
+const orgWarehousesList = () => listMockWarehouses();
+
+const orgWarehousesCreate = (request: MockRequest) =>
+  createMockWarehouse(request.body as WarehouseCreate);
+
+const warehouseDetail = (request: MockRequest) => {
+  const match = request.path.match(/^\/warehouses\/([^/]+)$/);
+  const warehouseUuid = match?.[1];
+  if (!warehouseUuid) {
+    return null;
+  }
+  return getMockWarehouse(warehouseUuid);
 };
 
-const projectWarehouseTest = (request: MockRequest) => {
-  const match = request.path.match(/^\/projects\/([^/]+)\/warehouse\/test$/);
-  const projectUuid = match?.[1] ?? MOCK_PROJECT_UUID;
-  return testMockWarehouseConnection(projectUuid);
+const warehousePatch = (request: MockRequest) => {
+  const match = request.path.match(/^\/warehouses\/([^/]+)$/);
+  const warehouseUuid = match?.[1];
+  if (!warehouseUuid) {
+    return null;
+  }
+  return updateMockWarehouse(warehouseUuid, request.body as WarehouseUpdate);
+};
+
+const warehouseDelete = (request: MockRequest) => {
+  const match = request.path.match(/^\/warehouses\/([^/]+)$/);
+  const warehouseUuid = match?.[1];
+  if (!warehouseUuid) {
+    return null;
+  }
+  deleteMockWarehouse(warehouseUuid);
+
+  for (const project of mockProjects) {
+    if (project.warehouseUuid === warehouseUuid) {
+      project.warehouseUuid = null;
+      project.warehouseName = null;
+    }
+  }
+
+  return null;
+};
+
+const warehouseTest = (request: MockRequest) => {
+  const match = request.path.match(/^\/warehouses\/([^/]+)\/test$/);
+  const warehouseUuid = match?.[1] ?? '';
+  return testMockWarehouse(warehouseUuid);
 };
 
 const routes: MockRoute[] = [
@@ -332,12 +392,16 @@ const routes: MockRoute[] = [
   { pattern: /^\/projects\/[^/]+\/colorPalette/, handler: () => ({}) },
   { pattern: /^\/projects\/[^/]+\/queryTimezoneSettings$/, handler: () => ({}) },
   { pattern: /^\/projects\/[^/]+\/schedulerSettings$/, handler: () => ({}) },
-  { pattern: /^\/projects\/[^/]+\/warehouse\/test$/, method: 'POST', handler: projectWarehouseTest },
-  { pattern: /^\/projects\/[^/]+\/warehouse$/, method: 'GET', handler: projectWarehouseGet },
-  { pattern: /^\/projects\/[^/]+\/warehouse$/, method: 'PUT', handler: projectWarehouseUpsert },
+  { pattern: /^\/org\/warehouses$/, method: 'GET', handler: orgWarehousesList },
+  { pattern: /^\/org\/warehouses$/, method: 'POST', handler: orgWarehousesCreate },
+  { pattern: /^\/warehouses\/[^/]+\/test$/, method: 'POST', handler: warehouseTest },
+  { pattern: /^\/warehouses\/[^/]+$/, method: 'GET', handler: warehouseDetail },
+  { pattern: /^\/warehouses\/[^/]+$/, method: 'PATCH', handler: warehousePatch },
+  { pattern: /^\/warehouses\/[^/]+$/, method: 'DELETE', handler: warehouseDelete },
   { pattern: /^\/projects\/[^/]+\/warehouse-credentials$/, handler: () => [] },
   { pattern: /^\/projects\/[^/]+\/query\/[^/]+$/, method: 'GET', handler: queryPoll },
-  { pattern: /^\/projects\/[^/]+$/, handler: project },
+  { pattern: /^\/projects\/[^/]+$/, method: 'PATCH', handler: projectUpdate },
+  { pattern: /^\/projects\/[^/]+$/, method: 'GET', handler: project },
 
   { pattern: /^\/saved\//, handler: savedChartDetailGlobal },
   { pattern: /^\/dashboards\//, handler: dashboardDetail },

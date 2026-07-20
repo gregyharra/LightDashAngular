@@ -3,17 +3,19 @@
     <div class="page-sidebar">
       <header class="page-sidebar__header">
         <p class="page-sidebar__breadcrumb">Settings</p>
-        @if (activeProjectService.activeProject(); as project) {
-          <p class="page-sidebar__org">{{ project.name }}</p>
+        @if (organizationName(); as orgName) {
+          <p class="page-sidebar__org">{{ orgName }}</p>
+        } @else {
+          @if (activeProjectService.activeProject(); as project) {
+            <p class="page-sidebar__org">{{ project.name }}</p>
+          }
         }
       </header>
 
-      <nav class="page-sidebar__nav" aria-label="Settings navigation">
+      <app-settings-sidebar-nav active="projects" />
+
+      <nav class="page-sidebar__nav" aria-label="Project navigation">
         <p class="page-sidebar__section-label">Project</p>
-        <a class="page-sidebar__link page-sidebar__link--clickable" routerLink="/projects">
-          <mat-icon>folder</mat-icon>
-          Projects
-        </a>
         <div class="page-sidebar__link page-sidebar__link--active">
           <mat-icon>edit</mat-icon>
           Edit
@@ -42,40 +44,79 @@
             <div>
               <h1 class="project-edit__title">Project settings</h1>
               <p class="project-edit__subtitle">
-                Manage general information and database connection for this project.
+                Update the project name and assign a warehouse connection.
               </p>
             </div>
           </div>
         </header>
 
-        <nav
-          mat-tab-nav-bar
-          class="project-edit__tabs"
-          [tabPanel]="tabPanel"
-          aria-label="Project settings tabs"
-        >
-          <a
-            mat-tab-link
-            [routerLink]="['general']"
-            routerLinkActive
-            #generalLink="routerLinkActive"
-            [active]="generalLink.isActive"
-          >
-            General
-          </a>
-          <a
-            mat-tab-link
-            [routerLink]="['database']"
-            routerLinkActive
-            #databaseLink="routerLinkActive"
-            [active]="databaseLink.isActive"
-          >
-            Database connection
-          </a>
-        </nav>
-        <mat-tab-nav-panel #tabPanel class="project-edit__tab-panel">
-          <router-outlet />
-        </mat-tab-nav-panel>
+        @if (loading()) {
+          <div class="project-edit__loading">
+            <mat-spinner diameter="32" />
+          </div>
+        } @else {
+          @if (error()) {
+            <div class="project-edit__alert project-edit__alert--error">
+              {{ error() }}
+            </div>
+          }
+
+          @if (success()) {
+            <div class="project-edit__alert project-edit__alert--success">
+              {{ success() }}
+            </div>
+          }
+
+          <form class="project-edit__form" (ngSubmit)="save()">
+            <mat-form-field appearance="outline" class="project-edit__field">
+              <mat-label>Project name</mat-label>
+              <input matInput name="name" [(ngModel)]="name" required autocomplete="off" />
+            </mat-form-field>
+
+            <div class="project-edit__warehouse-row">
+              <mat-form-field appearance="outline" class="project-edit__field">
+                <mat-label>Warehouse</mat-label>
+                <mat-select name="warehouseUuid" [(ngModel)]="selectedWarehouseUuid">
+                  <mat-option [value]="null">No warehouse assigned</mat-option>
+                  @for (warehouse of warehouses(); track warehouse.warehouseUuid) {
+                    <mat-option [value]="warehouse.warehouseUuid">
+                      {{ warehouse.name }} ({{ warehouse.host }}:{{ warehouse.port }})
+                    </mat-option>
+                  }
+                </mat-select>
+              </mat-form-field>
+
+              <button
+                mat-stroked-button
+                type="button"
+                class="project-edit__create-warehouse-btn"
+                (click)="openCreateWarehouseDialog()"
+              >
+                <mat-icon>add</mat-icon>
+                Create warehouse
+              </button>
+            </div>
+
+            @if (warehouses().length === 0) {
+              <p class="project-edit__hint">
+                No warehouses exist yet. Create one to connect this project to Trino.
+              </p>
+            }
+
+            <div class="project-edit__actions">
+              <button mat-stroked-button type="button" (click)="cancel()" [disabled]="saving()">
+                Cancel
+              </button>
+              <button mat-flat-button type="submit" [disabled]="saving()">
+                @if (saving()) {
+                  Saving…
+                } @else {
+                  Save project
+                }
+              </button>
+            </div>
+          </form>
+        }
       </div>
     </section>
   </div>

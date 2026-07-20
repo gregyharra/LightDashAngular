@@ -1,0 +1,99 @@
+<div class="page-layout">
+  <aside class="page-layout__sidebar" appResizableSidebar>
+    <div class="page-sidebar">
+      <header class="page-sidebar__header">
+        <p class="page-sidebar__breadcrumb">Settings</p>
+        @if (organizationName()) {
+          <p class="page-sidebar__org">{{ organizationName() }}</p>
+        }
+      </header>
+
+      <app-settings-sidebar-nav active="warehouses" />
+    </div>
+  </aside>
+
+  <div class="page-layout__content">
+    <section class="warehouses">
+      <div class="page__container">
+        <header class="warehouses__header">
+          <div>
+            <h1 class="warehouses__title">Warehouses</h1>
+            <p class="warehouses__subtitle">
+              Manage reusable database connections for your projects.
+            </p>
+          </div>
+          <button mat-flat-button class="warehouses__create-btn" (click)="openCreate()">
+            <mat-icon>add</mat-icon>
+            Create warehouse
+          </button>
+        </header>
+
+        @if (loading()) {
+          <div class="warehouses__loading">
+            <mat-spinner diameter="32" />
+          </div>
+        } @else if (error()) {
+          <div class="warehouses__error">{{ error() }}</div>
+        } @else if (warehouses().length === 0) {
+          <div class="warehouses__empty">
+            <mat-icon>storage</mat-icon>
+            <p>No warehouses yet.</p>
+            <button mat-stroked-button (click)="openCreate()">Create your first warehouse</button>
+          </div>
+        } @else {
+          <div class="warehouses__grid">
+            @for (warehouse of warehouses(); track warehouse.warehouseUuid) {
+              <article
+                class="warehouse-card"
+                (click)="openEdit(warehouse.warehouseUuid)"
+                (keydown.enter)="openEdit(warehouse.warehouseUuid)"
+                tabindex="0"
+                role="button"
+              >
+                <div class="warehouse-card__header">
+                  <h2 class="warehouse-card__name">{{ warehouse.name }}</h2>
+                  <button
+                    mat-icon-button
+                    type="button"
+                    class="warehouse-card__delete-btn"
+                    aria-label="Delete warehouse"
+                    title="Delete warehouse"
+                    [disabled]="deletingUuid() === warehouse.warehouseUuid"
+                    (click)="deleteWarehouse($event, warehouse.warehouseUuid)"
+                  >
+                    <mat-icon>delete</mat-icon>
+                  </button>
+                </div>
+
+                <div class="warehouse-card__meta">
+                  <span class="warehouse-card__chip">
+                    <mat-icon>storage</mat-icon>
+                    {{ warehouseLabel(warehouse.type) }}
+                  </span>
+                  <span class="warehouse-card__chip">
+                    {{ warehouse.host }}:{{ warehouse.port }}
+                  </span>
+                  @if (warehouse.hasPassword) {
+                    <span class="warehouse-card__chip">
+                      <mat-icon>lock</mat-icon>
+                      Password set
+                    </span>
+                  }
+                </div>
+
+                <div class="warehouse-card__footer">
+                  <span class="warehouse-card__detail">
+                    {{ warehouse.catalog }}.{{ warehouse.schema }}
+                  </span>
+                  <span class="warehouse-card__date">
+                    Updated {{ formatDate(warehouse.updatedAt) }}
+                  </span>
+                </div>
+              </article>
+            }
+          </div>
+        }
+      </div>
+    </section>
+  </div>
+</div>

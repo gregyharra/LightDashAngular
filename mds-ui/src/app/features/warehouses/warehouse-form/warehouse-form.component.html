@@ -1,44 +1,57 @@
 @if (loading()) {
-  <div class="project-warehouse-form__loading">
+  <div class="warehouse-form__loading">
     <mat-spinner diameter="32" />
   </div>
 } @else {
-  <div class="project-warehouse-form__header">
-    <div>
-      <h2 class="project-warehouse-form__title">Database connection</h2>
-      <p class="project-warehouse-form__subtitle">
-        Connect this project to Trino so queries can fetch live data.
-      </p>
+  @if (!compact()) {
+    <div class="warehouse-form__header">
+      <div>
+        <h2 class="warehouse-form__title">
+          @if (mode() === 'create') {
+            New warehouse connection
+          } @else {
+            Warehouse connection
+          }
+        </h2>
+        <p class="warehouse-form__subtitle">
+          Connect to Trino so projects can fetch live data.
+        </p>
+      </div>
+      <span class="warehouse-form__status" [class]="connectionStatusClass()">
+        {{ connectionStatusLabel() }}
+      </span>
     </div>
-    <span class="project-warehouse-form__status" [class]="connectionStatusClass()">
-      {{ connectionStatusLabel() }}
-    </span>
-  </div>
+  }
 
   @if (error()) {
-    <div class="project-warehouse-form__alert project-warehouse-form__alert--error">
+    <div class="warehouse-form__alert warehouse-form__alert--error">
       {{ error() }}
     </div>
   }
 
   @if (success()) {
-    <div class="project-warehouse-form__alert project-warehouse-form__alert--success">
+    <div class="warehouse-form__alert warehouse-form__alert--success">
       {{ success() }}
     </div>
   }
 
   @if (testResult(); as result) {
     <div
-      class="project-warehouse-form__alert"
-      [class.project-warehouse-form__alert--success]="result.success"
-      [class.project-warehouse-form__alert--error]="!result.success"
+      class="warehouse-form__alert"
+      [class.warehouse-form__alert--success]="result.success"
+      [class.warehouse-form__alert--error]="!result.success"
     >
       {{ result.message }}
     </div>
   }
 
-  <form class="project-warehouse-form__form" (ngSubmit)="save()">
-    <div class="project-warehouse-form__grid">
+  <form class="warehouse-form__form" (ngSubmit)="save()">
+    <div class="warehouse-form__grid">
+      <mat-form-field appearance="outline" class="warehouse-form__field--full">
+        <mat-label>Name</mat-label>
+        <input matInput name="name" [(ngModel)]="name" required autocomplete="off" />
+      </mat-form-field>
+
       <mat-form-field appearance="outline">
         <mat-label>Host</mat-label>
         <input matInput name="host" [(ngModel)]="host" required autocomplete="off" />
@@ -88,7 +101,7 @@
       </mat-form-field>
     </div>
 
-    <div class="project-warehouse-form__toggles">
+    <div class="warehouse-form__toggles">
       <mat-slide-toggle name="ssl" [(ngModel)]="ssl">Use SSL (HTTPS)</mat-slide-toggle>
 
       @if (isEditing() && hasExistingPassword) {
@@ -98,27 +111,37 @@
       }
     </div>
 
-    <div class="project-warehouse-form__actions">
-      <button
-        mat-stroked-button
-        type="button"
-        (click)="testConnection()"
-        [disabled]="testing() || saving() || !isEditing()"
-      >
-        @if (testing()) {
-          Testing…
-        } @else {
-          Test connection
+    @if (showActions()) {
+      <div class="warehouse-form__actions">
+        @if (mode() === 'edit') {
+          <button
+            mat-stroked-button
+            type="button"
+            (click)="testConnection()"
+            [disabled]="testing() || saving()"
+          >
+            @if (testing()) {
+              Testing…
+            } @else {
+              Test connection
+            }
+          </button>
         }
-      </button>
 
-      <button mat-flat-button type="submit" [disabled]="saving() || testing()">
-        @if (saving()) {
-          Saving…
-        } @else {
-          Save connection
-        }
-      </button>
-    </div>
+        <button mat-stroked-button type="button" (click)="cancel()" [disabled]="saving()">
+          Cancel
+        </button>
+
+        <button mat-flat-button type="submit" [disabled]="saving() || testing()">
+          @if (saving()) {
+            Saving…
+          } @else if (mode() === 'create') {
+            Create warehouse
+          } @else {
+            Save changes
+          }
+        </button>
+      </div>
+    }
   </form>
 }

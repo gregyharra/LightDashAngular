@@ -2,27 +2,38 @@ import { Injectable, inject } from '@angular/core';
 import { Observable } from 'rxjs';
 import { LightdashApiService } from '../../core/api/lightdash-api.service';
 import {
-  WarehouseConnection,
-  WarehouseConnectionTestResult,
-  WarehouseConnectionUpsert,
+  Warehouse,
+  WarehouseCreate,
+  WarehouseListItem,
+  WarehouseTestResult,
+  WarehouseUpdate,
 } from '../../core/models/warehouse.model';
 
 @Injectable({ providedIn: 'root' })
 export class WarehouseService {
   private readonly api = inject(LightdashApiService);
 
-  get(projectUuid: string): Observable<WarehouseConnection> {
-    return this.api.get<WarehouseConnection>(`/projects/${projectUuid}/warehouse`);
+  list(): Observable<WarehouseListItem[]> {
+    return this.api.get<WarehouseListItem[]>('/org/warehouses');
   }
 
-  upsert(projectUuid: string, body: WarehouseConnectionUpsert): Observable<WarehouseConnection> {
-    return this.api.put<WarehouseConnection>(`/projects/${projectUuid}/warehouse`, body);
+  get(warehouseUuid: string): Observable<Warehouse> {
+    return this.api.get<Warehouse>(`/warehouses/${warehouseUuid}`);
   }
 
-  test(projectUuid: string): Observable<WarehouseConnectionTestResult> {
-    return this.api.post<WarehouseConnectionTestResult>(
-      `/projects/${projectUuid}/warehouse/test`,
-      {},
-    );
+  create(body: WarehouseCreate): Observable<Warehouse> {
+    return this.api.post<Warehouse>('/org/warehouses', body);
+  }
+
+  update(warehouseUuid: string, body: WarehouseUpdate): Observable<Warehouse> {
+    return this.api.patch<Warehouse>(`/warehouses/${warehouseUuid}`, body);
+  }
+
+  delete(warehouseUuid: string): Observable<null> {
+    return this.api.delete<null>(`/warehouses/${warehouseUuid}`);
+  }
+
+  test(warehouseUuid: string): Observable<WarehouseTestResult> {
+    return this.api.post<WarehouseTestResult>(`/warehouses/${warehouseUuid}/test`, {});
   }
 }

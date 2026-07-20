@@ -21,28 +21,32 @@ export const routes: Routes = [
           import('./features/projects/project-edit-page/project-edit-page.component').then(
             (m) => m.ProjectEditPageComponent,
           ),
-        children: [
-          { path: '', pathMatch: 'full', redirectTo: 'general' },
-          {
-            path: 'general',
-            loadComponent: () =>
-              import(
-                './features/projects/project-general-tab/project-general-tab.component'
-              ).then((m) => m.ProjectGeneralTabComponent),
-          },
-          {
-            path: 'database',
-            loadComponent: () =>
-              import(
-                './features/projects/project-database-tab/project-database-tab.component'
-              ).then((m) => m.ProjectDatabaseTabComponent),
-          },
-        ],
       },
       {
         path: 'projects/:projectUuid/settings/warehouse',
-        redirectTo: (route) =>
-          `/projects/${route.params['projectUuid']}/edit/database`,
+        redirectTo: (route) => `/projects/${route.params['projectUuid']}/edit`,
+      },
+      {
+        path: 'warehouses',
+        pathMatch: 'full',
+        loadComponent: () =>
+          import('./features/warehouses/warehouses-page/warehouses-page.component').then(
+            (m) => m.WarehousesPageComponent,
+          ),
+      },
+      {
+        path: 'warehouses/create',
+        loadComponent: () =>
+          import('./features/warehouses/warehouse-edit-page/warehouse-edit-page.component').then(
+            (m) => m.WarehouseEditPageComponent,
+          ),
+      },
+      {
+        path: 'warehouses/:warehouseUuid/edit',
+        loadComponent: () =>
+          import('./features/warehouses/warehouse-edit-page/warehouse-edit-page.component').then(
+            (m) => m.WarehouseEditPageComponent,
+          ),
       },
       {
         path: 'projects/:projectUuid/dashboards',

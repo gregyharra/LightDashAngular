@@ -1,0 +1,45 @@
+.warehouse-edit__header {
+  margin-bottom: var(--ld-spacing-lg);
+}
+
+.warehouse-edit__breadcrumbs {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-bottom: var(--ld-spacing-sm);
+  font-size: var(--ld-font-size-xs);
+  color: var(--ld-gray-6);
+
+  mat-icon {
+    width: 16px;
+    height: 16px;
+    font-size: 16px;
+  }
+}
+
+.warehouse-edit__breadcrumb-link {
+  color: var(--ld-gray-7);
+  text-decoration: none;
+
+  &:hover {
+    color: var(--ld-blue-6);
+  }
+}
+
+.warehouse-edit__breadcrumb-current {
+  color: var(--ld-gray-8);
+}
+
+.warehouse-edit__title {
+  margin-bottom: var(--ld-spacing-xxs);
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--ld-gray-9);
+}
+
+.warehouse-edit__subtitle {
+  margin: 0;
+  font-size: var(--ld-font-size-sm);
+  color: var(--ld-gray-6);
+}

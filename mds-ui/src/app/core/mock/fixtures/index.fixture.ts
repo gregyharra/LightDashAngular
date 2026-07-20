@@ -146,6 +146,8 @@ export const mockProjects = [
     createdAt: '2024-01-11T03:46:50.732Z',
     upstreamProjectUuid: null,
     warehouseType: 'trino',
+    warehouseUuid: null as string | null,
+    warehouseName: null as string | null,
     expiresAt: null,
   },
   {
@@ -157,6 +159,8 @@ export const mockProjects = [
     createdAt: '2024-03-15T10:00:00.000Z',
     upstreamProjectUuid: null,
     warehouseType: 'bigquery',
+    warehouseUuid: null as string | null,
+    warehouseName: null as string | null,
     expiresAt: null,
   },
 ];

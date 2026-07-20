@@ -1,5 +1,7 @@
-export interface WarehouseConnection {
-  projectUuid: string;
+export interface Warehouse {
+  warehouseUuid: string;
+  organizationUuid: string;
+  name: string;
   type: string;
   host: string;
   port: number;
@@ -9,10 +11,24 @@ export interface WarehouseConnection {
   hasPassword: boolean;
   ssl: boolean;
   extraConfig: Record<string, unknown>;
-  configured: boolean;
+  createdAt: string;
+  updatedAt: string;
 }
 
-export interface WarehouseConnectionUpsert {
+export interface WarehouseListItem {
+  warehouseUuid: string;
+  name: string;
+  type: string;
+  host: string;
+  port: number;
+  catalog: string;
+  schema: string;
+  hasPassword: boolean;
+  updatedAt: string;
+}
+
+export interface WarehouseCreate {
+  name: string;
   type: string;
   host: string;
   port: number;
@@ -20,12 +36,25 @@ export interface WarehouseConnectionUpsert {
   schema: string;
   user: string;
   password?: string;
-  clearPassword?: boolean;
   ssl: boolean;
   extraConfig?: Record<string, unknown>;
 }
 
-export interface WarehouseConnectionTestResult {
+export interface WarehouseUpdate {
+  name?: string;
+  type?: string;
+  host?: string;
+  port?: number;
+  catalog?: string;
+  schema?: string;
+  user?: string;
+  password?: string;
+  clearPassword?: boolean;
+  ssl?: boolean;
+  extraConfig?: Record<string, unknown>;
+}
+
+export interface WarehouseTestResult {
   success: boolean;
   message: string;
 }

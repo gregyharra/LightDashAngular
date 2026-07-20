@@ -8,6 +8,7 @@ import { AppStateService } from '../../../core/services/app-state.service';
 import { OrganizationProject } from '../../../core/models/organization.model';
 import { ProjectsService } from '../projects.service';
 import { ResizableSidebarDirective } from '../../../layout/resizable-sidebar/resizable-sidebar.directive';
+import { SettingsSidebarNavComponent } from '../../../layout/settings-sidebar-nav/settings-sidebar-nav.component';
 
 const WAREHOUSE_LABELS: Record<string, string> = {
   postgres: 'PostgreSQL',
@@ -20,7 +21,7 @@ const WAREHOUSE_LABELS: Record<string, string> = {
 
 @Component({
   selector: 'app-projects-page',
-  imports: [MatButtonModule, MatIconModule, MatProgressSpinnerModule, ResizableSidebarDirective],
+  imports: [MatButtonModule, MatIconModule, MatProgressSpinnerModule, ResizableSidebarDirective, SettingsSidebarNavComponent],
   templateUrl: './projects-page.component.html',
   styleUrl: './projects-page.component.scss',
 })

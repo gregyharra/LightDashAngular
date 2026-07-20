@@ -2,8 +2,8 @@ from __future__ import annotations
 
 from typing import Any
 
-from mds.db.models import WarehouseConnection
-from mds.services.warehouse.connection import connection_to_trino_kwargs
+from mds.db.models import Warehouse
+from mds.services.warehouse.connection import warehouse_to_trino_kwargs
 
 
 def _format_value(value: Any) -> str:
@@ -35,14 +35,14 @@ def _rows_to_result_rows(
     return results
 
 
-def test_trino_connection(connection: WarehouseConnection) -> tuple[bool, str]:
+def test_trino_connection(warehouse: Warehouse) -> tuple[bool, str]:
     try:
         import trino
         from trino.exceptions import TrinoQueryError, TrinoUserError
     except ImportError:
         return False, "trino package is not installed"
 
-    kwargs = connection_to_trino_kwargs(connection)
+    kwargs = warehouse_to_trino_kwargs(warehouse)
     auth = kwargs.pop("auth", None)
     try:
         client = trino.dbapi.connect(auth=auth, **kwargs)
@@ -57,7 +57,7 @@ def test_trino_connection(connection: WarehouseConnection) -> tuple[bool, str]:
 
 
 def execute_trino_query(
-    connection: WarehouseConnection,
+    warehouse: Warehouse,
     sql: str,
     field_ids: list[str],
     limit: int | None = None,
@@ -68,7 +68,7 @@ def execute_trino_query(
     except ImportError:
         return [], "trino package is not installed"
 
-    kwargs = connection_to_trino_kwargs(connection)
+    kwargs = warehouse_to_trino_kwargs(warehouse)
     auth = kwargs.pop("auth", None)
     query_sql = sql
     if limit is not None and "LIMIT" not in sql.upper():
