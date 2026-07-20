@@ -14,7 +14,7 @@
           }
         </h2>
         <p class="warehouse-form__subtitle">
-          Connect to Trino so projects can fetch live data.
+          Configure a database connection for projects to fetch live data.
         </p>
       </div>
       <span class="warehouse-form__status" [class]="connectionStatusClass()">
@@ -52,6 +52,15 @@
         <input matInput name="name" [(ngModel)]="name" required autocomplete="off" />
       </mat-form-field>
 
+      <mat-form-field appearance="outline" class="warehouse-form__field--full">
+        <mat-label>Type</mat-label>
+        <mat-select name="type" [(ngModel)]="type" required (ngModelChange)="onTypeChange()">
+          @for (option of warehouseTypeOptions; track option.value) {
+            <mat-option [value]="option.value">{{ option.label }}</mat-option>
+          }
+        </mat-select>
+      </mat-form-field>
+
       <mat-form-field appearance="outline">
         <mat-label>Host</mat-label>
         <input matInput name="host" [(ngModel)]="host" required autocomplete="off" />
@@ -68,16 +77,6 @@
           min="1"
           max="65535"
         />
-      </mat-form-field>
-
-      <mat-form-field appearance="outline">
-        <mat-label>Catalog</mat-label>
-        <input matInput name="catalog" [(ngModel)]="catalog" required autocomplete="off" />
-      </mat-form-field>
-
-      <mat-form-field appearance="outline">
-        <mat-label>Schema</mat-label>
-        <input matInput name="schema" [(ngModel)]="schema" required autocomplete="off" />
       </mat-form-field>
 
       <mat-form-field appearance="outline">
@@ -99,6 +98,20 @@
           <mat-hint>A password is stored for this connection.</mat-hint>
         }
       </mat-form-field>
+
+      <mat-form-field appearance="outline">
+        <mat-label>{{ catalogLabel() }}</mat-label>
+        <input matInput name="catalog" [(ngModel)]="catalog" autocomplete="off" />
+        @if (catalogHint(); as hint) {
+          <mat-hint>{{ hint }}</mat-hint>
+        }
+      </mat-form-field>
+
+      <mat-form-field appearance="outline">
+        <mat-label>Schema</mat-label>
+        <input matInput name="schema" [(ngModel)]="schema" autocomplete="off" />
+        <mat-hint>Optional.</mat-hint>
+      </mat-form-field>
     </div>
 
     <div class="warehouse-form__toggles">
@@ -111,6 +124,12 @@
       }
     </div>
 
+    @if (mode() === 'edit' && !supportsConnectionTest()) {
+      <p class="warehouse-form__note">
+        Connection testing is only available for Trino warehouses.
+      </p>
+    }
+
     @if (showActions()) {
       <div class="warehouse-form__actions">
         @if (mode() === 'edit') {
@@ -118,7 +137,7 @@
             mat-stroked-button
             type="button"
             (click)="testConnection()"
-            [disabled]="testing() || saving()"
+            [disabled]="testing() || saving() || !supportsConnectionTest()"
           >
             @if (testing()) {
               Testing…

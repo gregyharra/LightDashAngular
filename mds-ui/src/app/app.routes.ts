@@ -16,6 +16,13 @@ export const routes: Routes = [
           ),
       },
       {
+        path: 'projects/create',
+        loadComponent: () =>
+          import('./features/projects/project-create-page/project-create-page.component').then(
+            (m) => m.ProjectCreatePageComponent,
+          ),
+      },
+      {
         path: 'projects/:projectUuid/edit',
         loadComponent: () =>
           import('./features/projects/project-edit-page/project-edit-page.component').then(

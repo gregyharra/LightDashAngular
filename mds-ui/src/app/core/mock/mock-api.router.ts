@@ -242,6 +242,51 @@ const project = (request: MockRequest) => {
   );
 };
 
+const orgProjectsCreate = (request: MockRequest) => {
+  const body = request.body as { name?: string; warehouseUuid?: string | null } | null;
+  const name = body?.name?.trim() || 'Untitled project';
+  const projectUuid = crypto.randomUUID();
+  const warehouseUuid = body?.warehouseUuid ?? null;
+  const warehouse = warehouseUuid ? getMockWarehouse(warehouseUuid) : null;
+  const now = new Date().toISOString();
+
+  const created = {
+    projectUuid,
+    name,
+    type: 'DEFAULT',
+    createdByUserUuid: mockUser.userUuid,
+    createdByUserName: `${mockUser.firstName} ${mockUser.lastName}`,
+    createdAt: now,
+    upstreamProjectUuid: null,
+    warehouseType: warehouse?.type ?? 'trino',
+    warehouseUuid,
+    warehouseName: warehouse?.name ?? null,
+    expiresAt: null,
+  };
+
+  mockProjects.push(created);
+
+  const spaceUuid = crypto.randomUUID();
+  mockSpaces.push({
+    uuid: spaceUuid,
+    name: 'Shared',
+    isPrivate: false,
+    projectUuid,
+    userAccess: [],
+    groupAccess: [],
+    parentSpaceUuid: null,
+    path: spaceUuid,
+  });
+
+  return created;
+};
+
+const projectSpacesList = (request: MockRequest) => {
+  const match = request.path.match(/^\/projects\/([^/]+)\/spaces$/);
+  const projectUuid = match?.[1] ?? MOCK_PROJECT_UUID;
+  return mockSpaces.filter((space) => space.projectUuid === projectUuid);
+};
+
 const projectUpdate = (request: MockRequest) => {
   const match = request.path.match(/^\/projects\/([^/]+)$/);
   const projectUuid = match?.[1];
@@ -335,7 +380,8 @@ const routes: MockRoute[] = [
 
   { pattern: /^\/org$/, method: 'GET', handler: () => mockOrganization },
   { pattern: /^\/org$/, method: 'PATCH', handler: () => mockOrganization },
-  { pattern: /^\/org\/projects$/, handler: () => mockProjects },
+  { pattern: /^\/org\/projects$/, method: 'GET', handler: () => mockProjects },
+  { pattern: /^\/org\/projects$/, method: 'POST', handler: orgProjectsCreate },
   { pattern: /^\/org\/projects\/precompiled$/, handler: () => [] },
   { pattern: /^\/org\/projects\/[^/]+$/, method: 'DELETE', handler: () => null },
   { pattern: /^\/org\/onboardingStatus$/, handler: () => mockOnboardingStatus },
@@ -353,7 +399,7 @@ const routes: MockRoute[] = [
   { pattern: /^\/projects\/[^/]+\/most-popular-and-recently-updated$/, handler: () => mockMostPopular },
   { pattern: /^\/projects\/[^/]+\/hasSavedCharts$/, handler: () => ({ hasSavedCharts: true }) },
   { pattern: /^\/projects\/[^/]+\/hasDefaultUserSpaces$/, handler: () => ({ hasDefaultUserSpaces: true }) },
-  { pattern: /^\/projects\/[^/]+\/spaces$/, handler: () => mockSpaces },
+  { pattern: /^\/projects\/[^/]+\/spaces$/, handler: projectSpacesList },
   { pattern: /^\/projects\/[^/]+\/spaces\//, handler: () => mockSpaces[0] },
   { pattern: /^\/projects\/[^/]+\/dashboards$/, method: 'GET', handler: dashboardsList },
   { pattern: /^\/projects\/[^/]+\/dashboards$/, method: 'POST', handler: dashboardCreate },

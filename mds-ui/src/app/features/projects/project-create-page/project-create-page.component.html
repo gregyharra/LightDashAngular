@@ -1,0 +1,117 @@
+<div class="page-layout">
+  <aside class="page-layout__sidebar" appResizableSidebar>
+    <div class="page-sidebar">
+      <header class="page-sidebar__header">
+        <p class="page-sidebar__breadcrumb">Settings</p>
+        @if (organizationName(); as orgName) {
+          <p class="page-sidebar__org">{{ orgName }}</p>
+        }
+      </header>
+
+      <app-settings-sidebar-nav active="projects" />
+    </div>
+  </aside>
+
+  <div class="page-layout__content">
+    <section class="project-create">
+      <div class="page__container">
+        <header class="project-create__header">
+          <nav class="project-create__breadcrumbs" aria-label="Breadcrumb">
+            <a routerLink="/projects" class="project-create__breadcrumb-link">Home</a>
+            <mat-icon>chevron_right</mat-icon>
+            <a routerLink="/projects" class="project-create__breadcrumb-link">Projects</a>
+            <mat-icon>chevron_right</mat-icon>
+            <span class="project-create__breadcrumb-current">Create project</span>
+          </nav>
+        </header>
+
+        <h1 class="project-create__title">Create project</h1>
+        <p class="project-create__subtitle">
+          Add a new project to organize dashboards, charts, and metrics.
+        </p>
+
+        @if (loading()) {
+          <div class="project-create__loading">
+            <mat-spinner diameter="32" />
+          </div>
+        } @else {
+          <form class="project-create__form" (ngSubmit)="submit()">
+            <mat-form-field appearance="outline" class="project-create__field">
+              <mat-label>Project name</mat-label>
+              <input
+                matInput
+                name="name"
+                [(ngModel)]="name"
+                required
+                autocomplete="off"
+                [disabled]="submitting()"
+              />
+            </mat-form-field>
+
+            <div class="project-create__warehouse-row">
+              <mat-form-field appearance="outline" class="project-create__field">
+                <mat-label>Warehouse</mat-label>
+                <mat-select
+                  name="warehouseUuid"
+                  [(ngModel)]="selectedWarehouseUuid"
+                  [disabled]="submitting()"
+                >
+                  <mat-option [value]="null">No warehouse assigned</mat-option>
+                  @for (warehouse of warehouses(); track warehouse.warehouseUuid) {
+                    <mat-option [value]="warehouse.warehouseUuid">
+                      {{ warehouse.name }} ({{ warehouse.host }}:{{ warehouse.port }})
+                    </mat-option>
+                  }
+                </mat-select>
+              </mat-form-field>
+
+              <button
+                mat-stroked-button
+                type="button"
+                class="project-create__create-warehouse-btn"
+                (click)="openCreateWarehouseDialog()"
+                [disabled]="submitting()"
+              >
+                <mat-icon>add</mat-icon>
+                Create warehouse
+              </button>
+            </div>
+
+            @if (warehouses().length === 0) {
+              <p class="project-create__hint">
+                No warehouses exist yet. Create one to connect this project to Trino.
+              </p>
+            }
+
+            @if (error()) {
+              <div class="project-create__error">{{ error() }}</div>
+            }
+
+            <div class="project-create__actions">
+              <button
+                mat-stroked-button
+                type="button"
+                (click)="cancel()"
+                [disabled]="submitting()"
+              >
+                Cancel
+              </button>
+              <button
+                mat-flat-button
+                type="submit"
+                class="project-create__submit-btn"
+                [disabled]="submitting() || !name.trim()"
+              >
+                @if (submitting()) {
+                  <mat-spinner diameter="18" />
+                } @else {
+                  Create project
+                }
+              </button>
+            </div>
+          </form>
+        }
+      </div>
+    </section>
+  </div>
+</div>

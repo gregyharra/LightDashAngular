@@ -82,9 +82,9 @@
                 </div>
 
                 <div class="warehouse-card__footer">
-                  <span class="warehouse-card__detail">
-                    {{ warehouse.catalog }}.{{ warehouse.schema }}
-                  </span>
+                  @if (catalogSchemaLabel(warehouse); as detail) {
+                    <span class="warehouse-card__detail">{{ detail }}</span>
+                  }
                   <span class="warehouse-card__date">
                     Updated {{ formatDate(warehouse.updatedAt) }}
                   </span>

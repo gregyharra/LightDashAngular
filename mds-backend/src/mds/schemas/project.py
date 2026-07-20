@@ -13,6 +13,13 @@ class ProjectResponse(BaseModel):
     created_at: str = Field(alias="createdAt")
 
 
+class ProjectCreate(BaseModel):
+    model_config = ConfigDict(populate_by_name=True)
+
+    name: str
+    warehouse_uuid: str | None = Field(default=None, alias="warehouseUuid")
+
+
 class ProjectUpdate(BaseModel):
     model_config = ConfigDict(populate_by_name=True)
 

@@ -72,5 +72,15 @@ def remove_warehouse(warehouse_uuid: str, db: Session = Depends(get_db)):
 @router.post("/warehouses/{warehouse_uuid}/test")
 def test_warehouse_connection(warehouse_uuid: str, db: Session = Depends(get_db)):
     warehouse = _get_warehouse_or_404(db, warehouse_uuid)
+    if warehouse.type != "trino":
+        return ok(
+            {
+                "success": False,
+                "message": (
+                    f"Connection testing is not yet supported for {warehouse.type}. "
+                    "Only Trino connections can be tested for now."
+                ),
+            }
+        )
     success, message = test_trino_connection(warehouse)
     return ok({"success": success, "message": message})

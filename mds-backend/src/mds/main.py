@@ -18,6 +18,7 @@ from mds.routers.warehouse import router as warehouse_router
 
 @asynccontextmanager
 async def lifespan(_app: FastAPI):
+    settings.log_dev_encryption_key_warning()
     init_db()
     if settings.seed_demo_data:
         db = SessionLocal()

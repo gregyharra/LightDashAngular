@@ -45,8 +45,8 @@ export function createMockWarehouse(body: WarehouseCreate): Warehouse {
     type: body.type,
     host: body.host,
     port: body.port,
-    catalog: body.catalog,
-    schema: body.schema,
+    catalog: body.catalog ?? '',
+    schema: body.schema ?? '',
     user: body.user,
     hasPassword: Boolean(body.password),
     ssl: body.ssl,
@@ -105,6 +105,13 @@ export function testMockWarehouse(warehouseUuid: string): {
   const stored = warehouses.get(warehouseUuid);
   if (!stored) {
     return { success: false, message: 'Warehouse not found' };
+  }
+
+  if (stored.warehouse.type !== 'trino') {
+    return {
+      success: false,
+      message: `Connection testing is not yet supported for ${stored.warehouse.type}. Only Trino connections can be tested for now.`,
+    };
   }
 
   return {

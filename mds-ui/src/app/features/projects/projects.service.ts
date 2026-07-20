@@ -8,6 +8,11 @@ export interface ProjectDetail extends OrganizationProject {
   warehouseName?: string | null;
 }
 
+export interface ProjectCreate {
+  name: string;
+  warehouseUuid?: string | null;
+}
+
 export interface ProjectUpdate {
   name?: string;
   warehouseUuid?: string | null;
@@ -19,6 +24,10 @@ export class ProjectsService {
 
   list(): Observable<OrganizationProject[]> {
     return this.api.get<OrganizationProject[]>('/org/projects');
+  }
+
+  create(body: ProjectCreate): Observable<ProjectDetail> {
+    return this.api.post<ProjectDetail>('/org/projects', body);
   }
 
   get(projectUuid: string): Observable<ProjectDetail> {

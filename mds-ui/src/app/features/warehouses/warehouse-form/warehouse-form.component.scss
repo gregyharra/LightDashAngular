@@ -83,6 +83,12 @@
   margin: var(--ld-spacing-md) 0 var(--ld-spacing-lg);
 }
 
+.warehouse-form__note {
+  margin: 0 0 var(--ld-spacing-md);
+  font-size: var(--ld-font-size-sm);
+  color: var(--ld-gray-6);
+}
+
 .warehouse-form__actions {
   display: flex;
   justify-content: flex-end;

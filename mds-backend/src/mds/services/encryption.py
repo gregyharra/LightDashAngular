@@ -2,11 +2,9 @@ from cryptography.fernet import Fernet, InvalidToken
 
 from mds.config import settings
 
-_DEV_FERNET_KEY = "fmXlTUNDZHLuwZ76WG33hC-hMtmClZscvGSHBDgqtj0="
-
 
 def _get_fernet() -> Fernet:
-    key = settings.encryption_key or _DEV_FERNET_KEY
+    key = settings.effective_encryption_key
     return Fernet(key.encode() if isinstance(key, str) else key)
 
 

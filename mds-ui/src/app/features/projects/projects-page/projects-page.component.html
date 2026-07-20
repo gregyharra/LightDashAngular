@@ -22,7 +22,12 @@
               Select a project to explore metrics, charts, and dashboards.
             </p>
           </div>
-          <button mat-flat-button class="projects__create-btn" disabled>
+          <button
+            mat-flat-button
+            class="projects__create-btn"
+            type="button"
+            (click)="createProject()"
+          >
             <mat-icon>add</mat-icon>
             Create new
           </button>

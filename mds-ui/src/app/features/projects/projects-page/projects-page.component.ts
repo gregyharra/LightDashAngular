@@ -75,4 +75,8 @@ export class ProjectsPageComponent {
     this.activeProjectService.setActiveProject(projectUuid);
     void this.router.navigate(['/projects', projectUuid, 'edit']);
   }
+
+  protected createProject(): void {
+    void this.router.navigate(['/projects', 'create']);
+  }
 }

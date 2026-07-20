@@ -4,16 +4,13 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { AppStateService } from '../../../core/services/app-state.service';
-import { WarehouseListItem } from '../../../core/models/warehouse.model';
+import {
+  WAREHOUSE_TYPE_LABELS,
+  WarehouseListItem,
+} from '../../../core/models/warehouse.model';
 import { WarehouseService } from '../../projects/warehouse.service';
 import { ResizableSidebarDirective } from '../../../layout/resizable-sidebar/resizable-sidebar.directive';
 import { SettingsSidebarNavComponent } from '../../../layout/settings-sidebar-nav/settings-sidebar-nav.component';
-
-const WAREHOUSE_LABELS: Record<string, string> = {
-  trino: 'Trino',
-  bigquery: 'BigQuery',
-  snowflake: 'Snowflake',
-};
 
 @Component({
   selector: 'app-warehouses-page',
@@ -60,7 +57,12 @@ export class WarehousesPageComponent {
   }
 
   protected warehouseLabel(type: string): string {
-    return WAREHOUSE_LABELS[type] ?? type;
+    return WAREHOUSE_TYPE_LABELS[type] ?? type;
+  }
+
+  protected catalogSchemaLabel(warehouse: WarehouseListItem): string | null {
+    const parts = [warehouse.catalog, warehouse.schema].filter(Boolean);
+    return parts.length > 0 ? parts.join('.') : null;
   }
 
   protected formatDate(iso: string): string {

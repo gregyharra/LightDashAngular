@@ -1,6 +1,12 @@
-from typing import Any
+from typing import Any, Literal
 
 from pydantic import BaseModel, ConfigDict, Field
+
+WarehouseType = Literal["trino", "postgresql", "oracle", "snowflake", "bigquery"]
+
+SUPPORTED_WAREHOUSE_TYPES: frozenset[str] = frozenset(
+    {"trino", "postgresql", "oracle", "snowflake", "bigquery"}
+)
 
 
 class WarehouseResponse(BaseModel):
@@ -40,11 +46,11 @@ class WarehouseCreate(BaseModel):
     model_config = ConfigDict(populate_by_name=True)
 
     name: str
-    type: str = "trino"
+    type: WarehouseType = "trino"
     host: str
     port: int = 8080
-    catalog: str
-    schema_name: str = Field(alias="schema")
+    catalog: str = ""
+    schema_name: str = Field(default="", alias="schema")
     user: str
     password: str | None = None
     ssl: bool = False
@@ -55,7 +61,7 @@ class WarehouseUpdate(BaseModel):
     model_config = ConfigDict(populate_by_name=True)
 
     name: str | None = None
-    type: str | None = None
+    type: WarehouseType | None = None
     host: str | None = None
     port: int | None = None
     catalog: str | None = None

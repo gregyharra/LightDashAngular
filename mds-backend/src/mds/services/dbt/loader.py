@@ -56,8 +56,9 @@ def resolve_dbt_project_path(project_path_override: str | None = None) -> Path:
 
 
 def resolve_artifacts_dir(project_path: Path) -> Path:
-    if settings.dbt_artifacts_path.strip():
-        artifacts = Path(settings.dbt_artifacts_path.strip()).expanduser()
+    artifacts_override = (settings.dbt_artifacts_path or "").strip()
+    if artifacts_override:
+        artifacts = Path(artifacts_override).expanduser()
         if not artifacts.is_absolute():
             artifacts = (Path.cwd() / artifacts).resolve()
         return artifacts

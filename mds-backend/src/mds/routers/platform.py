@@ -7,7 +7,7 @@ from mds.api.envelope import ok
 from mds.db.models import Project, Space, User, Warehouse
 from mds.db.seed import MOCK_ORG_UUID, MOCK_USER_UUID
 from mds.db.session import get_db
-from mds.schemas.project import ProjectUpdate
+from mds.schemas.project import ProjectCreate, ProjectUpdate
 
 router = APIRouter(tags=["platform"])
 
@@ -111,6 +111,59 @@ def get_user(db: Session = Depends(get_db)):
             "impersonation": None,
         }
     )
+
+
+@router.post("/org/projects")
+def create_project(body: ProjectCreate, db: Session = Depends(get_db)):
+    name = body.name.strip()
+    if not name:
+        raise HTTPException(status_code=400, detail="Project name cannot be empty")
+
+    user = db.get(User, MOCK_USER_UUID)
+    if not user:
+        raise HTTPException(status_code=400, detail="Organization not initialized")
+
+    warehouse = None
+    warehouse_uuid = None
+    warehouse_type = "trino"
+
+    if body.warehouse_uuid is not None:
+        try:
+            warehouse_id = uuid_lib.UUID(body.warehouse_uuid)
+        except ValueError as exc:
+            raise HTTPException(status_code=400, detail="Invalid warehouse UUID") from exc
+
+        warehouse = db.get(Warehouse, warehouse_id)
+        if not warehouse:
+            raise HTTPException(status_code=404, detail="Warehouse not found")
+        if warehouse.organization_uuid != user.organization_uuid:
+            raise HTTPException(
+                status_code=400,
+                detail="Warehouse must belong to the same organization as the project",
+            )
+        warehouse_uuid = warehouse_id
+        warehouse_type = warehouse.type
+
+    project = Project(
+        uuid=uuid_lib.uuid4(),
+        organization_uuid=user.organization_uuid,
+        name=name,
+        warehouse_type=warehouse_type,
+        warehouse_uuid=warehouse_uuid,
+        created_by_user_uuid=user.uuid,
+    )
+    space = Space(
+        uuid=uuid_lib.uuid4(),
+        project_uuid=project.uuid,
+        name="Shared",
+        is_private=False,
+    )
+    db.add(project)
+    db.add(space)
+    db.commit()
+    db.refresh(project)
+
+    return ok(_project_payload(project, warehouse))
 
 
 @router.get("/org/projects")

@@ -14,7 +14,7 @@ from mds.main import app
 from mds.services.encryption import decrypt_secret, encrypt_secret
 
 
-@pytest.fixture(scope="module")
+@pytest.fixture
 def client() -> TestClient:
     with TestClient(app) as test_client:
         yield test_client
@@ -175,6 +175,44 @@ def test_encryption_roundtrip() -> None:
     encrypted = encrypt_secret("warehouse-password")
     assert encrypted != "warehouse-password"
     assert decrypt_secret(encrypted) == "warehouse-password"
+
+
+def test_create_warehouse_without_catalog_schema(client: TestClient) -> None:
+    payload = {
+        "name": "Minimal Postgres",
+        "type": "postgresql",
+        "host": "postgres.example.com",
+        "port": 5432,
+        "user": "mds",
+        "ssl": False,
+    }
+    create = client.post("/api/v1/org/warehouses", json=payload)
+    assert create.status_code == 200
+    created = create.json()["results"]
+    assert created["type"] == "postgresql"
+    assert created["catalog"] == ""
+    assert created["schema"] == ""
+
+
+def test_test_warehouse_non_trino_stub(client: TestClient) -> None:
+    create = client.post(
+        "/api/v1/org/warehouses",
+        json={
+            "name": "Oracle warehouse",
+            "type": "oracle",
+            "host": "oracle.example.com",
+            "port": 1521,
+            "user": "mds",
+            "ssl": False,
+        },
+    )
+    warehouse_uuid = create.json()["results"]["warehouseUuid"]
+
+    response = client.post(f"/api/v1/warehouses/{warehouse_uuid}/test")
+    assert response.status_code == 200
+    result = response.json()["results"]
+    assert result["success"] is False
+    assert "not yet supported" in result["message"].lower()
 
 
 def test_test_warehouse_not_found(client: TestClient) -> None:
