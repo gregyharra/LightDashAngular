@@ -128,6 +128,8 @@ export type UpdateMockDashboardInput = {
   description?: string;
   tabs?: DashboardTab[];
   tiles?: DashboardTile[];
+  filters?: Dashboard['filters'];
+  config?: Dashboard['config'];
 };
 
 export function updateMockDashboard(
@@ -151,6 +153,8 @@ export function updateMockDashboard(
     slug: input.name ? slugify(name) : existing.slug,
     tabs: input.tabs ?? existing.tabs,
     tiles: input.tiles ?? existing.tiles,
+    filters: input.filters ?? existing.filters,
+    config: input.config ?? existing.config,
     updatedAt: now,
     dashboardVersionId: existing.dashboardVersionId + 1,
     versionUuid: crypto.randomUUID(),
@@ -282,7 +286,7 @@ export const mockDashboardDetails: Record<string, Dashboard> = {
         properties: {
           title: '',
           content:
-            'Read more about our Company KPIs here. Talk to the #data-team if you have any questions about the KPI dashboard or think there is anything missing you would like to add!',
+            'Read more about our Company KPIs [here](#). Talk to the #data-team if you have any questions about the KPI dashboard or think there is anything missing you would like to add!',
           hideFrame: true,
         },
       },
@@ -371,7 +375,7 @@ export const mockDashboardDetails: Record<string, Dashboard> = {
           title: 'How much revenue are we making each month?',
           savedChartUuid: MOCK_CHART_UUID,
           chartName: 'Revenue by month',
-          lastVersionChartKind: 'vertical_bar',
+          lastVersionChartKind: 'line',
         },
       },
       {

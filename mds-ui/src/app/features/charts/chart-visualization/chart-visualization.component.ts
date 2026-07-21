@@ -24,7 +24,12 @@ import {
   Tooltip,
 } from 'chart.js';
 import { MatTableModule } from '@angular/material/table';
-import { ChartKind, ChartDisplayConfig, DEFAULT_CHART_DISPLAY_CONFIG } from '../../../core/models/chart.model';
+import {
+  BigNumberComparison,
+  ChartKind,
+  ChartDisplayConfig,
+  DEFAULT_CHART_DISPLAY_CONFIG,
+} from '../../../core/models/chart.model';
 import { FieldId, QueryResults } from '../../../core/models/explore.model';
 
 Chart.register(
@@ -41,7 +46,66 @@ Chart.register(
   Tooltip,
 );
 
-const CHART_COLORS = ['#5470c6', '#91cc75', '#fac858', '#ee6666', '#73c0de', '#3ba272'];
+const CHART_COLORS = ['#7262ff', '#5c7cfa', '#22b8cf', '#fab005', '#fd7e14', '#e64980'];
+const LD_PURPLE = '#7262ff';
+const LD_ORANGE = '#e67700';
+const LD_TEAL = '#12b886';
+
+let activeValueLabelsConfig: ChartDisplayConfig | undefined;
+
+const valueLabelsPlugin = {
+  id: 'valueLabels',
+  afterDatasetsDraw(chart: Chart) {
+    const displayConfig = activeValueLabelsConfig;
+
+    if (!displayConfig?.showValueLabels) {
+      return;
+    }
+
+    const chartType = (chart.config as ChartConfiguration).type;
+    const { ctx } = chart;
+    chart.data.datasets.forEach((dataset, datasetIndex) => {
+      const meta = chart.getDatasetMeta(datasetIndex);
+      if (!meta.visible) {
+        return;
+      }
+
+      meta.data.forEach((element, index) => {
+        const raw = dataset.data[index];
+        const value = typeof raw === 'number' ? raw : Number(raw) || 0;
+        const label =
+          value >= 1000
+            ? value >= 100000
+              ? `$${(value / 1000).toFixed(0)}K`
+              : value >= 10000
+                ? `${(value / 1000).toFixed(1)}K`
+                : value >= 1000
+                  ? `${(value / 1000).toFixed(2)}K`
+                  : chartType === 'line'
+                    ? `$${value.toFixed(0)}`
+                    : String(Math.round(value))
+            : chartType === 'line'
+              ? value < 10
+                ? value.toFixed(2)
+                : `$${value.toFixed(0)}`
+              : String(Math.round(value));
+
+        const position = element.tooltipPosition(false);
+        const x = position.x ?? 0;
+        const y = (position.y ?? 0) - 6;
+        ctx.save();
+        ctx.fillStyle = '#495057';
+        ctx.font = '11px Inter, system-ui, sans-serif';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'bottom';
+        ctx.fillText(label, x, y);
+        ctx.restore();
+      });
+    });
+  },
+};
+
+Chart.register(valueLabelsPlugin);
 
 @Component({
   selector: 'app-chart-visualization',
@@ -56,6 +120,8 @@ export class ChartVisualizationComponent implements AfterViewInit, OnDestroy
   readonly xField = input<FieldId | null>(null);
   readonly yField = input<FieldId | null>(null);
   readonly displayConfig = input<ChartDisplayConfig>(DEFAULT_CHART_DISPLAY_CONFIG);
+  readonly dashboardMode = input(false);
+  readonly bigNumberComparison = input<BigNumberComparison | null>(null);
 
   @ViewChild('chartCanvas') private chartCanvas?: ElementRef<HTMLCanvasElement>;
 
@@ -101,6 +167,8 @@ export class ChartVisualizationComponent implements AfterViewInit, OnDestroy
       this.xField();
       this.yField();
       this.displayConfig();
+      this.dashboardMode();
+      this.bigNumberComparison();
 
       if (this.viewReady) {
         this.render();
@@ -211,8 +279,10 @@ export class ChartVisualizationComponent implements AfterViewInit, OnDestroy
       xFieldId,
       yFieldId,
       this.displayConfig(),
+      this.dashboardMode(),
     );
     this.destroyChart();
+    activeValueLabelsConfig = this.displayConfig();
     this.chart = new Chart(canvas, config);
   }
 
@@ -224,6 +294,7 @@ export class ChartVisualizationComponent implements AfterViewInit, OnDestroy
     xFieldId: FieldId,
     yFieldId: FieldId,
     displayConfig: ChartDisplayConfig,
+    dashboardMode: boolean,
   ): ChartConfiguration {
     const xLabel =
       displayConfig.xAxisLabel || (results.fields[xFieldId]?.label ?? xFieldId);
@@ -235,6 +306,9 @@ export class ChartVisualizationComponent implements AfterViewInit, OnDestroy
       maintainAspectRatio: false,
       layout: { padding: layoutPadding },
     } as const;
+    const seriesColor =
+      displayConfig.seriesColor ??
+      (kind === 'line' ? LD_ORANGE : kind === 'horizontal_bar' ? LD_TEAL : LD_PURPLE);
 
     if (kind === 'pie') {
       const legendPosition =
@@ -298,14 +372,16 @@ export class ChartVisualizationComponent implements AfterViewInit, OnDestroy
             label: yLabel,
             data: values,
             backgroundColor:
-              chartType === 'bar' ? 'rgba(34, 139, 230, 0.75)' : 'rgba(34, 139, 230, 0.15)',
-            borderColor: '#228be6',
+              chartType === 'bar' ? seriesColor : `${seriesColor}26`,
+            borderColor: seriesColor,
             borderWidth: chartType === 'line' ? 2 : 1,
-            borderRadius: chartType === 'bar' ? 4 : 0,
-            tension: 0.3,
-            fill: chartType === 'line',
-            pointRadius: chartType === 'line' ? 3 : 0,
-            pointBackgroundColor: '#228be6',
+            borderRadius: chartType === 'bar' ? 2 : 0,
+            tension: 0.2,
+            fill: false,
+            pointRadius: chartType === 'line' ? 4 : 0,
+            pointBackgroundColor: seriesColor,
+            pointBorderColor: '#fff',
+            pointBorderWidth: 2,
             stack: stacked ? 'stack' : undefined,
           },
         ],
@@ -332,8 +408,8 @@ export class ChartVisualizationComponent implements AfterViewInit, OnDestroy
         },
         datasets: {
           bar: {
-            barPercentage: 0.85,
-            categoryPercentage: 0.9,
+            barPercentage: 0.75,
+            categoryPercentage: 0.85,
           },
         },
         scales: {
@@ -341,12 +417,20 @@ export class ChartVisualizationComponent implements AfterViewInit, OnDestroy
             display: horizontal ? displayConfig.showYAxis : displayConfig.showXAxis,
             stacked,
             grid: {
-              display: horizontal ? displayConfig.showGridY : displayConfig.showGridX,
+              display: false,
               color: 'rgba(0,0,0,0.04)',
             },
-            ticks: { color: '#868e96', font: { size: 11 } },
+            border: {
+              display: false,
+            },
+            ticks: {
+              color: '#868e96',
+              font: { size: 11 },
+              maxRotation: dashboardMode ? 45 : 0,
+              minRotation: dashboardMode ? 45 : 0,
+            },
             title: {
-              display: true,
+              display: !dashboardMode,
               text: horizontal ? yLabel : xLabel,
               color: '#495057',
               font: { size: 12, weight: 500 },
@@ -356,12 +440,28 @@ export class ChartVisualizationComponent implements AfterViewInit, OnDestroy
             display: horizontal ? displayConfig.showXAxis : displayConfig.showYAxis,
             stacked,
             grid: {
-              display: horizontal ? displayConfig.showGridX : displayConfig.showGridY,
-              color: 'rgba(0,0,0,0.04)',
+              display: dashboardMode ? displayConfig.showGridY : displayConfig.showGridY,
+              color: 'rgba(0,0,0,0.06)',
             },
-            ticks: { color: '#868e96', font: { size: 11 } },
+            border: {
+              display: false,
+            },
+            ticks: {
+              color: '#868e96',
+              font: { size: 11 },
+              callback(tickValue) {
+                const value = Number(tickValue);
+                if (Number.isNaN(value)) {
+                  return tickValue;
+                }
+                if (value >= 1000) {
+                  return `$${Math.round(value / 1000)}K`;
+                }
+                return value;
+              },
+            },
             title: {
-              display: true,
+              display: !dashboardMode,
               text: horizontal ? xLabel : yLabel,
               color: '#495057',
               font: { size: 12, weight: 500 },

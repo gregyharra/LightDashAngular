@@ -79,10 +79,32 @@ export type DashboardHeadingTile = DashboardTileBase & {
   };
 };
 
+export type DashboardLoomTile = DashboardTileBase & {
+  type: DashboardTileTypes.LOOM;
+  properties: {
+    title: string;
+    hideTitle?: boolean;
+    url: string;
+  };
+};
+
+export type DashboardSqlChartTile = DashboardTileBase & {
+  type: DashboardTileTypes.SQL_CHART;
+  properties: {
+    title?: string;
+    savedSqlUuid: string | null;
+    chartName: string;
+    hideTitle?: boolean;
+    chartSlug?: string | null;
+  };
+};
+
 export type DashboardTile =
   | DashboardChartTile
   | DashboardMarkdownTile
-  | DashboardHeadingTile;
+  | DashboardHeadingTile
+  | DashboardLoomTile
+  | DashboardSqlChartTile;
 
 export type CreateDashboardPayload = {
   name: string;
@@ -97,6 +119,8 @@ export type UpdateDashboardPayload = {
   description?: string;
   tabs?: DashboardTab[];
   tiles?: DashboardTile[];
+  filters?: DashboardFilters;
+  config?: DashboardConfig;
 };
 
 export type DashboardFilterOperator =

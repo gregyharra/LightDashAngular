@@ -51,17 +51,17 @@ export class DashboardTileGridInteractionDirective {
     }
 
     const target = event.target as HTMLElement | null;
-    const dragHandle = target?.closest('.dashboard-edit__tile-drag-handle');
+    const nonDraggable = target?.closest('.non-draggable');
     const resizeHandle = target?.closest('.dashboard-edit__tile-resize-handle');
 
-    if (!dragHandle && !resizeHandle) {
+    if (nonDraggable && !resizeHandle) {
       return;
     }
 
     event.preventDefault();
     event.stopPropagation();
 
-    this.mode = dragHandle ? 'drag' : 'resize';
+    this.mode = resizeHandle ? 'resize' : 'drag';
     this.pointerId = event.pointerId;
     this.startClientX = event.clientX;
     this.startClientY = event.clientY;

@@ -60,13 +60,18 @@ export const mockSavedChartDetails: Record<string, SavedChart> = {
     firstViewedAt: '2024-02-01T10:00:00.000Z',
     isPrivate: false,
     access: [],
-    chartKind: 'vertical_bar',
+    chartKind: 'line',
     tableName: 'orders',
     metricQuery: revenueByMonthQuery,
     chartConfig: {
-      type: 'vertical_bar',
+      type: 'line',
       xField: getFieldId('orders', 'order_date'),
       yField: getFieldId('orders', 'total_revenue'),
+      displayConfig: {
+        seriesColor: '#e67700',
+        showValueLabels: true,
+        showLegend: false,
+      },
     },
     updatedByUser: {
       userUuid: MOCK_USER_UUID,
@@ -95,6 +100,11 @@ export const mockSavedChartDetails: Record<string, SavedChart> = {
       type: 'line',
       xField: getFieldId('orders', 'order_date'),
       yField: getFieldId('orders', 'order_count'),
+      displayConfig: {
+        seriesColor: '#12b886',
+        showValueLabels: true,
+        showLegend: false,
+      },
     },
     updatedByUser: {
       userUuid: MOCK_USER_UUID,

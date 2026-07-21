@@ -1,87 +1,118 @@
-<div class="dashboard-filters-bar" [class.dashboard-filters-bar--hidden]="hidden()">
-  <div class="dashboard-filters-bar__main">
-    <div class="dashboard-filters-bar__filters">
-      @if (canAddFilter()) {
-        <button
-          type="button"
-          mat-stroked-button
-          class="dashboard-filters-bar__add-btn"
-          disabled
-        >
-          <mat-icon>add</mat-icon>
-          Add filter
-        </button>
-      }
-
-      @for (filter of activeFilters(); track filter.id) {
-        <button
-          type="button"
-          class="dashboard-filters-bar__pill"
-          [matMenuTriggerFor]="filterMenu"
-        >
-          <span class="dashboard-filters-bar__pill-label">{{ filter.label }}</span>
-          <span class="dashboard-filters-bar__pill-value">
-            {{ formatFilterSummary(filter).replace(filter.label + ' ', '') }}
-          </span>
-        </button>
-
-        <mat-menu #filterMenu="matMenu" class="dashboard-filters-bar__menu">
-          <button mat-menu-item disabled>
-            {{ formatFilterSummary(filter) }}
-          </button>
-          @if (filter.values.length > 0) {
-            <button mat-menu-item (click)="clearFilter(filter.id)">
-              <mat-icon>close</mat-icon>
-              Clear filter
-            </button>
-          }
-        </mat-menu>
-      }
-    </div>
-
-    <div class="dashboard-filters-bar__controls">
-      <app-time-travel-control
-        [compact]="true"
-        [value]="timeTravel()"
-        (valueChange)="timeTravelChange.emit($event)"
-      />
-
-      @if (showDateZoom()) {
-        <button
-          type="button"
-          class="dashboard-filters-bar__pill dashboard-filters-bar__pill--date-zoom"
-          [matMenuTriggerFor]="dateZoomMenu"
-        >
-          <mat-icon>calendar_month</mat-icon>
-          <span>Default zoom</span>
-          <span class="dashboard-filters-bar__pill-value">
-            {{ formatDateZoom(dateZoomGranularity()) }}
-          </span>
-        </button>
-
-        <mat-menu #dateZoomMenu="matMenu" class="dashboard-filters-bar__menu">
-          @for (granularity of dateZoomOptions(); track granularity) {
+<div class="dashboard-filters-bar">
+  <div class="dashboard-filters-bar__row">
+    @if (!hidden()) {
+      <div class="dashboard-filters-bar__content">
+        <div class="dashboard-filters-bar__filters">
+          @if (canAddFilter()) {
             <button
-              mat-menu-item
-              [class.dashboard-filters-bar__menu-item--active]="
-                dateZoomGranularity() === granularity
-              "
-              (click)="setDateZoom(granularity)"
+              type="button"
+              mat-stroked-button
+              class="dashboard-filters-bar__add-btn"
+              [disabled]="filterableDimensions().length === 0"
+              (click)="onAddFilter()"
             >
-              {{ formatDateZoom(granularity) }}
+              <mat-icon>add</mat-icon>
+              Add filter
             </button>
           }
-        </mat-menu>
-      }
 
-      <button
-        type="button"
-        mat-button
-        class="dashboard-filters-bar__hide-btn"
-        (click)="toggleHidden()"
-      >
-        {{ hidden() ? 'Show' : 'Hide' }}
-      </button>
-    </div>
+          @for (filter of activeFilters(); track filter.id) {
+            @if (isEditMode()) {
+              <div class="dashboard-filters-bar__pill dashboard-filters-bar__pill--edit">
+                <button
+                  type="button"
+                  class="dashboard-filters-bar__pill-body"
+                  [attr.aria-label]="'Edit filter: ' + formatFilterSummary(filter)"
+                  (click)="onEditFilter(filter)"
+                >
+                  <span class="dashboard-filters-bar__pill-label">{{ filter.label }}</span>
+                  <span class="dashboard-filters-bar__pill-value">
+                    {{ formatFilterSummary(filter).replace(filter.label + ' ', '') }}
+                  </span>
+                </button>
+                <button
+                  type="button"
+                  class="dashboard-filters-bar__pill-remove"
+                  aria-label="Remove filter"
+                  (click)="$event.stopPropagation(); onRemoveFilter(filter.id)"
+                >
+                  <mat-icon>close</mat-icon>
+                </button>
+              </div>
+            } @else {
+              <button
+                type="button"
+                class="dashboard-filters-bar__pill"
+                [class.dashboard-filters-bar__pill--active]="hasFilterValues(filter)"
+                [matMenuTriggerFor]="filterMenu"
+              >
+                <span class="dashboard-filters-bar__pill-label">{{ filter.label }}</span>
+                <span class="dashboard-filters-bar__pill-value">
+                  {{ formatFilterSummary(filter).replace(filter.label + ' ', '') }}
+                </span>
+              </button>
+
+              <mat-menu #filterMenu="matMenu" class="dashboard-filters-bar__menu">
+                <button mat-menu-item disabled>
+                  {{ formatFilterSummary(filter) }}
+                </button>
+                @if (filter.values.length > 0) {
+                  <button mat-menu-item (click)="clearFilter(filter.id)">
+                    <mat-icon>close</mat-icon>
+                    Clear filter
+                  </button>
+                }
+              </mat-menu>
+            }
+          }
+        </div>
+
+        <div class="dashboard-filters-bar__controls">
+          <app-time-travel-control
+            [compact]="true"
+            [value]="timeTravel()"
+            (valueChange)="timeTravelChange.emit($event)"
+          />
+
+          @if (showDateZoom()) {
+            <button
+              type="button"
+              class="dashboard-filters-bar__pill dashboard-filters-bar__pill--date-zoom"
+              [matMenuTriggerFor]="dateZoomMenu"
+            >
+              <mat-icon>calendar_month</mat-icon>
+              <span>Default zoom</span>
+              <span class="dashboard-filters-bar__pill-value">
+                {{ formatDateZoom(dateZoomGranularity()) }}
+              </span>
+            </button>
+
+            <mat-menu #dateZoomMenu="matMenu" class="dashboard-filters-bar__menu">
+              @for (granularity of dateZoomOptions(); track granularity) {
+                <button
+                  mat-menu-item
+                  [class.dashboard-filters-bar__menu-item--active]="
+                    dateZoomGranularity() === granularity
+                  "
+                  (click)="setDateZoom(granularity)"
+                >
+                  {{ formatDateZoom(granularity) }}
+                </button>
+              }
+            </mat-menu>
+          }
+        </div>
+      </div>
+    }
+
+    <button
+      type="button"
+      mat-button
+      class="dashboard-filters-bar__hide-btn"
+      (click)="toggleHidden()"
+    >
+      <mat-icon>{{ hidden() ? 'expand_more' : 'expand_less' }}</mat-icon>
+      {{ hidden() ? 'Show' : 'Hide' }}
+    </button>
   </div>
 </div>

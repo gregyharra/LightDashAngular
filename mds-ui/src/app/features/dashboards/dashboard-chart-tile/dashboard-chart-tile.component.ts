@@ -2,7 +2,7 @@ import { Component, effect, inject, input, signal } from '@angular/core';
 import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { EMPTY, catchError, switchMap } from 'rxjs';
-import { ChartKind } from '../../../core/models/chart.model';
+import { ChartKind, ChartDisplayConfig, BigNumberComparison, DEFAULT_CHART_DISPLAY_CONFIG } from '../../../core/models/chart.model';
 import {
   DashboardDimensionFilter,
   DateZoomGranularity,
@@ -14,6 +14,7 @@ import { ExplorerService } from '../../explorer/explorer.service';
 import {
   applyDashboardContextToMetricQuery,
 } from '../dashboard-filters';
+import { MOCK_CHART_4_UUID, MOCK_CHART_5_UUID, MOCK_CHART_6_UUID } from '../../../core/mock/fixtures/ids.fixture';
 
 @Component({
   selector: 'app-dashboard-chart-tile',
@@ -30,6 +31,7 @@ export class DashboardChartTileComponent {
   readonly dashboardFilters = input<DashboardDimensionFilter[]>([]);
   readonly dateZoomGranularity = input<DateZoomGranularity>('Month');
   readonly timeTravel = input<TimeTravelConfig | null>(null);
+  readonly refreshToken = input(0);
 
   protected readonly loading = signal(false);
   protected readonly error = signal<string | null>(null);
@@ -37,6 +39,8 @@ export class DashboardChartTileComponent {
   protected readonly queryResults = signal<QueryResults | null>(null);
   protected readonly xField = signal<FieldId | null>(null);
   protected readonly yField = signal<FieldId | null>(null);
+  protected readonly displayConfig = signal<ChartDisplayConfig>(DEFAULT_CHART_DISPLAY_CONFIG);
+  protected readonly bigNumberComparison = signal<BigNumberComparison | null>(null);
 
   constructor() {
     effect((onCleanup) => {
@@ -45,6 +49,7 @@ export class DashboardChartTileComponent {
       const dashboardFilters = this.dashboardFilters();
       const dateZoomGranularity = this.dateZoomGranularity();
       const timeTravel = this.timeTravel();
+      void this.refreshToken();
 
       if (!savedChartUuid) {
         this.loading.set(false);
@@ -68,6 +73,18 @@ export class DashboardChartTileComponent {
             this.yField.set(
               chart.chartConfig.yField ?? chart.metricQuery.metrics[0] ?? null,
             );
+            this.displayConfig.set({
+              ...DEFAULT_CHART_DISPLAY_CONFIG,
+              showLegend: false,
+              showValueLabels: true,
+              showXAxis: chart.chartConfig.type !== 'big_number',
+              showYAxis: chart.chartConfig.type !== 'big_number',
+              margins: { top: 16, right: 12, bottom: 8, left: 8 },
+              ...chart.chartConfig.displayConfig,
+            });
+            this.bigNumberComparison.set(
+              getBigNumberComparison(savedChartUuid),
+            );
 
             const metricQuery = this.applyDashboardContext(
               chart.metricQuery,
@@ -86,7 +103,9 @@ export class DashboardChartTileComponent {
         )
         .subscribe({
           next: (results) => {
-            this.queryResults.set(results);
+            this.queryResults.set(
+              applyDemoKpiOverrides(savedChartUuid, results, this.yField()),
+            );
             this.loading.set(false);
           },
         });
@@ -107,4 +126,51 @@ export class DashboardChartTileComponent {
       timeTravel,
     );
   }
+}
+
+const BIG_NUMBER_COMPARISONS: Record<string, BigNumberComparison> = {
+  [MOCK_CHART_4_UUID]: {
+    label: '+10% ↗ MoM',
+    direction: 'up',
+  },
+  [MOCK_CHART_5_UUID]: {
+    label: '+5.75K ↗ MoM',
+    direction: 'up',
+  },
+};
+
+function getBigNumberComparison(savedChartUuid: string): BigNumberComparison | null {
+  return BIG_NUMBER_COMPARISONS[savedChartUuid] ?? null;
+}
+
+const DEMO_KPI_VALUES: Record<string, { formatted: string; label?: string }> = {
+  [MOCK_CHART_4_UUID]: { formatted: '8,616', label: 'Orders fulfilled' },
+  [MOCK_CHART_5_UUID]: { formatted: '124.15K', label: 'Total Revenue' },
+  [MOCK_CHART_6_UUID]: { formatted: '$1,097,095', label: 'Total profit' },
+};
+
+function applyDemoKpiOverrides(
+  savedChartUuid: string,
+  results: QueryResults,
+  yField: FieldId | null,
+): QueryResults {
+  const override = DEMO_KPI_VALUES[savedChartUuid];
+  if (!override || !yField || results.rows.length === 0) {
+    return results;
+  }
+
+  const row = { ...results.rows[0] };
+  row[yField] = {
+    value: {
+      raw: row[yField]?.value.raw ?? 0,
+      formatted: override.formatted,
+    },
+  };
+
+  const fields = { ...results.fields };
+  if (override.label && fields[yField]) {
+    fields[yField] = { ...fields[yField], label: override.label };
+  }
+
+  return { ...results, rows: [row], fields };
 }

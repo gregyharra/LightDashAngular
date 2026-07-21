@@ -1,0 +1,22 @@
+.dashboard-tile-settings-dialog__content {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ld-spacing-sm);
+  min-width: min(420px, 90vw);
+  padding-top: var(--ld-spacing-xs);
+}
+
+.dashboard-tile-settings-dialog__field {
+  width: 100%;
+}
+
+.dashboard-tile-settings-dialog__save {
+  background-color: var(--ld-gray-9) !important;
+  color: #fff !important;
+}
+
+.dashboard-tile-settings-dialog__error {
+  margin-top: -4px;
+  color: #c92a2a;
+  font-size: var(--ld-font-size-xs);
+}

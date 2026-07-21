@@ -1,0 +1,65 @@
+<h2 mat-dialog-title>{{ dialogTitle }}</h2>
+
+<mat-dialog-content class="dashboard-filter-dialog__content">
+  <mat-form-field appearance="outline" class="dashboard-filter-dialog__field">
+    <mat-label>Field</mat-label>
+    <mat-select
+      [ngModel]="fieldId"
+      (ngModelChange)="onFieldChange($event)"
+      [disabled]="isEditing"
+    >
+      @for (dimension of dimensions; track dimension.fieldId) {
+        <mat-option [value]="dimension.fieldId">
+          {{ dimension.label }}
+        </mat-option>
+      }
+    </mat-select>
+  </mat-form-field>
+
+  <mat-form-field appearance="outline" class="dashboard-filter-dialog__field">
+    <mat-label>Operator</mat-label>
+    <mat-select [ngModel]="operator" (ngModelChange)="onOperatorChange($event)">
+      @for (item of operators; track item) {
+        <mat-option [value]="item">{{ formatOperator(item) }}</mat-option>
+      }
+    </mat-select>
+  </mat-form-field>
+
+  @if (showValue) {
+    <mat-form-field appearance="outline" class="dashboard-filter-dialog__field">
+      <mat-label>{{ showSecondValue ? 'From' : 'Value' }}</mat-label>
+      <input matInput [(ngModel)]="value" />
+    </mat-form-field>
+  }
+
+  @if (showSecondValue) {
+    <mat-form-field appearance="outline" class="dashboard-filter-dialog__field">
+      <mat-label>To</mat-label>
+      <input matInput [(ngModel)]="value2" />
+    </mat-form-field>
+  }
+
+  @if (showUnitOfTime) {
+    <mat-form-field appearance="outline" class="dashboard-filter-dialog__field">
+      <mat-label>Unit of time</mat-label>
+      <mat-select [(ngModel)]="unitOfTime">
+        @for (unit of unitOfTimeOptions; track unit) {
+          <mat-option [value]="unit">{{ unit }}</mat-option>
+        }
+      </mat-select>
+    </mat-form-field>
+  }
+</mat-dialog-content>
+
+<mat-dialog-actions align="end">
+  <button mat-stroked-button type="button" (click)="cancel()">Cancel</button>
+  <button
+    mat-flat-button
+    type="button"
+    class="dashboard-filter-dialog__save"
+    [disabled]="!fieldId"
+    (click)="save()"
+  >
+    Save
+  </button>
+</mat-dialog-actions>

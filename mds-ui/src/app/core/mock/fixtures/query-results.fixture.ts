@@ -54,9 +54,35 @@ function formatValue(value: unknown): string {
     return '';
   }
   if (typeof value === 'number') {
+    if (Number.isInteger(value) && value >= 1000) {
+      return value.toLocaleString('en-US');
+    }
     return Number.isInteger(value) ? String(value) : value.toFixed(2);
   }
   return String(value);
+}
+
+function formatDemoKpiValue(metricId: FieldId, raw: number): string {
+  if (metricId.endsWith('_order_count')) {
+    return '8,616';
+  }
+  if (metricId.endsWith('_total_revenue')) {
+    if (raw > 100000) {
+      return `$${raw.toLocaleString('en-US', { maximumFractionDigits: 0 })}`;
+    }
+    return '124.15K';
+  }
+  return formatValue(raw);
+}
+
+function getDemoKpiRaw(metricId: FieldId): number {
+  if (metricId.endsWith('_order_count')) {
+    return 8616;
+  }
+  if (metricId.endsWith('_total_revenue')) {
+    return 1097095;
+  }
+  return 0;
 }
 
 function buildFieldItem(table: string, field: FieldItem): FieldItem {
@@ -131,6 +157,55 @@ function aggregateMetric(
   }
 
   return 0;
+}
+
+function buildDemoTimeSeriesRows(
+  xFieldId: FieldId,
+  yFieldId: FieldId,
+  months: string[],
+  values: number[],
+): ResultRow[] {
+  return months.map((month, index) => ({
+    [xFieldId]: { value: { raw: month, formatted: month } },
+    [yFieldId]: {
+      value: {
+        raw: values[index],
+        formatted: formatValue(values[index]),
+      },
+    },
+  }));
+}
+
+function tryBuildDemoChartRows(
+  metricQuery: MetricQuery,
+  fields: Record<FieldId, FieldItem>,
+): ResultRow[] | null {
+  const xField = metricQuery.dimensions[0];
+  const yField = metricQuery.metrics[0];
+  if (!xField || !yField || !xField.endsWith('_order_date')) {
+    return null;
+  }
+
+  if (yField.endsWith('_total_revenue')) {
+    return buildDemoTimeSeriesRows(
+      xField,
+      yField,
+      ['2025-08', '2025-09', '2025-10', '2025-11', '2025-12', '2026-01', '2026-02'],
+      [124150, 126300, 123900, 128400, 130100, 127800, 129500],
+    );
+  }
+
+  if (yField.endsWith('_order_count') || yField.endsWith('_average_order_value')) {
+    return buildDemoTimeSeriesRows(
+      xField,
+      yField,
+      ['2025-W45', '2025-W46', '2025-W47', '2025-W48', '2025-W49', '2025-W50', '2025-W51'],
+      [138, 142, 135, 129, 123, 131, 137],
+    );
+  }
+
+  void fields;
+  return null;
 }
 
 function buildGroupedRows(
@@ -229,12 +304,30 @@ function buildRows(
 
     for (const metricId of selectedMetrics) {
       if (metricId.endsWith('_total_revenue')) {
+        const raw =
+          selectedDimensions.length === 0
+            ? getDemoKpiRaw(metricId)
+            : totalRevenue;
         aggregateRow[metricId] = {
-          value: { raw: totalRevenue, formatted: formatValue(totalRevenue) },
+          value: {
+            raw,
+            formatted:
+              selectedDimensions.length === 0
+                ? formatDemoKpiValue(metricId, raw)
+                : formatValue(raw),
+          },
         };
       } else if (metricId.endsWith('_order_count')) {
+        const raw =
+          selectedDimensions.length === 0 ? getDemoKpiRaw(metricId) : orderCount;
         aggregateRow[metricId] = {
-          value: { raw: orderCount, formatted: formatValue(orderCount) },
+          value: {
+            raw,
+            formatted:
+              selectedDimensions.length === 0
+                ? formatDemoKpiValue(metricId, raw)
+                : formatValue(raw),
+          },
         };
       } else if (metricId.endsWith('_average_order_value')) {
         aggregateRow[metricId] = {
@@ -487,7 +580,10 @@ export function buildMockQueryResults(metricQuery: MetricQuery): QueryResults {
 
   if (metricQuery.exploreName === 'orders') {
     const fields = buildFieldsFromExplore(ordersExplore, allSelected);
-    const rows = buildRows(ordersColumnMap, selectedDimensions, selectedMetrics, sourceRows);
+    const demoRows = tryBuildDemoChartRows(metricQuery, fields);
+    const rows =
+      demoRows ??
+      buildRows(ordersColumnMap, selectedDimensions, selectedMetrics, sourceRows);
 
     return finalizeMockQueryResults(metricQuery, ordersExplore, rows, fields, true);
   }

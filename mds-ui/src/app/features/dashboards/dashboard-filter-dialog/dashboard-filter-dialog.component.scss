@@ -1,0 +1,16 @@
+.dashboard-filter-dialog__content {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ld-spacing-sm);
+  min-width: 360px;
+  padding-top: var(--ld-spacing-xs);
+}
+
+.dashboard-filter-dialog__field {
+  width: 100%;
+}
+
+.dashboard-filter-dialog__save {
+  background-color: var(--ld-primary) !important;
+  color: #fff !important;
+}

@@ -1,5 +1,6 @@
-import { Component, computed, input, output, signal } from '@angular/core';
+import { Component, computed, inject, input, output, signal } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
+import { MatDialog } from '@angular/material/dialog';
 import { MatIconModule } from '@angular/material/icon';
 import { MatMenuModule } from '@angular/material/menu';
 import {
@@ -13,6 +14,11 @@ import {
   formatDateZoomLabel,
 } from '../dashboard-filters';
 import { TimeTravelControlComponent } from '../../../shared/time-travel-control/time-travel-control.component';
+import { FilterableDimension } from '../../explorer/tables-filters-panel/tables-filters.utils';
+import {
+  DashboardFilterDialogComponent,
+  DashboardFilterDialogResult,
+} from '../dashboard-filter-dialog/dashboard-filter-dialog.component';
 
 @Component({
   selector: 'app-dashboard-filters-bar',
@@ -21,10 +27,14 @@ import { TimeTravelControlComponent } from '../../../shared/time-travel-control/
   styleUrl: './dashboard-filters-bar.component.scss',
 })
 export class DashboardFiltersBarComponent {
+  private readonly dialog = inject(MatDialog);
+
   readonly filters = input.required<DashboardDimensionFilter[]>();
   readonly config = input<DashboardConfig | undefined>();
   readonly dateZoomGranularity = input<DateZoomGranularity>('Month');
   readonly timeTravel = input<TimeTravelConfig | null>(null);
+  readonly isEditMode = input(false);
+  readonly filterableDimensions = input<FilterableDimension[]>([]);
 
   readonly filtersChange = output<DashboardDimensionFilter[]>();
   readonly dateZoomChange = output<DateZoomGranularity>();
@@ -74,5 +84,58 @@ export class DashboardFiltersBarComponent {
       filter.id === filterId ? { ...filter, values: [] } : filter,
     );
     this.filtersChange.emit(updated);
+  }
+
+  protected hasFilterValues(filter: DashboardDimensionFilter): boolean {
+    return (
+      filter.values.length > 0 ||
+      filter.operator === 'isNull' ||
+      filter.operator === 'notNull'
+    );
+  }
+
+  protected onAddFilter(): void {
+    this.openFilterDialog();
+  }
+
+  protected onEditFilter(filter: DashboardDimensionFilter): void {
+    this.openFilterDialog(filter);
+  }
+
+  protected onRemoveFilter(filterId: string): void {
+    this.filtersChange.emit(this.filters().filter((filter) => filter.id !== filterId));
+  }
+
+  private openFilterDialog(filter?: DashboardDimensionFilter): void {
+    const dimensions = this.filterableDimensions();
+    if (dimensions.length === 0) {
+      return;
+    }
+
+    const dialogRef = this.dialog.open<
+      DashboardFilterDialogComponent,
+      { dimensions: FilterableDimension[]; filter?: DashboardDimensionFilter },
+      DashboardFilterDialogResult
+    >(DashboardFilterDialogComponent, {
+      data: { dimensions, filter },
+      width: '420px',
+    });
+
+    dialogRef.afterClosed().subscribe((result) => {
+      if (!result || result.action !== 'save') {
+        return;
+      }
+
+      const existing = this.filters();
+      const index = existing.findIndex((item) => item.id === result.filter.id);
+      if (index >= 0) {
+        const updated = [...existing];
+        updated[index] = result.filter;
+        this.filtersChange.emit(updated);
+        return;
+      }
+
+      this.filtersChange.emit([...existing, result.filter]);
+    });
   }
 }

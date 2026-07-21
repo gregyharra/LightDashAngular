@@ -91,3 +91,27 @@
   font-weight: 600;
   text-transform: lowercase;
 }
+
+@media (max-width: 860px) {
+  .project-switcher__trigger {
+    max-width: 160px;
+  }
+}
+
+@media (max-width: 720px) {
+  .project-switcher__trigger {
+    max-width: 120px;
+    padding-inline: 8px;
+  }
+}
+
+@media (max-width: 480px) {
+  .project-switcher__trigger {
+    max-width: 72px;
+    padding-inline: 6px;
+  }
+
+  .project-switcher__chevron {
+    margin-left: 2px;
+  }
+}

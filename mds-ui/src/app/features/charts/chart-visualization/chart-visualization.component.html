@@ -1,9 +1,18 @@
 @if (chartKind() === 'big_number' && queryResults()) {
-  <div class="chart-viz__big-number">
+  <div class="chart-viz__big-number" [class.chart-viz__big-number--dashboard]="dashboardMode()">
     @if (bigNumberValue(); as value) {
       <div class="chart-viz__big-number-value">{{ value }}</div>
       @if (bigNumberLabel()) {
         <div class="chart-viz__big-number-label">{{ bigNumberLabel() }}</div>
+      }
+      @if (bigNumberComparison(); as comparison) {
+        <div
+          class="chart-viz__big-number-comparison"
+          [class.chart-viz__big-number-comparison--up]="comparison.direction === 'up'"
+          [class.chart-viz__big-number-comparison--down]="comparison.direction === 'down'"
+        >
+          {{ comparison.label }}
+        </div>
       }
     }
   </div>

@@ -1,0 +1,131 @@
+<h2 mat-dialog-title>{{ dialogTitle }}</h2>
+
+<mat-dialog-content class="dashboard-tile-settings-dialog__content">
+  @switch (tile.type) {
+    @case (DashboardTileTypes.HEADING) {
+      <mat-form-field appearance="outline" class="dashboard-tile-settings-dialog__field">
+        <mat-label>Heading text</mat-label>
+        <input
+          matInput
+          [ngModel]="tile.properties.text"
+          (ngModelChange)="updateProperty('text', $event)"
+        />
+      </mat-form-field>
+      <mat-slide-toggle
+        [ngModel]="tile.properties.showDivider ?? false"
+        (ngModelChange)="updateProperty('showDivider', $event)"
+      >
+        Show divider
+      </mat-slide-toggle>
+    }
+    @case (DashboardTileTypes.MARKDOWN) {
+      <mat-form-field appearance="outline" class="dashboard-tile-settings-dialog__field">
+        <mat-label>Title</mat-label>
+        <input
+          matInput
+          [ngModel]="tile.properties.title"
+          (ngModelChange)="updateProperty('title', $event)"
+        />
+      </mat-form-field>
+      <mat-form-field appearance="outline" class="dashboard-tile-settings-dialog__field">
+        <mat-label>Content</mat-label>
+        <textarea
+          matInput
+          rows="6"
+          [ngModel]="tile.properties.content"
+          (ngModelChange)="updateProperty('content', $event)"
+        ></textarea>
+      </mat-form-field>
+      <mat-slide-toggle
+        [ngModel]="tile.properties.hideFrame ?? false"
+        (ngModelChange)="updateProperty('hideFrame', $event)"
+      >
+        Hide tile frame
+      </mat-slide-toggle>
+    }
+    @case (DashboardTileTypes.SAVED_CHART) {
+      <mat-form-field appearance="outline" class="dashboard-tile-settings-dialog__field">
+        <mat-label>Tile title</mat-label>
+        <input
+          matInput
+          [ngModel]="tile.properties.title ?? ''"
+          (ngModelChange)="updateProperty('title', $event)"
+        />
+      </mat-form-field>
+      <mat-slide-toggle
+        [ngModel]="tile.properties.hideTitle ?? false"
+        (ngModelChange)="updateProperty('hideTitle', $event)"
+      >
+        Hide tile title
+      </mat-slide-toggle>
+    }
+    @case (DashboardTileTypes.LOOM) {
+      <mat-form-field appearance="outline" class="dashboard-tile-settings-dialog__field">
+        <mat-label>Title</mat-label>
+        <input
+          matInput
+          [ngModel]="tile.properties.title"
+          (ngModelChange)="updateProperty('title', $event)"
+        />
+      </mat-form-field>
+      <mat-form-field appearance="outline" class="dashboard-tile-settings-dialog__field">
+        <mat-label>Loom URL</mat-label>
+        <input
+          matInput
+          placeholder="https://www.loom.com/share/..."
+          [ngModel]="tile.properties.url"
+          (ngModelChange)="updateProperty('url', $event)"
+        />
+        @if (loomUrlError) {
+          <div class="dashboard-tile-settings-dialog__error">{{ loomUrlError }}</div>
+        }
+      </mat-form-field>
+      <mat-slide-toggle
+        [ngModel]="tile.properties.hideTitle ?? false"
+        (ngModelChange)="updateProperty('hideTitle', $event)"
+      >
+        Hide tile title
+      </mat-slide-toggle>
+    }
+    @case (DashboardTileTypes.SQL_CHART) {
+      <mat-form-field appearance="outline" class="dashboard-tile-settings-dialog__field">
+        <mat-label>Tile title</mat-label>
+        <input
+          matInput
+          [ngModel]="tile.properties.title ?? tile.properties.chartName"
+          (ngModelChange)="updateProperty('title', $event)"
+        />
+      </mat-form-field>
+      <mat-slide-toggle
+        [ngModel]="tile.properties.hideTitle ?? false"
+        (ngModelChange)="updateProperty('hideTitle', $event)"
+      >
+        Hide tile title
+      </mat-slide-toggle>
+    }
+  }
+
+  @if (tabs.length > 1) {
+    <mat-form-field appearance="outline" class="dashboard-tile-settings-dialog__field">
+      <mat-label>Tab</mat-label>
+      <mat-select [(ngModel)]="moveToTabUuid">
+        @for (tab of tabs; track tab.uuid) {
+          <mat-option [value]="tab.uuid">{{ tab.name }}</mat-option>
+        }
+      </mat-select>
+    </mat-form-field>
+  }
+</mat-dialog-content>
+
+<mat-dialog-actions align="end">
+  <button mat-stroked-button type="button" (click)="cancel()">Cancel</button>
+  <button
+    mat-flat-button
+    type="button"
+    class="dashboard-tile-settings-dialog__save"
+    [disabled]="!canSave"
+    (click)="save()"
+  >
+    Apply
+  </button>
+</mat-dialog-actions>

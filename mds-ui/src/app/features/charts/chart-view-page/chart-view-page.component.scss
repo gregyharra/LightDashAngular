@@ -49,6 +49,7 @@
 
 .chart-view__title-row {
   display: flex;
+  flex-wrap: wrap;
   align-items: flex-start;
   justify-content: space-between;
   gap: var(--ld-spacing-md);
@@ -57,9 +58,11 @@
 
 .chart-view__title-actions {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   gap: var(--ld-spacing-sm);
-  flex-shrink: 0;
+  flex-shrink: 1;
+  max-width: 100%;
 }
 
 .chart-view__mode-toggle {

@@ -14,7 +14,7 @@
   height: 100%;
   min-height: 0;
   overflow: hidden;
-  padding: var(--ld-spacing-xs);
+  padding: var(--ld-spacing-xs) var(--ld-spacing-sm);
 
   canvas {
     display: block;
@@ -33,18 +33,50 @@
   min-height: 0;
   padding: var(--ld-spacing-md);
   text-align: center;
+
+  &--dashboard {
+    align-items: flex-start;
+    justify-content: flex-end;
+    padding: 0 var(--ld-spacing-md) var(--ld-spacing-md);
+    text-align: left;
+  }
 }
 
 .chart-viz__big-number-value {
-  font-size: 32px;
+  font-size: 36px;
   font-weight: 700;
   line-height: 1.1;
   color: var(--ld-gray-9);
+  letter-spacing: -0.02em;
+}
+
+.chart-viz__big-number--dashboard .chart-viz__big-number-value {
+  font-size: 40px;
 }
 
 .chart-viz__big-number-label {
   font-size: var(--ld-font-size-sm);
   color: var(--ld-gray-6);
+}
+
+.chart-viz__big-number-comparison {
+  display: inline-flex;
+  align-items: center;
+  margin-top: 4px;
+  padding: 2px 8px;
+  border-radius: 999px;
+  font-size: var(--ld-font-size-xs);
+  font-weight: 600;
+
+  &--up {
+    background-color: #d3f9d8;
+    color: #2b8a3e;
+  }
+
+  &--down {
+    background-color: #ffe3e3;
+    color: #c92a2a;
+  }
 }
 
 .chart-viz__table-wrap {

@@ -50,6 +50,13 @@ export type ChartDisplayConfig = {
   };
   showTableNames: boolean;
   showColumnTotals: boolean;
+  seriesColor?: string;
+  showValueLabels?: boolean;
+};
+
+export type BigNumberComparison = {
+  label: string;
+  direction: 'up' | 'down' | 'neutral';
 };
 
 export const DEFAULT_CHART_DISPLAY_CONFIG: ChartDisplayConfig = {

@@ -1,9 +1,20 @@
 import { NgStyle } from '@angular/common';
-import { Component, computed, inject, signal } from '@angular/core';
+import {
+  Component,
+  ElementRef,
+  HostListener,
+  computed,
+  inject,
+  signal,
+  viewChild,
+} from '@angular/core';
+import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
+import { MatMenuModule } from '@angular/material/menu';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { MatTooltipModule } from '@angular/material/tooltip';
 import { ActiveProjectService } from '../../../core/services/active-project.service';
 import {
   Dashboard,
@@ -16,6 +27,8 @@ import { TimeTravelConfig } from '../../../core/models/explore.model';
 import { DashboardService } from '../dashboard.service';
 import { DashboardChartTileComponent } from '../dashboard-chart-tile/dashboard-chart-tile.component';
 import { DashboardFiltersBarComponent } from '../dashboard-filters-bar/dashboard-filters-bar.component';
+import { DashboardMarkdownComponent } from '../dashboard-markdown/dashboard-markdown.component';
+import { getLoomEmbedUrl } from '../dashboard-loom.utils';
 import { ResizableSidebarDirective } from '../../../layout/resizable-sidebar/resizable-sidebar.directive';
 
 import {
@@ -31,9 +44,12 @@ import {
     RouterLink,
     MatButtonModule,
     MatIconModule,
+    MatMenuModule,
     MatProgressSpinnerModule,
+    MatTooltipModule,
     DashboardChartTileComponent,
     DashboardFiltersBarComponent,
+    DashboardMarkdownComponent,
     ResizableSidebarDirective,
   ],
   templateUrl: './dashboard-view-page.component.html',
@@ -42,7 +58,10 @@ import {
 export class DashboardViewPageComponent {
   private readonly dashboardService = inject(DashboardService);
   private readonly route = inject(ActivatedRoute);
+  private readonly sanitizer = inject(DomSanitizer);
   protected readonly activeProjectService = inject(ActiveProjectService);
+
+  private readonly dashboardRoot = viewChild<ElementRef<HTMLElement>>('dashboardRoot');
 
   protected readonly projectUuid = signal<string | null>(null);
   protected readonly dashboardUuid = signal<string | null>(null);
@@ -53,6 +72,11 @@ export class DashboardViewPageComponent {
   protected readonly dashboardFilters = signal<DashboardDimensionFilter[]>([]);
   protected readonly dateZoomGranularity = signal<DateZoomGranularity>('Month');
   protected readonly timeTravel = signal<TimeTravelConfig | null>(null);
+  protected readonly refreshToken = signal(0);
+  protected readonly refreshing = signal(false);
+  protected readonly isFavorite = signal(false);
+  protected readonly isFullscreen = signal(false);
+  protected readonly showScrollTop = signal(false);
 
   protected readonly gridRowHeight = DASHBOARD_GRID_ROW_HEIGHT_PX;
   protected readonly gridGap = DASHBOARD_GRID_GAP_PX;
@@ -81,6 +105,12 @@ export class DashboardViewPageComponent {
     return dash.tiles.filter((tile) => tile.tabUuid === tab.uuid);
   });
 
+  protected readonly visibleTabs = computed(() =>
+    (this.dashboard()?.tabs ?? [])
+      .filter((tab) => !tab.hidden)
+      .sort((left, right) => left.order - right.order),
+  );
+
   protected readonly DashboardTileTypes = DashboardTileTypes;
 
   constructor() {
@@ -97,6 +127,16 @@ export class DashboardViewPageComponent {
       this.activeProjectService.setActiveProject(projectUuid);
       this.loadDashboard(projectUuid, dashboardUuid);
     });
+  }
+
+  @HostListener('window:scroll')
+  protected onWindowScroll(): void {
+    this.showScrollTop.set(window.scrollY > 400);
+  }
+
+  @HostListener('document:fullscreenchange')
+  protected onFullscreenChange(): void {
+    this.isFullscreen.set(!!document.fullscreenElement);
   }
 
   private loadDashboard(projectUuid: string, dashboardUuid: string): void {
@@ -136,6 +176,37 @@ export class DashboardViewPageComponent {
     this.timeTravel.set(timeTravel);
   }
 
+  protected refreshDashboard(): void {
+    this.refreshing.set(true);
+    this.refreshToken.update((value) => value + 1);
+
+    window.setTimeout(() => {
+      this.refreshing.set(false);
+    }, 600);
+  }
+
+  protected toggleFavorite(): void {
+    this.isFavorite.update((value) => !value);
+  }
+
+  protected toggleFullscreen(): void {
+    const root = this.dashboardRoot()?.nativeElement;
+    if (!root) {
+      return;
+    }
+
+    if (document.fullscreenElement) {
+      void document.exitFullscreen();
+      return;
+    }
+
+    void root.requestFullscreen();
+  }
+
+  protected scrollToTop(): void {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
   protected tileGridStyle(tile: DashboardTile): Record<string, string | number> {
     return {
       '--tile-x': tile.x,
@@ -146,6 +217,13 @@ export class DashboardViewPageComponent {
     };
   }
 
+  protected loomEmbedUrl(url: string): SafeResourceUrl | null {
+    const embedUrl = getLoomEmbedUrl(url);
+    return embedUrl
+      ? this.sanitizer.bypassSecurityTrustResourceUrl(embedUrl)
+      : null;
+  }
+
   protected formatDate(iso: string): string {
     return new Date(iso).toLocaleDateString(undefined, {
       year: 'numeric',
@@ -153,5 +231,4 @@ export class DashboardViewPageComponent {
       day: 'numeric',
     });
   }
-
 }

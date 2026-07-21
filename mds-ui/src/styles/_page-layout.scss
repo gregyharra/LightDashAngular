@@ -1,6 +1,8 @@
 .page-layout {
   display: flex;
+  min-width: 0;
   min-height: calc(100vh - var(--ld-navbar-height));
+  overflow-x: clip;
   background-color: var(--ld-gray-0);
 }
 
@@ -70,7 +72,87 @@ body.tables-fields-panel--resizing {
 .page-layout__content {
   flex: 1;
   min-width: 0;
+  overflow-x: auto;
   padding: var(--ld-spacing-lg);
+}
+
+.page-layout__content .page__container,
+.page-layout__content .page__container--wide {
+  max-width: 100%;
+}
+
+// Shared page header — container-query responsive title row + actions
+.page-header {
+  container-type: inline-size;
+  container-name: page-header;
+  min-width: 0;
+  max-width: 100%;
+}
+
+.page-header__title-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--ld-spacing-md);
+  row-gap: var(--ld-spacing-xs);
+}
+
+.page-header__title-block {
+  min-width: 0;
+  flex: 1 1 12rem;
+}
+
+.page-header__actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 6px;
+  flex: 0 1 auto;
+  max-width: 100%;
+}
+
+.page-header__toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--ld-spacing-md);
+  row-gap: var(--ld-spacing-xs);
+}
+
+@container page-header (max-width: 480px) {
+  .page-header--compact-padding {
+    padding-inline: var(--ld-spacing-md);
+  }
+}
+
+@container page-header (max-width: 540px) {
+  .page-header__action-label {
+    display: none;
+  }
+
+  .page-header__views-chevron {
+    display: none;
+  }
+
+  .page-header__action-btn--labeled mat-icon {
+    margin-right: 0 !important;
+  }
+
+  .page-header__action-btn--labeled {
+    min-width: 32px !important;
+    padding: 0 8px !important;
+  }
+}
+
+@container page-header (max-width: 560px) {
+  .page-header__actions,
+  .page-header__toolbar {
+    width: 100%;
+    justify-content: flex-end;
+  }
 }
 
 .page-sidebar {
