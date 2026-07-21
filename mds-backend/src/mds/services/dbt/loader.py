@@ -65,6 +65,13 @@ def resolve_artifacts_dir(project_path: Path) -> Path:
     return project_path / "target"
 
 
+def path_has_dbt_artifacts(project_path: str | Path) -> bool:
+    path = Path(project_path).expanduser()
+    if not path.is_absolute():
+        path = (Path.cwd() / path).resolve()
+    return (resolve_artifacts_dir(path) / "manifest.json").is_file()
+
+
 def load_dbt_artifacts(project_path_override: str | None = None) -> DbtArtifacts:
     project_path = resolve_dbt_project_path(project_path_override)
     artifacts_dir = resolve_artifacts_dir(project_path)

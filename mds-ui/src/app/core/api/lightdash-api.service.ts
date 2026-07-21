@@ -1,4 +1,4 @@
-import { HttpClient, HttpHeaders, HttpParams } from '@angular/common/http';
+import { HttpClient, HttpErrorResponse, HttpHeaders, HttpParams } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
 import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
@@ -97,9 +97,66 @@ export function isApiError(error: unknown): error is ApiError {
   );
 }
 
+function readErrorMessage(value: unknown): string | null {
+  if (isApiError(value)) {
+    return value.error.message;
+  }
+
+  if (typeof value !== 'object' || value === null) {
+    return null;
+  }
+
+  const record = value as Record<string, unknown>;
+  const nested = record['error'];
+  if (typeof nested === 'object' && nested !== null) {
+    const message = (nested as Record<string, unknown>)['message'];
+    if (typeof message === 'string' && message.trim()) {
+      return message;
+    }
+  }
+
+  if (typeof record['detail'] === 'string' && record['detail'].trim()) {
+    return record['detail'];
+  }
+
+  if (typeof record['message'] === 'string' && record['message'].trim()) {
+    return record['message'];
+  }
+
+  return null;
+}
+
 export function toApiError(error: unknown): ApiError {
   if (isApiError(error)) {
     return error;
+  }
+
+  if (error instanceof HttpErrorResponse) {
+    const message =
+      readErrorMessage(error.error) ??
+      (error.message ||
+        (error.status ? `Request failed (${error.status})` : 'Request failed'));
+
+    return {
+      status: 'error',
+      error: {
+        name: 'HttpErrorResponse',
+        statusCode: error.status || 500,
+        message,
+      },
+    };
+  }
+
+  const message = readErrorMessage(error);
+  if (message) {
+    return {
+      status: 'error',
+      error: {
+        name: 'UnknownError',
+        statusCode: 500,
+        message,
+      },
+    };
   }
 
   return {

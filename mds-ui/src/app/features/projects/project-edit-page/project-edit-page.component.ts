@@ -1,3 +1,4 @@
+import { DatePipe } from '@angular/common';
 import { Component, inject, signal } from '@angular/core';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { FormsModule } from '@angular/forms';
@@ -9,6 +10,7 @@ import { MatInputModule } from '@angular/material/input';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatSelectModule } from '@angular/material/select';
 import { apiErrorMessage } from '../../../core/api/lightdash-api.service';
+import { GitProvider, ProjectRepoStatus } from '../../../core/models/project.model';
 import { WarehouseListItem } from '../../../core/models/warehouse.model';
 import { ActiveProjectService } from '../../../core/services/active-project.service';
 import { ResizableSidebarDirective } from '../../../layout/resizable-sidebar/resizable-sidebar.directive';
@@ -20,6 +22,7 @@ import { WarehouseCreateDialogComponent } from '../../warehouses/warehouse-creat
 @Component({
   selector: 'app-project-edit-page',
   imports: [
+    DatePipe,
     RouterLink,
     FormsModule,
     MatButtonModule,
@@ -46,12 +49,29 @@ export class ProjectEditPageComponent {
   protected readonly projectUuid = signal<string | null>(null);
   protected readonly loading = signal(true);
   protected readonly saving = signal(false);
+  protected readonly syncing = signal(false);
+  protected readonly desyncing = signal(false);
   protected readonly error = signal<string | null>(null);
   protected readonly success = signal<string | null>(null);
+  protected readonly repoStatus = signal<ProjectRepoStatus | null>(null);
   protected readonly warehouses = signal<WarehouseListItem[]>([]);
 
   protected name = '';
   protected selectedWarehouseUuid: string | null = null;
+  protected gitRepoUrl = '';
+  protected gitDefaultBranch = 'main';
+  protected gitProvider: GitProvider | null = null;
+  protected gitSubdirectory = '';
+  protected gitToken = '';
+  protected clearGitToken = false;
+  protected hasGitToken = false;
+
+  protected readonly gitProviders: { value: GitProvider; label: string }[] = [
+    { value: 'github', label: 'GitHub' },
+    { value: 'gitlab', label: 'GitLab' },
+    { value: 'bitbucket', label: 'Bitbucket' },
+    { value: 'generic', label: 'Generic HTTPS' },
+  ];
 
   constructor() {
     this.route.paramMap.subscribe((params) => {
@@ -74,6 +94,7 @@ export class ProjectEditPageComponent {
       next: (project) => {
         this.applyProject(project);
         this.loadWarehouses();
+        this.loadRepoStatus(projectUuid);
       },
       error: (err) => {
         this.error.set(apiErrorMessage(err));
@@ -95,9 +116,23 @@ export class ProjectEditPageComponent {
     });
   }
 
+  private loadRepoStatus(projectUuid: string): void {
+    this.projectsService.getRepoStatus(projectUuid).subscribe({
+      next: (status) => this.repoStatus.set(status),
+      error: () => this.repoStatus.set(null),
+    });
+  }
+
   private applyProject(project: ProjectDetail): void {
     this.name = project.name;
     this.selectedWarehouseUuid = project.warehouseUuid ?? null;
+    this.gitRepoUrl = project.gitRepoUrl ?? '';
+    this.gitDefaultBranch = project.gitDefaultBranch ?? 'main';
+    this.gitProvider = project.gitProvider ?? null;
+    this.gitSubdirectory = project.gitSubdirectory ?? '';
+    this.hasGitToken = project.hasGitToken ?? false;
+    this.gitToken = '';
+    this.clearGitToken = false;
     this.activeProjectService.setProjects(
       this.activeProjectService.projects().map((item) =>
         item.projectUuid === project.projectUuid
@@ -153,6 +188,12 @@ export class ProjectEditPageComponent {
       .update(projectUuid, {
         name: this.name.trim(),
         warehouseUuid: this.selectedWarehouseUuid,
+        gitRepoUrl: this.gitRepoUrl.trim() || null,
+        gitDefaultBranch: this.gitDefaultBranch.trim() || 'main',
+        gitProvider: this.gitProvider,
+        gitSubdirectory: this.gitSubdirectory.trim() || null,
+        gitToken: this.gitToken.trim() || undefined,
+        clearGitToken: this.clearGitToken,
       })
       .subscribe({
         next: (project) => {
@@ -171,12 +212,67 @@ export class ProjectEditPageComponent {
           );
           this.saving.set(false);
           this.success.set('Project settings saved.');
+          this.loadRepoStatus(projectUuid);
         },
         error: (err) => {
           this.error.set(apiErrorMessage(err));
           this.saving.set(false);
         },
       });
+  }
+
+  protected syncRepository(): void {
+    const projectUuid = this.projectUuid();
+    if (!projectUuid || this.syncing()) {
+      return;
+    }
+
+    this.syncing.set(true);
+    this.error.set(null);
+    this.success.set(null);
+
+    this.projectsService.syncRepo(projectUuid).subscribe({
+      next: (status) => {
+        this.repoStatus.set(status);
+        this.syncing.set(false);
+        this.success.set('Repository synced successfully.');
+      },
+      error: (err) => {
+        this.error.set(apiErrorMessage(err));
+        this.syncing.set(false);
+      },
+    });
+  }
+
+  protected desyncRepository(): void {
+    const projectUuid = this.projectUuid();
+    const repo = this.repoStatus();
+    if (!projectUuid || !repo?.cloned || this.desyncing()) {
+      return;
+    }
+
+    const confirmed = confirm(
+      'Remove the local clone for this project? Git settings are kept so you can sync again later.',
+    );
+    if (!confirmed) {
+      return;
+    }
+
+    this.desyncing.set(true);
+    this.error.set(null);
+    this.success.set(null);
+
+    this.projectsService.desyncRepo(projectUuid).subscribe({
+      next: (status) => {
+        this.repoStatus.set(status);
+        this.desyncing.set(false);
+        this.success.set('Local clone removed.');
+      },
+      error: (err) => {
+        this.error.set(apiErrorMessage(err));
+        this.desyncing.set(false);
+      },
+    });
   }
 
   protected cancel(): void {

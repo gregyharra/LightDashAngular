@@ -72,6 +72,21 @@ def test_dbt_tree_from_local_dbt_artifacts(client: TestClient) -> None:
     top_names = {folder["name"] for folder in root}
     assert {"models", "seeds", "sources"}.issubset(top_names)
 
+    models_folder = next(folder for folder in root if folder["name"] == "models")
+    model_child_names = {child["name"] for child in models_folder["children"]}
+    assert "models" not in model_child_names
+    assert {"staging", "marts"}.issubset(model_child_names)
+
+    seeds_folder = next(folder for folder in root if folder["name"] == "seeds")
+    seed_child_names = {child["name"] for child in seeds_folder["children"]}
+    assert "seeds" not in seed_child_names
+    assert "country_codes" in seed_child_names
+
+    sources_folder = next(folder for folder in root if folder["name"] == "sources")
+    source_child_names = {child["name"] for child in sources_folder["children"]}
+    assert "sources" not in source_child_names
+    assert "raw" in source_child_names
+
 
 def test_explores_from_local_dbt_artifacts(client: TestClient) -> None:
     response = client.get(f"/api/v1/projects/{MOCK_PROJECT_UUID}/explores")
@@ -95,6 +110,40 @@ def test_refresh_reloads_artifacts(client: TestClient) -> None:
     response = client.post(f"/api/v1/projects/{MOCK_PROJECT_UUID}/refresh")
     assert response.status_code == 200
     assert response.json()["results"]["jobUuid"]
+
+
+def test_dbt_tree_falls_back_to_env_path_when_project_path_has_no_artifacts(
+    client: TestClient,
+    tmp_path: Path,
+) -> None:
+    import uuid as uuid_lib
+
+    from mds.db.models import Project
+    from mds.db.session import SessionLocal
+
+    empty_dbt_dir = tmp_path / "empty-clone"
+    empty_dbt_dir.mkdir()
+    (empty_dbt_dir / "dbt_project.yml").write_text("name: sample\nversion: 1.0.0\n", encoding="utf-8")
+
+    create = client.post("/api/v1/projects", json={"name": "Clone path without artifacts"})
+    assert create.status_code == 200
+    project_uuid = create.json()["results"]["projectUuid"]
+
+    db = SessionLocal()
+    try:
+        project = db.get(Project, uuid_lib.UUID(project_uuid))
+        assert project is not None
+        project.dbt_project_path = str(empty_dbt_dir)
+        db.commit()
+    finally:
+        db.close()
+
+    clear_dbt_artifacts_cache()
+    response = client.get(f"/api/v1/projects/{project_uuid}/dbt-tree")
+    assert response.status_code == 200
+    root = response.json()["results"]["root"]
+    top_names = {folder["name"] for folder in root}
+    assert {"models", "seeds", "sources"}.issubset(top_names)
 
 
 def test_missing_manifest_returns_helpful_error(client: TestClient, monkeypatch: pytest.MonkeyPatch) -> None:

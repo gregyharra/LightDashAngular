@@ -1,6 +1,6 @@
 import uuid as uuid_lib
 
-from fastapi import APIRouter, Depends, HTTPException, Query
+from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
 from mds.api.envelope import ok
@@ -8,30 +8,19 @@ from mds.db.models import Project, Space, User, Warehouse
 from mds.db.seed import MOCK_USER_UUID
 from mds.db.session import get_db
 from mds.schemas.project import ProjectCreate, ProjectUpdate
+from mds.services.project.git import (
+    GitRepoError,
+    desync_project_repo,
+    get_repo_status,
+    sync_project_repo,
+)
+from mds.services.project.helpers import (
+    apply_git_fields_on_create,
+    apply_git_fields_on_update,
+    project_payload,
+)
 
 router = APIRouter(tags=["platform"])
-
-
-def _format_dt(value) -> str:
-    return value.isoformat().replace("+00:00", "Z")
-
-
-def _project_payload(project: Project, warehouse: Warehouse | None = None) -> dict:
-    return {
-        "projectUuid": str(project.uuid),
-        "name": project.name,
-        "type": "DEFAULT",
-        "createdByUserUuid": str(project.created_by_user_uuid)
-        if project.created_by_user_uuid
-        else None,
-        "createdByUserName": "Demo Analyst" if project.created_by_user_uuid else None,
-        "createdAt": _format_dt(project.created_at),
-        "upstreamProjectUuid": None,
-        "warehouseType": project.warehouse_type,
-        "warehouseUuid": str(project.warehouse_uuid) if project.warehouse_uuid else None,
-        "warehouseName": warehouse.name if warehouse else None,
-        "expiresAt": None,
-    }
 
 
 def _get_project_or_404(db: Session, project_uuid: str) -> Project:
@@ -46,8 +35,14 @@ def _get_project_or_404(db: Session, project_uuid: str) -> Project:
     return project
 
 
+def _warehouse_for_project(db: Session, project: Project) -> Warehouse | None:
+    if not project.warehouse_uuid:
+        return None
+    return db.get(Warehouse, project.warehouse_uuid)
+
+
 @router.get("/health")
-def health(skip_migration_check: bool = Query(True, alias="skipMigrationCheck")):
+def health(skip_migration_check: bool = True):
     del skip_migration_check
     return ok(
         {
@@ -116,7 +111,7 @@ def list_projects(db: Session = Depends(get_db)):
 
     return ok(
         [
-            _project_payload(project, warehouses.get(project.warehouse_uuid))
+            project_payload(project, warehouses.get(project.warehouse_uuid))
             for project in projects
         ]
     )
@@ -152,6 +147,8 @@ def create_project(body: ProjectCreate, db: Session = Depends(get_db)):
         warehouse_uuid=warehouse_uuid,
         created_by_user_uuid=user.uuid if user else None,
     )
+    apply_git_fields_on_create(project, body)
+
     space = Space(
         uuid=uuid_lib.uuid4(),
         project_uuid=project.uuid,
@@ -163,16 +160,13 @@ def create_project(body: ProjectCreate, db: Session = Depends(get_db)):
     db.commit()
     db.refresh(project)
 
-    return ok(_project_payload(project, warehouse))
+    return ok(project_payload(project, warehouse))
 
 
 @router.get("/projects/{project_uuid}")
 def get_project(project_uuid: str, db: Session = Depends(get_db)):
     project = _get_project_or_404(db, project_uuid)
-    warehouse = None
-    if project.warehouse_uuid:
-        warehouse = db.get(Warehouse, project.warehouse_uuid)
-    return ok(_project_payload(project, warehouse))
+    return ok(project_payload(project, _warehouse_for_project(db, project)))
 
 
 @router.patch("/projects/{project_uuid}")
@@ -203,13 +197,40 @@ def update_project(
                 raise HTTPException(status_code=404, detail="Warehouse not found")
             project.warehouse_uuid = warehouse_id
 
+    apply_git_fields_on_update(project, body)
+
     db.commit()
     db.refresh(project)
 
-    warehouse = None
-    if project.warehouse_uuid:
-        warehouse = db.get(Warehouse, project.warehouse_uuid)
-    return ok(_project_payload(project, warehouse))
+    return ok(project_payload(project, _warehouse_for_project(db, project)))
+
+
+@router.get("/projects/{project_uuid}/repo")
+def get_project_repo(project_uuid: str, db: Session = Depends(get_db)):
+    project = _get_project_or_404(db, project_uuid)
+    return ok(get_repo_status(project))
+
+
+@router.post("/projects/{project_uuid}/sync")
+def sync_project_repository(project_uuid: str, db: Session = Depends(get_db)):
+    project = _get_project_or_404(db, project_uuid)
+    try:
+        status = sync_project_repo(project)
+    except GitRepoError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+
+    db.commit()
+    db.refresh(project)
+    return ok(status)
+
+
+@router.post("/projects/{project_uuid}/desync")
+def desync_project_repository(project_uuid: str, db: Session = Depends(get_db)):
+    project = _get_project_or_404(db, project_uuid)
+    status = desync_project_repo(project)
+    db.commit()
+    db.refresh(project)
+    return ok(status)
 
 
 @router.get("/projects/{project_uuid}/spaces")

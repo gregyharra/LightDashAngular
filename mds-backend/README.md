@@ -17,6 +17,16 @@ Start PostgreSQL from the repo root:
 docker compose up -d postgres
 ```
 
+### Browse the database (dev only)
+
+From the repo root, start pgweb (Docker Compose `dev` profile — not for production):
+
+```bash
+docker compose --profile dev up -d pgweb
+```
+
+Open **http://localhost:8081** to browse tables, row counts, and run SQL against the local `mds` database.
+
 Run the API:
 
 ```bash
@@ -38,6 +48,10 @@ Alternatively, set `SEED_DEMO_DATA=true` in `.env` to seed automatically on star
 | GET | `/api/v1/health` | Bootstrap health check |
 | GET | `/api/v1/user` | Current user stub |
 | GET | `/api/v1/projects` | Project list |
+| GET/POST/PATCH | `/api/v1/projects/{uuid}` | Get / create / update (includes Git repo config) |
+| GET | `/api/v1/projects/{uuid}/repo` | Repository clone/sync status |
+| POST | `/api/v1/projects/{uuid}/sync` | Clone or pull the configured Git repository |
+| POST | `/api/v1/projects/{uuid}/desync` | Remove local clone; keep Git config |
 | GET | `/api/v1/projects/{uuid}/spaces` | Spaces for project |
 | GET/POST | `/api/v1/projects/{uuid}/dashboards` | List / create |
 | GET/PATCH | `/api/v2/projects/{uuid}/dashboards/{uuid}` | Get / update |
@@ -72,9 +86,34 @@ dbt docs generate
 
 3. Restart the backend (or call `POST /projects/{uuid}/refresh` to reload without restart).
 
-**Per-project override:** set `dbt_project_path` on a row in the `projects` table (nullable). When set, it overrides `DBT_PROJECT_PATH` for that project only.
-
 **Custom artifact location:** set `DBT_ARTIFACTS_PATH` if `manifest.json` is not in `{DBT_PROJECT_PATH}/target`.
+
+## Git-backed projects (dev MVP)
+
+Projects can point at a Git repository (GitHub, GitLab, Bitbucket, or any HTTPS remote). Configure via the API or the project settings UI:
+
+```json
+POST /api/v1/projects
+{
+  "name": "Acme Analytics",
+  "gitRepoUrl": "https://github.com/acme/dbt-transform.git",
+  "gitDefaultBranch": "main",
+  "gitProvider": "github",
+  "gitSubdirectory": "transform",
+  "gitToken": "ghp_..."
+}
+```
+
+Clone or update the repo locally:
+
+```bash
+POST /api/v1/projects/{uuid}/sync
+GET  /api/v1/projects/{uuid}/repo
+```
+
+Cloned repositories are stored under `PROJECTS_DATA_DIR` (default: `.data/projects/{projectUuid}/repo`). After sync, `dbt_project_path` on the project is set automatically (including `gitSubdirectory` for monorepos). Semantic endpoints (`/lineage`, `/explores`, etc.) read artifacts from that path.
+
+**Per-project filesystem override:** set `dbt_project_path` on a row in the `projects` table (nullable). When set, it overrides both `DBT_PROJECT_PATH` and the cloned repo path for that project only.
 
 ## Tests
 

@@ -461,14 +461,28 @@ def _tree_folder(name: str, path: str, children: list[dict[str, Any]]) -> dict[s
     }
 
 
-def _insert_tree_path(root: dict[str, dict[str, Any]], parts: list[str], leaf: dict[str, Any]) -> None:
+def _relative_tree_parts(dbt_path: str, root_name: str) -> list[str]:
+    parts = dbt_path.split("/")
+    if parts and parts[0] == root_name:
+        return parts[1:]
+    return parts
+
+
+def _insert_tree_path(
+    root: dict[str, dict[str, Any]],
+    parts: list[str],
+    leaf: dict[str, Any],
+    *,
+    path_prefix: str = "",
+) -> None:
     if not parts:
         return
     current = root
     built: list[str] = []
     for index, part in enumerate(parts):
         built.append(part)
-        path = "/".join(built)
+        relative = "/".join(built)
+        path = f"{path_prefix}/{relative}" if path_prefix else relative
         is_last = index == len(parts) - 1
         if is_last:
             current[path] = leaf
@@ -507,19 +521,19 @@ def build_project_dbt_tree(
 
         if resource_type == "model":
             dbt_path = _dbt_path(node) or f"models/{name}.sql"
-            parts = dbt_path.split("/")
+            parts = _relative_tree_parts(dbt_path, "models")
             leaf = _tree_leaf(name, dbt_path, "model", node_id, description)
-            _insert_tree_path(models_root, parts, leaf)
+            _insert_tree_path(models_root, parts, leaf, path_prefix="models")
         elif resource_type == "seed":
             dbt_path = _dbt_path(node) or f"seeds/{name}.csv"
-            parts = dbt_path.split("/")
+            parts = _relative_tree_parts(dbt_path, "seeds")
             leaf = _tree_leaf(name, dbt_path, "seed", node_id, description)
-            _insert_tree_path(seeds_root, parts, leaf)
+            _insert_tree_path(seeds_root, parts, leaf, path_prefix="seeds")
         elif resource_type == "source":
             dbt_path = _dbt_path(node) or f"sources/{name}"
-            parts = dbt_path.split("/")
+            parts = _relative_tree_parts(dbt_path, "sources")
             leaf = _tree_leaf(name, dbt_path, "source", node_id, description)
-            _insert_tree_path(sources_root, parts, leaf)
+            _insert_tree_path(sources_root, parts, leaf, path_prefix="sources")
 
     root: list[dict[str, Any]] = []
     if models_root:

@@ -19,6 +19,7 @@ from mds.services.dbt.parse import (
     build_project_lineage,
     find_lineage_node,
 )
+from mds.services.project.git import resolve_project_dbt_path
 
 router = APIRouter(tags=["semantic"])
 
@@ -34,7 +35,7 @@ def _load_project(db: Session, project_uuid: str) -> Project:
 def _load_lineage_context(db: Session, project_uuid: str) -> tuple[Project, dict]:
     project = _load_project(db, project_uuid)
     try:
-        artifacts = get_dbt_artifacts(project.dbt_project_path)
+        artifacts = get_dbt_artifacts(resolve_project_dbt_path(project))
     except DbtProjectNotConfigured as exc:
         raise HTTPException(status_code=503, detail=str(exc)) from exc
     except DbtArtifactsNotFound as exc:
@@ -59,7 +60,7 @@ def get_project_lineage(project_uuid: str, db: Session = Depends(get_db)):
 def get_project_dbt_tree(project_uuid: str, db: Session = Depends(get_db)):
     project = _load_project(db, project_uuid)
     try:
-        artifacts = get_dbt_artifacts(project.dbt_project_path)
+        artifacts = get_dbt_artifacts(resolve_project_dbt_path(project))
     except DbtProjectNotConfigured as exc:
         raise HTTPException(status_code=503, detail=str(exc)) from exc
     except DbtArtifactsNotFound as exc:
@@ -93,7 +94,7 @@ def refresh_dbt_artifacts(project_uuid: str, db: Session = Depends(get_db)):
     project = _load_project(db, project_uuid)
     clear_dbt_artifacts_cache()
     try:
-        get_dbt_artifacts(project.dbt_project_path)
+        get_dbt_artifacts(resolve_project_dbt_path(project))
     except DbtProjectNotConfigured as exc:
         raise HTTPException(status_code=503, detail=str(exc)) from exc
     except DbtArtifactsNotFound as exc:

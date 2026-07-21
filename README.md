@@ -16,6 +16,8 @@ Monorepo for the MDS (Metadata & Data Services) platform.
 
 ```bash
 docker compose up -d postgres
+# optional: browser DB viewer (dev profile) — http://localhost:8081
+# docker compose --profile dev up -d pgweb
 cd mds-backend
 python -m venv .venv && source .venv/bin/activate
 pip install -e ".[dev]"
@@ -44,6 +46,19 @@ Open http://localhost:4200/projects
 4. Start backend + frontend
 
 Lineage, Tables tree, and explores load from `{DBT_PROJECT_PATH}/target/manifest.json` — no Git required.
+
+## Database browser (local dev)
+
+Inspect PostgreSQL tables and run read-only queries in the browser with [pgweb](https://github.com/sosedoff/pgweb). The service is behind the Docker Compose `dev` profile and is not started by default.
+
+```bash
+docker compose up -d postgres
+docker compose --profile dev up -d pgweb
+```
+
+Open **http://localhost:8081** — connects to `mds` / `mds@localhost:5432/mds` via the internal Docker network.
+
+Stop when done: `docker compose --profile dev stop pgweb`
 
 ## Documentation
 

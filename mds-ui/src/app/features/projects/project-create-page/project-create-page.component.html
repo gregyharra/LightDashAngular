@@ -80,6 +80,79 @@
               </p>
             }
 
+            <div class="project-create__section">
+              <h2 class="project-create__section-title">Git repository</h2>
+              <p class="project-create__hint">
+                Optional. Point this project at a dbt repo to clone locally for semantic layer
+                artifacts.
+              </p>
+
+              <mat-form-field appearance="outline" class="project-create__field">
+                <mat-label>Repository URL</mat-label>
+                <input
+                  matInput
+                  name="gitRepoUrl"
+                  [(ngModel)]="gitRepoUrl"
+                  placeholder="https://github.com/org/dbt-project.git"
+                  autocomplete="off"
+                  [disabled]="submitting()"
+                />
+              </mat-form-field>
+
+              <div class="project-create__repo-row">
+                <mat-form-field appearance="outline" class="project-create__field">
+                  <mat-label>Provider</mat-label>
+                  <mat-select
+                    name="gitProvider"
+                    [(ngModel)]="gitProvider"
+                    [disabled]="submitting()"
+                  >
+                    <mat-option [value]="null">Auto-detect</mat-option>
+                    @for (provider of gitProviders; track provider.value) {
+                      <mat-option [value]="provider.value">{{ provider.label }}</mat-option>
+                    }
+                  </mat-select>
+                </mat-form-field>
+
+                <mat-form-field appearance="outline" class="project-create__field">
+                  <mat-label>Default branch</mat-label>
+                  <input
+                    matInput
+                    name="gitDefaultBranch"
+                    [(ngModel)]="gitDefaultBranch"
+                    autocomplete="off"
+                    [disabled]="submitting()"
+                  />
+                </mat-form-field>
+              </div>
+
+              <mat-form-field appearance="outline" class="project-create__field">
+                <mat-label>Subdirectory (monorepo)</mat-label>
+                <input
+                  matInput
+                  name="gitSubdirectory"
+                  [(ngModel)]="gitSubdirectory"
+                  placeholder="transform"
+                  autocomplete="off"
+                  [disabled]="submitting()"
+                />
+                <mat-hint>Path to the dbt project within the repository, if not at the root.</mat-hint>
+              </mat-form-field>
+
+              <mat-form-field appearance="outline" class="project-create__field">
+                <mat-label>Access token</mat-label>
+                <input
+                  matInput
+                  type="password"
+                  name="gitToken"
+                  [(ngModel)]="gitToken"
+                  autocomplete="new-password"
+                  [disabled]="submitting()"
+                />
+                <mat-hint>For private repositories. Stored encrypted on the server.</mat-hint>
+              </mat-form-field>
+            </div>
+
             @if (error()) {
               <div class="project-create__error">{{ error() }}</div>
             }

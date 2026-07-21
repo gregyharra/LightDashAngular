@@ -50,6 +50,13 @@ class Project(Base):
         Uuid, ForeignKey("warehouses.uuid"), nullable=True
     )
     dbt_project_path: Mapped[str | None] = mapped_column(String(1024), nullable=True)
+    git_repo_url: Mapped[str | None] = mapped_column(String(1024), nullable=True)
+    git_default_branch: Mapped[str] = mapped_column(String(255), default="main", nullable=False)
+    git_provider: Mapped[str | None] = mapped_column(String(50), nullable=True)
+    git_subdirectory: Mapped[str | None] = mapped_column(String(1024), nullable=True)
+    encrypted_git_token: Mapped[str | None] = mapped_column(Text, nullable=True)
+    git_last_sync_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    git_last_commit_sha: Mapped[str | None] = mapped_column(String(64), nullable=True)
     created_by_user_uuid: Mapped[uuid_lib.UUID | None] = mapped_column(
         Uuid, ForeignKey("users.uuid"), nullable=True
     )
@@ -66,6 +73,32 @@ class Space(Base):
     name: Mapped[str] = mapped_column(String(255), nullable=False)
     is_private: Mapped[bool] = mapped_column(Boolean, default=False)
     parent_space_uuid: Mapped[uuid_lib.UUID | None] = mapped_column(Uuid, nullable=True)
+
+
+class SavedChart(Base):
+    __tablename__ = "saved_charts"
+
+    uuid: Mapped[uuid_lib.UUID] = mapped_column(Uuid, primary_key=True)
+    project_uuid: Mapped[uuid_lib.UUID] = mapped_column(
+        Uuid, ForeignKey("projects.uuid"), nullable=False
+    )
+    space_uuid: Mapped[uuid_lib.UUID] = mapped_column(Uuid, ForeignKey("spaces.uuid"))
+    name: Mapped[str] = mapped_column(String(255), nullable=False)
+    description: Mapped[str | None] = mapped_column(Text, nullable=True)
+    chart_kind: Mapped[str] = mapped_column(String(50), nullable=False)
+    table_name: Mapped[str] = mapped_column(String(255), nullable=False)
+    metric_query: Mapped[dict] = mapped_column(JSON, default=dict)
+    chart_config: Mapped[dict] = mapped_column(JSON, default=dict)
+    views: Mapped[int] = mapped_column(Integer, default=0)
+    first_viewed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now(), onupdate=func.now()
+    )
+    updated_by_user_uuid: Mapped[uuid_lib.UUID | None] = mapped_column(Uuid, ForeignKey("users.uuid"))
+    is_private: Mapped[bool] = mapped_column(Boolean, default=False)
+    access: Mapped[list] = mapped_column(JSON, default=list)
+    pinned_list_uuid: Mapped[uuid_lib.UUID | None] = mapped_column(Uuid, nullable=True)
+    pinned_list_order: Mapped[int | None] = mapped_column(Integer, nullable=True)
 
 
 class Dashboard(Base):

@@ -15,6 +15,18 @@ services:
       timeout: 5s
       retries: 5
 
+  pgweb:
+    image: sosedoff/pgweb:latest
+    environment:
+      PGWEB_DATABASE_URL: postgres://mds:mds@postgres:5432/mds?sslmode=disable
+    ports:
+      - "8081:8081"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    profiles:
+      - dev
+
   minio:
     image: minio/minio:latest
     command: server /data --console-address ":9001"

@@ -55,6 +55,34 @@ def test_create_project_minimal(client: TestClient) -> None:
         db.close()
 
 
+def test_create_project_without_users_in_db(client: TestClient) -> None:
+    """Project creation must work when no users exist (empty dev DB)."""
+    from mds.db.models import User
+
+    db = SessionLocal()
+    try:
+        db.query(User).delete()
+        db.commit()
+        assert db.query(User).count() == 0
+    finally:
+        db.close()
+
+    response = client.post("/api/v1/projects", json={"name": "Empty DB Project"})
+    assert response.status_code == 200
+    created = response.json()["results"]
+    assert created["name"] == "Empty DB Project"
+    assert created["createdByUserUuid"] is None
+    assert created["createdByUserName"] is None
+
+    db = SessionLocal()
+    try:
+        project = db.get(Project, uuid_lib.UUID(created["projectUuid"]))
+        assert project is not None
+        assert project.created_by_user_uuid is None
+    finally:
+        db.close()
+
+
 def test_create_project_with_warehouse(client: TestClient) -> None:
     warehouse_resp = client.post(
         "/api/v1/warehouses",

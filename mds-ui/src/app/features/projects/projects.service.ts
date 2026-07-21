@@ -1,7 +1,11 @@
 import { Injectable, inject } from '@angular/core';
 import { Observable } from 'rxjs';
 import { LightdashApiService } from '../../core/api/lightdash-api.service';
-import { ProjectSummary } from '../../core/models/project.model';
+import {
+  GitProvider,
+  ProjectRepoStatus,
+  ProjectSummary,
+} from '../../core/models/project.model';
 
 export interface ProjectDetail extends ProjectSummary {
   warehouseUuid?: string | null;
@@ -11,11 +15,22 @@ export interface ProjectDetail extends ProjectSummary {
 export interface ProjectCreate {
   name: string;
   warehouseUuid?: string | null;
+  gitRepoUrl?: string | null;
+  gitDefaultBranch?: string;
+  gitProvider?: GitProvider | null;
+  gitSubdirectory?: string | null;
+  gitToken?: string | null;
 }
 
 export interface ProjectUpdate {
   name?: string;
   warehouseUuid?: string | null;
+  gitRepoUrl?: string | null;
+  gitDefaultBranch?: string;
+  gitProvider?: GitProvider | null;
+  gitSubdirectory?: string | null;
+  gitToken?: string | null;
+  clearGitToken?: boolean;
 }
 
 @Injectable({ providedIn: 'root' })
@@ -36,5 +51,17 @@ export class ProjectsService {
 
   update(projectUuid: string, body: ProjectUpdate): Observable<ProjectDetail> {
     return this.api.patch<ProjectDetail>(`/projects/${projectUuid}`, body);
+  }
+
+  getRepoStatus(projectUuid: string): Observable<ProjectRepoStatus> {
+    return this.api.get<ProjectRepoStatus>(`/projects/${projectUuid}/repo`);
+  }
+
+  syncRepo(projectUuid: string): Observable<ProjectRepoStatus> {
+    return this.api.post<ProjectRepoStatus>(`/projects/${projectUuid}/sync`, {});
+  }
+
+  desyncRepo(projectUuid: string): Observable<ProjectRepoStatus> {
+    return this.api.post<ProjectRepoStatus>(`/projects/${projectUuid}/desync`, {});
   }
 }

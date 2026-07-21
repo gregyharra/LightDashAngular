@@ -27,6 +27,15 @@ def _table_has_column(inspector, table: str, column: str) -> bool:
     return column in {col["name"] for col in inspector.get_columns(table)}
 
 
+def _column_is_not_null(inspector, table: str, column: str) -> bool:
+    if not _table_has_column(inspector, table, column):
+        return False
+    for col in inspector.get_columns(table):
+        if col["name"] == column:
+            return not col.get("nullable", True)
+    return False
+
+
 def _migrate_additive_schema() -> None:
     """Apply lightweight additive migrations for local dev databases."""
     inspector = inspect(engine)
@@ -54,6 +63,27 @@ def _migrate_additive_schema() -> None:
                 connection.execute(
                     text("ALTER TABLE projects ADD COLUMN warehouse_uuid UUID")
                 )
+
+        git_columns: list[tuple[str, str]] = [
+            ("git_repo_url", "VARCHAR(1024)"),
+            ("git_default_branch", "VARCHAR(255) DEFAULT 'main' NOT NULL"),
+            ("git_provider", "VARCHAR(50)"),
+            ("git_subdirectory", "VARCHAR(1024)"),
+            ("encrypted_git_token", "TEXT"),
+            ("git_last_sync_at", "TIMESTAMP WITH TIME ZONE"),
+            ("git_last_commit_sha", "VARCHAR(64)"),
+        ]
+        for column_name, column_type in git_columns:
+            if column_name not in project_columns:
+                if settings.database_url.startswith("sqlite"):
+                    sqlite_type = column_type.replace(" TIMESTAMP WITH TIME ZONE", "")
+                    connection.exec_driver_sql(
+                        f"ALTER TABLE projects ADD COLUMN {column_name} {sqlite_type}"
+                    )
+                else:
+                    connection.execute(
+                        text(f"ALTER TABLE projects ADD COLUMN {column_name} {column_type}")
+                    )
 
 
 def _migrate_remove_organizations() -> None:
@@ -101,6 +131,21 @@ def _migrate_remove_organizations() -> None:
 
         if is_sqlite:
             connection.exec_driver_sql("PRAGMA foreign_keys=ON")
+
+
+def _migrate_nullable_project_created_by() -> None:
+    """Allow projects without a creator user (dev / empty DB)."""
+    inspector = inspect(engine)
+    if not _column_is_not_null(inspector, "projects", "created_by_user_uuid"):
+        return
+
+    with engine.begin() as connection:
+        if settings.database_url.startswith("sqlite"):
+            # SQLite cannot drop NOT NULL in place; fresh tables from create_all are nullable.
+            return
+        connection.execute(
+            text("ALTER TABLE projects ALTER COLUMN created_by_user_uuid DROP NOT NULL")
+        )
 
 
 def _migrate_legacy_warehouse_connections() -> None:
@@ -160,6 +205,7 @@ def init_db() -> None:
     Base.metadata.create_all(bind=engine)
     _migrate_additive_schema()
     _migrate_remove_organizations()
+    _migrate_nullable_project_created_by()
     _migrate_legacy_warehouse_connections()
     if settings.database_url.startswith("sqlite"):
 

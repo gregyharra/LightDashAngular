@@ -45,6 +45,10 @@ class Settings(BaseSettings):
         default=None,
         description="Optional override for manifest/catalog directory.",
     )
+    projects_data_dir: str = Field(
+        default=".data/projects",
+        description="Local directory for cloned project repositories.",
+    )
     encryption_key: Optional[str] = Field(
         default=None,
         description="Fernet key for encrypting warehouse passwords at rest.",

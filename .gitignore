@@ -26,6 +26,7 @@ mds-backend/.pytest_cache
 mds-backend/.mypy_cache
 mds-backend/.env
 mds-backend/mds-dev.db
+mds-backend/.data/
 
 # mds-worker
 mds-worker/.venv

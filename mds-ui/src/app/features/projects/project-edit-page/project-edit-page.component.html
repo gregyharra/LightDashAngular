@@ -40,7 +40,7 @@
             <div>
               <h1 class="project-edit__title">Project settings</h1>
               <p class="project-edit__subtitle">
-                Update the project name and assign a warehouse connection.
+                Update the project name, warehouse connection, and Git repository settings.
               </p>
             </div>
           </div>
@@ -98,6 +98,134 @@
                 No warehouses exist yet. Create one to connect this project to Trino.
               </p>
             }
+
+            <div class="project-edit__section">
+              <div class="project-edit__section-header">
+                <h2 class="project-edit__section-title">Git repository</h2>
+                @if (repoStatus(); as repo) {
+                  <span
+                    class="project-edit__repo-badge"
+                    [class.project-edit__repo-badge--connected]="repo.cloned"
+                  >
+                    {{ repo.cloned ? 'Cloned' : repo.configured ? 'Configured' : 'Not configured' }}
+                  </span>
+                }
+              </div>
+
+              <mat-form-field appearance="outline" class="project-edit__field">
+                <mat-label>Repository URL</mat-label>
+                <input
+                  matInput
+                  name="gitRepoUrl"
+                  [(ngModel)]="gitRepoUrl"
+                  placeholder="https://github.com/org/dbt-project.git"
+                  autocomplete="off"
+                />
+              </mat-form-field>
+
+              <div class="project-edit__repo-row">
+                <mat-form-field appearance="outline" class="project-edit__field">
+                  <mat-label>Provider</mat-label>
+                  <mat-select name="gitProvider" [(ngModel)]="gitProvider">
+                    <mat-option [value]="null">Auto-detect</mat-option>
+                    @for (provider of gitProviders; track provider.value) {
+                      <mat-option [value]="provider.value">{{ provider.label }}</mat-option>
+                    }
+                  </mat-select>
+                </mat-form-field>
+
+                <mat-form-field appearance="outline" class="project-edit__field">
+                  <mat-label>Default branch</mat-label>
+                  <input
+                    matInput
+                    name="gitDefaultBranch"
+                    [(ngModel)]="gitDefaultBranch"
+                    autocomplete="off"
+                  />
+                </mat-form-field>
+              </div>
+
+              <mat-form-field appearance="outline" class="project-edit__field">
+                <mat-label>Subdirectory (monorepo)</mat-label>
+                <input
+                  matInput
+                  name="gitSubdirectory"
+                  [(ngModel)]="gitSubdirectory"
+                  placeholder="transform"
+                  autocomplete="off"
+                />
+              </mat-form-field>
+
+              <mat-form-field appearance="outline" class="project-edit__field">
+                <mat-label>Access token</mat-label>
+                <input
+                  matInput
+                  type="password"
+                  name="gitToken"
+                  [(ngModel)]="gitToken"
+                  autocomplete="new-password"
+                />
+                <mat-hint>
+                  @if (hasGitToken) {
+                    A token is saved. Leave blank to keep it, or check clear below.
+                  } @else {
+                    For private repositories. Stored encrypted on the server.
+                  }
+                </mat-hint>
+              </mat-form-field>
+
+              @if (hasGitToken) {
+                <label class="project-edit__checkbox">
+                  <input type="checkbox" name="clearGitToken" [(ngModel)]="clearGitToken" />
+                  Clear saved access token
+                </label>
+              }
+
+              @if (repoStatus(); as repo) {
+                <div class="project-edit__repo-status">
+                  <p><strong>Branch:</strong> {{ repo.branch || repo.defaultBranch || '—' }}</p>
+                  <p><strong>Commit:</strong> {{ repo.commitSha?.slice(0, 7) || '—' }}</p>
+                  <p>
+                    <strong>Last sync:</strong>
+                    {{ repo.lastSyncAt ? (repo.lastSyncAt | date: 'medium') : 'Never' }}
+                  </p>
+                  @if (repo.dbtProjectPath) {
+                    <p><strong>dbt path:</strong> {{ repo.dbtProjectPath }}</p>
+                  }
+                </div>
+              }
+
+              <div class="project-edit__repo-actions">
+                <button
+                  mat-stroked-button
+                  type="button"
+                  (click)="syncRepository()"
+                  [disabled]="syncing() || desyncing() || saving() || !gitRepoUrl.trim()"
+                >
+                  @if (syncing()) {
+                    Syncing…
+                  } @else {
+                    Sync repository
+                  }
+                </button>
+
+                @if (repoStatus()?.cloned) {
+                  <button
+                    mat-stroked-button
+                    type="button"
+                    class="project-edit__desync-btn"
+                    (click)="desyncRepository()"
+                    [disabled]="syncing() || desyncing() || saving()"
+                  >
+                    @if (desyncing()) {
+                      Removing…
+                    } @else {
+                      Remove local clone
+                    }
+                  </button>
+                }
+              </div>
+            </div>
 
             <div class="project-edit__actions">
               <button mat-stroked-button type="button" (click)="cancel()" [disabled]="saving()">

@@ -9,6 +9,7 @@ import { MatInputModule } from '@angular/material/input';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatSelectModule } from '@angular/material/select';
 import { apiErrorMessage } from '../../../core/api/lightdash-api.service';
+import { GitProvider } from '../../../core/models/project.model';
 import { WarehouseListItem } from '../../../core/models/warehouse.model';
 import { ActiveProjectService } from '../../../core/services/active-project.service';
 import { ResizableSidebarDirective } from '../../../layout/resizable-sidebar/resizable-sidebar.directive';
@@ -49,6 +50,18 @@ export class ProjectCreatePageComponent {
 
   protected name = '';
   protected selectedWarehouseUuid: string | null = null;
+  protected gitRepoUrl = '';
+  protected gitDefaultBranch = 'main';
+  protected gitProvider: GitProvider | null = null;
+  protected gitSubdirectory = '';
+  protected gitToken = '';
+
+  protected readonly gitProviders: { value: GitProvider; label: string }[] = [
+    { value: 'github', label: 'GitHub' },
+    { value: 'gitlab', label: 'GitLab' },
+    { value: 'bitbucket', label: 'Bitbucket' },
+    { value: 'generic', label: 'Generic HTTPS' },
+  ];
 
   constructor() {
     this.loadWarehouses();
@@ -116,6 +129,11 @@ export class ProjectCreatePageComponent {
       .create({
         name: trimmedName,
         warehouseUuid: this.selectedWarehouseUuid,
+        gitRepoUrl: this.gitRepoUrl.trim() || null,
+        gitDefaultBranch: this.gitDefaultBranch.trim() || 'main',
+        gitProvider: this.gitProvider,
+        gitSubdirectory: this.gitSubdirectory.trim() || null,
+        gitToken: this.gitToken.trim() || null,
       })
       .subscribe({
         next: (project) => {

@@ -12,6 +12,7 @@ from mds.db.session import SessionLocal, init_db
 from mds.routers.dashboards import router as dashboards_router
 from mds.routers.platform import router as platform_router
 from mds.routers.query import router as query_router
+from mds.routers.saved import router as saved_router
 from mds.routers.semantic import router as semantic_router
 from mds.routers.warehouse import router as warehouse_router
 
@@ -45,6 +46,8 @@ app.add_exception_handler(RequestValidationError, validation_exception_handler)
 app.include_router(platform_router, prefix="/api/v1")
 app.include_router(semantic_router, prefix="/api/v1")
 app.include_router(dashboards_router, prefix="/api/v1")
+app.include_router(saved_router, prefix="/api/v1")
 app.include_router(warehouse_router, prefix="/api/v1")
 app.include_router(query_router, prefix="/api/v2")
 app.include_router(dashboards_router, prefix="/api/v2")
+app.include_router(saved_router, prefix="/api/v2")
