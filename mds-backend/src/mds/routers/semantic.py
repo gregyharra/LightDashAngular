@@ -94,7 +94,7 @@ def refresh_dbt_artifacts(project_uuid: str, db: Session = Depends(get_db)):
     project = _load_project(db, project_uuid)
     clear_dbt_artifacts_cache()
     try:
-        get_dbt_artifacts(resolve_project_dbt_path(project))
+        get_dbt_artifacts(resolve_project_dbt_path(project), ensure_fresh=True)
     except DbtProjectNotConfigured as exc:
         raise HTTPException(status_code=503, detail=str(exc)) from exc
     except DbtArtifactsNotFound as exc:

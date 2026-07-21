@@ -8,7 +8,8 @@ from urllib.parse import urlparse, urlunparse
 
 from mds.config import settings
 from mds.db.models import Project
-from mds.services.dbt.loader import path_has_dbt_artifacts
+from mds.services.dbt.loader import clear_dbt_artifacts_cache, path_has_dbt_artifacts
+from mds.services.dbt.manifest import ensure_fresh_manifest_for_path
 from mds.services.encryption import decrypt_secret
 
 GIT_PROVIDERS = frozenset({"github", "gitlab", "bitbucket", "generic"})
@@ -58,11 +59,14 @@ def resolve_project_dbt_path(project: Project) -> str | None:
         if clone_path not in candidates:
             candidates.append(clone_path)
 
+    env_path = (settings.dbt_project_path or "").strip()
+    if env_path and env_path not in candidates:
+        candidates.append(env_path)
+
     for candidate in candidates:
         if path_has_dbt_artifacts(candidate):
             return candidate
 
-    # No artifacts at project-specific paths; let the loader fall back to DBT_PROJECT_PATH.
     return None
 
 
@@ -198,6 +202,10 @@ def sync_project_repo(project: Project) -> dict:
     project.dbt_project_path = _effective_clone_dbt_path(clone_dir, project.git_subdirectory)
     project.git_last_commit_sha = _current_commit(clone_dir)
     project.git_last_sync_at = datetime.now(timezone.utc)
+
+    if settings.auto_regenerate_manifest and project.dbt_project_path:
+        if ensure_fresh_manifest_for_path(project.dbt_project_path):
+            clear_dbt_artifacts_cache()
 
     return get_repo_status(project)
 

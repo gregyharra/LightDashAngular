@@ -14,6 +14,7 @@ def clean_settings_env(monkeypatch: pytest.MonkeyPatch) -> None:
         "SEED_DEMO_DATA",
         "DBT_PROJECT_PATH",
         "DBT_ARTIFACTS_PATH",
+        "AUTO_REGENERATE_MANIFEST",
         "ENCRYPTION_KEY",
     ):
         monkeypatch.delenv(key, raising=False)
@@ -27,6 +28,7 @@ def test_settings_defaults_without_env_file(clean_settings_env: None) -> None:
     assert settings.seed_demo_data is False
     assert settings.dbt_project_path == "../mds-transform"
     assert settings.dbt_artifacts_path is None
+    assert settings.auto_regenerate_manifest is False
     assert settings.encryption_key is None
     assert settings.effective_encryption_key == DEV_ENCRYPTION_KEY
     assert settings.cors_origin_list == ["http://localhost:4200"]

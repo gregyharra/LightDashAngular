@@ -72,11 +72,23 @@ def path_has_dbt_artifacts(project_path: str | Path) -> bool:
     return (resolve_artifacts_dir(path) / "manifest.json").is_file()
 
 
-def load_dbt_artifacts(project_path_override: str | None = None) -> DbtArtifacts:
+def load_dbt_artifacts(
+    project_path_override: str | None = None,
+    *,
+    ensure_fresh: bool | None = None,
+) -> DbtArtifacts:
     project_path = resolve_dbt_project_path(project_path_override)
     artifacts_dir = resolve_artifacts_dir(project_path)
     manifest_path = artifacts_dir / "manifest.json"
     catalog_path = artifacts_dir / "catalog.json"
+
+    should_ensure = (
+        ensure_fresh if ensure_fresh is not None else settings.auto_regenerate_manifest
+    )
+    if should_ensure:
+        from mds.services.dbt.manifest import ensure_fresh_manifest
+
+        ensure_fresh_manifest(project_path, artifacts_dir=artifacts_dir)
 
     if not manifest_path.is_file():
         raise DbtArtifactsNotFound(manifest_path)
@@ -112,8 +124,12 @@ def load_dbt_artifacts(project_path_override: str | None = None) -> DbtArtifacts
     return artifacts
 
 
-def get_dbt_artifacts(project_path_override: str | None = None) -> DbtArtifacts:
-    return load_dbt_artifacts(project_path_override)
+def get_dbt_artifacts(
+    project_path_override: str | None = None,
+    *,
+    ensure_fresh: bool | None = None,
+) -> DbtArtifacts:
+    return load_dbt_artifacts(project_path_override, ensure_fresh=ensure_fresh)
 
 
 def clear_dbt_artifacts_cache() -> None:

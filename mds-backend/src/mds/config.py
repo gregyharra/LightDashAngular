@@ -45,6 +45,13 @@ class Settings(BaseSettings):
         default=None,
         description="Optional override for manifest/catalog directory.",
     )
+    auto_regenerate_manifest: bool = Field(
+        default=False,
+        description=(
+            "When true, regenerate manifest.json from project sources when stale "
+            "(before semantic API reads and after Git sync)."
+        ),
+    )
     projects_data_dir: str = Field(
         default=".data/projects",
         description="Local directory for cloned project repositories.",

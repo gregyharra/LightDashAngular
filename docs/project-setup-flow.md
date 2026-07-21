@@ -114,6 +114,13 @@ A project with no Git and no per-project path shares the global dev dbt director
 
 Artifacts are read from `{dbt_project_path}/target/` (or `DBT_ARTIFACTS_PATH` if set). Missing `manifest.json` → **503** with a message to run `dbt compile` and `dbt docs generate`.
 
+**Manifest freshness:** the backend caches loaded artifacts in memory keyed by project path and `manifest.json` / `catalog.json` mtimes. If project source files (`.sql`, `.yml`, `dbt_project.yml`, etc.) are newer than `manifest.json`, the manifest is considered stale. Stale manifests are auto-regenerated when:
+
+- `AUTO_REGENERATE_MANIFEST=true` in `mds-backend/.env` (recommended for local dev with `mds-transform`), before each semantic API read and after Git sync
+- `POST /api/v1/projects/{uuid}/refresh` is called (always checks staleness, even when the flag is off)
+
+Regeneration tries `{dbt_project_path}/scripts/generate_manifest.py` first (dev shortcut for `mds-transform`), then `dbt parse` if `dbt` is on `PATH`. Otherwise run `dbt compile` manually or call refresh after updating artifacts.
+
 **Per-project override:** set `dbt_project_path` on the project row (via sync or direct DB edit) to point at a specific directory, overriding the global env var.
 
 ---
@@ -213,7 +220,8 @@ Tokens and warehouse passwords are encrypted at rest; raw tokens are not returne
 | **Sync repository** | Git-backed projects | Create does not clone; use project settings → "Sync repository" or `POST .../sync` |
 | **Remove local clone** | Synced Git projects | Keeps Git settings; clears clone and sync metadata via `POST .../desync` |
 | **`dbt deps && dbt compile && dbt docs generate`** | Always, for lineage/explores | Backend reads artifacts; sync only fetches source |
-| **`POST /api/v1/projects/{uuid}/refresh`** | After new/changed artifacts | Clears in-memory cache and reloads from disk |
+| **Set `AUTO_REGENERATE_MANIFEST=true`** | Local dev (`mds-transform`) | Auto-regenerates stale manifest from source on semantic reads |
+| **`POST /api/v1/projects/{uuid}/refresh`** | After new/changed source or artifacts | Clears cache, regenerates if stale, reloads from disk |
 | **Restart backend** | Alternative to refresh | Same effect for artifact cache |
 
 **Not implemented yet:** `mds-worker` (planned Phase B5) would automate clone → compile → upload. Today that is manual.
