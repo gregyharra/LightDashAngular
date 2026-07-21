@@ -70,6 +70,7 @@ export class ProjectCreatePageComponent {
   protected openCreateWarehouseDialog(): void {
     const dialogRef = this.dialog.open(WarehouseCreateDialogComponent, {
       width: '720px',
+      panelClass: 'warehouse-create-dialog-panel',
       data: {
         suggestedName: this.name ? `${this.name} warehouse` : undefined,
       },

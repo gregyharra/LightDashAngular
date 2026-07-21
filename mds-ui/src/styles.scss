@@ -60,3 +60,21 @@ strong {
 .page__container--wide {
   max-width: min(var(--ld-page-content-max-width-large), 100%);
 }
+
+// Firefox: Material dialog content can collapse to zero height inside flex containers.
+.warehouse-create-dialog-panel .mat-mdc-dialog-content {
+  display: block;
+  flex: 0 1 auto;
+  min-height: 0;
+  max-height: min(80vh, 900px);
+  overflow-x: hidden;
+  overflow-y: auto;
+}
+
+@supports (-moz-appearance: none) {
+  .warehouse-create-dialog-panel .mat-mdc-dialog-content {
+    flex: none;
+    max-height: none;
+    overflow: visible;
+  }
+}

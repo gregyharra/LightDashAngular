@@ -1,0 +1,26 @@
+:host {
+  display: block;
+}
+
+.warehouse-create-dialog__content {
+  display: block;
+  flex: 0 1 auto;
+  min-width: min(680px, 90vw);
+  min-height: 0;
+  max-height: min(80vh, 900px);
+  overflow-x: hidden;
+  overflow-y: auto;
+  padding-top: var(--ld-spacing-xs);
+
+  // Firefox collapses flex-item dialog content without an explicit block size.
+  @supports (-moz-appearance: none) {
+    flex: none;
+    max-height: none;
+    overflow: visible;
+  }
+}
+
+.warehouse-create-dialog__content app-warehouse-form {
+  display: block;
+  width: 100%;
+}

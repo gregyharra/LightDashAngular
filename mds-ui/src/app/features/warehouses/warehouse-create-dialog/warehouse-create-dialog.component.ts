@@ -16,7 +16,7 @@ export type WarehouseCreateDialogData = {
   imports: [MatDialogModule, WarehouseFormComponent],
   template: `
     <h2 mat-dialog-title>Create warehouse</h2>
-    <mat-dialog-content>
+    <mat-dialog-content class="warehouse-create-dialog__content">
       <app-warehouse-form
         mode="create"
         [compact]="true"
@@ -25,6 +25,7 @@ export type WarehouseCreateDialogData = {
       />
     </mat-dialog-content>
   `,
+  styleUrl: './warehouse-create-dialog.component.scss',
 })
 export class WarehouseCreateDialogComponent {
   private readonly dialogRef = inject(
