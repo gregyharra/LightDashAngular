@@ -1,4 +1,4 @@
-export type OrganizationProject = {
+export type ProjectSummary = {
   projectUuid: string;
   name: string;
   type: string;

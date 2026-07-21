@@ -1,9 +1,9 @@
 import { Injectable, inject } from '@angular/core';
 import { Observable } from 'rxjs';
 import { LightdashApiService } from '../../core/api/lightdash-api.service';
-import { OrganizationProject } from '../../core/models/organization.model';
+import { ProjectSummary } from '../../core/models/project.model';
 
-export interface ProjectDetail extends OrganizationProject {
+export interface ProjectDetail extends ProjectSummary {
   warehouseUuid?: string | null;
   warehouseName?: string | null;
 }
@@ -22,12 +22,12 @@ export interface ProjectUpdate {
 export class ProjectsService {
   private readonly api = inject(LightdashApiService);
 
-  list(): Observable<OrganizationProject[]> {
-    return this.api.get<OrganizationProject[]>('/org/projects');
+  list(): Observable<ProjectSummary[]> {
+    return this.api.get<ProjectSummary[]>('/projects');
   }
 
   create(body: ProjectCreate): Observable<ProjectDetail> {
-    return this.api.post<ProjectDetail>('/org/projects', body);
+    return this.api.post<ProjectDetail>('/projects', body);
   }
 
   get(projectUuid: string): Observable<ProjectDetail> {

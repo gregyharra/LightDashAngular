@@ -6,7 +6,13 @@ from typing import Any
 from sqlalchemy.orm import Session
 
 from mds.db.models import Project, Warehouse
-from mds.schemas.warehouse import WarehouseCreate, WarehouseListItem, WarehouseResponse, WarehouseUpdate
+from mds.schemas.warehouse import (
+    WarehouseCreate,
+    WarehouseListItem,
+    WarehouseResponse,
+    WarehouseTestConnection,
+    WarehouseUpdate,
+)
 from mds.services.encryption import decrypt_secret, encrypt_secret
 
 
@@ -17,7 +23,6 @@ def _format_dt(value) -> str:
 def _to_response(warehouse: Warehouse) -> WarehouseResponse:
     return WarehouseResponse(
         warehouseUuid=str(warehouse.uuid),
-        organizationUuid=str(warehouse.organization_uuid),
         name=warehouse.name,
         type=warehouse.type,
         host=warehouse.host,
@@ -47,13 +52,8 @@ def _to_list_item(warehouse: Warehouse) -> WarehouseListItem:
     )
 
 
-def list_warehouses(db: Session, organization_uuid: uuid_lib.UUID) -> list[WarehouseListItem]:
-    rows = (
-        db.query(Warehouse)
-        .filter(Warehouse.organization_uuid == organization_uuid)
-        .order_by(Warehouse.name.asc())
-        .all()
-    )
+def list_warehouses(db: Session) -> list[WarehouseListItem]:
+    rows = db.query(Warehouse).order_by(Warehouse.name.asc()).all()
     return [_to_list_item(row) for row in rows]
 
 
@@ -63,12 +63,10 @@ def get_warehouse(db: Session, warehouse_uuid: uuid_lib.UUID) -> Warehouse | Non
 
 def create_warehouse(
     db: Session,
-    organization_uuid: uuid_lib.UUID,
     body: WarehouseCreate,
 ) -> WarehouseResponse:
     warehouse = Warehouse(
         uuid=uuid_lib.uuid4(),
-        organization_uuid=organization_uuid,
         name=body.name,
         type=body.type,
         host=body.host,
@@ -132,10 +130,6 @@ def get_connection_for_project(db: Session, project: Project) -> Warehouse | Non
     if not project.warehouse_uuid:
         return None
     warehouse = db.get(Warehouse, project.warehouse_uuid)
-    if warehouse is None:
-        return None
-    if warehouse.organization_uuid != project.organization_uuid:
-        return None
     return warehouse
 
 
@@ -145,17 +139,58 @@ def get_decrypted_password(warehouse: Warehouse) -> str | None:
     return decrypt_secret(warehouse.encrypted_password)
 
 
+def credentials_to_trino_kwargs(
+    *,
+    host: str,
+    port: int,
+    user: str,
+    password: str | None,
+    catalog: str,
+    schema_name: str,
+    ssl: bool,
+) -> dict[str, Any]:
+    return {
+        "host": host,
+        "port": port,
+        "user": user,
+        "catalog": catalog,
+        "schema": schema_name,
+        "http_scheme": "https" if ssl else "http",
+        "auth": None if password is None else _build_basic_auth(user, password),
+    }
+
+
 def warehouse_to_trino_kwargs(warehouse: Warehouse) -> dict[str, Any]:
     password = get_decrypted_password(warehouse)
-    return {
-        "host": warehouse.host,
-        "port": warehouse.port,
-        "user": warehouse.user,
-        "catalog": warehouse.catalog,
-        "schema": warehouse.schema_name,
-        "http_scheme": "https" if warehouse.ssl else "http",
-        "auth": None if password is None else _build_basic_auth(warehouse.user, password),
-    }
+    return credentials_to_trino_kwargs(
+        host=warehouse.host,
+        port=warehouse.port,
+        user=warehouse.user,
+        password=password,
+        catalog=warehouse.catalog,
+        schema_name=warehouse.schema_name,
+        ssl=warehouse.ssl,
+    )
+
+
+def resolve_test_password(
+    db: Session,
+    body: WarehouseTestConnection,
+) -> str | None:
+    if body.password:
+        return body.password
+    if not body.warehouse_uuid:
+        return None
+
+    try:
+        warehouse_id = uuid_lib.UUID(body.warehouse_uuid)
+    except ValueError:
+        return None
+
+    warehouse = get_warehouse(db, warehouse_id)
+    if not warehouse:
+        return None
+    return get_decrypted_password(warehouse)
 
 
 def _build_basic_auth(user: str, password: str):

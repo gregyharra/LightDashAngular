@@ -7,14 +7,6 @@ from sqlalchemy.orm import Mapped, mapped_column
 from mds.db.base import Base
 
 
-class Organization(Base):
-    __tablename__ = "organizations"
-
-    uuid: Mapped[uuid_lib.UUID] = mapped_column(Uuid, primary_key=True)
-    name: Mapped[str] = mapped_column(String(255), nullable=False)
-    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
-
-
 class User(Base):
     __tablename__ = "users"
 
@@ -22,9 +14,6 @@ class User(Base):
     email: Mapped[str] = mapped_column(String(255), unique=True, nullable=False)
     first_name: Mapped[str] = mapped_column(String(255), nullable=False)
     last_name: Mapped[str] = mapped_column(String(255), nullable=False)
-    organization_uuid: Mapped[uuid_lib.UUID] = mapped_column(
-        Uuid, ForeignKey("organizations.uuid"), nullable=False
-    )
     role: Mapped[str] = mapped_column(String(50), default="admin")
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
 
@@ -33,9 +22,6 @@ class Warehouse(Base):
     __tablename__ = "warehouses"
 
     uuid: Mapped[uuid_lib.UUID] = mapped_column(Uuid, primary_key=True)
-    organization_uuid: Mapped[uuid_lib.UUID] = mapped_column(
-        Uuid, ForeignKey("organizations.uuid"), nullable=False
-    )
     name: Mapped[str] = mapped_column(String(255), nullable=False)
     type: Mapped[str] = mapped_column(String(50), default="trino", nullable=False)
     host: Mapped[str] = mapped_column(String(255), nullable=False)
@@ -58,16 +44,15 @@ class Project(Base):
     __tablename__ = "projects"
 
     uuid: Mapped[uuid_lib.UUID] = mapped_column(Uuid, primary_key=True)
-    organization_uuid: Mapped[uuid_lib.UUID] = mapped_column(
-        Uuid, ForeignKey("organizations.uuid"), nullable=False
-    )
     name: Mapped[str] = mapped_column(String(255), nullable=False)
     warehouse_type: Mapped[str] = mapped_column(String(50), default="trino")
     warehouse_uuid: Mapped[uuid_lib.UUID | None] = mapped_column(
         Uuid, ForeignKey("warehouses.uuid"), nullable=True
     )
     dbt_project_path: Mapped[str | None] = mapped_column(String(1024), nullable=True)
-    created_by_user_uuid: Mapped[uuid_lib.UUID] = mapped_column(Uuid, ForeignKey("users.uuid"))
+    created_by_user_uuid: Mapped[uuid_lib.UUID | None] = mapped_column(
+        Uuid, ForeignKey("users.uuid"), nullable=True
+    )
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
 
 
@@ -90,7 +75,6 @@ class Dashboard(Base):
     project_uuid: Mapped[uuid_lib.UUID] = mapped_column(
         Uuid, ForeignKey("projects.uuid"), nullable=False
     )
-    organization_uuid: Mapped[uuid_lib.UUID] = mapped_column(Uuid, nullable=False)
     space_uuid: Mapped[uuid_lib.UUID] = mapped_column(Uuid, ForeignKey("spaces.uuid"))
     name: Mapped[str] = mapped_column(String(255), nullable=False)
     description: Mapped[str | None] = mapped_column(Text, nullable=True)

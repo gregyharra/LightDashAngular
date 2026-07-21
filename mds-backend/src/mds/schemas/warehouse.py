@@ -13,7 +13,6 @@ class WarehouseResponse(BaseModel):
     model_config = ConfigDict(populate_by_name=True)
 
     warehouse_uuid: str = Field(alias="warehouseUuid")
-    organization_uuid: str = Field(alias="organizationUuid")
     name: str
     type: str
     host: str
@@ -71,6 +70,20 @@ class WarehouseUpdate(BaseModel):
     clear_password: bool = Field(default=False, alias="clearPassword")
     ssl: bool | None = None
     extra_config: dict[str, Any] | None = Field(default=None, alias="extraConfig")
+
+
+class WarehouseTestConnection(BaseModel):
+    model_config = ConfigDict(populate_by_name=True)
+
+    type: WarehouseType = "trino"
+    host: str
+    port: int
+    user: str
+    password: str | None = None
+    catalog: str = ""
+    schema_name: str = Field(default="", alias="schema")
+    ssl: bool = False
+    warehouse_uuid: str | None = Field(default=None, alias="warehouseUuid")
 
 
 class WarehouseTestResult(BaseModel):

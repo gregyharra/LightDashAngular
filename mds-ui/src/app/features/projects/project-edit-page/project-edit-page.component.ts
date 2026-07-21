@@ -11,7 +11,6 @@ import { MatSelectModule } from '@angular/material/select';
 import { apiErrorMessage } from '../../../core/api/lightdash-api.service';
 import { WarehouseListItem } from '../../../core/models/warehouse.model';
 import { ActiveProjectService } from '../../../core/services/active-project.service';
-import { AppStateService } from '../../../core/services/app-state.service';
 import { ResizableSidebarDirective } from '../../../layout/resizable-sidebar/resizable-sidebar.directive';
 import { SettingsSidebarNavComponent } from '../../../layout/settings-sidebar-nav/settings-sidebar-nav.component';
 import { ProjectDetail, ProjectsService } from '../projects.service';
@@ -42,7 +41,6 @@ export class ProjectEditPageComponent {
   private readonly projectsService = inject(ProjectsService);
   private readonly warehouseService = inject(WarehouseService);
   private readonly dialog = inject(MatDialog);
-  private readonly appState = inject(AppStateService);
   protected readonly activeProjectService = inject(ActiveProjectService);
 
   protected readonly projectUuid = signal<string | null>(null);
@@ -66,10 +64,6 @@ export class ProjectEditPageComponent {
       this.activeProjectService.setActiveProject(projectUuid);
       this.loadPage(projectUuid);
     });
-  }
-
-  protected organizationName(): string | null {
-    return this.appState.user()?.organizationName ?? null;
   }
 
   private loadPage(projectUuid: string): void {

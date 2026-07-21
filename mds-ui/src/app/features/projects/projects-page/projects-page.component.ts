@@ -1,11 +1,10 @@
-import { Component, computed, inject, signal } from '@angular/core';
+import { Component, inject, signal } from '@angular/core';
 import { Router } from '@angular/router';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { ActiveProjectService } from '../../../core/services/active-project.service';
-import { AppStateService } from '../../../core/services/app-state.service';
-import { OrganizationProject } from '../../../core/models/organization.model';
+import { ProjectSummary } from '../../../core/models/project.model';
 import { ProjectsService } from '../projects.service';
 import { ResizableSidebarDirective } from '../../../layout/resizable-sidebar/resizable-sidebar.directive';
 import { SettingsSidebarNavComponent } from '../../../layout/settings-sidebar-nav/settings-sidebar-nav.component';
@@ -27,15 +26,10 @@ const WAREHOUSE_LABELS: Record<string, string> = {
 })
 export class ProjectsPageComponent {
   private readonly projectsService = inject(ProjectsService);
-  private readonly appState = inject(AppStateService);
   private readonly router = inject(Router);
   protected readonly activeProjectService = inject(ActiveProjectService);
 
-  protected readonly organizationName = computed(
-    () => this.appState.user()?.organizationName ?? null,
-  );
-
-  protected readonly projects = signal<OrganizationProject[]>([]);
+  protected readonly projects = signal<ProjectSummary[]>([]);
   protected readonly loading = signal(true);
   protected readonly error = signal<string | null>(null);
 

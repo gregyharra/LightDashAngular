@@ -3,7 +3,7 @@ from __future__ import annotations
 from typing import Any
 
 from mds.db.models import Warehouse
-from mds.services.warehouse.connection import warehouse_to_trino_kwargs
+from mds.services.warehouse.connection import credentials_to_trino_kwargs, warehouse_to_trino_kwargs
 
 
 def _format_value(value: Any) -> str:
@@ -35,14 +35,13 @@ def _rows_to_result_rows(
     return results
 
 
-def test_trino_connection(warehouse: Warehouse) -> tuple[bool, str]:
+def _test_trino_with_kwargs(kwargs: dict[str, Any]) -> tuple[bool, str]:
     try:
         import trino
         from trino.exceptions import TrinoQueryError, TrinoUserError
     except ImportError:
         return False, "trino package is not installed"
 
-    kwargs = warehouse_to_trino_kwargs(warehouse)
     auth = kwargs.pop("auth", None)
     try:
         client = trino.dbapi.connect(auth=auth, **kwargs)
@@ -54,6 +53,32 @@ def test_trino_connection(warehouse: Warehouse) -> tuple[bool, str]:
         return True, "Connection successful"
     except (TrinoQueryError, TrinoUserError, OSError) as exc:
         return False, str(exc)
+
+
+def test_trino_connection(warehouse: Warehouse) -> tuple[bool, str]:
+    return _test_trino_with_kwargs(warehouse_to_trino_kwargs(warehouse))
+
+
+def test_trino_connection_credentials(
+    *,
+    host: str,
+    port: int,
+    user: str,
+    password: str | None,
+    catalog: str,
+    schema_name: str,
+    ssl: bool,
+) -> tuple[bool, str]:
+    kwargs = credentials_to_trino_kwargs(
+        host=host,
+        port=port,
+        user=user,
+        password=password,
+        catalog=catalog,
+        schema_name=schema_name,
+        ssl=ssl,
+    )
+    return _test_trino_with_kwargs(kwargs)
 
 
 def execute_trino_query(

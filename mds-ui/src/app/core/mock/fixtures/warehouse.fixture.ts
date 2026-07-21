@@ -2,6 +2,7 @@ import {
   Warehouse,
   WarehouseCreate,
   WarehouseListItem,
+  WarehouseTestConnection,
   WarehouseUpdate,
 } from '../../models/warehouse.model';
 
@@ -40,7 +41,6 @@ export function createMockWarehouse(body: WarehouseCreate): Warehouse {
   const warehouseUuid = newUuid();
   const warehouse: Warehouse = {
     warehouseUuid,
-    organizationUuid: '172a2270-000f-42be-9c68-c4752c23ae51',
     name: body.name,
     type: body.type,
     host: body.host,
@@ -107,11 +107,34 @@ export function testMockWarehouse(warehouseUuid: string): {
     return { success: false, message: 'Warehouse not found' };
   }
 
-  if (stored.warehouse.type !== 'trino') {
+  return testMockWarehouseConnection({
+    type: stored.warehouse.type,
+    host: stored.warehouse.host,
+    port: stored.warehouse.port,
+    user: stored.warehouse.user,
+    ssl: stored.warehouse.ssl,
+    catalog: stored.warehouse.catalog,
+    schema: stored.warehouse.schema,
+    warehouseUuid,
+  });
+}
+
+export function testMockWarehouseConnection(body: WarehouseTestConnection): {
+  success: boolean;
+  message: string;
+} {
+  if (body.type !== 'trino') {
     return {
       success: false,
-      message: `Connection testing is not yet supported for ${stored.warehouse.type}. Only Trino connections can be tested for now.`,
+      message: `Connection testing is not yet supported for ${body.type}. Only Trino connections can be tested for now.`,
     };
+  }
+
+  if (body.warehouseUuid) {
+    const stored = warehouses.get(body.warehouseUuid);
+    if (!stored) {
+      return { success: false, message: 'Warehouse not found' };
+    }
   }
 
   return {

@@ -18,23 +18,89 @@ if settings.database_url.startswith("sqlite"):
 engine = create_engine(settings.database_url, **_engine_kwargs)
 SessionLocal = sessionmaker(bind=engine, autoflush=False, autocommit=False)
 
+_ORG_COLUMN_TABLES = ("users", "warehouses", "projects", "dashboards")
 
-def _migrate_sqlite_schema() -> None:
+
+def _table_has_column(inspector, table: str, column: str) -> bool:
+    if not inspector.has_table(table):
+        return False
+    return column in {col["name"] for col in inspector.get_columns(table)}
+
+
+def _migrate_additive_schema() -> None:
     """Apply lightweight additive migrations for local dev databases."""
-    if not settings.database_url.startswith("sqlite"):
+    inspector = inspect(engine)
+    if not inspector.has_table("projects"):
         return
 
+    project_columns = {column["name"] for column in inspector.get_columns("projects")}
+
     with engine.begin() as connection:
-        columns = {
-            row[1]
-            for row in connection.exec_driver_sql("PRAGMA table_info(projects)").fetchall()
-        }
-        if "dbt_project_path" not in columns:
-            connection.exec_driver_sql(
-                "ALTER TABLE projects ADD COLUMN dbt_project_path VARCHAR(1024)"
-            )
-        if "warehouse_uuid" not in columns:
-            connection.exec_driver_sql("ALTER TABLE projects ADD COLUMN warehouse_uuid BLOB")
+        if "dbt_project_path" not in project_columns:
+            if settings.database_url.startswith("sqlite"):
+                connection.exec_driver_sql(
+                    "ALTER TABLE projects ADD COLUMN dbt_project_path VARCHAR(1024)"
+                )
+            else:
+                connection.execute(
+                    text("ALTER TABLE projects ADD COLUMN dbt_project_path VARCHAR(1024)")
+                )
+        if "warehouse_uuid" not in project_columns:
+            if settings.database_url.startswith("sqlite"):
+                connection.exec_driver_sql(
+                    "ALTER TABLE projects ADD COLUMN warehouse_uuid BLOB"
+                )
+            else:
+                connection.execute(
+                    text("ALTER TABLE projects ADD COLUMN warehouse_uuid UUID")
+                )
+
+
+def _migrate_remove_organizations() -> None:
+    """Drop legacy organization columns and the organizations table."""
+    inspector = inspect(engine)
+    has_org_table = inspector.has_table("organizations")
+    has_org_columns = any(
+        _table_has_column(inspector, table, "organization_uuid") for table in _ORG_COLUMN_TABLES
+    )
+    if not has_org_table and not has_org_columns:
+        return
+
+    is_sqlite = settings.database_url.startswith("sqlite")
+
+    with engine.begin() as connection:
+        if is_sqlite:
+            connection.exec_driver_sql("PRAGMA foreign_keys=OFF")
+
+        if not is_sqlite:
+            for table in _ORG_COLUMN_TABLES:
+                if _table_has_column(inspector, table, "organization_uuid"):
+                    connection.execute(
+                        text(
+                            f"ALTER TABLE {table} "
+                            f"DROP CONSTRAINT IF EXISTS {table}_organization_uuid_fkey"
+                        )
+                    )
+
+        for table in _ORG_COLUMN_TABLES:
+            if _table_has_column(inspector, table, "organization_uuid"):
+                if is_sqlite:
+                    connection.exec_driver_sql(
+                        f"ALTER TABLE {table} DROP COLUMN organization_uuid"
+                    )
+                else:
+                    connection.execute(
+                        text(f"ALTER TABLE {table} DROP COLUMN organization_uuid")
+                    )
+
+        if has_org_table:
+            if is_sqlite:
+                connection.exec_driver_sql("DROP TABLE organizations")
+            else:
+                connection.execute(text("DROP TABLE IF EXISTS organizations CASCADE"))
+
+        if is_sqlite:
+            connection.exec_driver_sql("PRAGMA foreign_keys=ON")
 
 
 def _migrate_legacy_warehouse_connections() -> None:
@@ -51,7 +117,7 @@ def _migrate_legacy_warehouse_connections() -> None:
                 """
                 SELECT wc.project_uuid, wc.type, wc.host, wc.port, wc.catalog, wc.schema,
                        wc.user, wc.encrypted_password, wc.ssl, wc.extra_config,
-                       p.organization_uuid, p.name, p.warehouse_uuid
+                       p.name, p.warehouse_uuid
                 FROM warehouse_connections wc
                 JOIN projects p ON p.uuid = wc.project_uuid
                 """
@@ -64,7 +130,6 @@ def _migrate_legacy_warehouse_connections() -> None:
 
             warehouse = Warehouse(
                 uuid=uuid_lib.uuid4(),
-                organization_uuid=row.organization_uuid,
                 name=f"{row.name} warehouse",
                 type=row.type,
                 host=row.host,
@@ -93,7 +158,8 @@ def _migrate_legacy_warehouse_connections() -> None:
 
 def init_db() -> None:
     Base.metadata.create_all(bind=engine)
-    _migrate_sqlite_schema()
+    _migrate_additive_schema()
+    _migrate_remove_organizations()
     _migrate_legacy_warehouse_connections()
     if settings.database_url.startswith("sqlite"):
 

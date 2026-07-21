@@ -1,9 +1,9 @@
 import { Injectable, computed, signal } from '@angular/core';
-import { OrganizationProject } from '../models/organization.model';
+import { ProjectSummary } from '../models/project.model';
 
 @Injectable({ providedIn: 'root' })
 export class ActiveProjectService {
-  private readonly projectsSignal = signal<OrganizationProject[]>([]);
+  private readonly projectsSignal = signal<ProjectSummary[]>([]);
   private readonly activeUuidSignal = signal<string | null>(null);
 
   readonly projects = this.projectsSignal.asReadonly();
@@ -14,7 +14,7 @@ export class ActiveProjectService {
     return this.projectsSignal().find((p) => p.projectUuid === uuid) ?? null;
   });
 
-  setProjects(projects: OrganizationProject[]): void {
+  setProjects(projects: ProjectSummary[]): void {
     this.projectsSignal.set(projects);
 
     const current = this.activeUuidSignal();

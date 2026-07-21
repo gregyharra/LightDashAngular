@@ -4,9 +4,8 @@ from datetime import datetime, timezone
 
 from sqlalchemy.orm import Session
 
-from mds.db.models import Dashboard, Organization, Project, Space, User, Warehouse
+from mds.db.models import Dashboard, Project, Space, User, Warehouse
 
-MOCK_ORG_UUID = uuid.UUID("172a2270-000f-42be-9c68-c4752c23ae51")
 MOCK_USER_UUID = uuid.UUID("b264d83a-9000-426a-85ec-3f9c20f368ce")
 MOCK_PROJECT_UUID = uuid.UUID("a1b2c3d4-e5f6-7890-abcd-ef1234567890")
 MOCK_PROJECT_2_UUID = uuid.UUID("b2c3d4e5-f6a7-8901-bcde-f12345678901")
@@ -25,28 +24,24 @@ def slugify(name: str) -> str:
 
 
 def seed_demo_data(db: Session) -> None:
-    if db.get(Organization, MOCK_ORG_UUID):
+    if db.get(User, MOCK_USER_UUID):
         return
 
-    org = Organization(uuid=MOCK_ORG_UUID, name="Jaffle Shop")
     user = User(
         uuid=MOCK_USER_UUID,
         email="demo@lightdash.com",
         first_name="Demo",
         last_name="Analyst",
-        organization_uuid=MOCK_ORG_UUID,
         role="admin",
     )
     project1 = Project(
         uuid=MOCK_PROJECT_UUID,
-        organization_uuid=MOCK_ORG_UUID,
         name="Jaffle Shop",
         warehouse_type="trino",
         created_by_user_uuid=MOCK_USER_UUID,
     )
     project2 = Project(
         uuid=MOCK_PROJECT_2_UUID,
-        organization_uuid=MOCK_ORG_UUID,
         name="Marketing Analytics",
         warehouse_type="bigquery",
         created_by_user_uuid=MOCK_USER_UUID,
@@ -57,7 +52,7 @@ def seed_demo_data(db: Session) -> None:
         name="Shared",
         is_private=False,
     )
-    db.add_all([org, user])
+    db.add(user)
     db.flush()
     db.add_all([project1, project2, space])
     db.flush()
@@ -65,7 +60,6 @@ def seed_demo_data(db: Session) -> None:
     dashboard = Dashboard(
         uuid=MOCK_DASHBOARD_UUID,
         project_uuid=MOCK_PROJECT_UUID,
-        organization_uuid=MOCK_ORG_UUID,
         space_uuid=MOCK_SPACE_UUID,
         name="🧭 KPI dashboard",
         description="Key business metrics at a glance",

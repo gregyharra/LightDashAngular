@@ -11,7 +11,6 @@ import { MatSelectModule } from '@angular/material/select';
 import { apiErrorMessage } from '../../../core/api/lightdash-api.service';
 import { WarehouseListItem } from '../../../core/models/warehouse.model';
 import { ActiveProjectService } from '../../../core/services/active-project.service';
-import { AppStateService } from '../../../core/services/app-state.service';
 import { ResizableSidebarDirective } from '../../../layout/resizable-sidebar/resizable-sidebar.directive';
 import { SettingsSidebarNavComponent } from '../../../layout/settings-sidebar-nav/settings-sidebar-nav.component';
 import { WarehouseCreateDialogComponent } from '../../warehouses/warehouse-create-dialog/warehouse-create-dialog.component';
@@ -41,7 +40,6 @@ export class ProjectCreatePageComponent {
   private readonly warehouseService = inject(WarehouseService);
   private readonly dialog = inject(MatDialog);
   private readonly router = inject(Router);
-  private readonly appState = inject(AppStateService);
   protected readonly activeProjectService = inject(ActiveProjectService);
 
   protected readonly loading = signal(true);
@@ -54,10 +52,6 @@ export class ProjectCreatePageComponent {
 
   constructor() {
     this.loadWarehouses();
-  }
-
-  protected organizationName(): string | null {
-    return this.appState.user()?.organizationName ?? null;
   }
 
   private loadWarehouses(): void {

@@ -37,7 +37,6 @@ def dashboard_to_detail(db: Session, dashboard: Dashboard) -> dict[str, Any]:
         "description": dashboard.description,
         "slug": dashboard.slug,
         "projectUuid": str(dashboard.project_uuid),
-        "organizationUuid": str(dashboard.organization_uuid),
         "spaceUuid": str(dashboard.space_uuid),
         "spaceName": _space_name(db, dashboard.space_uuid),
         "dashboardVersionId": dashboard.dashboard_version_id,
@@ -70,7 +69,6 @@ def dashboard_to_list_item(db: Session, dashboard: Dashboard) -> dict[str, Any]:
         "name": dashboard.name,
         "description": dashboard.description,
         "projectUuid": str(dashboard.project_uuid),
-        "organizationUuid": str(dashboard.organization_uuid),
         "spaceUuid": str(dashboard.space_uuid),
         "spaceName": _space_name(db, dashboard.space_uuid),
         "updatedAt": dashboard.updated_at.isoformat().replace("+00:00", "Z"),
@@ -135,7 +133,6 @@ def create_dashboard(
     dashboard = Dashboard(
         uuid=uuid.uuid4(),
         project_uuid=project_id,
-        organization_uuid=project.organization_uuid,
         space_uuid=space_uuid,
         name=payload.name.strip() or "Untitled dashboard",
         description=payload.description,

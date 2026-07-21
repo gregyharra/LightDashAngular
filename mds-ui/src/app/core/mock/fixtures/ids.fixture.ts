@@ -1,5 +1,4 @@
 /** Stable IDs shared across mock fixtures. */
-export const MOCK_ORG_UUID = '172a2270-000f-42be-9c68-c4752c23ae51';
 export const MOCK_USER_UUID = 'b264d83a-9000-426a-85ec-3f9c20f368ce';
 export const MOCK_PROJECT_UUID = 'a1b2c3d4-e5f6-7890-abcd-ef1234567890';
 export const MOCK_PROJECT_2_UUID = 'b2c3d4e5-f6a7-8901-bcde-f12345678901';

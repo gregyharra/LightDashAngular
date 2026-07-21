@@ -1,7 +1,6 @@
-import { Component, computed, inject, signal } from '@angular/core';
+import { Component, inject, signal } from '@angular/core';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { MatIconModule } from '@angular/material/icon';
-import { AppStateService } from '../../../core/services/app-state.service';
 import { ResizableSidebarDirective } from '../../../layout/resizable-sidebar/resizable-sidebar.directive';
 import { SettingsSidebarNavComponent } from '../../../layout/settings-sidebar-nav/settings-sidebar-nav.component';
 import { WarehouseFormComponent } from '../warehouse-form/warehouse-form.component';
@@ -21,11 +20,6 @@ import { WarehouseFormComponent } from '../warehouse-form/warehouse-form.compone
 export class WarehouseEditPageComponent {
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
-  private readonly appState = inject(AppStateService);
-
-  protected readonly organizationName = computed(
-    () => this.appState.user()?.organizationName ?? null,
-  );
 
   protected readonly warehouseUuid = signal<string | null>(null);
   protected readonly isCreateMode = signal(true);

@@ -3,9 +3,6 @@
     <div class="page-sidebar">
       <header class="page-sidebar__header">
         <p class="page-sidebar__breadcrumb">Settings</p>
-        @if (organizationName(); as orgName) {
-          <p class="page-sidebar__org">{{ orgName }}</p>
-        }
       </header>
 
       <app-settings-sidebar-nav active="projects" />

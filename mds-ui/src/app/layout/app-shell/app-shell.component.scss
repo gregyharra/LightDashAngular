@@ -31,7 +31,17 @@
 }
 
 .shell__navbar-right {
+  margin-left: auto;
   gap: var(--ld-spacing-sm);
+
+  .shell__nav-group--secondary {
+    margin-left: 0;
+  }
+
+  app-navbar-user-menu {
+    display: flex;
+    flex-shrink: 0;
+  }
 }
 
 .shell__navbar-spacer {
@@ -277,7 +287,6 @@
   }
 
   .shell__navbar-right {
-    margin-left: auto;
     gap: var(--ld-spacing-xs);
   }
 

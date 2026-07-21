@@ -209,7 +209,6 @@ GET /api/v1/projects/{project_uuid}/dashboards?includePrivate=false
     "name": "Executive Overview",
     "description": "Key business metrics at a glance",
     "projectUuid": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
-    "organizationUuid": "org-uuid",
     "spaceUuid": "space-uuid",
     "spaceName": "Shared",
     "updatedAt": "2024-06-01T12:00:00.000Z",
@@ -267,7 +266,7 @@ POST /api/v1/projects/{project_uuid}/dashboards
 
 1. Generate `uuid`, `slug` (slugify name), `versionUuid`.
 2. Set `dashboardVersionId = 1`, `views = 0`, `firstViewedAt = null`.
-3. Resolve `organizationUuid` from project, `spaceName` from space.
+3. Resolve `spaceName` from space.
 4. If `tabs` is empty, create one tab: `{ uuid, name: "Tab 1", order: 0 }`.
 5. Return complete dashboard with empty `tiles` unless provided.
 
@@ -302,7 +301,6 @@ GET /api/v2/projects/{project_uuid}/dashboards/{dashboard_uuid}
   "description": "Key business metrics at a glance",
   "slug": "executive-overview",
   "projectUuid": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
-  "organizationUuid": "org-uuid",
   "spaceUuid": "space-uuid",
   "spaceName": "Shared",
   "dashboardVersionId": 1,

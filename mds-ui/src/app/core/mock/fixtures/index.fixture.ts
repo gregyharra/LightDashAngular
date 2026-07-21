@@ -2,7 +2,6 @@ import {
   MOCK_CHART_UUID,
   MOCK_DASHBOARD_2_UUID,
   MOCK_DASHBOARD_UUID,
-  MOCK_ORG_UUID,
   MOCK_PROJECT_2_UUID,
   MOCK_PROJECT_UUID,
   MOCK_SPACE_UUID,
@@ -98,9 +97,6 @@ export const mockUser = {
   email: 'demo@lightdash.com',
   firstName: 'Demo',
   lastName: 'Analyst',
-  organizationUuid: MOCK_ORG_UUID,
-  organizationName: 'Jaffle Shop',
-  organizationCreatedAt: '2024-01-11T03:46:50.732Z',
   isTrackingAnonymized: false,
   isMarketingOptedIn: false,
   isSetupComplete: true,
@@ -111,8 +107,6 @@ export const mockUser = {
   avatarGradient: null,
   abilityRules: [
     { action: 'manage', subject: 'all' },
-    { action: 'view', subject: 'Project', conditions: { organizationUuid: MOCK_ORG_UUID } },
-    { action: 'manage', subject: 'Project', conditions: { organizationUuid: MOCK_ORG_UUID } },
   ],
   updatedAt: '2024-01-11T03:46:50.732Z',
   createdAt: '2024-01-11T03:46:50.732Z',
@@ -125,15 +119,6 @@ export const mockAccount = {
     provider: null,
   },
   isRegisteredUser: () => true,
-};
-
-export const mockOrganization = {
-  organizationUuid: MOCK_ORG_UUID,
-  name: 'Jaffle Shop',
-  createdAt: '2024-01-11T03:46:50.732Z',
-  chartColors: ['#5470c6', '#91cc75', '#fac858', '#ee6666', '#73c0de'],
-  projectCreationInProcess: false,
-  needsProject: false,
 };
 
 export const mockProjects = [

@@ -1,9 +1,8 @@
-import { Component, computed, inject, signal } from '@angular/core';
+import { Component, inject, signal } from '@angular/core';
 import { Router } from '@angular/router';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
-import { AppStateService } from '../../../core/services/app-state.service';
 import {
   WAREHOUSE_TYPE_LABELS,
   WarehouseListItem,
@@ -26,12 +25,7 @@ import { SettingsSidebarNavComponent } from '../../../layout/settings-sidebar-na
 })
 export class WarehousesPageComponent {
   private readonly warehouseService = inject(WarehouseService);
-  private readonly appState = inject(AppStateService);
   private readonly router = inject(Router);
-
-  protected readonly organizationName = computed(
-    () => this.appState.user()?.organizationName ?? null,
-  );
 
   protected readonly warehouses = signal<WarehouseListItem[]>([]);
   protected readonly loading = signal(true);

@@ -14,7 +14,6 @@ import {
   mockDbtSources,
   mockDbtProjectTree,
   mockOnboardingStatus,
-  mockOrganization,
   mockPinnedItems,
   mockProjects,
   mockSavedCharts,
@@ -41,10 +40,11 @@ import {
   getMockWarehouse,
   listMockWarehouses,
   testMockWarehouse,
+  testMockWarehouseConnection,
   updateMockWarehouse,
 } from './fixtures/warehouse.fixture';
 import { MetricQuery } from '../models/explore.model';
-import { WarehouseCreate, WarehouseUpdate } from '../models/warehouse.model';
+import { WarehouseCreate, WarehouseTestConnection, WarehouseUpdate } from '../models/warehouse.model';
 import { MockRequest, MockRoute } from './mock-api.types';
 
 const savedChartsList = (request: MockRequest) => {
@@ -315,9 +315,9 @@ const projectUpdate = (request: MockRequest) => {
   return updated;
 };
 
-const orgWarehousesList = () => listMockWarehouses();
+const warehousesList = () => listMockWarehouses();
 
-const orgWarehousesCreate = (request: MockRequest) =>
+const warehousesCreate = (request: MockRequest) =>
   createMockWarehouse(request.body as WarehouseCreate);
 
 const warehouseDetail = (request: MockRequest) => {
@@ -362,6 +362,9 @@ const warehouseTest = (request: MockRequest) => {
   return testMockWarehouse(warehouseUuid);
 };
 
+const warehousesTest = (request: MockRequest) =>
+  testMockWarehouseConnection((request.body ?? {}) as WarehouseTestConnection);
+
 const routes: MockRoute[] = [
   { pattern: /^\/health$/, handler: () => mockHealth },
 
@@ -378,12 +381,6 @@ const routes: MockRoute[] = [
   { pattern: /^\/user\/warehouseCredentials/, handler: () => [] },
   { pattern: /^\/logout$/, handler: () => null },
 
-  { pattern: /^\/org$/, method: 'GET', handler: () => mockOrganization },
-  { pattern: /^\/org$/, method: 'PATCH', handler: () => mockOrganization },
-  { pattern: /^\/org\/projects$/, method: 'GET', handler: () => mockProjects },
-  { pattern: /^\/org\/projects$/, method: 'POST', handler: orgProjectsCreate },
-  { pattern: /^\/org\/projects\/precompiled$/, handler: () => [] },
-  { pattern: /^\/org\/projects\/[^/]+$/, method: 'DELETE', handler: () => null },
   { pattern: /^\/org\/onboardingStatus$/, handler: () => mockOnboardingStatus },
   { pattern: /^\/org\/users/, handler: () => ({ users: [], pagination: { page: 1, pageSize: 50, totalPageCount: 0, totalResults: 0 } }) },
   { pattern: /^\/org\/groups/, handler: () => [] },
@@ -438,8 +435,11 @@ const routes: MockRoute[] = [
   { pattern: /^\/projects\/[^/]+\/colorPalette/, handler: () => ({}) },
   { pattern: /^\/projects\/[^/]+\/queryTimezoneSettings$/, handler: () => ({}) },
   { pattern: /^\/projects\/[^/]+\/schedulerSettings$/, handler: () => ({}) },
-  { pattern: /^\/org\/warehouses$/, method: 'GET', handler: orgWarehousesList },
-  { pattern: /^\/org\/warehouses$/, method: 'POST', handler: orgWarehousesCreate },
+  { pattern: /^\/warehouses$/, method: 'GET', handler: warehousesList },
+  { pattern: /^\/warehouses$/, method: 'POST', handler: warehousesCreate },
+  { pattern: /^\/warehouses\/test$/, method: 'POST', handler: warehousesTest },
+  { pattern: /^\/projects$/, method: 'GET', handler: () => mockProjects },
+  { pattern: /^\/projects$/, method: 'POST', handler: orgProjectsCreate },
   { pattern: /^\/warehouses\/[^/]+\/test$/, method: 'POST', handler: warehouseTest },
   { pattern: /^\/warehouses\/[^/]+$/, method: 'GET', handler: warehouseDetail },
   { pattern: /^\/warehouses\/[^/]+$/, method: 'PATCH', handler: warehousePatch },

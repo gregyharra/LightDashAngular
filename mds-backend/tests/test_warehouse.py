@@ -2,13 +2,12 @@ import os
 import uuid as uuid_lib
 
 os.environ.setdefault("DATABASE_URL", "sqlite+pysqlite:///:memory:")
-os.environ.setdefault("SEED_DEMO_DATA", "true")
+os.environ.setdefault("SEED_DEMO_DATA", "false")
 
 import pytest
 from fastapi.testclient import TestClient
 
 from mds.db.models import Project, Warehouse
-from mds.db.seed import MOCK_PROJECT_UUID
 from mds.db.session import SessionLocal
 from mds.main import app
 from mds.services.encryption import decrypt_secret, encrypt_secret
@@ -21,7 +20,7 @@ def client() -> TestClient:
 
 
 def test_list_warehouses_empty(client: TestClient) -> None:
-    response = client.get("/api/v1/org/warehouses")
+    response = client.get("/api/v1/warehouses")
     assert response.status_code == 200
     body = response.json()
     assert body["status"] == "ok"
@@ -41,13 +40,14 @@ def test_create_get_update_warehouse(client: TestClient) -> None:
         "ssl": False,
         "extraConfig": {"source": "test"},
     }
-    create = client.post("/api/v1/org/warehouses", json=payload)
+    create = client.post("/api/v1/warehouses", json=payload)
     assert create.status_code == 200
     created = create.json()["results"]
     warehouse_uuid = created["warehouseUuid"]
     assert created["name"] == "Demo Trino"
     assert created["hasPassword"] is True
     assert "password" not in created
+    assert "organizationUuid" not in created
 
     get_resp = client.get(f"/api/v1/warehouses/{warehouse_uuid}")
     fetched = get_resp.json()["results"]
@@ -73,7 +73,7 @@ def test_create_get_update_warehouse(client: TestClient) -> None:
 
 def test_password_omitted_keeps_existing(client: TestClient) -> None:
     create = client.post(
-        "/api/v1/org/warehouses",
+        "/api/v1/warehouses",
         json={
             "name": "Keep password",
             "type": "trino",
@@ -107,7 +107,7 @@ def test_password_omitted_keeps_existing(client: TestClient) -> None:
 
 def test_clear_password(client: TestClient) -> None:
     create = client.post(
-        "/api/v1/org/warehouses",
+        "/api/v1/warehouses",
         json={
             "name": "Clear password",
             "type": "trino",
@@ -138,8 +138,11 @@ def test_clear_password(client: TestClient) -> None:
 
 
 def test_assign_warehouse_to_project(client: TestClient) -> None:
+    project_resp = client.post("/api/v1/projects", json={"name": "Assign warehouse project"})
+    project_uuid = project_resp.json()["results"]["projectUuid"]
+
     create = client.post(
-        "/api/v1/org/warehouses",
+        "/api/v1/warehouses",
         json={
             "name": "Project warehouse",
             "type": "trino",
@@ -154,7 +157,7 @@ def test_assign_warehouse_to_project(client: TestClient) -> None:
     warehouse_uuid = create.json()["results"]["warehouseUuid"]
 
     patch = client.patch(
-        f"/api/v1/projects/{MOCK_PROJECT_UUID}",
+        f"/api/v1/projects/{project_uuid}",
         json={"warehouseUuid": warehouse_uuid},
     )
     assert patch.status_code == 200
@@ -164,7 +167,7 @@ def test_assign_warehouse_to_project(client: TestClient) -> None:
 
     db = SessionLocal()
     try:
-        project = db.get(Project, MOCK_PROJECT_UUID)
+        project = db.get(Project, uuid_lib.UUID(project_uuid))
         assert project is not None
         assert str(project.warehouse_uuid) == warehouse_uuid
     finally:
@@ -186,7 +189,7 @@ def test_create_warehouse_without_catalog_schema(client: TestClient) -> None:
         "user": "mds",
         "ssl": False,
     }
-    create = client.post("/api/v1/org/warehouses", json=payload)
+    create = client.post("/api/v1/warehouses", json=payload)
     assert create.status_code == 200
     created = create.json()["results"]
     assert created["type"] == "postgresql"
@@ -196,7 +199,7 @@ def test_create_warehouse_without_catalog_schema(client: TestClient) -> None:
 
 def test_test_warehouse_non_trino_stub(client: TestClient) -> None:
     create = client.post(
-        "/api/v1/org/warehouses",
+        "/api/v1/warehouses",
         json={
             "name": "Oracle warehouse",
             "type": "oracle",
@@ -219,3 +222,49 @@ def test_test_warehouse_not_found(client: TestClient) -> None:
     unknown = "00000000-0000-0000-0000-000000000099"
     response = client.post(f"/api/v1/warehouses/{unknown}/test")
     assert response.status_code == 404
+
+
+def test_test_warehouse_connection_non_trino(client: TestClient) -> None:
+    response = client.post(
+        "/api/v1/warehouses/test",
+        json={
+            "type": "postgresql",
+            "host": "postgres.example.com",
+            "port": 5432,
+            "user": "mds",
+            "ssl": False,
+        },
+    )
+    assert response.status_code == 200
+    result = response.json()["results"]
+    assert result["success"] is False
+    assert "not yet supported" in result["message"].lower()
+
+
+def test_test_warehouse_connection_trino(client: TestClient, monkeypatch) -> None:
+    def fake_test(**kwargs):
+        assert kwargs["host"] == "trino.example.com"
+        assert kwargs["port"] == 8080
+        assert kwargs["user"] == "mds"
+        return True, "Connection successful"
+
+    monkeypatch.setattr(
+        "mds.routers.warehouse.test_trino_connection_credentials",
+        fake_test,
+    )
+
+    response = client.post(
+        "/api/v1/warehouses/test",
+        json={
+            "type": "trino",
+            "host": "trino.example.com",
+            "port": 8080,
+            "user": "mds",
+            "password": "secret",
+            "ssl": False,
+        },
+    )
+    assert response.status_code == 200
+    result = response.json()["results"]
+    assert result["success"] is True
+    assert result["message"] == "Connection successful"

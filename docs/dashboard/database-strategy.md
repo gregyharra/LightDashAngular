@@ -39,7 +39,6 @@ Each tile type has different `properties`. SQL columns per type (`heading_text`,
 
 ```mermaid
 erDiagram
-    organizations ||--o{ projects : has
     projects ||--o{ spaces : has
     projects ||--o{ dashboards : has
     spaces ||--o{ dashboards : contains
@@ -93,7 +92,6 @@ Holds dashboard metadata and fields not tied to individual tiles.
 CREATE TABLE dashboards (
     dashboard_uuid        UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     project_uuid          UUID NOT NULL REFERENCES projects(project_uuid) ON DELETE CASCADE,
-    organization_uuid     UUID NOT NULL,
     space_uuid            UUID NOT NULL REFERENCES spaces(space_uuid),
     name                  TEXT NOT NULL,
     description           TEXT,

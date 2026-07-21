@@ -12,7 +12,6 @@ export type DashboardBasicDetails = {
   name: string;
   description?: string;
   projectUuid: string;
-  organizationUuid: string;
   spaceUuid: string;
   spaceName?: string;
   updatedAt: string;
@@ -201,7 +200,6 @@ export type Dashboard = {
   description?: string;
   slug: string;
   projectUuid: string;
-  organizationUuid: string;
   spaceUuid: string;
   spaceName: string;
   dashboardVersionId: number;

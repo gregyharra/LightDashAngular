@@ -124,7 +124,7 @@
       }
     </div>
 
-    @if (mode() === 'edit' && !supportsConnectionTest()) {
+    @if (!supportsConnectionTest()) {
       <p class="warehouse-form__note">
         Connection testing is only available for Trino warehouses.
       </p>
@@ -132,22 +132,20 @@
 
     @if (showActions()) {
       <div class="warehouse-form__actions">
-        @if (mode() === 'edit') {
-          <button
-            mat-stroked-button
-            type="button"
-            (click)="testConnection()"
-            [disabled]="testing() || saving() || !supportsConnectionTest()"
-          >
-            @if (testing()) {
-              Testing…
-            } @else {
-              Test connection
-            }
-          </button>
-        }
+        <button
+          mat-stroked-button
+          type="button"
+          (click)="testConnection()"
+          [disabled]="testing() || saving() || !supportsConnectionTest() || !canTestConnection()"
+        >
+          @if (testing()) {
+            Testing…
+          } @else {
+            Test connection
+          }
+        </button>
 
-        <button mat-stroked-button type="button" (click)="cancel()" [disabled]="saving()">
+        <button mat-stroked-button type="button" (click)="cancel()" [disabled]="saving() || testing()">
           Cancel
         </button>
 

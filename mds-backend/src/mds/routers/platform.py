@@ -5,7 +5,7 @@ from sqlalchemy.orm import Session
 
 from mds.api.envelope import ok
 from mds.db.models import Project, Space, User, Warehouse
-from mds.db.seed import MOCK_ORG_UUID, MOCK_USER_UUID
+from mds.db.seed import MOCK_USER_UUID
 from mds.db.session import get_db
 from mds.schemas.project import ProjectCreate, ProjectUpdate
 
@@ -21,8 +21,10 @@ def _project_payload(project: Project, warehouse: Warehouse | None = None) -> di
         "projectUuid": str(project.uuid),
         "name": project.name,
         "type": "DEFAULT",
-        "createdByUserUuid": str(project.created_by_user_uuid),
-        "createdByUserName": "Demo Analyst",
+        "createdByUserUuid": str(project.created_by_user_uuid)
+        if project.created_by_user_uuid
+        else None,
+        "createdByUserName": "Demo Analyst" if project.created_by_user_uuid else None,
         "createdAt": _format_dt(project.created_at),
         "upstreamProjectUuid": None,
         "warehouseType": project.warehouse_type,
@@ -87,9 +89,6 @@ def get_user(db: Session = Depends(get_db)):
             "email": user.email,
             "firstName": user.first_name,
             "lastName": user.last_name,
-            "organizationUuid": str(user.organization_uuid),
-            "organizationName": "Jaffle Shop",
-            "organizationCreatedAt": "2024-01-11T03:46:50.732Z",
             "isTrackingAnonymized": False,
             "isMarketingOptedIn": False,
             "isSetupComplete": True,
@@ -98,14 +97,7 @@ def get_user(db: Session = Depends(get_db)):
             "timezone": "UTC",
             "avatarUrl": None,
             "avatarGradient": None,
-            "abilityRules": [
-                {"action": "manage", "subject": "all"},
-                {
-                    "action": "view",
-                    "subject": "Project",
-                    "conditions": {"organizationUuid": str(MOCK_ORG_UUID)},
-                },
-            ],
+            "abilityRules": [{"action": "manage", "subject": "all"}],
             "updatedAt": "2024-01-11T03:46:50.732Z",
             "createdAt": "2024-01-11T03:46:50.732Z",
             "impersonation": None,
@@ -113,61 +105,8 @@ def get_user(db: Session = Depends(get_db)):
     )
 
 
-@router.post("/org/projects")
-def create_project(body: ProjectCreate, db: Session = Depends(get_db)):
-    name = body.name.strip()
-    if not name:
-        raise HTTPException(status_code=400, detail="Project name cannot be empty")
-
-    user = db.get(User, MOCK_USER_UUID)
-    if not user:
-        raise HTTPException(status_code=400, detail="Organization not initialized")
-
-    warehouse = None
-    warehouse_uuid = None
-    warehouse_type = "trino"
-
-    if body.warehouse_uuid is not None:
-        try:
-            warehouse_id = uuid_lib.UUID(body.warehouse_uuid)
-        except ValueError as exc:
-            raise HTTPException(status_code=400, detail="Invalid warehouse UUID") from exc
-
-        warehouse = db.get(Warehouse, warehouse_id)
-        if not warehouse:
-            raise HTTPException(status_code=404, detail="Warehouse not found")
-        if warehouse.organization_uuid != user.organization_uuid:
-            raise HTTPException(
-                status_code=400,
-                detail="Warehouse must belong to the same organization as the project",
-            )
-        warehouse_uuid = warehouse_id
-        warehouse_type = warehouse.type
-
-    project = Project(
-        uuid=uuid_lib.uuid4(),
-        organization_uuid=user.organization_uuid,
-        name=name,
-        warehouse_type=warehouse_type,
-        warehouse_uuid=warehouse_uuid,
-        created_by_user_uuid=user.uuid,
-    )
-    space = Space(
-        uuid=uuid_lib.uuid4(),
-        project_uuid=project.uuid,
-        name="Shared",
-        is_private=False,
-    )
-    db.add(project)
-    db.add(space)
-    db.commit()
-    db.refresh(project)
-
-    return ok(_project_payload(project, warehouse))
-
-
-@router.get("/org/projects")
-def list_org_projects(db: Session = Depends(get_db)):
+@router.get("/projects")
+def list_projects(db: Session = Depends(get_db)):
     projects = db.query(Project).order_by(Project.created_at.asc()).all()
     warehouse_ids = {p.warehouse_uuid for p in projects if p.warehouse_uuid}
     warehouses: dict[uuid_lib.UUID, Warehouse] = {}
@@ -181,6 +120,50 @@ def list_org_projects(db: Session = Depends(get_db)):
             for project in projects
         ]
     )
+
+
+@router.post("/projects")
+def create_project(body: ProjectCreate, db: Session = Depends(get_db)):
+    name = body.name.strip()
+    if not name:
+        raise HTTPException(status_code=400, detail="Project name cannot be empty")
+
+    user = db.get(User, MOCK_USER_UUID)
+    warehouse = None
+    warehouse_uuid = None
+    warehouse_type = "trino"
+
+    if body.warehouse_uuid is not None:
+        try:
+            warehouse_id = uuid_lib.UUID(body.warehouse_uuid)
+        except ValueError as exc:
+            raise HTTPException(status_code=400, detail="Invalid warehouse UUID") from exc
+
+        warehouse = db.get(Warehouse, warehouse_id)
+        if not warehouse:
+            raise HTTPException(status_code=404, detail="Warehouse not found")
+        warehouse_uuid = warehouse_id
+        warehouse_type = warehouse.type
+
+    project = Project(
+        uuid=uuid_lib.uuid4(),
+        name=name,
+        warehouse_type=warehouse_type,
+        warehouse_uuid=warehouse_uuid,
+        created_by_user_uuid=user.uuid if user else None,
+    )
+    space = Space(
+        uuid=uuid_lib.uuid4(),
+        project_uuid=project.uuid,
+        name="Shared",
+        is_private=False,
+    )
+    db.add(project)
+    db.add(space)
+    db.commit()
+    db.refresh(project)
+
+    return ok(_project_payload(project, warehouse))
 
 
 @router.get("/projects/{project_uuid}")
@@ -218,11 +201,6 @@ def update_project(
             warehouse = db.get(Warehouse, warehouse_id)
             if not warehouse:
                 raise HTTPException(status_code=404, detail="Warehouse not found")
-            if warehouse.organization_uuid != project.organization_uuid:
-                raise HTTPException(
-                    status_code=400,
-                    detail="Warehouse must belong to the same organization as the project",
-                )
             project.warehouse_uuid = warehouse_id
 
     db.commit()

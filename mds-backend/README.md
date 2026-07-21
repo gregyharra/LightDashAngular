@@ -23,7 +23,7 @@ Run the API:
 uvicorn mds.main:app --reload --port 8080
 ```
 
-On startup the API creates all database tables automatically (`init_db` in the app lifespan). No demo rows are inserted by default, so endpoints like `GET /api/v1/org/projects` return an empty list until you seed data. To load demo org, projects, and dashboards:
+On startup the API creates all database tables automatically (`init_db` in the app lifespan). No demo rows are inserted by default, so endpoints like `GET /api/v1/projects` return an empty list until you seed data. To load demo projects and dashboards:
 
 ```bash
 python -m mds.scripts.seed_demo
@@ -37,7 +37,7 @@ Alternatively, set `SEED_DEMO_DATA=true` in `.env` to seed automatically on star
 |---|---|---|
 | GET | `/api/v1/health` | Bootstrap health check |
 | GET | `/api/v1/user` | Current user stub |
-| GET | `/api/v1/org/projects` | Project list |
+| GET | `/api/v1/projects` | Project list |
 | GET | `/api/v1/projects/{uuid}/spaces` | Spaces for project |
 | GET/POST | `/api/v1/projects/{uuid}/dashboards` | List / create |
 | GET/PATCH | `/api/v2/projects/{uuid}/dashboards/{uuid}` | Get / update |

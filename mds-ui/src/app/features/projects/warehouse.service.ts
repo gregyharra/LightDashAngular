@@ -5,6 +5,7 @@ import {
   Warehouse,
   WarehouseCreate,
   WarehouseListItem,
+  WarehouseTestConnection,
   WarehouseTestResult,
   WarehouseUpdate,
 } from '../../core/models/warehouse.model';
@@ -14,7 +15,7 @@ export class WarehouseService {
   private readonly api = inject(LightdashApiService);
 
   list(): Observable<WarehouseListItem[]> {
-    return this.api.get<WarehouseListItem[]>('/org/warehouses');
+    return this.api.get<WarehouseListItem[]>('/warehouses');
   }
 
   get(warehouseUuid: string): Observable<Warehouse> {
@@ -22,7 +23,7 @@ export class WarehouseService {
   }
 
   create(body: WarehouseCreate): Observable<Warehouse> {
-    return this.api.post<Warehouse>('/org/warehouses', body);
+    return this.api.post<Warehouse>('/warehouses', body);
   }
 
   update(warehouseUuid: string, body: WarehouseUpdate): Observable<Warehouse> {
@@ -35,5 +36,9 @@ export class WarehouseService {
 
   test(warehouseUuid: string): Observable<WarehouseTestResult> {
     return this.api.post<WarehouseTestResult>(`/warehouses/${warehouseUuid}/test`, {});
+  }
+
+  testConnection(body: WarehouseTestConnection): Observable<WarehouseTestResult> {
+    return this.api.post<WarehouseTestResult>('/warehouses/test', body);
   }
 }

@@ -11,6 +11,7 @@ import {
   defaultPortForWarehouseType,
   Warehouse,
   WarehouseCreate,
+  WarehouseTestConnection,
   WarehouseType,
   WAREHOUSE_TYPE_OPTIONS,
   WarehouseUpdate,
@@ -156,6 +157,35 @@ export class WarehouseFormComponent {
     return this.type === 'trino';
   }
 
+  protected canTestConnection(): boolean {
+    return (
+      this.host.trim().length > 0 &&
+      this.user.trim().length > 0 &&
+      Number.isFinite(Number(this.port)) &&
+      Number(this.port) > 0
+    );
+  }
+
+  private buildTestPayload(): WarehouseTestConnection {
+    const payload: WarehouseTestConnection = {
+      type: this.type,
+      host: this.host.trim(),
+      port: Number(this.port),
+      user: this.user.trim(),
+      ssl: this.ssl,
+      ...(this.catalog.trim() ? { catalog: this.catalog.trim() } : {}),
+      ...(this.schema.trim() ? { schema: this.schema.trim() } : {}),
+    };
+
+    if (this.password.trim()) {
+      payload.password = this.password;
+    } else if (this.mode() === 'edit' && this.warehouseUuid()) {
+      payload.warehouseUuid = this.warehouseUuid()!;
+    }
+
+    return payload;
+  }
+
   protected connectionStatusLabel(): string {
     if (this.loading()) {
       return 'Loading…';
@@ -237,9 +267,8 @@ export class WarehouseFormComponent {
   }
 
   protected testConnection(): void {
-    const uuid = this.warehouseUuid();
-    if (!uuid) {
-      this.error.set('Save the warehouse before testing the connection.');
+    if (!this.canTestConnection()) {
+      this.error.set('Host, port, and username are required to test the connection.');
       return;
     }
 
@@ -255,7 +284,7 @@ export class WarehouseFormComponent {
     this.testResult.set(null);
     this.error.set(null);
 
-    this.warehouseService.test(uuid).subscribe({
+    this.warehouseService.testConnection(this.buildTestPayload()).subscribe({
       next: (result) => {
         this.testResult.set(result);
         this.testing.set(false);

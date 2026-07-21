@@ -18,7 +18,6 @@ export function defaultPortForWarehouseType(type: string): number {
 
 export interface Warehouse {
   warehouseUuid: string;
-  organizationUuid: string;
   name: string;
   type: string;
   host: string;
@@ -75,4 +74,16 @@ export interface WarehouseUpdate {
 export interface WarehouseTestResult {
   success: boolean;
   message: string;
+}
+
+export interface WarehouseTestConnection {
+  type: string;
+  host: string;
+  port: number;
+  user: string;
+  password?: string;
+  catalog?: string;
+  schema?: string;
+  ssl: boolean;
+  warehouseUuid?: string;
 }
