@@ -1,27 +1,16 @@
-import { Component, inject, signal } from '@angular/core';
+import { Component, input, output, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
-import {
-  MAT_DIALOG_DATA,
-  MatDialogModule,
-  MatDialogRef,
-} from '@angular/material/dialog';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
 import { CustomAttributeType } from '../../../../core/models/dictionary.model';
 
-export type AddAttributeDialogData = {
-  existingNames: string[];
+export type AddAttributeDialogResult = {
+  name: string;
+  type: CustomAttributeType;
+  options?: string[];
 };
-
-export type AddAttributeDialogResult =
-  | {
-      name: string;
-      type: CustomAttributeType;
-      options?: string[];
-    }
-  | undefined;
 
 const ATTRIBUTE_TYPE_OPTIONS: { value: CustomAttributeType; label: string }[] = [
   { value: 'text', label: 'Text' },
@@ -35,7 +24,6 @@ const ATTRIBUTE_TYPE_OPTIONS: { value: CustomAttributeType; label: string }[] = 
   imports: [
     FormsModule,
     MatButtonModule,
-    MatDialogModule,
     MatFormFieldModule,
     MatInputModule,
     MatSelectModule,
@@ -44,10 +32,9 @@ const ATTRIBUTE_TYPE_OPTIONS: { value: CustomAttributeType; label: string }[] = 
   styleUrl: './add-attribute-dialog.component.scss',
 })
 export class AddAttributeDialogComponent {
-  private readonly dialogRef = inject(
-    MatDialogRef<AddAttributeDialogComponent, AddAttributeDialogResult>,
-  );
-  readonly data = inject<AddAttributeDialogData>(MAT_DIALOG_DATA);
+  readonly existingNames = input<string[]>([]);
+  readonly saved = output<AddAttributeDialogResult>();
+  readonly cancelled = output<void>();
 
   protected readonly typeOptions = ATTRIBUTE_TYPE_OPTIONS;
   protected readonly error = signal<string | null>(null);
@@ -79,6 +66,19 @@ export class AddAttributeDialogComponent {
     this.error.set(null);
   }
 
+  protected onBackdropClick(event: MouseEvent): void {
+    if (event.target === event.currentTarget) {
+      this.cancel();
+    }
+  }
+
+  protected onKeydown(event: KeyboardEvent): void {
+    if (event.key === 'Escape') {
+      event.stopPropagation();
+      this.cancel();
+    }
+  }
+
   protected save(): void {
     const trimmedName = this.name.trim();
     if (!trimmedName) {
@@ -86,7 +86,7 @@ export class AddAttributeDialogComponent {
       return;
     }
 
-    const isDuplicate = this.data.existingNames.some(
+    const isDuplicate = this.existingNames().some(
       (existing) => existing.toLowerCase() === trimmedName.toLowerCase(),
     );
     if (isDuplicate) {
@@ -99,7 +99,7 @@ export class AddAttributeDialogComponent {
       return;
     }
 
-    this.dialogRef.close({
+    this.saved.emit({
       name: trimmedName,
       type: this.type,
       ...(this.type === 'enum' ? { options: this.parsedOptions } : {}),
@@ -107,6 +107,6 @@ export class AddAttributeDialogComponent {
   }
 
   protected cancel(): void {
-    this.dialogRef.close(undefined);
+    this.cancelled.emit();
   }
 }

@@ -380,3 +380,11 @@
     </div>
   </div>
 </div>
+
+@if (showAddAttribute()) {
+  <app-add-attribute-dialog
+    [existingNames]="existingAttributeNames()"
+    (saved)="onAddAttributeSaved($event)"
+    (cancelled)="onAddAttributeCancelled()"
+  />
+}

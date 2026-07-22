@@ -120,8 +120,7 @@ strong {
 // lay out in normal block flow instead of as a flex item. Spacing between fields
 // uses margins (see component-level `*__field`/`*__content` rules) instead of
 // flex `gap`.
-.warehouse-create-dialog-panel .mat-mdc-dialog-content,
-.add-attribute-dialog-panel .mat-mdc-dialog-content {
+.warehouse-create-dialog-panel .mat-mdc-dialog-content {
   display: block;
   min-height: 0;
   max-height: min(80vh, 900px);
@@ -130,8 +129,7 @@ strong {
 }
 
 @supports (-moz-appearance: none) {
-  .warehouse-create-dialog-panel .mat-mdc-dialog-content,
-  .add-attribute-dialog-panel .mat-mdc-dialog-content {
+  .warehouse-create-dialog-panel .mat-mdc-dialog-content {
     max-height: none;
     overflow: visible;
   }

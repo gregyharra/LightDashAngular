@@ -1,38 +1,65 @@
-.add-attribute-dialog__content {
-  // Block layout (not flex) is required: `mat-form-field` is internally
-  // `inline-flex; flex-direction: column` with an `overflow: hidden` child, so
-  // making this element a flex *container* turns every field into a flex item
-  // that Firefox can collapse to zero height. See styles.scss for the full
-  // explanation of the `.add-attribute-dialog-panel .mat-mdc-dialog-content` rule.
+// Plain fixed modal — intentionally avoids Angular CDK overlay / MatDialog.
+// Solid (non-alpha) backdrop and no transform/shadow/filter to avoid Ubuntu
+// compositor artifacts seen on Material overlay surfaces.
+.add-attribute-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  background: #666666;
+}
+
+.add-attribute-modal__panel {
+  width: min(420px, 100%);
+  max-height: min(90vh, 900px);
+  overflow: auto;
+  background: #ffffff;
+  border: 1px solid var(--ld-gray-4, #ced4da);
+  border-radius: var(--ld-radius-md, 8px);
+  min-width: 0;
+}
+
+.add-attribute-modal__title {
+  margin: 0;
+  padding: 20px 24px 8px;
+  font-size: 1.25rem;
+  font-weight: 500;
+  color: var(--ld-gray-9, #212529);
+}
+
+.add-attribute-modal__content {
   display: block;
   min-width: 0;
-  max-height: min(80vh, 900px);
-  overflow-x: hidden;
-  overflow-y: auto;
-  padding-top: 0.25rem;
-
-  @supports (-moz-appearance: none) {
-    max-height: none;
-    overflow: visible;
-  }
+  padding: 8px 24px 0;
 
   > * + * {
     margin-top: 0.5rem;
   }
 }
 
-.add-attribute-dialog__field {
+.add-attribute-modal__field {
   display: block;
   width: 100%;
 }
 
-.add-attribute-dialog__preview {
+.add-attribute-modal__preview {
   margin: -0.25rem 0 0.25rem;
   font-size: 0.8rem;
   color: var(--ld-gray-6, #868e96);
 }
 
-.add-attribute-dialog__error {
+.add-attribute-modal__error {
   color: var(--mds-color-danger, #b42318);
   font-size: 0.875rem;
+}
+
+.add-attribute-modal__actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 8px;
+  padding: 16px 24px 20px;
 }

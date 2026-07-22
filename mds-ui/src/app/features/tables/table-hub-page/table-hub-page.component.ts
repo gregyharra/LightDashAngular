@@ -4,7 +4,6 @@ import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { MatButtonModule } from '@angular/material/button';
 import { MatChipInputEvent, MatChipsModule } from '@angular/material/chips';
-import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { Observable, forkJoin, of } from 'rxjs';
@@ -46,9 +45,9 @@ type HubTab = 'overview' | 'columns' | 'lineage' | 'sql';
     RouterLink,
     MatButtonModule,
     MatChipsModule,
-    MatDialogModule,
     MatIconModule,
     MatProgressSpinnerModule,
+    AddAttributeDialogComponent,
     FolderSearchPanelComponent,
     LineageGraphComponent,
     ResizableSidebarDirective,
@@ -61,7 +60,6 @@ export class TableHubPageComponent {
   private readonly lineageService = inject(LineageService);
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
-  private readonly dialog = inject(MatDialog);
   protected readonly activeProjectService = inject(ActiveProjectService);
 
   protected readonly projectUuid = signal<string | null>(null);
@@ -80,6 +78,7 @@ export class TableHubPageComponent {
   protected readonly lineageGraphMode = signal<LineageGraphMode>('focus');
   protected readonly lineageHopDepth = signal<LineageHopDepth>(UNLIMITED_HOP_DEPTH);
   protected readonly selectedColumn = signal<SelectedColumnRef | null>(null);
+  protected readonly showAddAttribute = signal(false);
 
   protected readonly descriptionDraft = signal('');
   protected readonly tagsDraft = signal<string[]>([]);
@@ -98,6 +97,10 @@ export class TableHubPageComponent {
     const raw = this.entry()?.custom?.[CUSTOM_ATTRIBUTE_DEFS_KEY];
     return Array.isArray(raw) ? (raw as CustomAttributeDef[]) : [];
   });
+
+  protected readonly existingAttributeNames = computed(() =>
+    this.attributeDefs().map((def) => def.name),
+  );
 
   constructor() {
     this.route.paramMap.subscribe((params) => {
@@ -262,27 +265,24 @@ export class TableHubPageComponent {
   }
 
   protected openAddAttributeDialog(): void {
+    if (!this.projectUuid() || !this.entry()) {
+      return;
+    }
+    this.showAddAttribute.set(true);
+  }
+
+  protected onAddAttributeCancelled(): void {
+    this.showAddAttribute.set(false);
+  }
+
+  protected onAddAttributeSaved(result: AddAttributeDialogResult): void {
     const projectUuid = this.projectUuid();
     const entry = this.entry();
+    this.showAddAttribute.set(false);
     if (!projectUuid || !entry) {
       return;
     }
-
-    const dialogRef = this.dialog.open<
-      AddAttributeDialogComponent,
-      { existingNames: string[] },
-      AddAttributeDialogResult
-    >(AddAttributeDialogComponent, {
-      width: '420px',
-      panelClass: 'add-attribute-dialog-panel',
-      data: { existingNames: this.attributeDefs().map((def) => def.name) },
-    });
-
-    dialogRef.afterClosed().subscribe((result) => {
-      if (result) {
-        this.addAttributeDefinition(projectUuid, entry, result);
-      }
-    });
+    this.addAttributeDefinition(projectUuid, entry, result);
   }
 
   private addAttributeDefinition(
