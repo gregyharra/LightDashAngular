@@ -1,24 +1,28 @@
 .add-attribute-dialog__content {
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-  flex: 0 1 auto;
+  // Block layout (not flex) is required: `mat-form-field` is internally
+  // `inline-flex; flex-direction: column` with an `overflow: hidden` child, so
+  // making this element a flex *container* turns every field into a flex item
+  // that Firefox can collapse to zero height. See styles.scss for the full
+  // explanation of the `.add-attribute-dialog-panel .mat-mdc-dialog-content` rule.
+  display: block;
   min-width: 0;
-  min-height: 0;
   max-height: min(80vh, 900px);
   overflow-x: hidden;
   overflow-y: auto;
   padding-top: 0.25rem;
 
-  // Firefox collapses flex-item dialog content without an explicit block size.
   @supports (-moz-appearance: none) {
-    flex: none;
     max-height: none;
     overflow: visible;
+  }
+
+  > * + * {
+    margin-top: 0.5rem;
   }
 }
 
 .add-attribute-dialog__field {
+  display: block;
   width: 100%;
 }
 

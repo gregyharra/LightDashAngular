@@ -1,0 +1,20 @@
+---
+description: Multi-browser UI, responsive layouts, and no page-level horizontal scroll
+alwaysApply: true
+---
+
+# UI: browsers, viewport, overflow
+
+## Cross-browser
+
+- UI must work in **Chromium and Firefox** (prefer CSS/structure fixes over sniffing).
+- Material dialogs/overlays: do not rely on Chromium-only flex height/overflow. Firefox often collapses `mat-dialog-content` as a flex child — use `flex: 0 1 auto` + sensible `max-height`/`overflow`, and on Firefox prefer `flex: none` with visible overflow (see warehouse / add-attribute dialog panel patterns in `mds-ui/src/styles.scss`).
+- When touching dialogs, overlays, or nested flex height layouts, smoke-check in both browsers.
+
+## Responsive / no horizontal page scroll
+
+- Every screen must adapt to the viewport; layouts should reflow or shrink.
+- Users must **never** scroll the page horizontally to reveal content. Contain overflow in the page shell (`overflow-x: clip`/`hidden`, `min-width: 0` on flex children).
+- Wide tables/graphs may scroll **inside** a local wrapper (`overflow-x: auto`); the page and main shells must not grow past the viewport.
+- Prefer wrapping, `min-width: 0`, and container queries over fixed widths that force sideways page scroll.
+- Action buttons: keep labels on one line (`white-space: nowrap`); let the title block shrink; use `flex-shrink: 0` on buttons. Shorten labels via container query if needed — never wrap/clip mid-label inside a too-narrow button.

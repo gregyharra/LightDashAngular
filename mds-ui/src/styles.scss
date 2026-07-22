@@ -61,26 +61,36 @@ strong {
   max-width: min(var(--ld-page-content-max-width-large), 100%);
 }
 
-// Firefox: Material dialog content can collapse to zero height inside flex containers.
+// Angular Material's own default for `.mat-mdc-dialog-content` is `display: block`
+// (it is only a *flex item* of the dialog surface, via `flex-grow: 1` — it is not a
+// flex *container* for its children). Turning it into `display: flex; flex-direction:
+// column` (as a previous fix attempted, to get `gap`-based spacing) makes every
+// descendant — including `mat-mdc-form-field`, which is itself `inline-flex;
+// flex-direction: column` internally, with an inner `.mdc-text-field` that has
+// `overflow: hidden` — a flex item too. Firefox implements the spec's flex
+// "automatic minimum size" rule strictly: a flex item that is a scroll container
+// (any `overflow` other than `visible`) gets an automatic min-size of 0 instead of
+// its content size. Nested inside our column flex + auto-height dialog, that
+// collapses `mat-form-field` (labels, inputs, the select arrow) down to a hairline
+// in Firefox, even though Chromium is more lenient and renders it fine.
+//
+// The fix: keep `display: block` for the dialog content (matching Material's
+// default and the working warehouse-create dialog), and let `mat-mdc-form-field`
+// lay out in normal block flow instead of as a flex item. Spacing between fields
+// uses margins (see component-level `*__field`/`*__content` rules) instead of
+// flex `gap`.
 .warehouse-create-dialog-panel .mat-mdc-dialog-content,
 .add-attribute-dialog-panel .mat-mdc-dialog-content {
-  display: flex;
-  flex-direction: column;
-  flex: 0 1 auto;
+  display: block;
   min-height: 0;
   max-height: min(80vh, 900px);
   overflow-x: hidden;
   overflow-y: auto;
 }
 
-.warehouse-create-dialog-panel .mat-mdc-dialog-content {
-  display: block;
-}
-
 @supports (-moz-appearance: none) {
   .warehouse-create-dialog-panel .mat-mdc-dialog-content,
   .add-attribute-dialog-panel .mat-mdc-dialog-content {
-    flex: none;
     max-height: none;
     overflow: visible;
   }
