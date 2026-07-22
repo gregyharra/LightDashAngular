@@ -153,6 +153,30 @@
               </mat-form-field>
             </div>
 
+            <div class="project-create__section">
+              <h2 class="project-create__section-title">dbt project</h2>
+              <p class="project-create__hint">
+                Optional. Local path to your dbt project when not using Git sync. Relative paths
+                are resolved from the backend directory (e.g. <code>../mds-transform</code>).
+              </p>
+
+              <mat-form-field appearance="outline" class="project-create__field">
+                <mat-label>dbt project path</mat-label>
+                <input
+                  matInput
+                  name="dbtProjectPath"
+                  [(ngModel)]="dbtProjectPath"
+                  placeholder="../mds-transform"
+                  autocomplete="off"
+                  [disabled]="submitting()"
+                />
+                <mat-hint>
+                  Overrides DBT_PROJECT_PATH from .env for this project. Requires
+                  target/manifest.json (run dbt compile).
+                </mat-hint>
+              </mat-form-field>
+            </div>
+
             @if (error()) {
               <div class="project-create__error">{{ error() }}</div>
             }

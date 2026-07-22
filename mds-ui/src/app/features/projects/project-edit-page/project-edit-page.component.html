@@ -181,6 +181,21 @@
                 </label>
               }
 
+              <mat-form-field appearance="outline" class="project-edit__field">
+                <mat-label>dbt project path</mat-label>
+                <input
+                  matInput
+                  name="dbtProjectPath"
+                  [(ngModel)]="dbtProjectPath"
+                  placeholder="../mds-transform"
+                  autocomplete="off"
+                />
+                <mat-hint>
+                  Local dbt directory for this project. Relative to mds-backend/. Cleared on desync
+                  only when the path pointed at the cloned repo.
+                </mat-hint>
+              </mat-form-field>
+
               @if (repoStatus(); as repo) {
                 <div class="project-edit__repo-status">
                   <p><strong>Branch:</strong> {{ repo.branch || repo.defaultBranch || '—' }}</p>

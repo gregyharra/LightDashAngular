@@ -20,6 +20,7 @@ export interface ProjectCreate {
   gitProvider?: GitProvider | null;
   gitSubdirectory?: string | null;
   gitToken?: string | null;
+  dbtProjectPath?: string | null;
 }
 
 export interface ProjectUpdate {
@@ -31,6 +32,7 @@ export interface ProjectUpdate {
   gitSubdirectory?: string | null;
   gitToken?: string | null;
   clearGitToken?: boolean;
+  dbtProjectPath?: string | null;
 }
 
 @Injectable({ providedIn: 'root' })

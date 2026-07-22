@@ -177,31 +177,13 @@ def test_refresh_regenerates_stale_manifest(client: TestClient, monkeypatch: pyt
         clear_dbt_artifacts_cache()
 
 
-def test_dbt_tree_falls_back_to_env_path_when_project_path_has_no_artifacts(
+def test_dbt_tree_falls_back_to_env_path_when_no_explicit_path(
     client: TestClient,
     tmp_path: Path,
 ) -> None:
-    import uuid as uuid_lib
-
-    from mds.db.models import Project
-    from mds.db.session import SessionLocal
-
-    empty_dbt_dir = tmp_path / "empty-clone"
-    empty_dbt_dir.mkdir()
-    (empty_dbt_dir / "dbt_project.yml").write_text("name: sample\nversion: 1.0.0\n", encoding="utf-8")
-
     create = client.post("/api/v1/projects", json={"name": "Clone path without artifacts"})
     assert create.status_code == 200
     project_uuid = create.json()["results"]["projectUuid"]
-
-    db = SessionLocal()
-    try:
-        project = db.get(Project, uuid_lib.UUID(project_uuid))
-        assert project is not None
-        project.dbt_project_path = str(empty_dbt_dir)
-        db.commit()
-    finally:
-        db.close()
 
     clear_dbt_artifacts_cache()
     response = client.get(f"/api/v1/projects/{project_uuid}/dbt-tree")

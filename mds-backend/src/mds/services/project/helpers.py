@@ -33,7 +33,7 @@ def project_payload(project: Project, warehouse: Warehouse | None = None) -> dic
         "gitProvider": project.git_provider,
         "gitSubdirectory": project.git_subdirectory,
         "hasGitToken": project.encrypted_git_token is not None,
-        "dbtProjectPath": repo_status["dbtProjectPath"],
+        "dbtProjectPath": project.dbt_project_path,
         "repo": {
             "configured": repo_status["configured"],
             "cloned": repo_status["cloned"],
@@ -72,6 +72,9 @@ def apply_git_fields_on_create(project: Project, body: ProjectCreate) -> None:
     if body.git_token:
         project.encrypted_git_token = encrypt_secret(body.git_token)
 
+    if body.dbt_project_path is not None:
+        project.dbt_project_path = (body.dbt_project_path or "").strip() or None
+
 
 def apply_git_fields_on_update(project: Project, body: ProjectUpdate) -> None:
     if "git_repo_url" in body.model_fields_set:
@@ -94,3 +97,6 @@ def apply_git_fields_on_update(project: Project, body: ProjectUpdate) -> None:
         project.encrypted_git_token = None
     elif "git_token" in body.model_fields_set and body.git_token:
         project.encrypted_git_token = encrypt_secret(body.git_token)
+
+    if "dbt_project_path" in body.model_fields_set:
+        project.dbt_project_path = (body.dbt_project_path or "").strip() or None

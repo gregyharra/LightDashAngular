@@ -65,6 +65,7 @@ export class ProjectEditPageComponent {
   protected gitToken = '';
   protected clearGitToken = false;
   protected hasGitToken = false;
+  protected dbtProjectPath = '';
 
   protected readonly gitProviders: { value: GitProvider; label: string }[] = [
     { value: 'github', label: 'GitHub' },
@@ -130,6 +131,7 @@ export class ProjectEditPageComponent {
     this.gitDefaultBranch = project.gitDefaultBranch ?? 'main';
     this.gitProvider = project.gitProvider ?? null;
     this.gitSubdirectory = project.gitSubdirectory ?? '';
+    this.dbtProjectPath = project.dbtProjectPath ?? '';
     this.hasGitToken = project.hasGitToken ?? false;
     this.gitToken = '';
     this.clearGitToken = false;
@@ -194,6 +196,7 @@ export class ProjectEditPageComponent {
         gitSubdirectory: this.gitSubdirectory.trim() || null,
         gitToken: this.gitToken.trim() || undefined,
         clearGitToken: this.clearGitToken,
+        dbtProjectPath: this.dbtProjectPath.trim() || null,
       })
       .subscribe({
         next: (project) => {

@@ -10,8 +10,8 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 logger = logging.getLogger(__name__)
 
 # Resolve .env relative to mds-backend/ so settings load regardless of process cwd.
-_BACKEND_ROOT = Path(__file__).resolve().parents[2]
-_ENV_FILE = _BACKEND_ROOT / ".env"
+BACKEND_ROOT = Path(__file__).resolve().parents[2]
+_ENV_FILE = BACKEND_ROOT / ".env"
 
 # Fixed Fernet key for local development only. Do not use in production.
 DEV_ENCRYPTION_KEY = "fmXlTUNDZHLuwZ76WG33hC-hMtmClZscvGSHBDgqtj0="
@@ -39,7 +39,7 @@ class Settings(BaseSettings):
     )
     dbt_project_path: str = Field(
         default="../mds-transform",
-        description="Local dbt project directory (absolute or relative to process cwd).",
+        description="Local dbt project directory (absolute or relative to mds-backend/).",
     )
     dbt_artifacts_path: Optional[str] = Field(
         default=None,
@@ -54,7 +54,7 @@ class Settings(BaseSettings):
     )
     projects_data_dir: str = Field(
         default=".data/projects",
-        description="Local directory for cloned project repositories.",
+        description="Local directory for cloned project repositories (relative to mds-backend/).",
     )
     encryption_key: Optional[str] = Field(
         default=None,

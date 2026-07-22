@@ -19,7 +19,7 @@ from mds.services.dbt.parse import (
     build_project_lineage,
     find_lineage_node,
 )
-from mds.services.project.git import resolve_project_dbt_path
+from mds.services.project.git import resolve_dbt_path_for_loading
 
 router = APIRouter(tags=["semantic"])
 
@@ -34,8 +34,9 @@ def _load_project(db: Session, project_uuid: str) -> Project:
 
 def _load_lineage_context(db: Session, project_uuid: str) -> tuple[Project, dict]:
     project = _load_project(db, project_uuid)
+    dbt_path = resolve_dbt_path_for_loading(project)
     try:
-        artifacts = get_dbt_artifacts(resolve_project_dbt_path(project))
+        artifacts = get_dbt_artifacts(dbt_path)
     except DbtProjectNotConfigured as exc:
         raise HTTPException(status_code=503, detail=str(exc)) from exc
     except DbtArtifactsNotFound as exc:
@@ -59,8 +60,9 @@ def get_project_lineage(project_uuid: str, db: Session = Depends(get_db)):
 @router.get("/projects/{project_uuid}/dbt-tree")
 def get_project_dbt_tree(project_uuid: str, db: Session = Depends(get_db)):
     project = _load_project(db, project_uuid)
+    dbt_path = resolve_dbt_path_for_loading(project)
     try:
-        artifacts = get_dbt_artifacts(resolve_project_dbt_path(project))
+        artifacts = get_dbt_artifacts(dbt_path)
     except DbtProjectNotConfigured as exc:
         raise HTTPException(status_code=503, detail=str(exc)) from exc
     except DbtArtifactsNotFound as exc:
@@ -93,8 +95,9 @@ def get_explore(project_uuid: str, table_id: str, db: Session = Depends(get_db))
 def refresh_dbt_artifacts(project_uuid: str, db: Session = Depends(get_db)):
     project = _load_project(db, project_uuid)
     clear_dbt_artifacts_cache()
+    dbt_path = resolve_dbt_path_for_loading(project)
     try:
-        get_dbt_artifacts(resolve_project_dbt_path(project), ensure_fresh=True)
+        get_dbt_artifacts(dbt_path, ensure_fresh=True)
     except DbtProjectNotConfigured as exc:
         raise HTTPException(status_code=503, detail=str(exc)) from exc
     except DbtArtifactsNotFound as exc:

@@ -55,6 +55,7 @@ export class ProjectCreatePageComponent {
   protected gitProvider: GitProvider | null = null;
   protected gitSubdirectory = '';
   protected gitToken = '';
+  protected dbtProjectPath = '';
 
   protected readonly gitProviders: { value: GitProvider; label: string }[] = [
     { value: 'github', label: 'GitHub' },
@@ -134,6 +135,7 @@ export class ProjectCreatePageComponent {
         gitProvider: this.gitProvider,
         gitSubdirectory: this.gitSubdirectory.trim() || null,
         gitToken: this.gitToken.trim() || null,
+        dbtProjectPath: this.dbtProjectPath.trim() || null,
       })
       .subscribe({
         next: (project) => {

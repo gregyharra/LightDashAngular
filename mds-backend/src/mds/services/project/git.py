@@ -8,7 +8,11 @@ from urllib.parse import urlparse, urlunparse
 
 from mds.config import settings
 from mds.db.models import Project
-from mds.services.dbt.loader import clear_dbt_artifacts_cache, path_has_dbt_artifacts
+from mds.services.dbt.loader import (
+    clear_dbt_artifacts_cache,
+    normalize_dbt_path,
+    path_has_dbt_artifacts,
+)
 from mds.services.dbt.manifest import ensure_fresh_manifest_for_path
 from mds.services.encryption import decrypt_secret
 
@@ -31,10 +35,7 @@ def detect_git_provider(url: str) -> str:
 
 
 def project_clone_dir(project_uuid: str) -> Path:
-    base = Path(settings.projects_data_dir).expanduser()
-    if not base.is_absolute():
-        base = (Path.cwd() / base).resolve()
-    return base / project_uuid / "repo"
+    return normalize_dbt_path(settings.projects_data_dir) / project_uuid / "repo"
 
 
 def _effective_clone_dbt_path(clone_dir: Path, subdirectory: str | None) -> str:
@@ -46,7 +47,7 @@ def _effective_clone_dbt_path(clone_dir: Path, subdirectory: str | None) -> str:
     return str(clone_dir.resolve())
 
 
-def resolve_project_dbt_path(project: Project) -> str | None:
+def _dbt_path_candidates(project: Project) -> list[str]:
     candidates: list[str] = []
 
     explicit = (project.dbt_project_path or "").strip()
@@ -63,10 +64,40 @@ def resolve_project_dbt_path(project: Project) -> str | None:
     if env_path and env_path not in candidates:
         candidates.append(env_path)
 
-    for candidate in candidates:
-        if path_has_dbt_artifacts(candidate):
-            return candidate
+    return candidates
 
+
+def resolve_dbt_path_for_loading(project: Project) -> str | None:
+    """Return the dbt path to use for artifact loading and error reporting."""
+    explicit = (project.dbt_project_path or "").strip()
+    if explicit:
+        return str(normalize_dbt_path(explicit))
+
+    clone_dir = project_clone_dir(str(project.uuid))
+    if clone_dir.is_dir():
+        return str(normalize_dbt_path(_effective_clone_dbt_path(clone_dir, project.git_subdirectory)))
+
+    for candidate in _dbt_path_candidates(project):
+        normalized = str(normalize_dbt_path(candidate))
+        if path_has_dbt_artifacts(normalized):
+            return normalized
+
+    env_path = (settings.dbt_project_path or "").strip()
+    if env_path:
+        return str(normalize_dbt_path(env_path))
+    return None
+
+
+def resolve_project_dbt_path(project: Project) -> str | None:
+    """Return the best dbt path for display (prefers paths with artifacts)."""
+    for candidate in _dbt_path_candidates(project):
+        normalized = str(normalize_dbt_path(candidate))
+        if path_has_dbt_artifacts(normalized):
+            return normalized
+
+    configured = resolve_dbt_path_for_loading(project)
+    if configured:
+        return configured
     return None
 
 

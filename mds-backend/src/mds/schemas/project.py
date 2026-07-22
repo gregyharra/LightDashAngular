@@ -44,6 +44,7 @@ class ProjectCreate(BaseModel):
     git_provider: GitProvider | None = Field(default=None, alias="gitProvider")
     git_subdirectory: str | None = Field(default=None, alias="gitSubdirectory")
     git_token: str | None = Field(default=None, alias="gitToken")
+    dbt_project_path: str | None = Field(default=None, alias="dbtProjectPath")
 
 
 class ProjectUpdate(BaseModel):
@@ -57,6 +58,7 @@ class ProjectUpdate(BaseModel):
     git_subdirectory: str | None = Field(default=None, alias="gitSubdirectory")
     git_token: str | None = Field(default=None, alias="gitToken")
     clear_git_token: bool = Field(default=False, alias="clearGitToken")
+    dbt_project_path: str | None = Field(default=None, alias="dbtProjectPath")
 
 
 class ProjectRepoStatus(BaseModel):

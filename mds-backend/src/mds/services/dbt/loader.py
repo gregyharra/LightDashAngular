@@ -6,20 +6,30 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
-from mds.config import settings
+from mds.config import BACKEND_ROOT, settings
 
 
 class DbtProjectNotConfigured(Exception):
-    pass
+    def __init__(self, message: str, *, tried_paths: list[str] | None = None) -> None:
+        self.tried_paths = tried_paths or []
+        super().__init__(message)
 
 
 class DbtArtifactsNotFound(Exception):
-    def __init__(self, manifest_path: Path) -> None:
+    def __init__(self, manifest_path: Path, *, project_path: Path | None = None) -> None:
         self.manifest_path = manifest_path
-        super().__init__(
+        self.project_path = project_path
+        detail = (
             f"dbt artifacts not found at {manifest_path}. "
             f"Run `dbt compile` and `dbt docs generate` in your dbt project directory."
         )
+        if project_path is not None:
+            detail = (
+                f"dbt artifacts not found for project path {project_path} "
+                f"(expected manifest at {manifest_path}). "
+                f"Run `dbt compile` and `dbt docs generate` in that directory."
+            )
+        super().__init__(detail)
 
 
 @dataclass
@@ -39,17 +49,23 @@ class DbtArtifacts:
 _cache: dict[str, DbtArtifacts] = {}
 
 
+def normalize_dbt_path(raw: str) -> Path:
+    """Resolve absolute paths as-is; relative paths against mds-backend/."""
+    path = Path(raw).expanduser()
+    if path.is_absolute():
+        return path.resolve()
+    return (BACKEND_ROOT / path).resolve()
+
+
 def resolve_dbt_project_path(project_path_override: str | None = None) -> Path:
     raw = (project_path_override or "").strip() or settings.dbt_project_path.strip()
     if not raw:
         raise DbtProjectNotConfigured(
             "No dbt project path configured. Set DBT_PROJECT_PATH in mds-backend/.env "
-            "or dbt_project_path on the project record."
+            "or dbtProjectPath on the project record."
         )
 
-    path = Path(raw).expanduser()
-    if not path.is_absolute():
-        path = (Path.cwd() / path).resolve()
+    path = normalize_dbt_path(raw)
     if not path.is_dir():
         raise DbtProjectNotConfigured(f"dbt project path does not exist: {path}")
     return path
@@ -58,17 +74,12 @@ def resolve_dbt_project_path(project_path_override: str | None = None) -> Path:
 def resolve_artifacts_dir(project_path: Path) -> Path:
     artifacts_override = (settings.dbt_artifacts_path or "").strip()
     if artifacts_override:
-        artifacts = Path(artifacts_override).expanduser()
-        if not artifacts.is_absolute():
-            artifacts = (Path.cwd() / artifacts).resolve()
-        return artifacts
+        return normalize_dbt_path(artifacts_override)
     return project_path / "target"
 
 
 def path_has_dbt_artifacts(project_path: str | Path) -> bool:
-    path = Path(project_path).expanduser()
-    if not path.is_absolute():
-        path = (Path.cwd() / path).resolve()
+    path = normalize_dbt_path(str(project_path))
     return (resolve_artifacts_dir(path) / "manifest.json").is_file()
 
 
@@ -91,7 +102,7 @@ def load_dbt_artifacts(
         ensure_fresh_manifest(project_path, artifacts_dir=artifacts_dir)
 
     if not manifest_path.is_file():
-        raise DbtArtifactsNotFound(manifest_path)
+        raise DbtArtifactsNotFound(manifest_path, project_path=project_path)
 
     manifest_mtime = manifest_path.stat().st_mtime
     catalog_mtime = catalog_path.stat().st_mtime if catalog_path.is_file() else 0.0
