@@ -9,12 +9,15 @@ from mds.api.envelope import http_exception_handler, validation_exception_handle
 from mds.config import settings
 from mds.db.seed import seed_demo_data
 from mds.db.session import SessionLocal, init_db
+from mds.logging_config import configure_logging
 from mds.routers.dashboards import router as dashboards_router
 from mds.routers.platform import router as platform_router
 from mds.routers.query import router as query_router
 from mds.routers.saved import router as saved_router
 from mds.routers.semantic import router as semantic_router
 from mds.routers.warehouse import router as warehouse_router
+
+configure_logging(settings)
 
 
 @asynccontextmanager

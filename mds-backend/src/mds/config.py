@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import logging
 from pathlib import Path
-from typing import Optional
+from typing import Literal, Optional
 
 from pydantic import Field, field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
@@ -60,6 +60,19 @@ class Settings(BaseSettings):
         default=None,
         description="Fernet key for encrypting warehouse passwords at rest.",
     )
+    environment: Literal["development", "production"] = Field(
+        default="development",
+        description=(
+            "Runtime environment. Non-production defaults to DEBUG logging for mds.* loggers."
+        ),
+    )
+    log_level: Optional[str] = Field(
+        default=None,
+        description=(
+            "Optional override for mds.* log level (DEBUG, INFO, WARNING, ERROR). "
+            "Defaults to DEBUG in development and INFO in production."
+        ),
+    )
     log_sql_queries: bool = Field(
         default=False,
         description=(
@@ -74,6 +87,12 @@ class Settings(BaseSettings):
         if value == "":
             return None
         return value
+
+    @property
+    def effective_log_level(self) -> str:
+        if self.log_level:
+            return self.log_level.upper()
+        return "INFO" if self.environment == "production" else "DEBUG"
 
     @property
     def cors_origin_list(self) -> list[str]:

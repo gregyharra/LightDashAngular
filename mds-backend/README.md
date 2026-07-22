@@ -67,23 +67,30 @@ Query execution (`/query/*`) still requires `useMockApi: true` in the frontend o
 
 Compiled SQL is returned by the query API (`compiledSql` on `POST /api/v2/projects/{uuid}/query/metric-query` and on the poll `GET .../query/{queryUuid}` response).
 
-To print executed SQL in the backend terminal before Trino runs, set in `.env`:
+In **development** (the default when `ENVIRONMENT` is unset), `mds.*` loggers run at **DEBUG** with no `.env` file required. Run a query from the Tables workspace (`useMockApi: false`) and you should see lines like:
+
+```
+DEBUG mds.services.warehouse.trino_client: Executing warehouse SQL on trino.example.com (analytics.marts):
+SELECT ...
+```
+
+To force SQL at **INFO** regardless of log level, set in `.env`:
 
 ```env
 LOG_SQL_QUERIES=true
 ```
 
-Restart uvicorn and run a query from the Tables workspace (with `useMockApi: false`). You should see lines like:
+For **production**, set `ENVIRONMENT=production` (logs default to INFO). Optional overrides:
 
-```
-INFO mds.services.warehouse.trino_client: Executing warehouse SQL on trino.example.com (analytics.marts):
-SELECT ...
+```env
+ENVIRONMENT=production
+LOG_LEVEL=WARNING
 ```
 
-Alternatively, run uvicorn with debug logging for the `mds` package (no env flag required):
+Start the API (DEBUG logging is automatic in development):
 
 ```bash
-uvicorn mds.main:app --reload --port 8080 --log-level debug
+uvicorn mds.main:app --reload --port 8080
 ```
 
 In the UI, the Tables workspace **SQL** panel shows client-generated SQL before you run a query, and switches to the backend `compiledSql` after execution.
