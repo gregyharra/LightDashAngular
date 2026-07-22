@@ -3,6 +3,11 @@ from __future__ import annotations
 from typing import Any
 
 from mds.schemas.query import MetricQuery, QueryWarning, TimeTravelConfig
+from mds.services.query.filters import (
+    build_filters_where_clause,
+    get_active_dimension_filters,
+    get_filter_required_tables,
+)
 from mds.services.query.time_travel import resolve_sql_table_with_time_travel
 
 
@@ -138,6 +143,8 @@ def build_metric_query_sql(
     if not select_parts:
         return None, warnings
 
+    active_filters = get_active_dimension_filters(metric_query.filters)
+    required_tables.update(get_filter_required_tables(active_filters))
     required_tables.add(explore["baseTable"])
     time_travel = metric_query.time_travel
 
@@ -146,6 +153,10 @@ def build_metric_query_sql(
         ",\n".join(f"  {part}" for part in select_parts),
         _build_from_clause(explore, required_tables, time_travel, warnings),
     ]
+
+    where_clause = build_filters_where_clause(explore, active_filters, time_travel)
+    if where_clause:
+        lines.append(f"WHERE {where_clause}")
 
     if metrics and group_by_parts:
         lines.append(f"GROUP BY {', '.join(group_by_parts)}")
