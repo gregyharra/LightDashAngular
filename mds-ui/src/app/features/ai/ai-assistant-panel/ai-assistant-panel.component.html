@@ -1,0 +1,78 @@
+@if (ui.open()) {
+  <aside class="ai-panel" aria-label="Ask AI">
+    <header class="ai-panel__header">
+      <div>
+        <h2 class="ai-panel__title">Ask AI</h2>
+        <p class="ai-panel__subtitle">Grounded on the active project’s dbt models</p>
+      </div>
+      <div class="ai-panel__header-actions">
+        <button mat-icon-button type="button" aria-label="Clear chat" (click)="clear()">
+          <mat-icon>delete_outline</mat-icon>
+        </button>
+        <button mat-icon-button type="button" aria-label="Close" (click)="close()">
+          <mat-icon>close</mat-icon>
+        </button>
+      </div>
+    </header>
+
+    <mat-button-toggle-group
+      class="ai-panel__mode"
+      [value]="ui.mode()"
+      (change)="setMode($event.value)"
+      aria-label="AI mode"
+    >
+      <mat-button-toggle value="ask">Ask</mat-button-toggle>
+      <mat-button-toggle value="edit">Edit</mat-button-toggle>
+    </mat-button-toggle-group>
+
+    <div class="ai-panel__messages">
+      @if (ui.messages().length === 0) {
+        <p class="ai-panel__hint">
+          Try “describe fct_orders”, “sql for stg_payments”, or “create a bar chart of orders by status”.
+        </p>
+      }
+      @for (message of ui.messages(); track $index) {
+        <div
+          class="ai-panel__bubble"
+          [class.ai-panel__bubble--user]="message.role === 'user'"
+          [class.ai-panel__bubble--assistant]="message.role === 'assistant'"
+        >
+          <pre>{{ message.content }}</pre>
+        </div>
+      }
+      @if (ui.loading()) {
+        <div class="ai-panel__loading">
+          <mat-spinner diameter="24" />
+        </div>
+      }
+      @if (ui.error()) {
+        <p class="ai-panel__error">{{ ui.error() }}</p>
+      }
+      @if (ui.lastProposal(); as proposal) {
+        <div class="ai-panel__proposal">
+          <p>
+            Proposed <strong>{{ proposal.chartKind }}</strong> on
+            <code>{{ proposal.tableName }}</code>
+          </p>
+          <button mat-stroked-button type="button" (click)="openProposedChart()">
+            Open in chart builder
+          </button>
+        </div>
+      }
+    </div>
+
+    <form class="ai-panel__composer" (submit)="$event.preventDefault(); send()">
+      <textarea
+        rows="3"
+        [ngModel]="draft()"
+        (ngModelChange)="draft.set($event)"
+        name="aiDraft"
+        placeholder="Ask about models, SQL, or charts…"
+        aria-label="Message"
+      ></textarea>
+      <button mat-flat-button color="primary" type="submit" [disabled]="ui.loading()">
+        Send
+      </button>
+    </form>
+  </aside>
+}

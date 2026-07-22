@@ -125,6 +125,18 @@
   line-height: 1.45;
 }
 
+.lineage-detail__open-tables {
+  display: inline-flex;
+  margin-top: 0.65rem;
+  font-size: var(--ld-font-size-sm);
+  color: var(--ld-blue-6, #228be6);
+  text-decoration: none;
+
+  &:hover {
+    text-decoration: underline;
+  }
+}
+
 .lineage-detail__section-title {
   display: flex;
   align-items: center;

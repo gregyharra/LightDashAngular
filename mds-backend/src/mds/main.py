@@ -10,7 +10,9 @@ from mds.config import settings
 from mds.db.seed import seed_demo_data
 from mds.db.session import SessionLocal, init_db
 from mds.logging_config import configure_logging
+from mds.routers.ai import router as ai_router
 from mds.routers.dashboards import router as dashboards_router
+from mds.routers.dictionary import router as dictionary_router
 from mds.routers.platform import router as platform_router
 from mds.routers.query import router as query_router
 from mds.routers.saved import router as saved_router
@@ -48,9 +50,13 @@ app.add_exception_handler(RequestValidationError, validation_exception_handler)
 
 app.include_router(platform_router, prefix="/api/v1")
 app.include_router(semantic_router, prefix="/api/v1")
+app.include_router(dictionary_router, prefix="/api/v1")
+app.include_router(ai_router, prefix="/api/v1")
 app.include_router(dashboards_router, prefix="/api/v1")
 app.include_router(saved_router, prefix="/api/v1")
 app.include_router(warehouse_router, prefix="/api/v1")
 app.include_router(query_router, prefix="/api/v2")
 app.include_router(dashboards_router, prefix="/api/v2")
 app.include_router(saved_router, prefix="/api/v2")
+app.include_router(dictionary_router, prefix="/api/v2")
+app.include_router(ai_router, prefix="/api/v2")

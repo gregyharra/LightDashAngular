@@ -78,6 +78,9 @@ export class ChartViewPageComponent {
   protected readonly queryLoading = signal(false);
   protected readonly queryError = signal<string | null>(null);
   protected readonly queryResults = signal<QueryResults | null>(null);
+  protected readonly saveLoading = signal(false);
+  protected readonly saveError = signal<string | null>(null);
+  protected readonly saveSuccess = signal(false);
 
   protected readonly viewMode = signal<ChartViewMode>('chart');
   protected readonly sampleSql = defaultSampleSql;
@@ -130,6 +133,15 @@ export class ChartViewPageComponent {
 
     return !!(this.chartXField() && this.chartYFields().length > 0);
   });
+
+  protected readonly canSave = computed(
+    () =>
+      !!this.chart() &&
+      !!this.explore() &&
+      this.canRenderChart() &&
+      !this.queryLoading() &&
+      !this.saveLoading(),
+  );
 
   protected readonly getFieldLabelFn = (fieldId: FieldId): string =>
     this.getFieldLabel(fieldId);
@@ -305,6 +317,56 @@ export class ChartViewPageComponent {
 
   protected setViewMode(mode: ChartViewMode): void {
     this.viewMode.set(mode);
+  }
+
+  protected saveChart(): void {
+    const projectUuid = this.projectUuid();
+    const chartUuid = this.chartUuid();
+    const chart = this.chart();
+    const explore = this.explore();
+
+    if (!projectUuid || !chartUuid || !chart || !explore || !this.canSave()) {
+      return;
+    }
+
+    const yFields = this.chartYFields();
+    this.saveLoading.set(true);
+    this.saveError.set(null);
+    this.saveSuccess.set(false);
+
+    this.chartService
+      .update(projectUuid, chartUuid, {
+        chartKind: this.chartKind(),
+        tableName: explore.name,
+        metricQuery: {
+          exploreName: explore.name,
+          dimensions: this.selectedDimensionList(),
+          metrics: this.selectedMetricList(),
+          filters: {},
+          sorts: [],
+          limit: this.chartDisplayConfig().rowLimit,
+          tableCalculations: [],
+          additionalMetrics: [],
+        },
+        chartConfig: {
+          type: this.chartKind(),
+          xField: this.chartXField() ?? undefined,
+          yField: yFields[0] ?? undefined,
+          yFields,
+          displayConfig: this.chartDisplayConfig(),
+        },
+      })
+      .subscribe({
+        next: (updated) => {
+          this.chart.set(updated);
+          this.saveLoading.set(false);
+          this.saveSuccess.set(true);
+        },
+        error: (err) => {
+          this.saveError.set(apiErrorMessage(err, 'Failed to save chart.'));
+          this.saveLoading.set(false);
+        },
+      });
   }
 
   private syncChartAxisFields(): void {

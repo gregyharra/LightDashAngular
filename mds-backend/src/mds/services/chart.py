@@ -7,7 +7,7 @@ from sqlalchemy.orm import Session
 
 from mds.db.models import Project, SavedChart, Space, User
 from mds.db.seed import MOCK_SPACE_UUID, MOCK_USER_UUID
-from mds.schemas.chart import CreateSavedChartPayload
+from mds.schemas.chart import CreateSavedChartPayload, UpdateSavedChartPayload
 
 
 def _user_summary(user: User | None) -> dict[str, Any] | None:
@@ -119,3 +119,52 @@ def create_saved_chart(
     db.commit()
     db.refresh(chart)
     return chart_to_detail(db, chart)
+
+
+def update_saved_chart(
+    db: Session,
+    project_uuid: str | uuid.UUID,
+    chart_uuid: str | uuid.UUID,
+    payload: UpdateSavedChartPayload,
+) -> dict[str, Any]:
+    project_id = uuid.UUID(str(project_uuid))
+    chart_id = uuid.UUID(str(chart_uuid))
+    _ensure_project(db, project_id)
+    chart = db.get(SavedChart, chart_id)
+    if not chart or chart.project_uuid != project_id:
+        raise HTTPException(status_code=404, detail="Chart not found")
+
+    if payload.name is not None:
+        chart.name = payload.name.strip() or chart.name
+    if payload.description is not None:
+        chart.description = payload.description.strip() or None
+    if payload.space_uuid is not None:
+        chart.space_uuid = payload.space_uuid
+    if payload.table_name is not None:
+        chart.table_name = payload.table_name
+    if payload.chart_kind is not None:
+        chart.chart_kind = payload.chart_kind
+    if payload.metric_query is not None:
+        chart.metric_query = payload.metric_query
+    if payload.chart_config is not None:
+        chart.chart_config = payload.chart_config
+
+    chart.updated_at = datetime.now(timezone.utc)
+    chart.updated_by_user_uuid = MOCK_USER_UUID
+
+    db.commit()
+    db.refresh(chart)
+    return chart_to_detail(db, chart)
+
+
+def delete_saved_chart(
+    db: Session, project_uuid: str | uuid.UUID, chart_uuid: str | uuid.UUID
+) -> None:
+    project_id = uuid.UUID(str(project_uuid))
+    chart_id = uuid.UUID(str(chart_uuid))
+    _ensure_project(db, project_id)
+    chart = db.get(SavedChart, chart_id)
+    if not chart or chart.project_uuid != project_id:
+        raise HTTPException(status_code=404, detail="Chart not found")
+    db.delete(chart)
+    db.commit()

@@ -104,3 +104,13 @@ export type CreateSavedChartPayload = {
   metricQuery: MetricQuery;
   chartConfig: ChartConfig;
 };
+
+export type UpdateSavedChartPayload = {
+  name?: string;
+  description?: string;
+  spaceUuid?: string;
+  tableName?: string;
+  chartKind?: ChartKind;
+  metricQuery?: MetricQuery;
+  chartConfig?: ChartConfig;
+};

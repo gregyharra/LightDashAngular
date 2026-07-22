@@ -139,3 +139,46 @@ class Dashboard(Base):
     verification: Mapped[dict | None] = mapped_column(JSON, nullable=True)
     pinned_list_uuid: Mapped[uuid_lib.UUID | None] = mapped_column(Uuid, nullable=True)
     pinned_list_order: Mapped[int | None] = mapped_column(Integer, nullable=True)
+
+
+class DictionaryModel(Base):
+    """Enrichment overlay for a dbt model/source/seed (keyed by unique_id)."""
+
+    __tablename__ = "dictionary_models"
+
+    uuid: Mapped[uuid_lib.UUID] = mapped_column(Uuid, primary_key=True)
+    project_uuid: Mapped[uuid_lib.UUID] = mapped_column(
+        Uuid, ForeignKey("projects.uuid", ondelete="CASCADE"), nullable=False
+    )
+    dbt_unique_id: Mapped[str] = mapped_column(String(512), nullable=False)
+    description_override: Mapped[str | None] = mapped_column(Text, nullable=True)
+    tags: Mapped[list] = mapped_column(JSON, default=list)
+    custom: Mapped[dict] = mapped_column(JSON, default=dict)
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now(), onupdate=func.now()
+    )
+    updated_by_user_uuid: Mapped[uuid_lib.UUID | None] = mapped_column(
+        Uuid, ForeignKey("users.uuid", ondelete="SET NULL"), nullable=True
+    )
+
+
+class DictionaryColumn(Base):
+    """Enrichment overlay for a column on a dbt node."""
+
+    __tablename__ = "dictionary_columns"
+
+    uuid: Mapped[uuid_lib.UUID] = mapped_column(Uuid, primary_key=True)
+    project_uuid: Mapped[uuid_lib.UUID] = mapped_column(
+        Uuid, ForeignKey("projects.uuid", ondelete="CASCADE"), nullable=False
+    )
+    dbt_unique_id: Mapped[str] = mapped_column(String(512), nullable=False)
+    column_name: Mapped[str] = mapped_column(String(255), nullable=False)
+    description_override: Mapped[str | None] = mapped_column(Text, nullable=True)
+    tags: Mapped[list] = mapped_column(JSON, default=list)
+    custom: Mapped[dict] = mapped_column(JSON, default=dict)
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now(), onupdate=func.now()
+    )
+    updated_by_user_uuid: Mapped[uuid_lib.UUID | None] = mapped_column(
+        Uuid, ForeignKey("users.uuid", ondelete="SET NULL"), nullable=True
+    )

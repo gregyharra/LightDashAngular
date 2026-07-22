@@ -90,6 +90,28 @@
                 SQL
               </mat-button-toggle>
             </mat-button-toggle-group>
+            <button
+              mat-stroked-button
+              type="button"
+              class="chart-view__save-btn"
+              [disabled]="!canSave() || saveLoading()"
+              (click)="saveChart()"
+            >
+              @if (saveLoading()) {
+                <mat-spinner diameter="18" />
+              } @else {
+                <mat-icon>save</mat-icon>
+              }
+              Save
+            </button>
+            <a
+              mat-stroked-button
+              [routerLink]="['/projects', projectUuid(), 'charts', 'new']"
+              [queryParams]="{ table: chart()!.tableName }"
+            >
+              <mat-icon>open_in_new</mat-icon>
+              Open in builder
+            </a>
             <span class="chart-view__table-badge">
               <mat-icon>table_chart</mat-icon>
               {{ chart()!.tableName }}

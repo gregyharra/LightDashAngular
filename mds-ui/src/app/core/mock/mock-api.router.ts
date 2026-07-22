@@ -25,7 +25,7 @@ import { createMockDashboard, updateMockDashboard, UpdateMockDashboardInput } fr
 import { MOCK_CHART_UUID, MOCK_DASHBOARD_UUID, MOCK_PROJECT_UUID } from './fixtures/ids.fixture';
 import { getExploreDetail } from './fixtures/explore-detail.fixture';
 import { buildMockQueryResults, getMockQueryPollResult, registerMockQuery } from './fixtures/query-results.fixture';
-import { mockSavedChartDetails, createMockSavedChart } from './fixtures/charts.fixture';
+import { mockSavedChartDetails, createMockSavedChart, updateMockSavedChart, deleteMockSavedChart } from './fixtures/charts.fixture';
 import {
   executeMockSqlQuery,
   getMockSqlQueryPollResult,
@@ -44,6 +44,7 @@ import {
   updateMockWarehouse,
 } from './fixtures/warehouse.fixture';
 import { MetricQuery } from '../models/explore.model';
+import { ChartConfig, ChartKind } from '../models/chart.model';
 import { WarehouseCreate, WarehouseTestConnection, WarehouseUpdate } from '../models/warehouse.model';
 import { MockRequest, MockRoute } from './mock-api.types';
 
@@ -138,6 +139,41 @@ const savedChartDetail = (request: MockRequest) => {
   );
 };
 
+const savedChartUpdate = (request: MockRequest) => {
+  const match = request.path.match(
+    /^\/projects\/([^/]+)\/(?:saved|charts)\/([^/]+)$/,
+  );
+  const chartUuid = match?.[2] ?? MOCK_CHART_UUID;
+  const body = (request.body ?? {}) as {
+    name?: string;
+    description?: string;
+    spaceUuid?: string;
+    tableName?: string;
+    chartKind?: string;
+    metricQuery?: MetricQuery;
+    chartConfig?: ChartConfig;
+  };
+
+  return updateMockSavedChart(chartUuid, {
+    name: body.name,
+    description: body.description,
+    spaceUuid: body.spaceUuid,
+    tableName: body.tableName,
+    chartKind: body.chartKind as ChartKind | undefined,
+    metricQuery: body.metricQuery,
+    chartConfig: body.chartConfig,
+  });
+};
+
+const savedChartDelete = (request: MockRequest) => {
+  const match = request.path.match(
+    /^\/projects\/[^/]+\/(?:saved|charts)\/([^/]+)$/,
+  );
+  const chartUuid = match?.[1] ?? MOCK_CHART_UUID;
+  deleteMockSavedChart(chartUuid);
+  return null;
+};
+
 const dashboardsList = (request: MockRequest) => {
   const match = request.path.match(/^\/projects\/([^/]+)\/dashboards$/);
   const projectUuid = match?.[1] ?? MOCK_PROJECT_UUID;
@@ -210,6 +246,215 @@ const projectDbtTree = (request: MockRequest) => {
   return {
     ...mockDbtProjectTree,
     projectUuid,
+  };
+};
+
+type MockDictionaryOverlay = {
+  descriptionOverride?: string | null;
+  tags?: string[];
+  custom?: Record<string, unknown>;
+};
+
+const mockDictionaryModels: Record<string, MockDictionaryOverlay> = {};
+const mockDictionaryColumns: Record<string, MockDictionaryOverlay> = {};
+
+function dictionaryColumnKey(uniqueId: string, columnName: string): string {
+  return `${uniqueId}::${columnName}`;
+}
+
+const dictionaryList = (request: MockRequest) => {
+  const match = request.path.match(/^\/projects\/([^/]+)\/dictionary$/);
+  const projectUuid = match?.[1] ?? MOCK_PROJECT_UUID;
+  const nodes = (mockLineage.nodes ?? []).map((node) => {
+    const overlay = mockDictionaryModels[node.id];
+    return {
+      id: node.id,
+      name: node.name,
+      type: node.type,
+      description: overlay?.descriptionOverride || node.description || null,
+      dbtDescription: node.description || null,
+      descriptionOverride: overlay?.descriptionOverride ?? null,
+      tags: [...(node.tags ?? []), ...(overlay?.tags ?? [])],
+      custom: overlay?.custom ?? {},
+      columnCount: node.columnCount ?? node.columns?.length ?? 0,
+      hasOverlay: !!overlay,
+    };
+  });
+  return {
+    projectUuid,
+    projectName: mockLineage.projectName ?? 'Project',
+    nodes,
+  };
+};
+
+const dictionaryQuality = (request: MockRequest) => {
+  const match = request.path.match(/^\/projects\/([^/]+)\/dictionary\/quality$/);
+  const projectUuid = match?.[1] ?? MOCK_PROJECT_UUID;
+  const nodes = mockLineage.nodes ?? [];
+  let modelDescribed = 0;
+  let columnTotal = 0;
+  let columnDescribed = 0;
+  let tagged = 0;
+  for (const node of nodes) {
+    const overlay = mockDictionaryModels[node.id];
+    if (overlay?.descriptionOverride || node.description) {
+      modelDescribed += 1;
+    }
+    if ((node.tags?.length ?? 0) > 0 || (overlay?.tags?.length ?? 0) > 0) {
+      tagged += 1;
+    }
+    for (const column of node.columns ?? []) {
+      columnTotal += 1;
+      const colOverlay = mockDictionaryColumns[dictionaryColumnKey(node.id, column.name)];
+      if (colOverlay?.descriptionOverride || column.description) {
+        columnDescribed += 1;
+      }
+    }
+  }
+  const modelCoverage = nodes.length ? (modelDescribed / nodes.length) * 100 : 0;
+  const columnCoverage = columnTotal ? (columnDescribed / columnTotal) * 100 : 0;
+  const tagCoverage = nodes.length ? (tagged / nodes.length) * 100 : 0;
+  return {
+    projectUuid,
+    score: Math.round(
+      modelCoverage * 0.3 + columnCoverage * 0.3 + tagCoverage * 0.2 + Math.min(modelCoverage, columnCoverage) * 0.2,
+    ),
+    models: { total: nodes.length, described: modelDescribed, coverage: Math.round(modelCoverage * 10) / 10 },
+    columns: { total: columnTotal, described: columnDescribed, coverage: Math.round(columnCoverage * 10) / 10 },
+    tags: { modelsWithTags: tagged, coverage: Math.round(tagCoverage * 10) / 10 },
+  };
+};
+
+const dictionaryDetail = (request: MockRequest) => {
+  const match = request.path.match(/^\/projects\/[^/]+\/dictionary\/(.+)$/);
+  const uniqueId = decodeURIComponent(match?.[1] ?? '');
+  const node =
+    (mockLineage.nodes ?? []).find((n) => n.id === uniqueId || n.name === uniqueId) ??
+    mockLineage.nodes?.[0];
+  if (!node) {
+    return null;
+  }
+  const overlay = mockDictionaryModels[node.id];
+  return {
+    id: node.id,
+    name: node.name,
+    type: node.type,
+    schema: node.schema,
+    database: node.database,
+    catalog: node.catalog,
+    materialization: node.materialization,
+    packageName: node.packageName,
+    dbtPath: node.dbtPath,
+    sql: node.sql,
+    description: overlay?.descriptionOverride || node.description || null,
+    dbtDescription: node.description || null,
+    descriptionOverride: overlay?.descriptionOverride ?? null,
+    tags: [...(node.tags ?? []), ...(overlay?.tags ?? [])],
+    custom: overlay?.custom ?? {},
+    hasOverlay: !!overlay,
+    columns: (node.columns ?? []).map((column) => {
+      const colOverlay = mockDictionaryColumns[dictionaryColumnKey(node.id, column.name)];
+      return {
+        name: column.name,
+        type: column.type,
+        description: colOverlay?.descriptionOverride || column.description || null,
+        dbtDescription: column.description || null,
+        descriptionOverride: colOverlay?.descriptionOverride ?? null,
+        tags: [...(column.tags ?? []), ...(colOverlay?.tags ?? [])],
+        custom: colOverlay?.custom ?? {},
+        hasOverlay: !!colOverlay,
+      };
+    }),
+  };
+};
+
+const dictionaryModelUpdate = (request: MockRequest) => {
+  const match = request.path.match(/^\/projects\/[^/]+\/dictionary\/(.+)$/);
+  const uniqueId = decodeURIComponent(match?.[1] ?? '');
+  const node =
+    (mockLineage.nodes ?? []).find((n) => n.id === uniqueId || n.name === uniqueId) ??
+    mockLineage.nodes?.[0];
+  if (!node) {
+    return null;
+  }
+  const body = (request.body ?? {}) as MockDictionaryOverlay;
+  mockDictionaryModels[node.id] = {
+    ...mockDictionaryModels[node.id],
+    ...body,
+  };
+  return dictionaryDetail({
+    ...request,
+    path: `/projects/${MOCK_PROJECT_UUID}/dictionary/${encodeURIComponent(node.id)}`,
+  });
+};
+
+const dictionaryColumnUpdate = (request: MockRequest) => {
+  const match = request.path.match(
+    /^\/projects\/[^/]+\/dictionary\/(.+)\/columns\/([^/]+)$/,
+  );
+  const uniqueId = decodeURIComponent(match?.[1] ?? '');
+  const columnName = decodeURIComponent(match?.[2] ?? '');
+  const node =
+    (mockLineage.nodes ?? []).find((n) => n.id === uniqueId || n.name === uniqueId) ??
+    mockLineage.nodes?.[0];
+  if (!node) {
+    return null;
+  }
+  const body = (request.body ?? {}) as MockDictionaryOverlay;
+  const key = dictionaryColumnKey(node.id, columnName);
+  mockDictionaryColumns[key] = {
+    ...mockDictionaryColumns[key],
+    ...body,
+  };
+  return dictionaryDetail({
+    ...request,
+    path: `/projects/${MOCK_PROJECT_UUID}/dictionary/${encodeURIComponent(node.id)}`,
+  });
+};
+
+const aiChat = (request: MockRequest) => {
+  const body = (request.body ?? {}) as {
+    messages?: { role: string; content: string }[];
+    mode?: 'ask' | 'edit';
+  };
+  const userText =
+    [...(body.messages ?? [])].reverse().find((message) => message.role === 'user')
+      ?.content ?? '';
+  const node = (mockLineage.nodes ?? []).find((n) =>
+    userText.toLowerCase().includes(n.name.toLowerCase()),
+  ) ?? mockLineage.nodes?.[0];
+  const mode = body.mode ?? 'ask';
+  const proposedChart =
+    mode === 'edit' && node
+      ? {
+          name: `${node.name} chart`,
+          tableName: node.name,
+          chartKind: 'vertical_bar',
+          metricQuery: {
+            exploreName: node.name,
+            dimensions: [],
+            metrics: [`${node.name}_row_count`],
+            filters: {},
+            sorts: [],
+            limit: 500,
+            tableCalculations: [],
+            additionalMetrics: [],
+          },
+          chartConfig: {
+            type: 'vertical_bar',
+            yFields: [`${node.name}_row_count`],
+          },
+          sql: `select count(*) as row_count from ${node.schema}.${node.name} limit 500`,
+        }
+      : null;
+
+  return {
+    reply: node
+      ? `Grounded reply about \`${node.name}\`.\n\nAsk me to describe it, generate SQL, or (in Edit mode) propose a chart.`
+      : 'No models available in mock lineage.',
+    mode,
+    proposedChart,
+    toolsUsed: ['buildModelOverview', 'searchModels'],
   };
 };
 
@@ -464,10 +709,14 @@ const routes: MockRoute[] = [
   { pattern: /^\/projects\/[^/]+\/dashboards\/[^/]+$/, method: 'GET', handler: dashboardDetail },
   { pattern: /^\/projects\/[^/]+\/saved$/, method: 'GET', handler: savedChartsList },
   { pattern: /^\/projects\/[^/]+\/saved$/, method: 'POST', handler: savedChartCreate },
-  { pattern: /^\/projects\/[^/]+\/saved\//, handler: savedChartDetail },
+  { pattern: /^\/projects\/[^/]+\/saved\/[^/]+$/, method: 'PATCH', handler: savedChartUpdate },
+  { pattern: /^\/projects\/[^/]+\/saved\/[^/]+$/, method: 'DELETE', handler: savedChartDelete },
+  { pattern: /^\/projects\/[^/]+\/saved\/[^/]+$/, method: 'GET', handler: savedChartDetail },
   { pattern: /^\/projects\/[^/]+\/charts$/, method: 'GET', handler: savedChartsList },
   { pattern: /^\/projects\/[^/]+\/charts$/, method: 'POST', handler: savedChartCreate },
-  { pattern: /^\/projects\/[^/]+\/charts\//, handler: savedChartDetail },
+  { pattern: /^\/projects\/[^/]+\/charts\/[^/]+$/, method: 'PATCH', handler: savedChartUpdate },
+  { pattern: /^\/projects\/[^/]+\/charts\/[^/]+$/, method: 'DELETE', handler: savedChartDelete },
+  { pattern: /^\/projects\/[^/]+\/charts\/[^/]+$/, method: 'GET', handler: savedChartDetail },
   { pattern: /^\/projects\/[^/]+\/favorites$/, handler: () => mockFavorites },
   { pattern: /^\/projects\/[^/]+\/pinned-lists/, handler: () => mockPinnedItems },
   { pattern: /^\/projects\/[^/]+\/tablesConfiguration$/, handler: () => mockTablesConfiguration },
@@ -478,6 +727,12 @@ const routes: MockRoute[] = [
   { pattern: /^\/projects\/[^/]+\/user-warehouse-credentials/, handler: () => [] },
   { pattern: /^\/projects\/[^/]+\/lineage$/, handler: projectLineage },
   { pattern: /^\/projects\/[^/]+\/dbt-tree$/, handler: projectDbtTree },
+  { pattern: /^\/projects\/[^/]+\/dictionary\/quality$/, method: 'GET', handler: dictionaryQuality },
+  { pattern: /^\/projects\/[^/]+\/dictionary$/, method: 'GET', handler: dictionaryList },
+  { pattern: /^\/projects\/[^/]+\/dictionary\/[^/]+\/columns\/[^/]+$/, method: 'PUT', handler: dictionaryColumnUpdate },
+  { pattern: /^\/projects\/[^/]+\/dictionary\/.+$/, method: 'PUT', handler: dictionaryModelUpdate },
+  { pattern: /^\/projects\/[^/]+\/dictionary\/.+$/, method: 'GET', handler: dictionaryDetail },
+  { pattern: /^\/projects\/[^/]+\/ai\/chat$/, method: 'POST', handler: aiChat },
   { pattern: /^\/projects\/[^/]+\/explores$/, handler: exploresList },
   { pattern: /^\/projects\/[^/]+\/explores\/[^/]+$/, handler: exploreDetail },
   { pattern: /^\/projects\/[^/]+\/query\/metric-query$/, method: 'POST', handler: metricQuery },

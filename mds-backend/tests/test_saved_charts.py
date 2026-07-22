@@ -85,3 +85,82 @@ def test_create_saved_chart(client: TestClient) -> None:
     assert chart["name"] == "Orders by status"
     assert chart["chartKind"] == "vertical_bar"
     assert chart["metricQuery"]["exploreName"] == "orders"
+
+
+def test_update_saved_chart(client: TestClient) -> None:
+    create = client.post(
+        f"/api/v1/projects/{MOCK_PROJECT_UUID}/saved",
+        json={
+            "name": "Temp chart",
+            "tableName": "orders",
+            "chartKind": "line",
+            "metricQuery": {
+                "exploreName": "orders",
+                "dimensions": ["orders_status"],
+                "metrics": ["orders_order_count"],
+                "filters": {},
+                "sorts": [],
+                "limit": 500,
+                "tableCalculations": [],
+                "additionalMetrics": [],
+            },
+            "chartConfig": {"type": "line"},
+        },
+    )
+    assert create.status_code == 200
+    chart_uuid = create.json()["results"]["uuid"]
+
+    response = client.patch(
+        f"/api/v1/projects/{MOCK_PROJECT_UUID}/saved/{chart_uuid}",
+        json={
+            "name": "Renamed chart",
+            "chartKind": "vertical_bar",
+            "chartConfig": {
+                "type": "vertical_bar",
+                "xField": "orders_status",
+                "yField": "orders_order_count",
+            },
+        },
+    )
+    assert response.status_code == 200
+    body = response.json()
+    assert body["status"] == "ok"
+    chart = body["results"]
+    assert chart["name"] == "Renamed chart"
+    assert chart["chartKind"] == "vertical_bar"
+    assert chart["chartConfig"]["type"] == "vertical_bar"
+
+
+def test_delete_saved_chart(client: TestClient) -> None:
+    create = client.post(
+        f"/api/v1/projects/{MOCK_PROJECT_UUID}/saved",
+        json={
+            "name": "Delete me",
+            "tableName": "orders",
+            "chartKind": "table",
+            "metricQuery": {
+                "exploreName": "orders",
+                "dimensions": [],
+                "metrics": ["orders_order_count"],
+                "filters": {},
+                "sorts": [],
+                "limit": 500,
+                "tableCalculations": [],
+                "additionalMetrics": [],
+            },
+            "chartConfig": {"type": "table"},
+        },
+    )
+    assert create.status_code == 200
+    chart_uuid = create.json()["results"]["uuid"]
+
+    deleted = client.delete(
+        f"/api/v1/projects/{MOCK_PROJECT_UUID}/saved/{chart_uuid}"
+    )
+    assert deleted.status_code == 200
+    assert deleted.json()["status"] == "ok"
+
+    missing = client.get(
+        f"/api/v1/projects/{MOCK_PROJECT_UUID}/saved/{chart_uuid}"
+    )
+    assert missing.status_code == 404

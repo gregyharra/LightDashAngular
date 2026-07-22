@@ -1,0 +1,36 @@
+<h2 mat-dialog-title>Add attribute</h2>
+
+<mat-dialog-content class="add-attribute-dialog__content">
+  <mat-form-field appearance="outline" class="add-attribute-dialog__field">
+    <mat-label>Name</mat-label>
+    <input matInput [(ngModel)]="name" autofocus />
+  </mat-form-field>
+
+  <mat-form-field appearance="outline" class="add-attribute-dialog__field">
+    <mat-label>Type</mat-label>
+    <mat-select [ngModel]="type" (ngModelChange)="onTypeChange($event)">
+      @for (option of typeOptions; track option.value) {
+        <mat-option [value]="option.value">{{ option.label }}</mat-option>
+      }
+    </mat-select>
+  </mat-form-field>
+
+  @if (showOptionsField) {
+    <mat-form-field appearance="outline" class="add-attribute-dialog__field">
+      <mat-label>Options (comma separated)</mat-label>
+      <input matInput [(ngModel)]="optionsInput" placeholder="e.g. Low, Medium, High" />
+    </mat-form-field>
+    @if (parsedOptions.length) {
+      <p class="add-attribute-dialog__preview">{{ parsedOptions.join(', ') }}</p>
+    }
+  }
+
+  @if (error()) {
+    <div class="add-attribute-dialog__error">{{ error() }}</div>
+  }
+</mat-dialog-content>
+
+<mat-dialog-actions align="end">
+  <button mat-stroked-button type="button" (click)="cancel()">Cancel</button>
+  <button mat-flat-button type="button" (click)="save()">Add attribute</button>
+</mat-dialog-actions>

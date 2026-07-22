@@ -154,7 +154,7 @@
         class="lineage-graph__svg"
         [attr.width]="bounds().width"
         [attr.height]="bounds().height"
-        [attr.viewBox]="'0 0 ' + bounds().width + ' ' + bounds().height"
+        [attr.viewBox]="bounds().minX + ' ' + bounds().minY + ' ' + bounds().width + ' ' + bounds().height"
       >
         <defs>
           <marker
@@ -238,15 +238,16 @@
 
               <g
                 class="lineage-graph__node-header"
+                (pointerdown)="onNodePointerDown(node.id, $event)"
                 (pointerup)="onNodePointerUp(node.id, $event)"
                 (pointercancel)="onNodePointerUp(node.id, $event)"
                 (dblclick)="onNodeDoubleClick(node.id, $event)"
                 role="button"
                 tabindex="0"
-                [attr.aria-label]="'Select model ' + node.name"
+                [attr.aria-label]="'Select or drag model ' + node.name"
                 (keydown.enter)="selectNode(node.id, $event)"
               >
-                <title>Select {{ node.name }}</title>
+                <title>Drag to reposition · click to select {{ node.name }}</title>
                 <rect
                   class="lineage-graph__node-header-hit"
                   [attr.width]="pos.width"
@@ -257,12 +258,9 @@
 
                 <g
                   class="lineage-graph__node-drag-handle"
-                  (pointerdown)="onNodePointerDown(node.id, $event)"
-                  role="button"
-                  tabindex="-1"
-                  aria-label="Drag to reposition"
+                  role="presentation"
+                  aria-hidden="true"
                 >
-                  <title>Drag to reposition</title>
                   <rect x="4" y="8" width="10" [attr.height]="headerHeight() - 16" rx="3" fill="transparent" />
                   <text x="9" y="22" text-anchor="middle" class="lineage-graph__drag-grip">⋮</text>
                   <text x="9" y="36" text-anchor="middle" class="lineage-graph__drag-grip">⋮</text>
@@ -408,8 +406,8 @@
         @for (node of displayNodes(); track node.id) {
           @if (positions().get(node.id); as pos) {
             <rect
-              [attr.x]="pos.x"
-              [attr.y]="pos.y"
+              [attr.x]="pos.x - bounds().minX"
+              [attr.y]="pos.y - bounds().minY"
               [attr.width]="pos.width"
               [attr.height]="pos.height"
               rx="4"

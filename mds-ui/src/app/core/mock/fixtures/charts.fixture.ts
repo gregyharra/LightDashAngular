@@ -360,3 +360,76 @@ export function createMockSavedChart(input: CreateMockSavedChartInput): SavedCha
 
   return chart;
 }
+
+export type UpdateMockSavedChartInput = {
+  name?: string;
+  description?: string;
+  spaceUuid?: string;
+  tableName?: string;
+  chartKind?: ChartKind;
+  metricQuery?: MetricQuery;
+  chartConfig?: ChartConfig;
+};
+
+export function updateMockSavedChart(
+  chartUuid: string,
+  input: UpdateMockSavedChartInput,
+): SavedChart | null {
+  const existing = mockSavedChartDetails[chartUuid];
+  if (!existing) {
+    return null;
+  }
+
+  const spaceUuid = input.spaceUuid ?? existing.spaceUuid;
+  const updated: SavedChart = {
+    ...existing,
+    name: input.name?.trim() || existing.name,
+    description:
+      input.description !== undefined
+        ? input.description.trim() || undefined
+        : existing.description,
+    spaceUuid,
+    spaceName: resolveSpaceName(spaceUuid),
+    tableName: input.tableName ?? existing.tableName,
+    chartKind: input.chartKind ?? existing.chartKind,
+    metricQuery: input.metricQuery ?? existing.metricQuery,
+    chartConfig: input.chartConfig ?? existing.chartConfig,
+    updatedAt: new Date().toISOString(),
+  };
+
+  mockSavedChartDetails[chartUuid] = updated;
+  const listIndex = mockSavedChartsList.findIndex((c) => c.uuid === chartUuid);
+  if (listIndex >= 0) {
+    mockSavedChartsList[listIndex] = {
+      uuid: updated.uuid,
+      name: updated.name,
+      description: updated.description,
+      spaceUuid: updated.spaceUuid,
+      spaceName: updated.spaceName,
+      projectUuid: updated.projectUuid,
+      updatedAt: updated.updatedAt,
+      pinnedListUuid: updated.pinnedListUuid,
+      pinnedListOrder: updated.pinnedListOrder,
+      views: updated.views,
+      firstViewedAt: updated.firstViewedAt,
+      isPrivate: updated.isPrivate,
+      access: updated.access,
+      chartKind: updated.chartKind,
+      tableName: updated.tableName,
+    };
+  }
+
+  return updated;
+}
+
+export function deleteMockSavedChart(chartUuid: string): boolean {
+  if (!mockSavedChartDetails[chartUuid]) {
+    return false;
+  }
+  delete mockSavedChartDetails[chartUuid];
+  const listIndex = mockSavedChartsList.findIndex((c) => c.uuid === chartUuid);
+  if (listIndex >= 0) {
+    mockSavedChartsList.splice(listIndex, 1);
+  }
+  return true;
+}

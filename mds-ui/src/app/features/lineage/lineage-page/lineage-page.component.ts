@@ -109,9 +109,15 @@ export class LineagePageComponent {
         this.lineage.set(lineage);
         this.loading.set(false);
         if (lineage.nodes.length > 0) {
+          const requested = this.route.snapshot.queryParamMap.get('node');
+          const requestedNode = requested
+            ? lineage.nodes.find((n) => n.id === requested || n.name === requested)
+            : null;
           const fctOrders = lineage.nodes.find((n) => n.name === 'fct_orders');
           const firstMart = lineage.nodes.find((n) => n.type === 'mart');
-          this.selectedNodeId.set(fctOrders?.id ?? firstMart?.id ?? lineage.nodes[0].id);
+          this.selectedNodeId.set(
+            requestedNode?.id ?? fctOrders?.id ?? firstMart?.id ?? lineage.nodes[0].id,
+          );
         }
       },
       error: (err) => {

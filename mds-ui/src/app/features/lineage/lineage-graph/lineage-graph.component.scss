@@ -251,11 +251,19 @@
 }
 
 .lineage-graph__node-header {
-  cursor: pointer;
+  cursor: grab;
   outline: none;
 
   &:hover .lineage-graph__node-header-hit {
     fill: rgba(114, 98, 255, 0.04);
+  }
+
+  &:hover .lineage-graph__drag-grip {
+    fill: var(--ld-gray-6);
+  }
+
+  &:active {
+    cursor: grabbing;
   }
 
   &:focus-visible .lineage-graph__node-header-hit {
@@ -265,15 +273,7 @@
 }
 
 .lineage-graph__node-drag-handle {
-  cursor: grab;
-
-  &:hover .lineage-graph__drag-grip {
-    fill: var(--ld-gray-6);
-  }
-
-  &:active {
-    cursor: grabbing;
-  }
+  pointer-events: none;
 }
 
 .lineage-graph__drag-grip {

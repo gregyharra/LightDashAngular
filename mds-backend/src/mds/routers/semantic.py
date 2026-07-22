@@ -20,6 +20,7 @@ from mds.services.dbt.parse import (
     find_lineage_node,
 )
 from mds.services.project.git import resolve_dbt_path_for_loading
+from mds.services import dictionary as dictionary_service
 
 router = APIRouter(tags=["semantic"])
 
@@ -88,7 +89,19 @@ def get_explore(project_uuid: str, table_id: str, db: Session = Depends(get_db))
     node = find_lineage_node(lineage, table_id)
     if not node:
         raise HTTPException(status_code=404, detail=f"Explore not found: {table_id}")
-    return ok(build_explore_from_lineage_node(node))
+    explore = build_explore_from_lineage_node(node)
+    overlay = dictionary_service.get_overlay_for_explore(db, project_uuid, node["id"])
+    column_overlays = overlay.get("columns") or {}
+    for table in (explore.get("tables") or {}).values():
+        for dim_name, dim in (table.get("dimensions") or {}).items():
+            col = column_overlays.get(dim_name)
+            if col and col.get("descriptionOverride"):
+                dim["description"] = col["descriptionOverride"]
+            if col and col.get("tags"):
+                dim["tags"] = list(
+                    dict.fromkeys([*(dim.get("tags") or []), *col["tags"]])
+                )
+    return ok(explore)
 
 
 @router.post("/projects/{project_uuid}/refresh")

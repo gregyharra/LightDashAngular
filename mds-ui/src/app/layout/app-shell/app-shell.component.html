@@ -24,6 +24,13 @@
               <mat-icon>dashboard</mat-icon>
               Dashboard
             </a>
+            <a
+              mat-menu-item
+              [routerLink]="['/projects', projectUuid, 'charts', 'new']"
+            >
+              <mat-icon>bar_chart</mat-icon>
+              Chart
+            </a>
           </mat-menu>
           <a
             mat-button
@@ -37,17 +44,18 @@
           <a
             mat-button
             class="shell__nav-btn shell__nav-inline"
-            [routerLink]="['/projects', projectUuid, 'tables']"
+            [routerLink]="['/projects', projectUuid, 'charts', 'new']"
             aria-label="Metrics"
           >
-            <mat-icon>table_chart</mat-icon>
+            <mat-icon>bar_chart</mat-icon>
             <span class="shell__nav-label">Metrics</span>
           </a>
           <button
             mat-button
             class="shell__nav-btn shell__nav-btn--ai shell__nav-inline shell__nav-inline--hide-md"
-            disabled
+            type="button"
             aria-label="Ask AI"
+            (click)="openAiAssistant()"
           >
             <mat-icon>auto_awesome</mat-icon>
             <span class="shell__nav-label">Ask AI</span>
@@ -70,6 +78,13 @@
             </a>
             <a
               mat-menu-item
+              [routerLink]="['/projects', projectUuid, 'charts', 'new']"
+            >
+              <mat-icon>bar_chart</mat-icon>
+              New chart
+            </a>
+            <a
+              mat-menu-item
               [routerLink]="['/projects', projectUuid, 'dashboards']"
             >
               <mat-icon>folder</mat-icon>
@@ -77,11 +92,15 @@
             </a>
             <a
               mat-menu-item
-              [routerLink]="['/projects', projectUuid, 'tables']"
+              [routerLink]="['/projects', projectUuid, 'charts', 'new']"
             >
-              <mat-icon>table_chart</mat-icon>
+              <mat-icon>bar_chart</mat-icon>
               Metrics
             </a>
+            <button mat-menu-item type="button" (click)="openAiAssistant()">
+              <mat-icon>auto_awesome</mat-icon>
+              Ask AI
+            </button>
           </mat-menu>
         </div>
       }
@@ -197,4 +216,5 @@
   <main class="shell__content">
     <router-outlet />
   </main>
+  <app-ai-assistant-panel />
 </div>

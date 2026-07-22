@@ -29,11 +29,8 @@ import {
   buildColumnEdgePaths,
   columnRefKey,
   computeColumnLineageHighlight,
-  getColumnIndex,
-  getColumnY,
   getExpandedNodeHeight,
   getNodeIdsFromColumnKeys,
-  parseColumnRefKey,
 } from '../lineage-column-utils';
 import {
   buildEdgePaths,
@@ -67,6 +64,30 @@ const MIN_ZOOM = 0.2;
 const MAX_ZOOM = 2.5;
 const DRAG_THRESHOLD_PX = 4;
 const SNAP_GRID = 8;
+/** Distance (screen px) from a canvas edge at which node-drag auto-panning kicks in. */
+const AUTO_PAN_EDGE_PX = 56;
+/** Max auto-pan speed (screen px per animation frame) once the pointer is well past an edge. */
+const AUTO_PAN_MAX_SPEED = 22;
+
+/**
+ * How fast the canvas should auto-pan when a dragged node's pointer sits near/beyond
+ * one edge of `[edgeStart, edgeEnd]`. Returns a signed screen-px/frame velocity — positive
+ * pans toward higher coordinates (right/down), negative toward lower ones (left/up). This
+ * lets a node be dragged indefinitely in any direction: once the pointer reaches the edge
+ * of the visible canvas (and can't physically move further on screen), the view keeps
+ * scrolling underneath it every frame instead of the drag stalling.
+ */
+function edgeAutoPanVelocity(pointerPos: number, edgeStart: number, edgeEnd: number): number {
+  if (pointerPos > edgeEnd - AUTO_PAN_EDGE_PX) {
+    const depth = Math.min(1, (pointerPos - (edgeEnd - AUTO_PAN_EDGE_PX)) / AUTO_PAN_EDGE_PX);
+    return depth * AUTO_PAN_MAX_SPEED;
+  }
+  if (pointerPos < edgeStart + AUTO_PAN_EDGE_PX) {
+    const depth = Math.min(1, (edgeStart + AUTO_PAN_EDGE_PX - pointerPos) / AUTO_PAN_EDGE_PX);
+    return -depth * AUTO_PAN_MAX_SPEED;
+  }
+  return 0;
+}
 
 const REORGANIZE_TRANSITION_MS = 280;
 
@@ -124,6 +145,9 @@ export class LineageGraphComponent implements AfterViewInit {
   private dragStartNodeY = 0;
   private dragMoved = false;
   private lastCanvasClickAt = 0;
+  private lastPointerClientX = 0;
+  private lastPointerClientY = 0;
+  private autoPanRafId: number | null = null;
 
   protected readonly positions = computed(() => {
     this.layoutRevision();
@@ -300,13 +324,9 @@ export class LineageGraphComponent implements AfterViewInit {
     });
 
     effect(() => {
-      const selectedColumn = this.selectedColumn();
+      // Column selection must only highlight lineage — never auto-zoom/pan.
+      // Intentionally do not read selectedColumn() here.
       this.viewMode();
-      if (selectedColumn) {
-        this.scheduleFocusOnColumnLineage();
-        return;
-      }
-
       const nodeId = this.selectedNodeId();
       if (nodeId) {
         this.scheduleCenterOnNode(nodeId);
@@ -553,8 +573,9 @@ export class LineageGraphComponent implements AfterViewInit {
 
   protected onNodePointerDown(nodeId: string, event: PointerEvent): void {
     const target = event.target as Element;
+    // Drag from the whole node header (grip + title). Expand / columns stay click-only.
     if (
-      !target.closest('.lineage-graph__node-drag-handle') ||
+      !target.closest('.lineage-graph__node-header') ||
       target.closest('.lineage-graph__expand-btn') ||
       target.closest('.lineage-graph__column-row')
     ) {
@@ -574,22 +595,37 @@ export class LineageGraphComponent implements AfterViewInit {
     this.dragStartClientY = event.clientY;
     this.dragStartNodeX = pos.x;
     this.dragStartNodeY = pos.y;
+    this.lastPointerClientX = event.clientX;
+    this.lastPointerClientY = event.clientY;
     this.draggingNodeId.set(nodeId);
     const canvas = this.canvasRef()?.nativeElement;
     canvas?.setPointerCapture(event.pointerId);
+    this.startAutoPanLoop();
   }
 
   protected onNodePointerUp(nodeId: string, event: PointerEvent): void {
     const target = event.target as Element;
-    const wasDrag = this.dragNodeId === nodeId && this.dragMoved;
-
-    if (this.dragNodeId === nodeId) {
-      this.endNodeDrag(event);
+    // With pointer capture on the canvas, click-vs-drag selection is handled in
+    // onCanvasPointerUp. This is a fallback when capture is unavailable.
+    if (this.dragNodeId !== nodeId) {
+      if (
+        target.closest('.lineage-graph__expand-btn') ||
+        target.closest('.lineage-graph__column-row')
+      ) {
+        return;
+      }
+      if (target.closest('.lineage-graph__node-header')) {
+        event.stopPropagation();
+        this.selectNode(nodeId, event);
+      }
+      return;
     }
+
+    const wasDrag = this.dragMoved;
+    this.endNodeDrag(event);
 
     if (
       wasDrag ||
-      target.closest('.lineage-graph__node-drag-handle') ||
       target.closest('.lineage-graph__expand-btn') ||
       target.closest('.lineage-graph__column-row')
     ) {
@@ -647,7 +683,14 @@ export class LineageGraphComponent implements AfterViewInit {
 
   protected onCanvasPointerUp(event: PointerEvent): void {
     if (this.dragNodeId) {
+      const nodeId = this.dragNodeId;
+      const wasDrag = this.dragMoved;
       this.endNodeDrag(event);
+      // Pointer capture retargets pointerup to the canvas, so treat a
+      // no-movement header press as a node click here.
+      if (!wasDrag) {
+        this.selectNode(nodeId, event);
+      }
       return;
     }
 
@@ -753,12 +796,79 @@ export class LineageGraphComponent implements AfterViewInit {
       this.dragMoved = true;
     }
 
+    this.lastPointerClientX = event.clientX;
+    this.lastPointerClientY = event.clientY;
+
+    // Rebase the anchor to the position/pointer just applied (rather than the
+    // original mousedown point) so auto-pan ticks — which also advance the
+    // node and rebase — compose correctly instead of double-counting motion.
+    this.setDraggedNodePosition(this.dragStartNodeX + dx, this.dragStartNodeY + dy);
+    this.dragStartNodeX += dx;
+    this.dragStartNodeY += dy;
+    this.dragStartClientX = event.clientX;
+    this.dragStartClientY = event.clientY;
+  }
+
+  private setDraggedNodePosition(x: number, y: number): void {
+    if (!this.dragNodeId) {
+      return;
+    }
     const next = new Map(this.customPositions());
-    next.set(this.dragNodeId, {
-      x: this.snapToGrid(this.dragStartNodeX + dx),
-      y: this.snapToGrid(this.dragStartNodeY + dy),
-    });
+    next.set(this.dragNodeId, { x: this.snapToGrid(x), y: this.snapToGrid(y) });
     this.customPositions.set(next);
+  }
+
+  /**
+   * Runs for the lifetime of a node drag. While the pointer sits near (or
+   * beyond) an edge of the canvas it can't physically move past, this keeps
+   * panning the view — and advancing the dragged node with it — every frame
+   * so the drag never stalls, regardless of direction.
+   */
+  private startAutoPanLoop(): void {
+    if (this.autoPanRafId !== null) {
+      return;
+    }
+    const step = (): void => {
+      if (!this.dragNodeId) {
+        this.autoPanRafId = null;
+        return;
+      }
+      this.applyEdgeAutoPan();
+      this.autoPanRafId = requestAnimationFrame(step);
+    };
+    this.autoPanRafId = requestAnimationFrame(step);
+  }
+
+  private stopAutoPanLoop(): void {
+    if (this.autoPanRafId !== null) {
+      cancelAnimationFrame(this.autoPanRafId);
+      this.autoPanRafId = null;
+    }
+  }
+
+  private applyEdgeAutoPan(): void {
+    const canvas = this.canvasRef()?.nativeElement;
+    if (!canvas || !this.dragNodeId) {
+      return;
+    }
+
+    const rect = canvas.getBoundingClientRect();
+    const vx = edgeAutoPanVelocity(this.lastPointerClientX, rect.left, rect.right);
+    const vy = edgeAutoPanVelocity(this.lastPointerClientY, rect.top, rect.bottom);
+    if (vx === 0 && vy === 0) {
+      return;
+    }
+
+    this.panX.update((x) => x - vx);
+    this.panY.update((y) => y - vy);
+
+    const zoom = this.zoom();
+    const nextX = this.dragStartNodeX + vx / zoom;
+    const nextY = this.dragStartNodeY + vy / zoom;
+    this.setDraggedNodePosition(nextX, nextY);
+    this.dragStartNodeX = nextX;
+    this.dragStartNodeY = nextY;
+    this.dragMoved = true;
   }
 
   private endNodeDrag(event: PointerEvent): void {
@@ -771,6 +881,7 @@ export class LineageGraphComponent implements AfterViewInit {
       }
     }
 
+    this.stopAutoPanLoop();
     this.draggingNodeId.set(null);
     this.dragNodeId = null;
     this.dragPointerId = null;
@@ -854,74 +965,6 @@ export class LineageGraphComponent implements AfterViewInit {
     });
   }
 
-  private scheduleFocusOnColumnLineage(): void {
-    queueMicrotask(() => {
-      requestAnimationFrame(() => {
-        requestAnimationFrame(() => this.focusOnColumnLineage());
-      });
-    });
-  }
-
-  private focusOnColumnLineage(): void {
-    const canvas = this.canvasRef()?.nativeElement;
-    const highlight = this.columnHighlight();
-    if (!canvas || highlight.columnKeys.size === 0) {
-      return;
-    }
-
-    const positions = this.positions();
-    const nodes = this.displayNodes();
-    const nodeById = new Map(nodes.map((n) => [n.id, n]));
-
-    let minX = Infinity;
-    let minY = Infinity;
-    let maxX = -Infinity;
-    let maxY = -Infinity;
-
-    for (const key of highlight.columnKeys) {
-      const { nodeId, columnName } = parseColumnRefKey(key);
-      const pos = positions.get(nodeId);
-      const node = nodeById.get(nodeId);
-      if (!pos || !node) {
-        continue;
-      }
-
-      const columnIndex = getColumnIndex(node, columnName);
-      const columnY = columnIndex >= 0 ? getColumnY(pos, columnIndex) : pos.y + pos.height / 2;
-      const rowTop = columnIndex >= 0 ? columnY - LINEAGE_COLUMN_ROW_HEIGHT / 2 : pos.y;
-      const rowBottom = columnIndex >= 0 ? columnY + LINEAGE_COLUMN_ROW_HEIGHT / 2 : pos.y + pos.height;
-
-      minX = Math.min(minX, pos.x);
-      minY = Math.min(minY, rowTop);
-      maxX = Math.max(maxX, pos.x + pos.width);
-      maxY = Math.max(maxY, rowBottom);
-    }
-
-    if (!Number.isFinite(minX)) {
-      return;
-    }
-
-    const padding = 48;
-    const boundsWidth = maxX - minX + padding * 2;
-    const boundsHeight = maxY - minY + padding * 2;
-    const availableWidth = canvas.clientWidth - 32;
-    const availableHeight = canvas.clientHeight - 32;
-
-    if (availableWidth <= 0 || availableHeight <= 0 || boundsWidth <= 0 || boundsHeight <= 0) {
-      return;
-    }
-
-    const scale = Math.min(availableWidth / boundsWidth, availableHeight / boundsHeight, 1.2);
-    const centerX = (minX + maxX) / 2;
-    const centerY = (minY + maxY) / 2;
-    const viewCenterX = canvas.clientWidth / 2;
-    const viewCenterY = canvas.clientHeight / 2;
-
-    this.zoom.set(scale);
-    this.panX.set(viewCenterX - centerX * scale);
-    this.panY.set(viewCenterY - centerY * scale);
-  }
-
   private centerOnNode(nodeId: string): void {
     const canvas = this.canvasRef()?.nativeElement;
     const pos = this.positions().get(nodeId);
@@ -930,8 +973,12 @@ export class LineageGraphComponent implements AfterViewInit {
     }
 
     const zoom = this.zoom();
-    const centerX = pos.x + pos.width / 2;
-    const centerY = pos.y + pos.height / 2;
+    const bounds = this.bounds();
+    // The SVG viewBox is offset by bounds().minX/minY (so dragged nodes with
+    // negative coordinates stay visible), so node positions must be
+    // translated into that local space before computing pan offsets.
+    const centerX = pos.x - bounds.minX + pos.width / 2;
+    const centerY = pos.y - bounds.minY + pos.height / 2;
     const viewCenterX = canvas.clientWidth / 2;
     const viewCenterY = canvas.clientHeight / 2;
 

@@ -176,4 +176,13 @@ export class ChartsListPageComponent {
 
     void this.router.navigate(['/projects', projectUuid, 'charts', chartUuid]);
   }
+
+  protected openCreatePage(): void {
+    const projectUuid = this.projectUuid();
+    if (!projectUuid) {
+      return;
+    }
+
+    void this.router.navigate(['/projects', projectUuid, 'charts', 'new']);
+  }
 }

@@ -21,6 +21,14 @@
       @if (selected.description) {
         <p class="lineage-detail__description">{{ selected.description }}</p>
       }
+      @if (projectUuid(); as uuid) {
+        <a
+          class="lineage-detail__open-tables"
+          [routerLink]="['/projects', uuid, 'tables', selected.id]"
+        >
+          Open in Tables
+        </a>
+      }
     </header>
 
     <div class="lineage-detail__tabs" role="tablist" aria-label="Detail panel tabs">

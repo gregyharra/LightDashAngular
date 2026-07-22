@@ -1,0 +1,22 @@
+.add-attribute-dialog__content {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  min-width: 22rem;
+  padding-top: 0.25rem;
+}
+
+.add-attribute-dialog__field {
+  width: 100%;
+}
+
+.add-attribute-dialog__preview {
+  margin: -0.25rem 0 0.25rem;
+  font-size: 0.8rem;
+  color: var(--ld-gray-6, #868e96);
+}
+
+.add-attribute-dialog__error {
+  color: var(--mds-color-danger, #b42318);
+  font-size: 0.875rem;
+}

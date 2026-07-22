@@ -52,12 +52,15 @@
             <span class="charts-list__breadcrumb-current">All charts</span>
           </nav>
 
-          @if (charts().length > 0) {
-            <button mat-flat-button class="charts-list__create-btn" disabled>
-              <mat-icon>add</mat-icon>
-              Create chart
-            </button>
-          }
+          <button
+            mat-flat-button
+            class="charts-list__create-btn"
+            type="button"
+            (click)="openCreatePage()"
+          >
+            <mat-icon>add</mat-icon>
+            Create chart
+          </button>
         </header>
 
         <h1 class="charts-list__title">Charts</h1>
@@ -72,6 +75,15 @@
           <div class="charts-list__empty">
             <mat-icon>bar_chart</mat-icon>
             <p>No charts yet.</p>
+            <button
+              mat-flat-button
+              class="charts-list__create-btn"
+              type="button"
+              (click)="openCreatePage()"
+            >
+              <mat-icon>add</mat-icon>
+              Create chart
+            </button>
           </div>
         } @else {
           <app-content-list-filter-chips

@@ -317,11 +317,14 @@ export class TablesWorkspacePageComponent {
   constructor() {
     this.route.paramMap.subscribe((params) => {
       const projectUuid = params.get('projectUuid');
-      const tableId = params.get('tableId') ?? null;
+      const tableIdFromParams = params.get('tableId') ?? null;
 
       if (!projectUuid) {
         return;
       }
+
+      const tableId =
+        tableIdFromParams ?? this.route.snapshot.queryParamMap.get('table');
 
       const prevProject = this.projectUuid();
       this.projectUuid.set(projectUuid);
@@ -331,6 +334,23 @@ export class TablesWorkspacePageComponent {
       if (prevProject !== projectUuid || this.dbtTree().length === 0) {
         this.loadWorkspaceData(projectUuid, tableId);
       } else {
+        this.syncSelectionFromRoute(projectUuid, tableId);
+      }
+    });
+
+    this.route.queryParamMap.subscribe((query) => {
+      const projectUuid = this.projectUuid();
+      if (!projectUuid || this.route.snapshot.paramMap.get('tableId')) {
+        return;
+      }
+
+      const tableId = query.get('table');
+      if (tableId === this.tableId()) {
+        return;
+      }
+
+      this.tableId.set(tableId);
+      if (this.dbtTree().length > 0) {
         this.syncSelectionFromRoute(projectUuid, tableId);
       }
     });
@@ -382,8 +402,8 @@ export class TablesWorkspacePageComponent {
       legacyExplore.lineageNodeId !== tableId
     ) {
       void this.router.navigate(
-        ['/projects', projectUuid, 'tables', legacyExplore.lineageNodeId],
-        { replaceUrl: true },
+        ['/projects', projectUuid, 'charts', 'new'],
+        { queryParams: { table: legacyExplore.lineageNodeId }, replaceUrl: true },
       );
       return;
     }
@@ -526,12 +546,9 @@ export class TablesWorkspacePageComponent {
       return;
     }
 
-    void this.router.navigate([
-      '/projects',
-      projectUuid,
-      'tables',
-      lineageNodeId,
-    ]);
+    void this.router.navigate(['/projects', projectUuid, 'charts', 'new'], {
+      queryParams: { table: lineageNodeId },
+    });
   }
 
   protected toggleField(fieldId: FieldId): void {

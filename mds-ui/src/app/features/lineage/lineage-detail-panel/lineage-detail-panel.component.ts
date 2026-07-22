@@ -12,6 +12,7 @@ import {
   viewChild,
 } from '@angular/core';
 import { MatIconModule } from '@angular/material/icon';
+import { RouterLink } from '@angular/router';
 import {
   ColumnLineageEdge,
   ColumnSelectionEvent,
@@ -22,6 +23,7 @@ import {
   LineageNode,
   SelectedColumnRef,
 } from '../../../core/models/lineage.model';
+import { ActiveProjectService } from '../../../core/services/active-project.service';
 import {
   computeColumnLineageHighlight,
   columnRefKey,
@@ -42,12 +44,13 @@ const COLLAPSED_STORAGE_KEY = 'lightdash-lineage-detail-panel-collapsed';
 
 @Component({
   selector: 'app-lineage-detail-panel',
-  imports: [MatIconModule, TransformationChipComponent],
+  imports: [MatIconModule, TransformationChipComponent, RouterLink],
   templateUrl: './lineage-detail-panel.component.html',
   styleUrl: './lineage-detail-panel.component.scss',
 })
 export class LineageDetailPanelComponent {
   private readonly platformId = inject(PLATFORM_ID);
+  protected readonly activeProjectService = inject(ActiveProjectService);
 
   readonly node = input.required<LineageNode>();
   readonly nodes = input.required<LineageNode[]>();
@@ -58,6 +61,10 @@ export class LineageDetailPanelComponent {
 
   readonly nodeSelected = output<string>();
   readonly columnSelected = output<ColumnSelectionEvent>();
+
+  protected readonly projectUuid = computed(
+    () => this.activeProjectService.activeProjectUuid(),
+  );
 
   protected readonly collapsed = signal(this.readCollapsedState());
   protected readonly activeTab = signal<DetailTab>('overview');

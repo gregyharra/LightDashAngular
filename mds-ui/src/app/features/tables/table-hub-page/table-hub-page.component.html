@@ -1,0 +1,373 @@
+<div class="page-layout">
+  <aside class="page-layout__sidebar" appResizableSidebar>
+    <div class="page-sidebar">
+      <header class="page-sidebar__header">
+        <p class="page-sidebar__breadcrumb">Browse</p>
+        @if (activeProjectService.activeProject(); as project) {
+          <p class="page-sidebar__org">{{ project.name }}</p>
+        }
+      </header>
+
+      <nav class="page-sidebar__nav" aria-label="Browse navigation">
+        <p class="page-sidebar__section-label">Content</p>
+        <a
+          class="page-sidebar__link page-sidebar__link--clickable"
+          [routerLink]="['/projects', projectUuid(), 'dashboards']"
+        >
+          <mat-icon>dashboard</mat-icon>
+          Dashboards
+        </a>
+        <a
+          class="page-sidebar__link page-sidebar__link--clickable"
+          [routerLink]="['/projects', projectUuid(), 'charts']"
+        >
+          <mat-icon>bar_chart</mat-icon>
+          Charts
+        </a>
+        <a
+          class="page-sidebar__link page-sidebar__link--active page-sidebar__link--clickable"
+          [routerLink]="['/projects', projectUuid(), 'tables']"
+        >
+          <mat-icon>table_chart</mat-icon>
+          Tables
+        </a>
+        <a
+          class="page-sidebar__link page-sidebar__link--clickable"
+          [routerLink]="['/projects', projectUuid(), 'lineage']"
+        >
+          <mat-icon>account_tree</mat-icon>
+          Lineage
+        </a>
+      </nav>
+    </div>
+  </aside>
+
+  <div class="page-layout__content page-layout__content--flush">
+    <div class="table-hub">
+      @if (loading()) {
+        <div class="table-hub__loading">
+          <mat-spinner diameter="32" />
+        </div>
+      } @else if (error()) {
+        <div class="table-hub__error">{{ error() }}</div>
+      } @else {
+        <app-folder-search-panel
+          [tree]="dbtTree()"
+          [selectedNodeId]="tableId()"
+          searchPlaceholder="Search models…"
+          emptyMessage="No models match your search"
+          collapsedStorageKey="lightdash-tables-hub-folder-collapsed"
+          treeAriaLabel="dbt project folder tree"
+          (nodeSelected)="onNodeSelected($event)"
+        />
+
+        <div class="table-hub__main">
+          @if (!tableId()) {
+            <section class="table-hub__empty">
+              <h1 class="table-hub__title">Tables</h1>
+              <p class="table-hub__subtitle">
+                Select a model to view documentation, columns, lineage, and SQL.
+              </p>
+              @if (quality(); as q) {
+                <div class="table-hub__quality">
+                  <p class="table-hub__quality-score">Doc quality {{ q.score }}%</p>
+                  <p>
+                    Models documented {{ q.models.described }}/{{ q.models.total }}
+                    · Columns {{ q.columns.described }}/{{ q.columns.total }}
+                  </p>
+                </div>
+              }
+            </section>
+          } @else if (entryLoading()) {
+            <div class="table-hub__loading">
+              <mat-spinner diameter="32" />
+            </div>
+          } @else if (entryError()) {
+            <div class="table-hub__error">{{ entryError() }}</div>
+          } @else if (entry()) {
+            <header class="table-hub__header">
+              <div>
+                <p class="table-hub__meta">
+                  {{ entry()!.type }}
+                  @if (entry()!.schema) {
+                    · {{ entry()!.schema }}.{{ entry()!.name }}
+                  }
+                  @if (quality(); as q) {
+                    · quality {{ q.score }}%
+                  }
+                </p>
+                <h1 class="table-hub__title">{{ entry()!.name }}</h1>
+                @if (entry()!.dbtPath) {
+                  <p class="table-hub__path">{{ entry()!.dbtPath }}</p>
+                }
+              </div>
+              <button
+                mat-flat-button
+                type="button"
+                (click)="exploreInCharts()"
+              >
+                <mat-icon>bar_chart</mat-icon>
+                Explore in Charts
+              </button>
+            </header>
+
+            <div class="table-hub__tabs" role="tablist">
+              <button
+                type="button"
+                class="table-hub__tab"
+                [class.table-hub__tab--active]="activeTab() === 'overview'"
+                (click)="setTab('overview')"
+              >
+                Overview
+              </button>
+              <button
+                type="button"
+                class="table-hub__tab"
+                [class.table-hub__tab--active]="activeTab() === 'columns'"
+                (click)="setTab('columns')"
+              >
+                Columns
+                <span class="table-hub__tab-count">{{ entry()!.columns.length }}</span>
+              </button>
+              <button
+                type="button"
+                class="table-hub__tab"
+                [class.table-hub__tab--active]="activeTab() === 'lineage'"
+                (click)="setTab('lineage')"
+              >
+                Lineage
+              </button>
+              <button
+                type="button"
+                class="table-hub__tab"
+                [class.table-hub__tab--active]="activeTab() === 'sql'"
+                (click)="setTab('sql')"
+              >
+                SQL
+              </button>
+            </div>
+
+            @if (activeTab() === 'overview') {
+              <section class="table-hub__panel">
+                <label class="table-hub__label" for="hub-description">Description</label>
+                <textarea
+                  id="hub-description"
+                  class="table-hub__textarea"
+                  rows="4"
+                  [ngModel]="descriptionDraft()"
+                  (ngModelChange)="descriptionDraft.set($event)"
+                ></textarea>
+                @if (entry()!.dbtDescription) {
+                  <p class="table-hub__hint">dbt: {{ entry()!.dbtDescription }}</p>
+                }
+
+                <label class="table-hub__label" id="hub-tags-label">Tags</label>
+                <div
+                  class="table-hub__tags"
+                  role="group"
+                  aria-labelledby="hub-tags-label"
+                >
+                  <mat-chip-grid #chipGrid aria-label="Tags">
+                    @for (tag of tagsDraft(); track tag) {
+                      <mat-chip-row
+                        class="table-hub__tag"
+                        (removed)="removeTag(tag)"
+                      >
+                        {{ tag }}
+                        <button matChipRemove [attr.aria-label]="'Remove tag ' + tag">
+                          <mat-icon>cancel</mat-icon>
+                        </button>
+                      </mat-chip-row>
+                    }
+                  </mat-chip-grid>
+                  <input
+                    id="hub-tags"
+                    class="table-hub__tags-input"
+                    placeholder="Add tag and press Enter"
+                    [matChipInputFor]="chipGrid"
+                    [matChipInputSeparatorKeyCodes]="tagSeparatorKeys"
+                    (matChipInputTokenEnd)="addTagFromInput($event)"
+                  />
+                </div>
+
+                <dl class="table-hub__dl">
+                  @if (entry()!.materialization) {
+                    <div><dt>Materialization</dt><dd>{{ entry()!.materialization }}</dd></div>
+                  }
+                  @if (entry()!.packageName) {
+                    <div><dt>Package</dt><dd>{{ entry()!.packageName }}</dd></div>
+                  }
+                  @if (entry()!.catalog) {
+                    <div><dt>Catalog</dt><dd>{{ entry()!.catalog }}</dd></div>
+                  }
+                </dl>
+
+                <button
+                  mat-flat-button
+                  type="button"
+                  [disabled]="saving()"
+                  (click)="saveOverview()"
+                >
+                  Save overview
+                </button>
+              </section>
+            }
+
+            @if (activeTab() === 'columns') {
+              <section class="table-hub__panel table-hub__columns-panel">
+                <div class="table-hub__columns-toolbar">
+                  <p class="table-hub__hint">
+                    Add custom attributes to capture extra metadata per column.
+                  </p>
+                  <button mat-stroked-button type="button" (click)="openAddAttributeDialog()">
+                    <mat-icon>add</mat-icon>
+                    Add attribute
+                  </button>
+                </div>
+
+                <table class="table-hub__table">
+                  <thead>
+                    <tr>
+                      <th>Name</th>
+                      <th>Type</th>
+                      <th>Description</th>
+                      @for (attr of attributeDefs(); track attr.id) {
+                        <th class="table-hub__attr-header">
+                          <span>{{ attr.name }}</span>
+                          <button
+                            type="button"
+                            class="table-hub__attr-delete"
+                            [attr.aria-label]="'Delete attribute ' + attr.name"
+                            (click)="deleteAttribute(attr)"
+                          >
+                            <mat-icon inline>close</mat-icon>
+                          </button>
+                        </th>
+                      }
+                      <th></th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    @for (column of entry()!.columns; track column.name) {
+                      <tr>
+                        <td class="table-hub__mono">{{ column.name }}</td>
+                        <td>{{ column.type }}</td>
+                        <td>
+                          <input
+                            class="table-hub__input table-hub__input--inline"
+                            [value]="column.descriptionOverride ?? column.description ?? ''"
+                            (change)="saveColumnDescription(column.name, $any($event.target).value)"
+                            [attr.aria-label]="'Description for ' + column.name"
+                          />
+                          @if (column.dbtDescription) {
+                            <p class="table-hub__hint">dbt: {{ column.dbtDescription }}</p>
+                          }
+                        </td>
+                        @for (attr of attributeDefs(); track attr.id) {
+                          <td>
+                            @switch (attr.type) {
+                              @case ('enum') {
+                                <select
+                                  class="table-hub__input table-hub__input--inline"
+                                  [value]="columnAttributeText(column, attr.id)"
+                                  (change)="onAttributeValueChange(column.name, attr, $any($event.target).value)"
+                                  [attr.aria-label]="attr.name + ' for ' + column.name"
+                                >
+                                  <option value="">—</option>
+                                  @for (option of attr.options ?? []; track option) {
+                                    <option [value]="option">{{ option }}</option>
+                                  }
+                                </select>
+                              }
+                              @case ('boolean') {
+                                <input
+                                  type="checkbox"
+                                  [checked]="columnAttributeChecked(column, attr.id)"
+                                  (change)="onBooleanAttributeChange(column.name, attr, $any($event.target).checked)"
+                                  [attr.aria-label]="attr.name + ' for ' + column.name"
+                                />
+                              }
+                              @case ('number') {
+                                <input
+                                  type="number"
+                                  class="table-hub__input table-hub__input--inline"
+                                  [value]="columnAttributeText(column, attr.id)"
+                                  (change)="onAttributeValueChange(column.name, attr, $any($event.target).value)"
+                                  [attr.aria-label]="attr.name + ' for ' + column.name"
+                                />
+                              }
+                              @default {
+                                <input
+                                  class="table-hub__input table-hub__input--inline"
+                                  [value]="columnAttributeText(column, attr.id)"
+                                  (change)="onAttributeValueChange(column.name, attr, $any($event.target).value)"
+                                  [attr.aria-label]="attr.name + ' for ' + column.name"
+                                />
+                              }
+                            }
+                          </td>
+                        }
+                        <td>
+                          @if (column.hasOverlay) {
+                            <span class="table-hub__badge">edited</span>
+                          }
+                        </td>
+                      </tr>
+                    }
+                  </tbody>
+                </table>
+              </section>
+            }
+
+            @if (activeTab() === 'lineage') {
+              <section class="table-hub__panel table-hub__lineage">
+                <div class="table-hub__lineage-toolbar">
+                  <p class="table-hub__hint">
+                    Focused lineage for this model. Expand hops or switch to columns view in the graph toolbar.
+                  </p>
+                  <button mat-stroked-button type="button" (click)="openFullLineage()">
+                    Open full project lineage
+                  </button>
+                </div>
+
+                @if (lineage(); as data) {
+                  @if (selectedNode(); as node) {
+                    <app-lineage-graph
+                      class="table-hub__lineage-graph"
+                      [nodes]="data.nodes"
+                      [edges]="data.edges"
+                      [columnEdges]="data.columnEdges ?? []"
+                      [selectedNodeId]="node.id"
+                      [selectedColumn]="selectedColumn()"
+                      [viewMode]="lineageViewMode()"
+                      [graphMode]="lineageGraphMode()"
+                      [hopDepth]="lineageHopDepth()"
+                      (nodeSelected)="onGraphNodeSelected($event)"
+                      (columnSelected)="onGraphColumnSelected($event)"
+                      (columnSelectionCleared)="clearSelectedColumn()"
+                      (viewModeChange)="onLineageViewModeChange($event)"
+                      (graphModeChange)="onLineageGraphModeChange($event)"
+                      (hopDepthChange)="onLineageHopDepthChange($event)"
+                    />
+                  }
+                } @else {
+                  <p class="table-hub__hint">Lineage graph is unavailable for this project.</p>
+                }
+              </section>
+            }
+
+            @if (activeTab() === 'sql') {
+              <section class="table-hub__panel">
+                @if (entry()!.sql) {
+                  <pre class="table-hub__sql">{{ entry()!.sql }}</pre>
+                } @else {
+                  <p class="table-hub__hint">No SQL available for this model.</p>
+                }
+              </section>
+            }
+          }
+        </div>
+      }
+    </div>
+  </div>
+</div>

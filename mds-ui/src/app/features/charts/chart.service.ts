@@ -5,6 +5,7 @@ import {
   CreateSavedChartPayload,
   SavedChart,
   SavedChartBasic,
+  UpdateSavedChartPayload,
 } from '../../core/models/chart.model';
 
 @Injectable({ providedIn: 'root' })
@@ -28,5 +29,22 @@ export class ChartService {
     payload: CreateSavedChartPayload,
   ): Observable<SavedChart> {
     return this.api.post<SavedChart>(`/projects/${projectUuid}/saved`, payload);
+  }
+
+  update(
+    projectUuid: string,
+    chartUuid: string,
+    payload: UpdateSavedChartPayload,
+  ): Observable<SavedChart> {
+    return this.api.patch<SavedChart>(
+      `/projects/${projectUuid}/saved/${chartUuid}`,
+      payload,
+    );
+  }
+
+  delete(projectUuid: string, chartUuid: string): Observable<unknown> {
+    return this.api.delete<unknown>(
+      `/projects/${projectUuid}/saved/${chartUuid}`,
+    );
   }
 }

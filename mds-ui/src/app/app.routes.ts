@@ -91,6 +91,13 @@ export const routes: Routes = [
           ).then((m) => m.ChartsListPageComponent),
       },
       {
+        path: 'projects/:projectUuid/charts/new',
+        loadComponent: () =>
+          import(
+            './features/explorer/tables-workspace-page/tables-workspace-page.component'
+          ).then((m) => m.TablesWorkspacePageComponent),
+      },
+      {
         path: 'projects/:projectUuid/charts/:chartUuid',
         loadComponent: () =>
           import(
@@ -108,15 +115,15 @@ export const routes: Routes = [
         path: 'projects/:projectUuid/tables',
         loadComponent: () =>
           import(
-            './features/explorer/tables-workspace-page/tables-workspace-page.component'
-          ).then((m) => m.TablesWorkspacePageComponent),
+            './features/tables/table-hub-page/table-hub-page.component'
+          ).then((m) => m.TableHubPageComponent),
       },
       {
         path: 'projects/:projectUuid/tables/:tableId',
         loadComponent: () =>
           import(
-            './features/explorer/tables-workspace-page/tables-workspace-page.component'
-          ).then((m) => m.TablesWorkspacePageComponent),
+            './features/tables/table-hub-page/table-hub-page.component'
+          ).then((m) => m.TableHubPageComponent),
       },
       { path: '**', redirectTo: 'projects' },
     ],

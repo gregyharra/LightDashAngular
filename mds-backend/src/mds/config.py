@@ -80,8 +80,20 @@ class Settings(BaseSettings):
             "Also logged at DEBUG when the mds logger level is DEBUG."
         ),
     )
+    openai_api_key: Optional[str] = Field(
+        default=None,
+        description="Optional OpenAI API key for the AI assistant. Heuristic mode works without it.",
+    )
+    openai_base_url: str = Field(
+        default="https://api.openai.com/v1",
+        description="OpenAI-compatible API base URL.",
+    )
+    openai_model: str = Field(
+        default="gpt-4o-mini",
+        description="Chat model id for the AI assistant when OPENAI_API_KEY is set.",
+    )
 
-    @field_validator("dbt_artifacts_path", "encryption_key", mode="before")
+    @field_validator("dbt_artifacts_path", "encryption_key", "openai_api_key", mode="before")
     @classmethod
     def _empty_str_to_none(cls, value: object) -> object:
         if value == "":

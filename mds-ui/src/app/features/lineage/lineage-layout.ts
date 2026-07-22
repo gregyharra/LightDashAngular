@@ -232,21 +232,45 @@ function getMaxStackHeight(
   return max;
 }
 
-export function getGraphBounds(positions: Map<string, LineageNodePosition>): {
+export interface LineageGraphBounds {
+  /** Top-left of the graph's SVG viewBox, in world/layout coordinates. */
+  minX: number;
+  minY: number;
   width: number;
   height: number;
-} {
-  let maxX = 0;
-  let maxY = 0;
+}
+
+/**
+ * Computes the bounding box that must be visible for every node, including
+ * ones the user has dragged (via customPositions) outside the auto-layout
+ * area. `minX`/`minY` can go negative — the SVG viewBox is offset to match
+ * so dragged nodes are never clipped, regardless of drag direction.
+ */
+export function getGraphBounds(positions: Map<string, LineageNodePosition>): LineageGraphBounds {
+  if (positions.size === 0) {
+    return { minX: 0, minY: 0, width: 0, height: 0 };
+  }
+
+  let minX = Infinity;
+  let minY = Infinity;
+  let maxX = -Infinity;
+  let maxY = -Infinity;
 
   for (const pos of positions.values()) {
+    minX = Math.min(minX, pos.x);
+    minY = Math.min(minY, pos.y);
     maxX = Math.max(maxX, pos.x + pos.width);
     maxY = Math.max(maxY, pos.y + pos.height);
   }
 
+  const viewMinX = minX - PADDING_X;
+  const viewMinY = minY - PADDING_Y;
+
   return {
-    width: maxX + PADDING_X,
-    height: maxY + PADDING_Y,
+    minX: viewMinX,
+    minY: viewMinY,
+    width: maxX - viewMinX + PADDING_X,
+    height: maxY - viewMinY + PADDING_Y,
   };
 }
 
