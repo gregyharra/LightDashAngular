@@ -70,6 +70,46 @@ def _manifest_columns(node: dict[str, Any]) -> list[dict[str, Any]]:
     return columns
 
 
+def _column_lookup(columns: list[dict[str, Any]]) -> dict[str, dict[str, Any]]:
+    return {col["name"].lower(): col for col in columns}
+
+
+def _enrich_column_metadata(
+    columns: list[dict[str, Any]],
+    *sources: list[dict[str, Any]],
+) -> list[dict[str, Any]]:
+    """Fill type/description from catalog/manifest when SQL inference left defaults."""
+    lookups = [_column_lookup(source) for source in sources if source]
+    if not lookups:
+        return columns
+
+    enriched: list[dict[str, Any]] = []
+    for col in columns:
+        merged = dict(col)
+        for lookup in lookups:
+            meta = lookup.get(col["name"].lower())
+            if not meta:
+                continue
+            if (not merged.get("type") or merged.get("type") == "string") and meta.get("type"):
+                merged["type"] = meta["type"]
+            if not merged.get("description") and meta.get("description"):
+                merged["description"] = meta["description"]
+        enriched.append(merged)
+    return enriched
+
+
+def _sql_select_has_star(sql: str | None) -> bool:
+    if not sql:
+        return False
+    return any(
+        token == "*" or token.endswith(".*") for token in _parse_select_output_columns(sql)
+    )
+
+
+def _column_name_set(columns: list[dict[str, Any]]) -> set[str]:
+    return {col["name"].lower() for col in columns}
+
+
 def _node_columns(
     artifacts: DbtArtifacts,
     node_id: str,
@@ -77,6 +117,7 @@ def _node_columns(
     *,
     cache: _ColumnCache | None = None,
     resolving: set[str] | None = None,
+    lineage_out: dict[str, dict[str, Any]] | None = None,
 ) -> list[dict[str, Any]]:
     if cache is not None and node_id in cache:
         return cache[node_id]
@@ -84,25 +125,52 @@ def _node_columns(
         return []
 
     catalog_cols = _catalog_columns(artifacts, node_id)
-    if catalog_cols:
-        if cache is not None:
-            cache[node_id] = catalog_cols
-        return catalog_cols
     manifest_cols = _manifest_columns(node)
-    if manifest_cols:
-        if cache is not None:
-            cache[node_id] = manifest_cols
-        return manifest_cols
 
     if resolving is not None:
         resolving.add(node_id)
     try:
         sql = _node_sql(artifacts, node)
-        columns = (
-            _columns_from_sql(sql, node, artifacts, cache=cache, resolving=resolving)
-            if sql
-            else []
-        )
+        sql_columns: list[dict[str, Any]] = []
+        if sql:
+            sql_columns = _columns_from_sql(
+                sql, node, artifacts, cache=cache, resolving=resolving, lineage_out=lineage_out
+            )
+
+        # Stars must expand from SQL — incomplete catalog/manifest cannot represent them.
+        if _sql_select_has_star(sql) and sql_columns:
+            columns = _enrich_column_metadata(sql_columns, catalog_cols, manifest_cols)
+            if cache is not None:
+                cache[node_id] = columns
+            return columns
+
+        # Prefer warehouse catalog, but not when SQL exposes names the catalog omitted.
+        if catalog_cols:
+            if sql_columns and not _column_name_set(sql_columns).issubset(
+                _column_name_set(catalog_cols)
+            ):
+                columns = _enrich_column_metadata(sql_columns, catalog_cols, manifest_cols)
+                if cache is not None:
+                    cache[node_id] = columns
+                return columns
+            if cache is not None:
+                cache[node_id] = catalog_cols
+            return catalog_cols
+
+        if manifest_cols:
+            if sql_columns and (
+                not _column_name_set(sql_columns).issubset(_column_name_set(manifest_cols))
+                or len(sql_columns) > len(manifest_cols)
+            ):
+                columns = _enrich_column_metadata(sql_columns, manifest_cols)
+                if cache is not None:
+                    cache[node_id] = columns
+                return columns
+            if cache is not None:
+                cache[node_id] = manifest_cols
+            return manifest_cols
+
+        columns = _enrich_column_metadata(sql_columns) if sql_columns else []
     finally:
         if resolving is not None:
             resolving.discard(node_id)
@@ -119,8 +187,9 @@ def _columns_from_sql(
     *,
     cache: _ColumnCache | None = None,
     resolving: set[str] | None = None,
+    lineage_out: dict[str, dict[str, Any]] | None = None,
 ) -> list[dict[str, Any]]:
-    parsed = _parse_select_output_columns(sql)
+    parsed = _parse_select_items(sql)
     if not parsed:
         return []
 
@@ -131,7 +200,7 @@ def _columns_from_sql(
     columns: list[dict[str, Any]] = []
     seen: set[str] = set()
 
-    for token in parsed:
+    for token, expression in parsed:
         if token == "*" or token.endswith(".*"):
             dep_id = _star_dependency_id(token, alias_map, primary_dep, depends_on)
             if not dep_id:
@@ -156,6 +225,19 @@ def _columns_from_sql(
             continue
         seen.add(key)
         columns.append({"name": token, "type": "string", "description": None})
+
+        if lineage_out is not None:
+            refs = _resolve_expression_refs(
+                expression,
+                alias_map,
+                primary_dep,
+                depends_on,
+                artifacts,
+                cache=cache,
+                resolving=resolving,
+            )
+            if refs:
+                lineage_out[key] = {"expression": expression.strip(), "refs": refs}
 
     return columns
 
@@ -191,6 +273,166 @@ def _star_dependency_id(
         return None
     alias = token[:-2]
     return alias_map.get(alias.lower())
+
+
+_STRING_LITERAL_PATTERN = re.compile(r"'(?:[^'\\]|\\.)*'")
+_QUALIFIED_TOKEN_PATTERN = re.compile(
+    r"([A-Za-z_][\w$]*)\s*\.\s*([A-Za-z_][\w$]*)|([A-Za-z_][\w$]*)"
+)
+_FUNC_CALL_PATTERN = re.compile(r"\b([A-Za-z_][\w$]*)\s*\(")
+_EXPR_OPERATOR_PATTERN = re.compile(r"[+\-*/%|<>=!]")
+_EXPR_CASE_PATTERN = re.compile(r"\bcase\b", re.IGNORECASE)
+
+# Keywords/types that should never be treated as column references when they
+# appear as bare identifiers inside a SELECT expression.
+_EXPR_KEYWORDS = {
+    "select", "distinct", "case", "when", "then", "else", "end", "and", "or", "not",
+    "in", "is", "null", "as", "over", "partition", "order", "by", "asc", "desc",
+    "between", "like", "ilike", "filter", "within", "group", "interval", "true",
+    "false", "all", "any", "exists", "having", "cast", "using", "collate", "escape",
+    "from", "on", "left", "right", "full", "inner", "outer", "join", "cross",
+    "lateral", "with", "row", "rows", "range", "preceding", "following", "current",
+    "unbounded", "nulls", "first", "last", "limit", "offset", "union", "intersect",
+    "except", "int", "integer", "bigint", "smallint", "tinyint", "varchar", "char",
+    "character", "text", "date", "datetime", "timestamp", "boolean", "bool",
+    "numeric", "decimal", "float", "double", "real", "string", "number", "array",
+    "struct", "map", "json", "uuid", "bytes", "day", "days", "month", "months",
+    "year", "years", "hour", "hours", "minute", "minutes", "second", "seconds",
+}
+
+# Aggregate/window functions that turn a select expression into a rollup.
+_AGGREGATE_FUNCS = {
+    "count", "sum", "avg", "min", "max", "median", "stddev", "stddev_pop",
+    "stddev_samp", "variance", "var_pop", "var_samp", "array_agg", "string_agg",
+    "listagg", "group_concat", "any_value", "approx_count_distinct",
+    "approx_distinct", "percentile_cont", "percentile_disc",
+}
+_COALESCE_FUNCS = {"coalesce", "ifnull", "nvl", "zeroifnull"}
+
+
+def _extract_expression_refs(expr: str) -> list[tuple[str | None, str]]:
+    """Best-effort ``(alias, column)`` refs from a select expression.
+
+    Skips string literals, SQL keywords/types, and identifiers that are
+    actually function calls (followed by an opening paren).
+    """
+    text = _STRING_LITERAL_PATTERN.sub(" ", expr)
+    refs: list[tuple[str | None, str]] = []
+    seen: set[tuple[str | None, str]] = set()
+    for match in _QUALIFIED_TOKEN_PATTERN.finditer(text):
+        tail = text[match.end() :].lstrip()
+        is_call = tail.startswith("(")
+        alias, name = match.group(1), match.group(2)
+        if alias and name:
+            if is_call or alias.lower() in _EXPR_KEYWORDS or name.lower() in _EXPR_KEYWORDS:
+                continue
+            key: tuple[str | None, str] = (alias.lower(), name.lower())
+        else:
+            name = match.group(3)
+            if not name or is_call or name.lower() in _EXPR_KEYWORDS:
+                continue
+            alias = None
+            key = (None, name.lower())
+        if key in seen:
+            continue
+        seen.add(key)
+        refs.append((alias, name))
+    return refs
+
+
+def _expression_functions(expr: str) -> set[str]:
+    return {match.group(1).lower() for match in _FUNC_CALL_PATTERN.finditer(expr)}
+
+
+def _classify_expression(expr: str, ref_count: int) -> str:
+    """Classify a select expression as ``aggregate``/``coalesce``/``cast``/``derived``/``simple``."""
+    funcs = _expression_functions(expr)
+    if funcs & _AGGREGATE_FUNCS:
+        return "aggregate"
+    if funcs & _COALESCE_FUNCS:
+        return "coalesce"
+    if funcs == {"cast"} or "::" in expr:
+        return "cast" if ref_count <= 1 else "derived"
+    if (
+        funcs
+        or ref_count > 1
+        or _EXPR_OPERATOR_PATTERN.search(expr)
+        or _EXPR_CASE_PATTERN.search(expr)
+    ):
+        return "derived"
+    return "simple"
+
+
+def _find_upstream_column(
+    artifacts: DbtArtifacts,
+    dep_id: str,
+    column_name: str,
+    *,
+    cache: _ColumnCache | None,
+    resolving: set[str] | None,
+) -> dict[str, Any] | None:
+    lowered = column_name.lower()
+    for col in _upstream_columns(artifacts, dep_id, cache=cache, resolving=resolving):
+        if col["name"].lower() == lowered:
+            return col
+    return None
+
+
+def _resolve_expression_refs(
+    expression: str,
+    alias_map: dict[str, str],
+    primary_dep: str | None,
+    depends_on: list[str],
+    artifacts: DbtArtifacts,
+    *,
+    cache: _ColumnCache | None,
+    resolving: set[str] | None,
+) -> list[dict[str, Any]]:
+    """Resolve column refs in ``expression`` to upstream ``(nodeId, column)`` pairs."""
+    resolved: list[dict[str, Any]] = []
+    seen: set[tuple[str, str]] = set()
+
+    for alias, col_name in _extract_expression_refs(expression):
+        dep_id: str | None = None
+        found: dict[str, Any] | None = None
+
+        if alias:
+            dep_id = alias_map.get(alias.lower())
+            if dep_id:
+                found = _find_upstream_column(
+                    artifacts, dep_id, col_name, cache=cache, resolving=resolving
+                )
+        else:
+            candidates = [primary_dep] if primary_dep else []
+            candidates += [dep for dep in depends_on if dep not in candidates]
+            for candidate in candidates:
+                found = _find_upstream_column(
+                    artifacts, candidate, col_name, cache=cache, resolving=resolving
+                )
+                if found:
+                    dep_id = candidate
+                    break
+            if dep_id is None and len(depends_on) == 1:
+                dep_id = depends_on[0]
+
+        if not dep_id:
+            continue
+
+        name = found["name"] if found else col_name
+        key = (dep_id, name.lower())
+        if key in seen:
+            continue
+        seen.add(key)
+        resolved.append(
+            {
+                "nodeId": dep_id,
+                "column": name,
+                "type": (found or {}).get("type"),
+                "description": (found or {}).get("description"),
+            }
+        )
+
+    return resolved
 
 
 _NUMERIC_TYPE_PATTERN = re.compile(
@@ -234,10 +476,13 @@ def _infer_edge_transformation(
     return "cast"
 
 
-_SELECT_BODY_PATTERN = re.compile(r"\bselect\b(.*?)\bfrom\b", re.IGNORECASE | re.DOTALL)
 _ALIAS_PATTERN = re.compile(r"\bas\s+([`\"]?)([A-Za-z_][\w$]*)\1\s*$", re.IGNORECASE)
 _IDENTIFIER_PATTERN = re.compile(r"([`\"]?)([A-Za-z_][\w$]*)\1\s*$")
 _STAR_ITEM_PATTERN = re.compile(r"^(?:([`\"]?)([A-Za-z_][\w$]*)\1\.)?\*$")
+_CONFIG_MACRO_START = re.compile(r"\{\{\s*config\s*\(", re.IGNORECASE)
+_JINJA_CONTROL_PATTERN = re.compile(r"\{%[-\s]?.*?[-\s]?%\}", re.DOTALL)
+_SQL_BLOCK_COMMENT = re.compile(r"/\*.*?\*/", re.DOTALL)
+_SQL_LINE_COMMENT = re.compile(r"--.*?$", re.MULTILINE)
 _REF_RELATION_PATTERN = re.compile(
     r"\{\{\s*ref\s*\(\s*['\"]([^'\"]+)['\"]\s*\)\s*\}\}"
     r"(?:\s+(?:as\s+)?([A-Za-z_][\w$]*))?",
@@ -248,6 +493,99 @@ _SOURCE_RELATION_PATTERN = re.compile(
     r"(?:\s+(?:as\s+)?([A-Za-z_][\w$]*))?",
     re.IGNORECASE,
 )
+
+
+def _is_word_at(text: str, index: int, word: str) -> bool:
+    end = index + len(word)
+    if end > len(text) or text[index:end].lower() != word:
+        return False
+    if index > 0 and (text[index - 1].isalnum() or text[index - 1] == "_"):
+        return False
+    if end < len(text) and (text[end].isalnum() or text[end] == "_"):
+        return False
+    return True
+
+
+def _strip_config_macros(sql: str) -> str:
+    """Remove ``{{ config(...) }}`` blocks with balanced parentheses."""
+    parts: list[str] = []
+    cursor = 0
+    while True:
+        match = _CONFIG_MACRO_START.search(sql, cursor)
+        if not match:
+            parts.append(sql[cursor:])
+            break
+        parts.append(sql[cursor : match.start()])
+        paren_at = match.end() - 1
+        depth = 0
+        index = paren_at
+        while index < len(sql):
+            char = sql[index]
+            if char == "(":
+                depth += 1
+            elif char == ")":
+                depth -= 1
+                if depth == 0:
+                    index += 1
+                    break
+            index += 1
+        while index < len(sql) and sql[index].isspace():
+            index += 1
+        if sql.startswith("}}", index):
+            index += 2
+        parts.append(" ")
+        cursor = index
+    return "".join(parts)
+
+
+def _strip_sql_noise(sql: str) -> str:
+    """Drop config macros, jinja control blocks, and comments before SELECT parsing."""
+    text = _strip_config_macros(sql)
+    text = _JINJA_CONTROL_PATTERN.sub(" ", text)
+    text = _SQL_BLOCK_COMMENT.sub(" ", text)
+    text = _SQL_LINE_COMMENT.sub(" ", text)
+    return text
+
+
+def _extract_select_clause(sql: str) -> str | None:
+    """Outer SELECT list between SELECT and its FROM.
+
+    CTEs (``with x as (select ...)``) and subqueries live inside parentheses,
+    so only ``select`` keywords at absolute depth 0 are candidates; the last
+    such candidate is the final query that determines the model's output
+    columns.
+    """
+    text = _strip_sql_noise(sql)
+    length = len(text)
+    depth = 0
+    candidates: list[int] = []
+    index = 0
+    while index < length:
+        char = text[index]
+        if char == "(":
+            depth += 1
+        elif char == ")":
+            depth = max(0, depth - 1)
+        elif depth == 0 and _is_word_at(text, index, "select"):
+            candidates.append(index)
+        index += 1
+    if not candidates:
+        return None
+
+    body_start = candidates[-1] + len("select")
+    depth = 0
+    cursor = body_start
+    while cursor < length:
+        char = text[cursor]
+        if char == "(":
+            depth += 1
+        elif char == ")":
+            depth = max(0, depth - 1)
+        elif depth == 0 and _is_word_at(text, cursor, "from"):
+            return text[body_start:cursor].strip()
+        cursor += 1
+    tail = text[body_start:].strip()
+    return tail or None
 
 
 def _split_select_list(select_clause: str) -> list[str]:
@@ -272,30 +610,39 @@ def _split_select_list(select_clause: str) -> list[str]:
     return parts
 
 
-def _parse_select_output_columns(sql: str) -> list[str]:
-    """Return output column names; stars are encoded as ``*`` or ``alias.*``."""
-    match = _SELECT_BODY_PATTERN.search(sql)
-    if not match:
+def _parse_select_items(sql: str) -> list[tuple[str, str]]:
+    """Return ``(output_name, expression)`` pairs; stars are ``*``/``alias.*`` tokens."""
+    select_clause = _extract_select_clause(sql)
+    if not select_clause:
         return []
-    select_clause = match.group(1).strip()
     if select_clause == "*":
-        return ["*"]
-    columns: list[str] = []
+        return [("*", "*")]
+    items: list[tuple[str, str]] = []
     for part in _split_select_list(select_clause):
         stripped = part.strip()
+        if not stripped:
+            continue
         star_match = _STAR_ITEM_PATTERN.match(stripped)
         if star_match:
             alias = star_match.group(2)
-            columns.append(f"{alias}.*" if alias else "*")
+            token = f"{alias}.*" if alias else "*"
+            items.append((token, stripped))
             continue
         alias_match = _ALIAS_PATTERN.search(stripped)
         if alias_match:
-            columns.append(alias_match.group(2))
+            expression = stripped[: alias_match.start()].strip()
+            items.append((alias_match.group(2), expression))
             continue
+        # Bare identifier or qualified ``table.col`` / ``alias.col`` (use the column name).
         ident_match = _IDENTIFIER_PATTERN.search(stripped)
         if ident_match:
-            columns.append(ident_match.group(2))
-    return columns
+            items.append((ident_match.group(2), stripped))
+    return items
+
+
+def _parse_select_output_columns(sql: str) -> list[str]:
+    """Return output column names; stars are encoded as ``*`` or ``alias.*``."""
+    return [name for name, _expression in _parse_select_items(sql)]
 
 
 def _resolve_ref_dependency(depends_on: list[str], model_name: str) -> str | None:
@@ -458,10 +805,61 @@ def _build_column_edges_for_dependency(
     return edges
 
 
+def _sql_derived_edges_for_target(
+    target_id: str,
+    target_columns: list[dict[str, Any]],
+    nodes_by_id: dict[str, dict[str, Any]],
+    target_lineage: dict[str, dict[str, Any]],
+) -> tuple[list[dict[str, Any]], set[str]]:
+    """Edges built directly from expression refs extracted while parsing the target's SQL."""
+    edges: list[dict[str, Any]] = []
+    resolved_targets: set[str] = set()
+
+    for target_col in target_columns:
+        entry = target_lineage.get(target_col["name"].lower())
+        refs = entry.get("refs") if entry else None
+        if not refs:
+            continue
+        resolved_targets.add(target_col["name"].lower())
+        expression = entry.get("expression") or ""
+        classification = _classify_expression(expression, len(refs))
+
+        for ref in refs:
+            source_node = nodes_by_id.get(ref["nodeId"])
+            source_columns = (source_node or {}).get("columns") or []
+            source_col = _column_by_name(source_columns, ref["column"]) or {
+                "name": ref["column"],
+                "type": ref.get("type") or "string",
+            }
+            if classification == "simple":
+                transformation = _infer_edge_transformation(
+                    source_col, target_col, source_col["name"], target_col["name"]
+                )
+            else:
+                transformation = classification
+
+            edge: dict[str, Any] = {
+                "sourceNodeId": ref["nodeId"],
+                "sourceColumn": source_col["name"],
+                "targetNodeId": target_id,
+                "targetColumn": target_col["name"],
+                "transformationType": transformation,
+            }
+            # Only attach the raw expression when it conveys real transformation
+            # info; a "simple" bare identifier reference adds no value.
+            if classification != "simple" and expression:
+                edge["expression"] = expression
+            edges.append(edge)
+
+    return edges, resolved_targets
+
+
 def _build_column_edges(
     lineage_nodes: list[dict[str, Any]],
     edges: list[dict[str, str]],
+    column_lineage: dict[str, dict[str, dict[str, Any]]] | None = None,
 ) -> list[dict[str, Any]]:
+    column_lineage = column_lineage or {}
     nodes_by_id = {node["id"]: node for node in lineage_nodes}
     upstream_by_target: dict[str, list[str]] = {}
     for edge in edges:
@@ -470,12 +868,39 @@ def _build_column_edges(
     column_edges: list[dict[str, Any]] = []
     seen: set[tuple[str, str, str, str]] = set()
 
+    def _add(edge: dict[str, Any]) -> None:
+        key = (
+            edge["sourceNodeId"],
+            edge["sourceColumn"],
+            edge["targetNodeId"],
+            edge["targetColumn"],
+        )
+        if key in seen:
+            return
+        seen.add(key)
+        column_edges.append(edge)
+
     for target_id, source_ids in upstream_by_target.items():
         target_node = nodes_by_id.get(target_id)
         if not target_node:
             continue
         target_columns = target_node.get("columns") or []
         if not target_columns:
+            continue
+
+        target_lineage = column_lineage.get(target_id) or {}
+        sql_edges, resolved_targets = _sql_derived_edges_for_target(
+            target_id, target_columns, nodes_by_id, target_lineage
+        )
+        for edge in sql_edges:
+            _add(edge)
+
+        # Name-based heuristic covers columns the SQL parser couldn't resolve to a
+        # specific expression (e.g. star-expanded pass-through columns).
+        remaining_columns = [
+            col for col in target_columns if col["name"].lower() not in resolved_targets
+        ]
+        if not remaining_columns:
             continue
 
         for source_id in source_ids:
@@ -487,18 +912,9 @@ def _build_column_edges(
                 source_id,
                 source_columns,
                 target_id,
-                target_columns,
+                remaining_columns,
             ):
-                key = (
-                    edge["sourceNodeId"],
-                    edge["sourceColumn"],
-                    edge["targetNodeId"],
-                    edge["targetColumn"],
-                )
-                if key in seen:
-                    continue
-                seen.add(key)
-                column_edges.append(edge)
+                _add(edge)
 
     return column_edges
 
@@ -622,6 +1038,7 @@ def build_project_lineage(
     source_count = 0
     column_cache: _ColumnCache = {}
     resolving: set[str] = set()
+    column_lineage: dict[str, dict[str, dict[str, Any]]] = {}
 
     for node_id, node in _iter_manifest_nodes(artifacts):
         resource_type = node.get("resource_type")
@@ -632,9 +1049,17 @@ def build_project_lineage(
         elif resource_type == "source":
             source_count += 1
 
+        node_lineage: dict[str, dict[str, Any]] = {}
         columns = _node_columns(
-            artifacts, node_id, node, cache=column_cache, resolving=resolving
+            artifacts,
+            node_id,
+            node,
+            cache=column_cache,
+            resolving=resolving,
+            lineage_out=node_lineage,
         )
+        if node_lineage:
+            column_lineage[node_id] = node_lineage
         database = node.get("database") or node.get("schema") or "default"
         schema = node.get("schema") or "default"
         catalog = database
@@ -666,7 +1091,7 @@ def build_project_lineage(
             edges.append({"source": dependency, "target": node_id})
 
     metadata = artifacts.metadata
-    column_edges = _build_column_edges(lineage_nodes, edges)
+    column_edges = _build_column_edges(lineage_nodes, edges, column_lineage)
     result: dict[str, Any] = {
         "projectUuid": project_uuid,
         "projectName": project_name,
