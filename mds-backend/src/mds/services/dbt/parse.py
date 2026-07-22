@@ -1,12 +1,16 @@
 from __future__ import annotations
 
 import re
+from pathlib import Path
 from typing import Any
 
 from mds.services.dbt.loader import DbtArtifacts
 
 LineageNodeType = str
 DbtTreeItemType = str
+
+# Shared while resolving columns so `alias.*` can expand via upstream nodes.
+_ColumnCache = dict[str, list[dict[str, Any]]]
 
 
 def _format_words(value: str) -> str:
@@ -66,26 +70,127 @@ def _manifest_columns(node: dict[str, Any]) -> list[dict[str, Any]]:
     return columns
 
 
-def _node_columns(artifacts: DbtArtifacts, node_id: str, node: dict[str, Any]) -> list[dict[str, Any]]:
+def _node_columns(
+    artifacts: DbtArtifacts,
+    node_id: str,
+    node: dict[str, Any],
+    *,
+    cache: _ColumnCache | None = None,
+    resolving: set[str] | None = None,
+) -> list[dict[str, Any]]:
+    if cache is not None and node_id in cache:
+        return cache[node_id]
+    if resolving is not None and node_id in resolving:
+        return []
+
     catalog_cols = _catalog_columns(artifacts, node_id)
     if catalog_cols:
+        if cache is not None:
+            cache[node_id] = catalog_cols
         return catalog_cols
     manifest_cols = _manifest_columns(node)
     if manifest_cols:
+        if cache is not None:
+            cache[node_id] = manifest_cols
         return manifest_cols
-    sql = _node_sql(artifacts, node)
-    if sql:
-        return _columns_from_sql(sql, node)
-    return []
+
+    if resolving is not None:
+        resolving.add(node_id)
+    try:
+        sql = _node_sql(artifacts, node)
+        columns = (
+            _columns_from_sql(sql, node, artifacts, cache=cache, resolving=resolving)
+            if sql
+            else []
+        )
+    finally:
+        if resolving is not None:
+            resolving.discard(node_id)
+
+    if cache is not None:
+        cache[node_id] = columns
+    return columns
 
 
-def _columns_from_sql(sql: str, node: dict[str, Any]) -> list[dict[str, Any]]:
+def _columns_from_sql(
+    sql: str,
+    node: dict[str, Any],
+    artifacts: DbtArtifacts,
+    *,
+    cache: _ColumnCache | None = None,
+    resolving: set[str] | None = None,
+) -> list[dict[str, Any]]:
     parsed = _parse_select_output_columns(sql)
     if not parsed:
         return []
-    if parsed == ["*"]:
+
+    depends_on = list((node.get("depends_on") or {}).get("nodes") or [])
+    alias_map = _relation_alias_map(sql, depends_on)
+    primary_dep = _primary_relation_id(sql, depends_on, alias_map)
+
+    columns: list[dict[str, Any]] = []
+    seen: set[str] = set()
+
+    for token in parsed:
+        if token == "*" or token.endswith(".*"):
+            dep_id = _star_dependency_id(token, alias_map, primary_dep, depends_on)
+            if not dep_id:
+                continue
+            for col in _upstream_columns(artifacts, dep_id, cache=cache, resolving=resolving):
+                name = col["name"]
+                key = name.lower()
+                if key in seen:
+                    continue
+                seen.add(key)
+                columns.append(
+                    {
+                        "name": name,
+                        "type": col.get("type") or "string",
+                        "description": col.get("description"),
+                    }
+                )
+            continue
+
+        key = token.lower()
+        if key in seen:
+            continue
+        seen.add(key)
+        columns.append({"name": token, "type": "string", "description": None})
+
+    return columns
+
+
+def _upstream_columns(
+    artifacts: DbtArtifacts,
+    node_id: str,
+    *,
+    cache: _ColumnCache | None = None,
+    resolving: set[str] | None = None,
+) -> list[dict[str, Any]]:
+    if cache is not None and node_id in cache:
+        return cache[node_id]
+
+    manifest = artifacts.manifest
+    node = (manifest.get("nodes") or {}).get(node_id) or (manifest.get("sources") or {}).get(node_id)
+    if not node:
         return []
-    return [{"name": name, "type": "string", "description": None} for name in parsed]
+    return _node_columns(artifacts, node_id, node, cache=cache, resolving=resolving)
+
+
+def _star_dependency_id(
+    token: str,
+    alias_map: dict[str, str],
+    primary_dep: str | None,
+    depends_on: list[str],
+) -> str | None:
+    if token == "*":
+        if primary_dep:
+            return primary_dep
+        if len(depends_on) == 1:
+            return depends_on[0]
+        return None
+    alias = token[:-2]
+    return alias_map.get(alias.lower())
 
 
 _NUMERIC_TYPE_PATTERN = re.compile(
@@ -132,6 +237,17 @@ def _infer_edge_transformation(
 _SELECT_BODY_PATTERN = re.compile(r"\bselect\b(.*?)\bfrom\b", re.IGNORECASE | re.DOTALL)
 _ALIAS_PATTERN = re.compile(r"\bas\s+([`\"]?)([A-Za-z_][\w$]*)\1\s*$", re.IGNORECASE)
 _IDENTIFIER_PATTERN = re.compile(r"([`\"]?)([A-Za-z_][\w$]*)\1\s*$")
+_STAR_ITEM_PATTERN = re.compile(r"^(?:([`\"]?)([A-Za-z_][\w$]*)\1\.)?\*$")
+_REF_RELATION_PATTERN = re.compile(
+    r"\{\{\s*ref\s*\(\s*['\"]([^'\"]+)['\"]\s*\)\s*\}\}"
+    r"(?:\s+(?:as\s+)?([A-Za-z_][\w$]*))?",
+    re.IGNORECASE,
+)
+_SOURCE_RELATION_PATTERN = re.compile(
+    r"\{\{\s*source\s*\(\s*['\"]([^'\"]+)['\"]\s*,\s*['\"]([^'\"]+)['\"]\s*\)\s*\}\}"
+    r"(?:\s+(?:as\s+)?([A-Za-z_][\w$]*))?",
+    re.IGNORECASE,
+)
 
 
 def _split_select_list(select_clause: str) -> list[str]:
@@ -157,6 +273,7 @@ def _split_select_list(select_clause: str) -> list[str]:
 
 
 def _parse_select_output_columns(sql: str) -> list[str]:
+    """Return output column names; stars are encoded as ``*`` or ``alias.*``."""
     match = _SELECT_BODY_PATTERN.search(sql)
     if not match:
         return []
@@ -165,14 +282,104 @@ def _parse_select_output_columns(sql: str) -> list[str]:
         return ["*"]
     columns: list[str] = []
     for part in _split_select_list(select_clause):
-        alias_match = _ALIAS_PATTERN.search(part.strip())
+        stripped = part.strip()
+        star_match = _STAR_ITEM_PATTERN.match(stripped)
+        if star_match:
+            alias = star_match.group(2)
+            columns.append(f"{alias}.*" if alias else "*")
+            continue
+        alias_match = _ALIAS_PATTERN.search(stripped)
         if alias_match:
             columns.append(alias_match.group(2))
             continue
-        ident_match = _IDENTIFIER_PATTERN.search(part.strip())
+        ident_match = _IDENTIFIER_PATTERN.search(stripped)
         if ident_match:
             columns.append(ident_match.group(2))
     return columns
+
+
+def _resolve_ref_dependency(depends_on: list[str], model_name: str) -> str | None:
+    for dep_id in depends_on:
+        if dep_id.split(".")[-1] == model_name:
+            return dep_id
+    return None
+
+
+def _resolve_source_dependency(
+    depends_on: list[str],
+    source_name: str,
+    table_name: str,
+) -> str | None:
+    for dep_id in depends_on:
+        parts = dep_id.split(".")
+        if not parts or parts[0] != "source":
+            continue
+        if len(parts) >= 4 and parts[-2] == source_name and parts[-1] == table_name:
+            return dep_id
+        if parts[-1] == table_name:
+            return dep_id
+    return None
+
+
+def _relation_alias_map(sql: str, depends_on: list[str]) -> dict[str, str]:
+    """Map relation alias / model name (lowercased) → dependency node id."""
+    alias_to_id: dict[str, str] = {}
+    for match in _REF_RELATION_PATTERN.finditer(sql):
+        model_name = match.group(1)
+        alias = match.group(2) or model_name
+        dep_id = _resolve_ref_dependency(depends_on, model_name)
+        if not dep_id:
+            continue
+        alias_to_id[alias.lower()] = dep_id
+        alias_to_id[model_name.lower()] = dep_id
+    for match in _SOURCE_RELATION_PATTERN.finditer(sql):
+        source_name = match.group(1)
+        table_name = match.group(2)
+        alias = match.group(3) or table_name
+        dep_id = _resolve_source_dependency(depends_on, source_name, table_name)
+        if not dep_id:
+            continue
+        alias_to_id[alias.lower()] = dep_id
+        alias_to_id[table_name.lower()] = dep_id
+    return alias_to_id
+
+
+def _primary_relation_id(
+    sql: str,
+    depends_on: list[str],
+    alias_map: dict[str, str],
+) -> str | None:
+    """Dependency id for the first FROM relation (used to expand bare ``*``)."""
+    from_match = re.search(r"\bfrom\b", sql, re.IGNORECASE)
+    if not from_match:
+        if len(depends_on) == 1:
+            return depends_on[0]
+        return None
+    tail = sql[from_match.end() :]
+    ref_match = _REF_RELATION_PATTERN.search(tail)
+    source_match = _SOURCE_RELATION_PATTERN.search(tail)
+    candidates: list[tuple[int, str]] = []
+    if ref_match:
+        dep_id = _resolve_ref_dependency(depends_on, ref_match.group(1))
+        if dep_id:
+            candidates.append((ref_match.start(), dep_id))
+    if source_match:
+        dep_id = _resolve_source_dependency(
+            depends_on, source_match.group(1), source_match.group(2)
+        )
+        if dep_id:
+            candidates.append((source_match.start(), dep_id))
+    if candidates:
+        candidates.sort(key=lambda item: item[0])
+        return candidates[0][1]
+    if alias_map:
+        # Fall back to first mapped alias appearance order is not preserved; use depends_on order.
+        for dep_id in depends_on:
+            if dep_id in alias_map.values():
+                return dep_id
+    if len(depends_on) == 1:
+        return depends_on[0]
+    return None
 
 
 def _column_by_name(columns: list[dict[str, Any]], name: str) -> dict[str, Any] | None:
@@ -413,6 +620,8 @@ def build_project_lineage(
     model_count = 0
     seed_count = 0
     source_count = 0
+    column_cache: _ColumnCache = {}
+    resolving: set[str] = set()
 
     for node_id, node in _iter_manifest_nodes(artifacts):
         resource_type = node.get("resource_type")
@@ -423,7 +632,9 @@ def build_project_lineage(
         elif resource_type == "source":
             source_count += 1
 
-        columns = _node_columns(artifacts, node_id, node)
+        columns = _node_columns(
+            artifacts, node_id, node, cache=column_cache, resolving=resolving
+        )
         database = node.get("database") or node.get("schema") or "default"
         schema = node.get("schema") or "default"
         catalog = database
