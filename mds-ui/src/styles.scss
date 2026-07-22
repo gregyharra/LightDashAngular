@@ -61,6 +61,47 @@ strong {
   max-width: min(var(--ld-page-content-max-width-large), 100%);
 }
 
+// Material dialogs/menus use scale + opacity transitions and elevated surfaces.
+// On some Ubuntu compositor setups that produces dense vertical “scanline”
+// artifacts on the overlay only (page content and simple site popups stay fine).
+// Force opaque, non-scaled surfaces and a simple shadow so overlays paint cleanly.
+.mat-mdc-dialog-inner-container {
+  opacity: 1 !important;
+  transform: none !important;
+  transition: none !important;
+}
+
+.mat-mdc-dialog-surface {
+  transform: none !important;
+  transition: none !important;
+  background-color: #ffffff !important;
+  background-image: none !important;
+  box-shadow: var(--ld-shadow-heavy);
+  border-radius: var(--ld-radius-md);
+  -webkit-backface-visibility: hidden;
+  backface-visibility: hidden;
+}
+
+.mat-mdc-dialog-surface::before {
+  display: none;
+}
+
+.cdk-overlay-backdrop.cdk-overlay-dark-backdrop {
+  background: rgba(0, 0, 0, 0.32);
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+
+.mat-mdc-menu-panel,
+.mat-mdc-select-panel,
+.mat-mdc-autocomplete-panel {
+  background-color: #ffffff !important;
+  background-image: none !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  box-shadow: var(--ld-shadow-heavy);
+}
+
 // Angular Material's own default for `.mat-mdc-dialog-content` is `display: block`
 // (it is only a *flex item* of the dialog surface, via `flex-grow: 1` — it is not a
 // flex *container* for its children). Turning it into `display: flex; flex-direction:
