@@ -1,6 +1,7 @@
 // Plain fixed modal — intentionally avoids Angular CDK overlay / MatDialog.
-// Solid (non-alpha) backdrop and no transform/shadow/filter to avoid Ubuntu
-// compositor artifacts seen on Material overlay surfaces.
+// No transform/shadow/filter on the panel (those triggered Ubuntu scanline
+// artifacts on Material overlays). Backdrop stays a simple rgba dim so the
+// page remains visible underneath.
 .add-attribute-modal {
   position: fixed;
   inset: 0;
@@ -9,7 +10,7 @@
   align-items: center;
   justify-content: center;
   padding: 16px;
-  background: #666666;
+  background: rgba(0, 0, 0, 0.45);
 }
 
 .add-attribute-modal__panel {
