@@ -2,6 +2,7 @@ import { Component, effect, inject, input, signal } from '@angular/core';
 import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { EMPTY, catchError, switchMap } from 'rxjs';
+import { apiErrorMessage } from '../../../core/api/lightdash-api.service';
 import { ChartKind, ChartDisplayConfig, BigNumberComparison, DEFAULT_CHART_DISPLAY_CONFIG } from '../../../core/models/chart.model';
 import {
   DashboardDimensionFilter,
@@ -95,8 +96,8 @@ export class DashboardChartTileComponent {
 
             return this.explorerService.runQuery(projectUuid, metricQuery);
           }),
-          catchError(() => {
-            this.error.set('Failed to load chart.');
+          catchError((err) => {
+            this.error.set(apiErrorMessage(err, 'Failed to load chart.'));
             this.loading.set(false);
             return EMPTY;
           }),

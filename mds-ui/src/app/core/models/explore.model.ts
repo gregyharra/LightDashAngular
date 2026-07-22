@@ -135,6 +135,7 @@ export type QueryResults = {
     cacheHit: boolean;
   };
   warnings?: QueryWarning[];
+  compiledSql?: string | null;
 };
 
 export type ExecuteAsyncMetricQueryResponse = {
@@ -148,6 +149,7 @@ export type ExecuteAsyncMetricQueryResponse = {
   usedParametersValues: Record<string, unknown>;
   resolvedTimezone: string | null;
   warnings: QueryWarning[];
+  compiledSql?: string | null;
 };
 
 export type AsyncQueryPollResponse =
@@ -167,6 +169,8 @@ export type AsyncQueryPollResponse =
         };
       };
       pivotDetails: null;
+      warnings?: QueryWarning[];
+      compiledSql?: string | null;
     }
   | {
       queryUuid: string;

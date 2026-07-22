@@ -63,6 +63,31 @@ Alternatively, set `SEED_DEMO_DATA=true` in `.env` to seed automatically on star
 
 Query execution (`/query/*`) still requires `useMockApi: true` in the frontend or future backend phases.
 
+## Warehouse SQL debug logging
+
+Compiled SQL is returned by the query API (`compiledSql` on `POST /api/v2/projects/{uuid}/query/metric-query` and on the poll `GET .../query/{queryUuid}` response).
+
+To print executed SQL in the backend terminal before Trino runs, set in `.env`:
+
+```env
+LOG_SQL_QUERIES=true
+```
+
+Restart uvicorn and run a query from the Tables workspace (with `useMockApi: false`). You should see lines like:
+
+```
+INFO mds.services.warehouse.trino_client: Executing warehouse SQL on trino.example.com (analytics.marts):
+SELECT ...
+```
+
+Alternatively, run uvicorn with debug logging for the `mds` package (no env flag required):
+
+```bash
+uvicorn mds.main:app --reload --port 8080 --log-level debug
+```
+
+In the UI, the Tables workspace **SQL** panel shows client-generated SQL before you run a query, and switches to the backend `compiledSql` after execution.
+
 ## Local dbt project (no Git)
 
 The backend reads compiled dbt artifacts from a **filesystem path** — no Git clone.

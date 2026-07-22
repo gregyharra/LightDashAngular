@@ -1,5 +1,5 @@
 import { HttpClient, HttpErrorResponse, HttpHeaders, HttpParams } from '@angular/common/http';
-import { Injectable, inject } from '@angular/core';
+import { Injectable, inject, isDevMode } from '@angular/core';
 import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
 import { ApiError, ApiResponse } from './api.types';
@@ -141,7 +141,7 @@ export function toApiError(error: unknown): ApiError {
       status: 'error',
       error: {
         name: 'HttpErrorResponse',
-        statusCode: error.status || 500,
+        statusCode: error.status ?? 500,
         message,
       },
     };
@@ -169,6 +169,27 @@ export function toApiError(error: unknown): ApiError {
   };
 }
 
-export function apiErrorMessage(error: unknown): string {
-  return toApiError(error).error.message;
+function isGenericHttpMessage(message: string): boolean {
+  const normalized = message.trim().toLowerCase();
+  return (
+    !normalized ||
+    normalized === 'unknown error' ||
+    normalized === 'http failure response' ||
+    normalized.startsWith('http failure response for ')
+  );
+}
+
+export function apiErrorMessage(error: unknown, fallback = 'Something went wrong'): string {
+  const apiError = toApiError(error);
+  const message = apiError.error.message.trim();
+
+  if (message && !isGenericHttpMessage(message)) {
+    return message;
+  }
+
+  const statusHint = isDevMode() && apiError.error.statusCode
+    ? ` (HTTP ${apiError.error.statusCode})`
+    : '';
+
+  return `${fallback}${statusHint}`;
 }

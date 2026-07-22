@@ -60,6 +60,13 @@ class Settings(BaseSettings):
         default=None,
         description="Fernet key for encrypting warehouse passwords at rest.",
     )
+    log_sql_queries: bool = Field(
+        default=False,
+        description=(
+            "When true, log compiled warehouse SQL at INFO before execution. "
+            "Also logged at DEBUG when the mds logger level is DEBUG."
+        ),
+    )
 
     @field_validator("dbt_artifacts_path", "encryption_key", mode="before")
     @classmethod

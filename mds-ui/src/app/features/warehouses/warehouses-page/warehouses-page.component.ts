@@ -7,6 +7,7 @@ import {
   WAREHOUSE_TYPE_LABELS,
   WarehouseListItem,
 } from '../../../core/models/warehouse.model';
+import { ApiErrorService } from '../../../core/api/api-error.service';
 import { WarehouseService } from '../../projects/warehouse.service';
 import { ResizableSidebarDirective } from '../../../layout/resizable-sidebar/resizable-sidebar.directive';
 import { SettingsSidebarNavComponent } from '../../../layout/settings-sidebar-nav/settings-sidebar-nav.component';
@@ -25,6 +26,7 @@ import { SettingsSidebarNavComponent } from '../../../layout/settings-sidebar-na
 })
 export class WarehousesPageComponent {
   private readonly warehouseService = inject(WarehouseService);
+  private readonly apiErrorService = inject(ApiErrorService);
   private readonly router = inject(Router);
 
   protected readonly warehouses = signal<WarehouseListItem[]>([]);
@@ -43,8 +45,8 @@ export class WarehousesPageComponent {
         this.warehouses.set(warehouses);
         this.loading.set(false);
       },
-      error: () => {
-        this.error.set('Failed to load warehouses.');
+      error: (err) => {
+        this.error.set(this.apiErrorService.showTransient(err, 'Failed to load warehouses.'));
         this.loading.set(false);
       },
     });
@@ -89,8 +91,8 @@ export class WarehousesPageComponent {
         );
         this.deletingUuid.set(null);
       },
-      error: () => {
-        this.error.set('Failed to delete warehouse.');
+      error: (err) => {
+        this.error.set(this.apiErrorService.showTransient(err, 'Failed to delete warehouse.'));
         this.deletingUuid.set(null);
       },
     });

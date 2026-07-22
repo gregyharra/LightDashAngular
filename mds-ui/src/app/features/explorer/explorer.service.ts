@@ -1,7 +1,7 @@
 import { Injectable, inject } from '@angular/core';
 import { Observable, switchMap, throwError, timer } from 'rxjs';
 import { map } from 'rxjs/operators';
-import { LightdashApiService } from '../../core/api/lightdash-api.service';
+import { LightdashApiService, toApiError } from '../../core/api/lightdash-api.service';
 import {
   AsyncQueryPollResponse,
   ExecuteAsyncMetricQueryResponse,
@@ -44,7 +44,8 @@ export class ExplorerService {
               rows: poll.rows,
               fields: response.fields,
               cacheMetadata: response.cacheMetadata,
-              warnings: response.warnings ?? [],
+              warnings: poll.warnings ?? response.warnings ?? [],
+              compiledSql: poll.compiledSql ?? response.compiledSql ?? null,
             })),
           ),
         ),
@@ -76,8 +77,15 @@ export class ExplorerService {
             poll.status === 'error' ||
             poll.status === 'expired'
           ) {
-            return throwError(
-              () => new Error(poll.error ?? 'Query failed'),
+            return throwError(() =>
+              toApiError({
+                status: 'error',
+                error: {
+                  name: 'QueryError',
+                  statusCode: 400,
+                  message: poll.error ?? 'Query failed',
+                },
+              }),
             );
           }
 

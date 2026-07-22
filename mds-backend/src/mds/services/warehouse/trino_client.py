@@ -1,9 +1,14 @@
 from __future__ import annotations
 
+import logging
 from typing import Any
 
+from mds.api.errors import format_trino_error
+from mds.config import settings
 from mds.db.models import Warehouse
 from mds.services.warehouse.connection import credentials_to_trino_kwargs, warehouse_to_trino_kwargs
+
+logger = logging.getLogger(__name__)
 
 
 def _format_value(value: Any) -> str:
@@ -52,7 +57,7 @@ def _test_trino_with_kwargs(kwargs: dict[str, Any]) -> tuple[bool, str]:
         client.close()
         return True, "Connection successful"
     except (TrinoQueryError, TrinoUserError, OSError) as exc:
-        return False, str(exc)
+        return False, format_trino_error(exc)
 
 
 def test_trino_connection(warehouse: Warehouse) -> tuple[bool, str]:
@@ -81,6 +86,14 @@ def test_trino_connection_credentials(
     return _test_trino_with_kwargs(kwargs)
 
 
+def _log_warehouse_sql(warehouse: Warehouse, query_sql: str) -> None:
+    context = f"{warehouse.host} ({warehouse.catalog}.{warehouse.schema_name})"
+    if settings.log_sql_queries:
+        logger.info("Executing warehouse SQL on %s:\n%s", context, query_sql)
+    elif logger.isEnabledFor(logging.DEBUG):
+        logger.debug("Executing warehouse SQL on %s:\n%s", context, query_sql)
+
+
 def execute_trino_query(
     warehouse: Warehouse,
     sql: str,
@@ -100,6 +113,7 @@ def execute_trino_query(
         query_sql = f"{sql.rstrip(';')}\nLIMIT {limit}"
 
     try:
+        _log_warehouse_sql(warehouse, query_sql)
         client = trino.dbapi.connect(auth=auth, **kwargs)
         cursor = client.cursor()
         cursor.execute(query_sql)
@@ -109,4 +123,4 @@ def execute_trino_query(
         client.close()
         return _rows_to_result_rows(columns, raw_rows, field_ids), None
     except (TrinoQueryError, TrinoUserError, OSError) as exc:
-        return [], str(exc)
+        return [], format_trino_error(exc)

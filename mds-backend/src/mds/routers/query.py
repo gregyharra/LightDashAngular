@@ -88,7 +88,7 @@ def execute_metric_query(
                     QueryWarning(
                         code="WAREHOUSE_EXECUTION_FAILED",
                         message=execution_error,
-                        severity="warning",
+                        severity="error",
                     )
                 )
 

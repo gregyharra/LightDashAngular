@@ -187,8 +187,8 @@ export class DashboardEditPageComponent {
         this.initDraft(dashboard);
         this.loading.set(false);
       },
-      error: () => {
-        this.error.set('Failed to load dashboard.');
+      error: (err) => {
+        this.error.set(apiErrorMessage(err, 'Failed to load dashboard.'));
         this.loading.set(false);
       },
     });

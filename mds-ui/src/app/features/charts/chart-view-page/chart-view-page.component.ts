@@ -6,6 +6,7 @@ import { MatExpansionModule } from '@angular/material/expansion';
 import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { ActiveProjectService } from '../../../core/services/active-project.service';
+import { apiErrorMessage } from '../../../core/api/lightdash-api.service';
 import {
   ChartDisplayConfig,
   ChartKind,
@@ -163,8 +164,8 @@ export class ChartViewPageComponent {
         this.loading.set(false);
         this.loadExplore(projectUuid, chart.tableName);
       },
-      error: () => {
-        this.error.set('Failed to load chart.');
+      error: (err) => {
+        this.error.set(apiErrorMessage(err, 'Failed to load chart.'));
         this.loading.set(false);
       },
     });
@@ -199,8 +200,8 @@ export class ChartViewPageComponent {
         this.explore.set(explore);
         this.runQuery();
       },
-      error: () => {
-        this.queryError.set('Failed to load explore fields.');
+      error: (err) => {
+        this.queryError.set(apiErrorMessage(err, 'Failed to load explore fields.'));
       },
     });
   }
@@ -369,8 +370,8 @@ export class ChartViewPageComponent {
           this.queryResults.set(results);
           this.queryLoading.set(false);
         },
-        error: () => {
-          this.queryError.set('Failed to run query.');
+        error: (err) => {
+          this.queryError.set(apiErrorMessage(err, 'Failed to run query.'));
           this.queryLoading.set(false);
         },
       });

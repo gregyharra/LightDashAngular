@@ -16,6 +16,7 @@ import { MatMenuModule } from '@angular/material/menu';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { ActiveProjectService } from '../../../core/services/active-project.service';
+import { apiErrorMessage } from '../../../core/api/lightdash-api.service';
 import {
   Dashboard,
   DashboardDimensionFilter,
@@ -153,8 +154,8 @@ export class DashboardViewPageComponent {
         );
         this.loading.set(false);
       },
-      error: () => {
-        this.error.set('Failed to load dashboard.');
+      error: (err) => {
+        this.error.set(apiErrorMessage(err, 'Failed to load dashboard.'));
         this.loading.set(false);
       },
     });

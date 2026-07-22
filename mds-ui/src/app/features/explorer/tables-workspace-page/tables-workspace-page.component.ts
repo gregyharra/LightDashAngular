@@ -10,6 +10,8 @@ import { DashboardDimensionFilter } from '../../../core/models/dashboard.model';
 import { DbtTreeNode } from '../../../core/models/lineage.model';
 import { ChartKind } from '../../../core/models/chart.model';
 import { ActiveProjectService } from '../../../core/services/active-project.service';
+import { apiErrorMessage } from '../../../core/api/lightdash-api.service';
+import { queryErrorWarning } from '../../../core/api/api-error.service';
 import {
   CompiledTable,
   Explore,
@@ -259,6 +261,14 @@ export class TablesWorkspacePageComponent {
     return getFilterableDimensions(explore);
   });
 
+  protected readonly displaySql = computed(() => {
+    const executedSql = this.queryResults()?.compiledSql;
+    if (executedSql) {
+      return executedSql;
+    }
+    return this.generatedSql();
+  });
+
   protected readonly generatedSql = computed(() => {
     const explore = this.explore();
     if (!explore) {
@@ -325,8 +335,8 @@ export class TablesWorkspacePageComponent {
         this.listLoading.set(false);
         this.syncSelectionFromRoute(projectUuid, tableId);
       },
-      error: () => {
-        this.listError.set('Failed to load project tree.');
+      error: (err) => {
+        this.listError.set(apiErrorMessage(err, 'Failed to load project tree.'));
         this.listLoading.set(false);
       },
     });
@@ -405,8 +415,8 @@ export class TablesWorkspacePageComponent {
           }
           this.exploreLoading.set(false);
         },
-        error: () => {
-          this.exploreError.set('Failed to load table.');
+        error: (err) => {
+          this.exploreError.set(apiErrorMessage(err, 'Failed to load table.'));
           this.exploreLoading.set(false);
         },
       });
@@ -680,8 +690,9 @@ export class TablesWorkspacePageComponent {
           this.queryWarnings.set(results.warnings ?? []);
           this.queryLoading.set(false);
         },
-        error: () => {
-          this.queryError.set('Failed to run query.');
+        error: (err) => {
+          this.queryWarnings.set([queryErrorWarning(err)]);
+          this.queryError.set(null);
           this.queryLoading.set(false);
         },
       });

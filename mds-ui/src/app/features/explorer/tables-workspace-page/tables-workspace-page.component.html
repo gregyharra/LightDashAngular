@@ -393,12 +393,12 @@
                   <div class="tables-workspace__panel-loading">
                     <mat-spinner diameter="32" />
                   </div>
-                } @else if (!generatedSql()) {
+                } @else if (!displaySql()) {
                   <div class="tables-workspace__panel-empty">
                     <p>Select dimensions or metrics to generate SQL.</p>
                   </div>
                 } @else {
-                  <pre class="tables-workspace__sql-block"><code>{{ generatedSql() }}</code></pre>
+                  <pre class="tables-workspace__sql-block"><code>{{ displaySql() }}</code></pre>
                 }
               </mat-expansion-panel>
             </mat-accordion>

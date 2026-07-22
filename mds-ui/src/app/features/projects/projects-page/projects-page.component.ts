@@ -4,6 +4,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { ActiveProjectService } from '../../../core/services/active-project.service';
+import { ApiErrorService } from '../../../core/api/api-error.service';
 import { ProjectSummary } from '../../../core/models/project.model';
 import { ProjectsService } from '../projects.service';
 import { ResizableSidebarDirective } from '../../../layout/resizable-sidebar/resizable-sidebar.directive';
@@ -26,6 +27,7 @@ const WAREHOUSE_LABELS: Record<string, string> = {
 })
 export class ProjectsPageComponent {
   private readonly projectsService = inject(ProjectsService);
+  private readonly apiErrorService = inject(ApiErrorService);
   private readonly router = inject(Router);
   protected readonly activeProjectService = inject(ActiveProjectService);
 
@@ -40,8 +42,8 @@ export class ProjectsPageComponent {
         this.activeProjectService.setProjects(projects);
         this.loading.set(false);
       },
-      error: () => {
-        this.error.set('Failed to load projects.');
+      error: (err) => {
+        this.error.set(this.apiErrorService.showTransient(err, 'Failed to load projects.'));
         this.loading.set(false);
       },
     });

@@ -1,0 +1,38 @@
+.api-error-banner {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--ld-spacing-xs);
+  padding: 8px 12px;
+  border: 1px solid transparent;
+  border-radius: var(--ld-radius-sm);
+  font-size: var(--ld-font-size-sm);
+  line-height: 1.4;
+
+  mat-icon {
+    width: 18px;
+    height: 18px;
+    font-size: 18px;
+    flex-shrink: 0;
+    margin-top: 1px;
+  }
+
+  &--warning {
+    border-color: #ffd43b;
+    background: #fff9db;
+    color: #862e00;
+
+    mat-icon {
+      color: #e67700;
+    }
+  }
+
+  &--error {
+    border-color: #fa5252;
+    background: #fff5f5;
+    color: #c92a2a;
+
+    mat-icon {
+      color: #e03131;
+    }
+  }
+}

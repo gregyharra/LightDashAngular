@@ -4,6 +4,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { ActiveProjectService } from '../../../core/services/active-project.service';
+import { ApiErrorService } from '../../../core/api/api-error.service';
 import { ExploreSummary } from '../../../core/models/explore.model';
 import { ExplorerService } from '../explorer.service';
 import { ResizableSidebarDirective } from '../../../layout/resizable-sidebar/resizable-sidebar.directive';
@@ -22,6 +23,7 @@ import { ResizableSidebarDirective } from '../../../layout/resizable-sidebar/res
 })
 export class ExplorerListPageComponent {
   private readonly explorerService = inject(ExplorerService);
+  private readonly apiErrorService = inject(ApiErrorService);
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
   protected readonly activeProjectService = inject(ActiveProjectService);
@@ -53,8 +55,8 @@ export class ExplorerListPageComponent {
         this.explores.set(explores);
         this.loading.set(false);
       },
-      error: () => {
-        this.error.set('Failed to load explores.');
+      error: (err) => {
+        this.error.set(this.apiErrorService.showTransient(err, 'Failed to load explores.'));
         this.loading.set(false);
       },
     });

@@ -43,4 +43,14 @@ describe('lightdash-api error helpers', () => {
 
     expect(apiErrorMessage(error)).toContain('502');
   });
+
+  it('uses a caller fallback when the API message is unavailable', () => {
+    const error = new HttpErrorResponse({
+      status: 0,
+      statusText: 'Unknown Error',
+      error: null,
+    });
+
+    expect(apiErrorMessage(error, 'Failed to load projects.')).toBe('Failed to load projects.');
+  });
 });

@@ -4,6 +4,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { ActiveProjectService } from '../../../core/services/active-project.service';
+import { ApiErrorService } from '../../../core/api/api-error.service';
 import { DashboardBasicDetailsWithTileTypes } from '../../../core/models/dashboard.model';
 import { DashboardService } from '../dashboard.service';
 import { ResizableSidebarDirective } from '../../../layout/resizable-sidebar/resizable-sidebar.directive';
@@ -41,6 +42,7 @@ import {
 })
 export class DashboardsListPageComponent {
   private readonly dashboardService = inject(DashboardService);
+  private readonly apiErrorService = inject(ApiErrorService);
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
   protected readonly activeProjectService = inject(ActiveProjectService);
@@ -96,8 +98,8 @@ export class DashboardsListPageComponent {
         this.dashboards.set(dashboards);
         this.loading.set(false);
       },
-      error: () => {
-        this.error.set('Failed to load dashboards.');
+      error: (err) => {
+        this.error.set(this.apiErrorService.showTransient(err, 'Failed to load dashboards.'));
         this.loading.set(false);
       },
     });

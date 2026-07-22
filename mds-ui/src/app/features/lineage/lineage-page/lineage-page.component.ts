@@ -3,6 +3,7 @@ import { ActivatedRoute, RouterLink } from '@angular/router';
 import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { ActiveProjectService } from '../../../core/services/active-project.service';
+import { ApiErrorService } from '../../../core/api/api-error.service';
 import {
   DbtTreeNode,
   LineageDetailTab,
@@ -36,6 +37,7 @@ import { ResizableSidebarDirective } from '../../../layout/resizable-sidebar/res
 })
 export class LineagePageComponent {
   private readonly lineageService = inject(LineageService);
+  private readonly apiErrorService = inject(ApiErrorService);
   private readonly route = inject(ActivatedRoute);
   protected readonly activeProjectService = inject(ActiveProjectService);
 
@@ -112,8 +114,8 @@ export class LineagePageComponent {
           this.selectedNodeId.set(fctOrders?.id ?? firstMart?.id ?? lineage.nodes[0].id);
         }
       },
-      error: () => {
-        this.error.set('Failed to load lineage.');
+      error: (err) => {
+        this.error.set(this.apiErrorService.showTransient(err, 'Failed to load lineage.'));
         this.loading.set(false);
       },
     });

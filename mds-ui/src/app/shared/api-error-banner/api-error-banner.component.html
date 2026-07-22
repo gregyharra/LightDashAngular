@@ -1,0 +1,12 @@
+@if (message()) {
+  <div
+    class="api-error-banner"
+    [class.api-error-banner--warning]="severity() === 'warning'"
+    [class.api-error-banner--error]="severity() === 'error'"
+    role="alert"
+    aria-live="assertive"
+  >
+    <mat-icon>{{ severity() === 'warning' ? 'warning_amber' : 'error_outline' }}</mat-icon>
+    <span>{{ message() }}</span>
+  </div>
+}

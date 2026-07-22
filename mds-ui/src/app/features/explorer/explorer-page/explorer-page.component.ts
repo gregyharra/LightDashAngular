@@ -7,6 +7,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatTableModule } from '@angular/material/table';
 import { ActiveProjectService } from '../../../core/services/active-project.service';
+import { apiErrorMessage } from '../../../core/api/lightdash-api.service';
 import {
   CompiledTable,
   Explore,
@@ -147,8 +148,8 @@ export class ExplorerPageComponent {
         this.loading.set(false);
         this.setDefaultSelection(explore);
       },
-      error: () => {
-        this.error.set('Failed to load explore.');
+      error: (err) => {
+        this.error.set(apiErrorMessage(err, 'Failed to load explore.'));
         this.loading.set(false);
       },
     });
@@ -294,8 +295,8 @@ export class ExplorerPageComponent {
           this.queryResults.set(results);
           this.queryLoading.set(false);
         },
-        error: () => {
-          this.queryError.set('Failed to run query.');
+        error: (err) => {
+          this.queryError.set(apiErrorMessage(err, 'Failed to run query.'));
           this.queryLoading.set(false);
         },
       });
