@@ -6,6 +6,8 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatMenuModule } from '@angular/material/menu';
 import {
   DateFilterValue,
+  NUMBER_FILTER_OPERATOR_OPTIONS,
+  NumberFilterOperator,
   NumberFilterValue,
   SelectFilterValue,
   SelectOption,
@@ -18,6 +20,7 @@ import {
   isNumberFilterActive,
   isSelectFilterActive,
   isTextFilterActive,
+  numberFilterNeedsTwoValues,
 } from '../content-list-filter.utils';
 
 export type ColumnFilterType = 'text' | 'select' | 'date' | 'number';
@@ -49,12 +52,19 @@ export class ContentListColumnHeaderComponent {
 
   readonly valueChange = output<ColumnFilterValue>();
 
+  protected readonly numberOperatorOptions = NUMBER_FILTER_OPERATOR_OPTIONS;
+
   protected readonly draftText = signal('');
   protected readonly draftSelect = signal<string[]>([]);
   protected readonly draftDateFrom = signal<string | null>(null);
   protected readonly draftDateTo = signal<string | null>(null);
-  protected readonly draftMin = signal<string>('');
-  protected readonly draftMax = signal<string>('');
+  protected readonly draftNumberOperator = signal<NumberFilterOperator>('equals');
+  protected readonly draftNumberValue = signal('');
+  protected readonly draftNumberValueTo = signal('');
+
+  protected readonly numberNeedsTwoValues = computed(() =>
+    numberFilterNeedsTwoValues(this.draftNumberOperator()),
+  );
 
   protected readonly isActive = computed(() => {
     const filterType = this.filterType();
@@ -91,10 +101,22 @@ export class ContentListColumnHeaderComponent {
       }
       case 'number': {
         const numberValue = value as NumberFilterValue;
-        this.draftMin.set(numberValue.min !== null ? String(numberValue.min) : '');
-        this.draftMax.set(numberValue.max !== null ? String(numberValue.max) : '');
+        this.draftNumberOperator.set(numberValue.operator);
+        this.draftNumberValue.set(
+          numberValue.value !== null ? String(numberValue.value) : '',
+        );
+        this.draftNumberValueTo.set(
+          numberValue.valueTo !== null ? String(numberValue.valueTo) : '',
+        );
         break;
       }
+    }
+  }
+
+  protected onNumberOperatorChange(operator: NumberFilterOperator): void {
+    this.draftNumberOperator.set(operator);
+    if (!numberFilterNeedsTwoValues(operator)) {
+      this.draftNumberValueTo.set('');
     }
   }
 
@@ -114,12 +136,17 @@ export class ContentListColumnHeaderComponent {
           to: this.draftDateTo() || null,
         });
         break;
-      case 'number':
+      case 'number': {
+        const operator = this.draftNumberOperator();
         this.valueChange.emit({
-          min: this.parseOptionalNumber(this.draftMin()),
-          max: this.parseOptionalNumber(this.draftMax()),
+          operator,
+          value: this.parseOptionalNumber(this.draftNumberValue()),
+          valueTo: numberFilterNeedsTwoValues(operator)
+            ? this.parseOptionalNumber(this.draftNumberValueTo())
+            : null,
         });
         break;
+      }
     }
   }
 
@@ -141,8 +168,9 @@ export class ContentListColumnHeaderComponent {
         this.valueChange.emit(emptyDateFilter());
         break;
       case 'number':
-        this.draftMin.set('');
-        this.draftMax.set('');
+        this.draftNumberOperator.set('equals');
+        this.draftNumberValue.set('');
+        this.draftNumberValueTo.set('');
         this.valueChange.emit(emptyNumberFilter());
         break;
     }
@@ -160,6 +188,21 @@ export class ContentListColumnHeaderComponent {
 
   protected isOptionSelected(optionValue: string): boolean {
     return this.draftSelect().includes(optionValue);
+  }
+
+  protected setDraftNumberValue(raw: string | number | null): void {
+    this.draftNumberValue.set(this.normalizeNumberDraft(raw));
+  }
+
+  protected setDraftNumberValueTo(raw: string | number | null): void {
+    this.draftNumberValueTo.set(this.normalizeNumberDraft(raw));
+  }
+
+  private normalizeNumberDraft(raw: string | number | null): string {
+    if (raw === null || raw === undefined || raw === '') {
+      return '';
+    }
+    return String(raw);
   }
 
   private parseOptionalNumber(raw: string): number | null {

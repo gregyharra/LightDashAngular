@@ -43,28 +43,41 @@ import {
   resolveModelSqlDisplay,
 } from '../../../shared/sql-highlight/model-sql-view';
 import {
-  ContentListColumnHeaderComponent,
+  ColumnFilterType,
   ColumnFilterValue,
+  ContentListColumnHeaderComponent,
 } from '../../../ui/content-list-column-header/content-list-column-header.component';
 import {
+  NumberFilterValue,
   SelectFilterValue,
   SelectOption,
   TextFilterValue,
   collectUniqueValues,
+  emptyNumberFilter,
   emptySelectFilter,
   emptyTextFilter,
+  isNumberFilterActive,
+  matchesNumberFilter,
   matchesSelectFilter,
   matchesTextFilter,
 } from '../../../ui/content-list-filter.utils';
 
 type HubTab = 'overview' | 'columns' | 'lineage' | 'sql';
 
+type AttributeFilterValue = TextFilterValue | SelectFilterValue | NumberFilterValue;
+
 type ColumnsTableFilters = {
   name: TextFilterValue;
   type: SelectFilterValue;
   description: TextFilterValue;
-  attributes: Record<string, TextFilterValue>;
+  attributes: Record<string, AttributeFilterValue>;
 };
+
+const BOOLEAN_ATTRIBUTE_FILTER_OPTIONS: SelectOption[] = [
+  { value: 'true', label: 'true' },
+  { value: 'false', label: 'false' },
+  { value: '', label: 'Unset' },
+];
 
 function createEmptyColumnsTableFilters(): ColumnsTableFilters {
   return {
@@ -189,8 +202,7 @@ export class TableHubPageComponent {
       }
 
       for (const attr of attrs) {
-        const attrFilter = filters.attributes[attr.id] ?? emptyTextFilter();
-        if (!matchesTextFilter(this.columnAttributeText(column, attr.id), attrFilter)) {
+        if (!this.matchesAttributeFilter(column, attr, filters.attributes[attr.id])) {
           return false;
         }
       }
@@ -382,8 +394,30 @@ export class TableHubPageComponent {
     this.showAddAttribute.set(true);
   }
 
-  protected attributeFilterValue(attrId: string): TextFilterValue {
-    return this.columnFilters().attributes[attrId] ?? emptyTextFilter();
+  protected attributeFilterType(attr: CustomAttributeDef): ColumnFilterType {
+    switch (attr.type) {
+      case 'enum':
+      case 'boolean':
+        return 'select';
+      case 'number':
+        return 'number';
+      default:
+        return 'text';
+    }
+  }
+
+  protected attributeFilterOptions(attr: CustomAttributeDef): SelectOption[] {
+    if (attr.type === 'boolean') {
+      return BOOLEAN_ATTRIBUTE_FILTER_OPTIONS;
+    }
+    if (attr.type === 'enum') {
+      return (attr.options ?? []).map((option) => ({ value: option, label: option }));
+    }
+    return [];
+  }
+
+  protected attributeFilterValue(attr: CustomAttributeDef): AttributeFilterValue {
+    return this.columnFilters().attributes[attr.id] ?? this.emptyAttributeFilter(attr.type);
   }
 
   protected updateColumnFilter(
@@ -401,9 +435,58 @@ export class TableHubPageComponent {
       ...filters,
       attributes: {
         ...filters.attributes,
-        [attrId]: value as TextFilterValue,
+        [attrId]: value as AttributeFilterValue,
       },
     }));
+  }
+
+  private emptyAttributeFilter(type: CustomAttributeType): AttributeFilterValue {
+    switch (type) {
+      case 'enum':
+      case 'boolean':
+        return emptySelectFilter();
+      case 'number':
+        return emptyNumberFilter();
+      default:
+        return emptyTextFilter();
+    }
+  }
+
+  private matchesAttributeFilter(
+    column: DictionaryColumn,
+    attr: CustomAttributeDef,
+    filter: AttributeFilterValue | undefined,
+  ): boolean {
+    const activeFilter = filter ?? this.emptyAttributeFilter(attr.type);
+
+    switch (attr.type) {
+      case 'enum':
+      case 'boolean':
+        return matchesSelectFilter(
+          this.columnAttributeText(column, attr.id),
+          activeFilter as SelectFilterValue,
+        );
+      case 'number': {
+        const numberFilter = activeFilter as NumberFilterValue;
+        if (!isNumberFilterActive(numberFilter)) {
+          return true;
+        }
+        const raw = column.custom?.[attr.id];
+        if (raw === null || raw === undefined || raw === '') {
+          return false;
+        }
+        const parsed = typeof raw === 'number' ? raw : Number(raw);
+        if (!Number.isFinite(parsed)) {
+          return false;
+        }
+        return matchesNumberFilter(parsed, numberFilter);
+      }
+      default:
+        return matchesTextFilter(
+          this.columnAttributeText(column, attr.id),
+          activeFilter as TextFilterValue,
+        );
+    }
   }
 
   protected onAddAttributeCancelled(): void {

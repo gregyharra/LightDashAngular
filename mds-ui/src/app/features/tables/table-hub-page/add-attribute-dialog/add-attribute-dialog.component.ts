@@ -1,7 +1,10 @@
+import { COMMA, ENTER } from '@angular/cdk/keycodes';
 import { Component, input, output, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
+import { MatChipInputEvent, MatChipsModule } from '@angular/material/chips';
 import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
 import { CustomAttributeType } from '../../../../core/models/dictionary.model';
@@ -24,7 +27,9 @@ const ATTRIBUTE_TYPE_OPTIONS: { value: CustomAttributeType; label: string }[] = 
   imports: [
     FormsModule,
     MatButtonModule,
+    MatChipsModule,
     MatFormFieldModule,
+    MatIconModule,
     MatInputModule,
     MatSelectModule,
   ],
@@ -38,27 +43,43 @@ export class AddAttributeDialogComponent {
 
   protected readonly typeOptions = ATTRIBUTE_TYPE_OPTIONS;
   protected readonly error = signal<string | null>(null);
+  protected readonly optionSeparatorKeys = [ENTER, COMMA] as const;
 
   protected name = '';
   protected type: CustomAttributeType = 'text';
-  protected optionsInput = '';
+  protected options: string[] = [];
 
   protected get showOptionsField(): boolean {
     return this.type === 'enum';
   }
 
-  protected get parsedOptions(): string[] {
-    const seen = new Set<string>();
-    const options: string[] = [];
-    for (const raw of this.optionsInput.split(',')) {
-      const option = raw.trim();
-      if (!option || seen.has(option.toLowerCase())) {
-        continue;
-      }
-      seen.add(option.toLowerCase());
-      options.push(option);
+  protected addOptionFromInput(event: MatChipInputEvent): void {
+    const value = (event.value ?? '').trim();
+    if (value) {
+      this.addOption(value);
     }
-    return options;
+    event.chipInput?.clear();
+  }
+
+  protected addOption(value: string): void {
+    const trimmed = value.trim();
+    if (!trimmed) {
+      return;
+    }
+
+    const alreadyExists = this.options.some(
+      (option) => option.toLowerCase() === trimmed.toLowerCase(),
+    );
+    if (alreadyExists) {
+      return;
+    }
+
+    this.options = [...this.options, trimmed];
+    this.error.set(null);
+  }
+
+  protected removeOption(option: string): void {
+    this.options = this.options.filter((item) => item !== option);
   }
 
   protected onTypeChange(type: CustomAttributeType): void {
@@ -94,7 +115,7 @@ export class AddAttributeDialogComponent {
       return;
     }
 
-    if (this.type === 'enum' && this.parsedOptions.length === 0) {
+    if (this.type === 'enum' && this.options.length === 0) {
       this.error.set('Add at least one option for an enum attribute.');
       return;
     }
@@ -102,7 +123,7 @@ export class AddAttributeDialogComponent {
     this.saved.emit({
       name: trimmedName,
       type: this.type,
-      ...(this.type === 'enum' ? { options: this.parsedOptions } : {}),
+      ...(this.type === 'enum' ? { options: [...this.options] } : {}),
     });
   }
 

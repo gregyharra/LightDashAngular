@@ -29,13 +29,33 @@
       </mat-form-field>
 
       @if (showOptionsField) {
-        <mat-form-field appearance="outline" class="add-attribute-modal__field">
-          <mat-label>Options (comma separated)</mat-label>
-          <input matInput [(ngModel)]="optionsInput" placeholder="e.g. Low, Medium, High" />
-        </mat-form-field>
-        @if (parsedOptions.length) {
-          <p class="add-attribute-modal__preview">{{ parsedOptions.join(', ') }}</p>
-        }
+        <label class="add-attribute-modal__label" id="add-attribute-options-label">Options</label>
+        <div
+          class="add-attribute-modal__options"
+          role="group"
+          aria-labelledby="add-attribute-options-label"
+        >
+          <mat-chip-grid #optionsChipGrid aria-label="Enum options">
+            @for (option of options; track option) {
+              <mat-chip-row
+                class="add-attribute-modal__option"
+                (removed)="removeOption(option)"
+              >
+                {{ option }}
+                <button matChipRemove [attr.aria-label]="'Remove option ' + option">
+                  <mat-icon>cancel</mat-icon>
+                </button>
+              </mat-chip-row>
+            }
+          </mat-chip-grid>
+          <input
+            class="add-attribute-modal__options-input"
+            placeholder="Add option and press Enter"
+            [matChipInputFor]="optionsChipGrid"
+            [matChipInputSeparatorKeyCodes]="optionSeparatorKeys"
+            (matChipInputTokenEnd)="addOptionFromInput($event)"
+          />
+        </div>
       }
 
       @if (error()) {

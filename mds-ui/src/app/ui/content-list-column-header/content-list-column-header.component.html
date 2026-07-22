@@ -67,27 +67,55 @@
         }
         @case ('number') {
           <label class="content-list-column-header__field">
-            <span class="content-list-column-header__field-label">Min</span>
-            <input
-              class="content-list-column-header__input"
-              type="number"
-              min="0"
-              placeholder="Any"
-              [ngModel]="draftMin()"
-              (ngModelChange)="draftMin.set($event)"
-            />
+            <span class="content-list-column-header__field-label">Operator</span>
+            <select
+              class="content-list-column-header__input content-list-column-header__select"
+              [ngModel]="draftNumberOperator()"
+              (ngModelChange)="onNumberOperatorChange($event)"
+            >
+              @for (option of numberOperatorOptions; track option.value) {
+                <option [ngValue]="option.value">{{ option.label }}</option>
+              }
+            </select>
           </label>
-          <label class="content-list-column-header__field">
-            <span class="content-list-column-header__field-label">Max</span>
-            <input
-              class="content-list-column-header__input"
-              type="number"
-              min="0"
-              placeholder="Any"
-              [ngModel]="draftMax()"
-              (ngModelChange)="draftMax.set($event)"
-            />
-          </label>
+          @if (numberNeedsTwoValues()) {
+            <div class="content-list-column-header__number-range">
+              <label class="content-list-column-header__field">
+                <span class="content-list-column-header__field-label">Min</span>
+                <input
+                  class="content-list-column-header__input"
+                  type="number"
+                  placeholder="Any"
+                  [ngModel]="draftNumberValue()"
+                  (ngModelChange)="setDraftNumberValue($event)"
+                  (keydown.enter)="applyFilter()"
+                />
+              </label>
+              <label class="content-list-column-header__field">
+                <span class="content-list-column-header__field-label">Max</span>
+                <input
+                  class="content-list-column-header__input"
+                  type="number"
+                  placeholder="Any"
+                  [ngModel]="draftNumberValueTo()"
+                  (ngModelChange)="setDraftNumberValueTo($event)"
+                  (keydown.enter)="applyFilter()"
+                />
+              </label>
+            </div>
+          } @else {
+            <label class="content-list-column-header__field">
+              <span class="content-list-column-header__field-label">Value</span>
+              <input
+                class="content-list-column-header__input"
+                type="number"
+                placeholder="Enter a number"
+                [ngModel]="draftNumberValue()"
+                (ngModelChange)="setDraftNumberValue($event)"
+                (keydown.enter)="applyFilter()"
+              />
+            </label>
+          }
         }
       }
 

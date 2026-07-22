@@ -11,9 +11,42 @@ export interface DateFilterValue {
   to: string | null;
 }
 
+export type NumberFilterOperator =
+  | 'equals'
+  | 'notEquals'
+  | 'lessThan'
+  | 'lessThanOrEqual'
+  | 'greaterThan'
+  | 'greaterThanOrEqual'
+  | 'inBetween'
+  | 'notInBetween';
+
 export interface NumberFilterValue {
-  min: number | null;
-  max: number | null;
+  operator: NumberFilterOperator;
+  /** Primary bound (equals / comparisons) or lower bound for between. */
+  value: number | null;
+  /** Upper bound for between / not-between operators. */
+  valueTo: number | null;
+}
+
+export interface NumberFilterOperatorOption {
+  value: NumberFilterOperator;
+  label: string;
+}
+
+export const NUMBER_FILTER_OPERATOR_OPTIONS: NumberFilterOperatorOption[] = [
+  { value: 'equals', label: 'Equals' },
+  { value: 'notEquals', label: 'Not equal' },
+  { value: 'lessThan', label: 'Less than' },
+  { value: 'lessThanOrEqual', label: 'Less than or equal' },
+  { value: 'greaterThan', label: 'Greater than' },
+  { value: 'greaterThanOrEqual', label: 'Greater than or equal' },
+  { value: 'inBetween', label: 'Between' },
+  { value: 'notInBetween', label: 'Not between' },
+];
+
+export function numberFilterNeedsTwoValues(operator: NumberFilterOperator): boolean {
+  return operator === 'inBetween' || operator === 'notInBetween';
 }
 
 export interface SelectOption {
@@ -40,7 +73,7 @@ export function emptyDateFilter(): DateFilterValue {
 }
 
 export function emptyNumberFilter(): NumberFilterValue {
-  return { min: null, max: null };
+  return { operator: 'equals', value: null, valueTo: null };
 }
 
 export function isTextFilterActive(filter: TextFilterValue): boolean {
@@ -56,7 +89,10 @@ export function isDateFilterActive(filter: DateFilterValue): boolean {
 }
 
 export function isNumberFilterActive(filter: NumberFilterValue): boolean {
-  return filter.min !== null || filter.max !== null;
+  if (numberFilterNeedsTwoValues(filter.operator)) {
+    return filter.value !== null && filter.valueTo !== null;
+  }
+  return filter.value !== null;
 }
 
 export function formatTextFilterChip(filter: TextFilterValue): string {
@@ -89,16 +125,28 @@ export function formatDateFilterChip(filter: DateFilterValue): string {
 }
 
 export function formatNumberFilterChip(filter: NumberFilterValue): string {
-  if (filter.min !== null && filter.max !== null) {
-    return `${filter.min} – ${filter.max}`;
+  if (!isNumberFilterActive(filter)) {
+    return '';
   }
-  if (filter.min !== null) {
-    return `≥ ${filter.min}`;
+
+  switch (filter.operator) {
+    case 'equals':
+      return `= ${filter.value}`;
+    case 'notEquals':
+      return `≠ ${filter.value}`;
+    case 'lessThan':
+      return `< ${filter.value}`;
+    case 'lessThanOrEqual':
+      return `≤ ${filter.value}`;
+    case 'greaterThan':
+      return `> ${filter.value}`;
+    case 'greaterThanOrEqual':
+      return `≥ ${filter.value}`;
+    case 'inBetween':
+      return `${filter.value} – ${filter.valueTo}`;
+    case 'notInBetween':
+      return `not ${filter.value} – ${filter.valueTo}`;
   }
-  if (filter.max !== null) {
-    return `≤ ${filter.max}`;
-  }
-  return '';
 }
 
 export function collectUniqueSpaces<T>(
@@ -157,20 +205,38 @@ function matchesDateFilter(isoDate: string, filter: DateFilterValue): boolean {
   return true;
 }
 
-function matchesNumberFilter(value: number, filter: NumberFilterValue): boolean {
+export function matchesNumberFilter(value: number, filter: NumberFilterValue): boolean {
   if (!isNumberFilterActive(filter)) {
     return true;
   }
 
-  if (filter.min !== null && value < filter.min) {
-    return false;
-  }
+  const bound = filter.value as number;
+  const boundTo = filter.valueTo as number;
 
-  if (filter.max !== null && value > filter.max) {
-    return false;
+  switch (filter.operator) {
+    case 'equals':
+      return value === bound;
+    case 'notEquals':
+      return value !== bound;
+    case 'lessThan':
+      return value < bound;
+    case 'lessThanOrEqual':
+      return value <= bound;
+    case 'greaterThan':
+      return value > bound;
+    case 'greaterThanOrEqual':
+      return value >= bound;
+    case 'inBetween': {
+      const low = Math.min(bound, boundTo);
+      const high = Math.max(bound, boundTo);
+      return value >= low && value <= high;
+    }
+    case 'notInBetween': {
+      const low = Math.min(bound, boundTo);
+      const high = Math.max(bound, boundTo);
+      return value < low || value > high;
+    }
   }
-
-  return true;
 }
 
 function startOfDay(date: Date): Date {

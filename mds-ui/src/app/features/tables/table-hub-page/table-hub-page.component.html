@@ -268,9 +268,10 @@
                             <div class="table-hub__attr-header-row">
                               <app-content-list-column-header
                                 [label]="attr.name"
-                                filterType="text"
+                                [filterType]="attributeFilterType(attr)"
+                                [options]="attributeFilterOptions(attr)"
                                 textPlaceholder="Filter values…"
-                                [value]="attributeFilterValue(attr.id)"
+                                [value]="attributeFilterValue(attr)"
                                 (valueChange)="updateAttributeFilter(attr.id, $event)"
                               />
                               <button
@@ -284,13 +285,12 @@
                             </div>
                           </th>
                         }
-                        <th scope="col"></th>
                       </tr>
                     </thead>
                     <tbody>
                       @if (filteredColumns().length === 0) {
                         <tr>
-                          <td [attr.colspan]="4 + attributeDefs().length">
+                          <td [attr.colspan]="3 + attributeDefs().length">
                             <p class="table-hub__empty-filter">No columns match your filters.</p>
                           </td>
                         </tr>
@@ -354,11 +354,6 @@
                               }
                             </td>
                           }
-                          <td>
-                            @if (column.hasOverlay) {
-                              <span class="table-hub__badge">edited</span>
-                            }
-                          </td>
                         </tr>
                       }
                     </tbody>
