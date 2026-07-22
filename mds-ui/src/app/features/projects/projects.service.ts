@@ -66,4 +66,8 @@ export class ProjectsService {
   desyncRepo(projectUuid: string): Observable<ProjectRepoStatus> {
     return this.api.post<ProjectRepoStatus>(`/projects/${projectUuid}/desync`, {});
   }
+
+  delete(projectUuid: string): Observable<null> {
+    return this.api.delete<null>(`/projects/${projectUuid}`);
+  }
 }

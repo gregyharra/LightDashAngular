@@ -120,9 +120,14 @@
                   type="button"
                   aria-label="Save chart"
                   title="Save chart"
-                  disabled
+                  [disabled]="!canSaveChart()"
+                  (click)="openSaveChartDialog()"
                 >
-                  <mat-icon>save</mat-icon>
+                  @if (saveChartLoading()) {
+                    <mat-spinner diameter="18" />
+                  } @else {
+                    <mat-icon>save</mat-icon>
+                  }
                   <span class="tables-workspace__toolbar-btn-label">Save chart</span>
                 </button>
               }

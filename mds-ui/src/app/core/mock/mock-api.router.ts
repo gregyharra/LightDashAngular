@@ -25,7 +25,7 @@ import { createMockDashboard, updateMockDashboard, UpdateMockDashboardInput } fr
 import { MOCK_CHART_UUID, MOCK_DASHBOARD_UUID, MOCK_PROJECT_UUID } from './fixtures/ids.fixture';
 import { getExploreDetail } from './fixtures/explore-detail.fixture';
 import { buildMockQueryResults, getMockQueryPollResult, registerMockQuery } from './fixtures/query-results.fixture';
-import { mockSavedChartDetails } from './fixtures/charts.fixture';
+import { mockSavedChartDetails, createMockSavedChart } from './fixtures/charts.fixture';
 import {
   executeMockSqlQuery,
   getMockSqlQueryPollResult,
@@ -62,6 +62,66 @@ const savedChartDetailGlobal = (request: MockRequest) => {
       uuid: chartUuid,
     }
   );
+};
+
+const savedChartCreate = (request: MockRequest) => {
+  const match = request.path.match(/^\/projects\/([^/]+)\/(?:saved|charts)$/);
+  const projectUuid = match?.[1] ?? MOCK_PROJECT_UUID;
+  const body = request.body as
+    | {
+        name?: string;
+        description?: string;
+        spaceUuid?: string;
+        tableName?: string;
+        chartKind?: string;
+        metricQuery?: MetricQuery;
+        chartConfig?: {
+          type?: string;
+          xField?: string;
+          yField?: string;
+          yFields?: string[];
+          displayConfig?: Record<string, unknown>;
+        };
+      }
+    | null;
+
+  return createMockSavedChart({
+    name: body?.name?.trim() || 'Untitled chart',
+    description: body?.description?.trim() || undefined,
+    projectUuid,
+    spaceUuid: body?.spaceUuid,
+    tableName: body?.tableName ?? 'orders',
+    chartKind: (body?.chartKind ?? body?.chartConfig?.type ?? 'vertical_bar') as
+      | 'vertical_bar'
+      | 'horizontal_bar'
+      | 'line'
+      | 'pie'
+      | 'table'
+      | 'big_number',
+    metricQuery: body?.metricQuery ?? {
+      exploreName: body?.tableName ?? 'orders',
+      dimensions: [],
+      metrics: [],
+      filters: {},
+      sorts: [],
+      limit: 500,
+      tableCalculations: [],
+      additionalMetrics: [],
+    },
+    chartConfig: {
+      type: (body?.chartConfig?.type ?? body?.chartKind ?? 'vertical_bar') as
+        | 'vertical_bar'
+        | 'horizontal_bar'
+        | 'line'
+        | 'pie'
+        | 'table'
+        | 'big_number',
+      xField: body?.chartConfig?.xField,
+      yField: body?.chartConfig?.yField,
+      yFields: body?.chartConfig?.yFields,
+      displayConfig: body?.chartConfig?.displayConfig,
+    },
+  });
 };
 
 const savedChartDetail = (request: MockRequest) => {
@@ -402,9 +462,11 @@ const routes: MockRoute[] = [
   { pattern: /^\/projects\/[^/]+\/dashboards$/, method: 'POST', handler: dashboardCreate },
   { pattern: /^\/projects\/[^/]+\/dashboards\/[^/]+$/, method: 'PATCH', handler: dashboardUpdate },
   { pattern: /^\/projects\/[^/]+\/dashboards\/[^/]+$/, method: 'GET', handler: dashboardDetail },
-  { pattern: /^\/projects\/[^/]+\/saved$/, handler: savedChartsList },
+  { pattern: /^\/projects\/[^/]+\/saved$/, method: 'GET', handler: savedChartsList },
+  { pattern: /^\/projects\/[^/]+\/saved$/, method: 'POST', handler: savedChartCreate },
   { pattern: /^\/projects\/[^/]+\/saved\//, handler: savedChartDetail },
-  { pattern: /^\/projects\/[^/]+\/charts$/, handler: savedChartsList },
+  { pattern: /^\/projects\/[^/]+\/charts$/, method: 'GET', handler: savedChartsList },
+  { pattern: /^\/projects\/[^/]+\/charts$/, method: 'POST', handler: savedChartCreate },
   { pattern: /^\/projects\/[^/]+\/charts\//, handler: savedChartDetail },
   { pattern: /^\/projects\/[^/]+\/favorites$/, handler: () => mockFavorites },
   { pattern: /^\/projects\/[^/]+\/pinned-lists/, handler: () => mockPinnedItems },

@@ -58,7 +58,7 @@ class Project(Base):
     git_last_sync_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
     git_last_commit_sha: Mapped[str | None] = mapped_column(String(64), nullable=True)
     created_by_user_uuid: Mapped[uuid_lib.UUID | None] = mapped_column(
-        Uuid, ForeignKey("users.uuid"), nullable=True
+        Uuid, ForeignKey("users.uuid", ondelete="SET NULL"), nullable=True
     )
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
 
@@ -68,7 +68,7 @@ class Space(Base):
 
     uuid: Mapped[uuid_lib.UUID] = mapped_column(Uuid, primary_key=True)
     project_uuid: Mapped[uuid_lib.UUID] = mapped_column(
-        Uuid, ForeignKey("projects.uuid"), nullable=False
+        Uuid, ForeignKey("projects.uuid", ondelete="CASCADE"), nullable=False
     )
     name: Mapped[str] = mapped_column(String(255), nullable=False)
     is_private: Mapped[bool] = mapped_column(Boolean, default=False)
@@ -80,9 +80,11 @@ class SavedChart(Base):
 
     uuid: Mapped[uuid_lib.UUID] = mapped_column(Uuid, primary_key=True)
     project_uuid: Mapped[uuid_lib.UUID] = mapped_column(
-        Uuid, ForeignKey("projects.uuid"), nullable=False
+        Uuid, ForeignKey("projects.uuid", ondelete="CASCADE"), nullable=False
     )
-    space_uuid: Mapped[uuid_lib.UUID] = mapped_column(Uuid, ForeignKey("spaces.uuid"))
+    space_uuid: Mapped[uuid_lib.UUID] = mapped_column(
+        Uuid, ForeignKey("spaces.uuid", ondelete="CASCADE")
+    )
     name: Mapped[str] = mapped_column(String(255), nullable=False)
     description: Mapped[str | None] = mapped_column(Text, nullable=True)
     chart_kind: Mapped[str] = mapped_column(String(50), nullable=False)
@@ -94,7 +96,9 @@ class SavedChart(Base):
     updated_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now(), onupdate=func.now()
     )
-    updated_by_user_uuid: Mapped[uuid_lib.UUID | None] = mapped_column(Uuid, ForeignKey("users.uuid"))
+    updated_by_user_uuid: Mapped[uuid_lib.UUID | None] = mapped_column(
+        Uuid, ForeignKey("users.uuid", ondelete="SET NULL")
+    )
     is_private: Mapped[bool] = mapped_column(Boolean, default=False)
     access: Mapped[list] = mapped_column(JSON, default=list)
     pinned_list_uuid: Mapped[uuid_lib.UUID | None] = mapped_column(Uuid, nullable=True)
@@ -106,9 +110,11 @@ class Dashboard(Base):
 
     uuid: Mapped[uuid_lib.UUID] = mapped_column(Uuid, primary_key=True)
     project_uuid: Mapped[uuid_lib.UUID] = mapped_column(
-        Uuid, ForeignKey("projects.uuid"), nullable=False
+        Uuid, ForeignKey("projects.uuid", ondelete="CASCADE"), nullable=False
     )
-    space_uuid: Mapped[uuid_lib.UUID] = mapped_column(Uuid, ForeignKey("spaces.uuid"))
+    space_uuid: Mapped[uuid_lib.UUID] = mapped_column(
+        Uuid, ForeignKey("spaces.uuid", ondelete="CASCADE")
+    )
     name: Mapped[str] = mapped_column(String(255), nullable=False)
     description: Mapped[str | None] = mapped_column(Text, nullable=True)
     slug: Mapped[str] = mapped_column(String(255), nullable=False)
@@ -119,7 +125,9 @@ class Dashboard(Base):
     updated_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now(), onupdate=func.now()
     )
-    updated_by_user_uuid: Mapped[uuid_lib.UUID | None] = mapped_column(Uuid, ForeignKey("users.uuid"))
+    updated_by_user_uuid: Mapped[uuid_lib.UUID | None] = mapped_column(
+        Uuid, ForeignKey("users.uuid", ondelete="SET NULL")
+    )
 
     tabs: Mapped[list] = mapped_column(JSON, default=list)
     tiles: Mapped[list] = mapped_column(JSON, default=list)

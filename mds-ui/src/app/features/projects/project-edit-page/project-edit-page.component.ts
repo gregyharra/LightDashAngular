@@ -49,6 +49,7 @@ export class ProjectEditPageComponent {
   protected readonly projectUuid = signal<string | null>(null);
   protected readonly loading = signal(true);
   protected readonly saving = signal(false);
+  protected readonly deleting = signal(false);
   protected readonly syncing = signal(false);
   protected readonly desyncing = signal(false);
   protected readonly error = signal<string | null>(null);
@@ -280,5 +281,37 @@ export class ProjectEditPageComponent {
 
   protected cancel(): void {
     void this.router.navigate(['/projects']);
+  }
+
+  protected deleteProject(): void {
+    const projectUuid = this.projectUuid();
+    if (!projectUuid || this.deleting()) {
+      return;
+    }
+
+    const confirmed = confirm(
+      'Delete this project permanently? All spaces, dashboards, and saved charts will be removed. This cannot be undone.',
+    );
+    if (!confirmed) {
+      return;
+    }
+
+    this.deleting.set(true);
+    this.error.set(null);
+    this.success.set(null);
+
+    this.projectsService.delete(projectUuid).subscribe({
+      next: () => {
+        const remaining = this.activeProjectService
+          .projects()
+          .filter((item) => item.projectUuid !== projectUuid);
+        this.activeProjectService.setProjects(remaining);
+        void this.router.navigate(['/projects']);
+      },
+      error: (err) => {
+        this.error.set(apiErrorMessage(err));
+        this.deleting.set(false);
+      },
+    });
   }
 }

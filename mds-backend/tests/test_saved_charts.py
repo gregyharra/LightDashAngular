@@ -52,3 +52,36 @@ def test_get_saved_chart_not_found(client: TestClient) -> None:
         f"/api/v1/projects/{MOCK_PROJECT_UUID}/saved/00000000-0000-0000-0000-000000000099"
     )
     assert response.status_code == 404
+
+
+def test_create_saved_chart(client: TestClient) -> None:
+    response = client.post(
+        f"/api/v1/projects/{MOCK_PROJECT_UUID}/saved",
+        json={
+            "name": "Orders by status",
+            "tableName": "orders",
+            "chartKind": "vertical_bar",
+            "metricQuery": {
+                "exploreName": "orders",
+                "dimensions": ["orders_status"],
+                "metrics": ["orders_order_count"],
+                "filters": {},
+                "sorts": [],
+                "limit": 500,
+                "tableCalculations": [],
+                "additionalMetrics": [],
+            },
+            "chartConfig": {
+                "type": "vertical_bar",
+                "xField": "orders_status",
+                "yField": "orders_order_count",
+            },
+        },
+    )
+    assert response.status_code == 200
+    body = response.json()
+    assert body["status"] == "ok"
+    chart = body["results"]
+    assert chart["name"] == "Orders by status"
+    assert chart["chartKind"] == "vertical_bar"
+    assert chart["metricQuery"]["exploreName"] == "orders"

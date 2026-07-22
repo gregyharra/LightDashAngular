@@ -1,0 +1,16 @@
+.save-chart-dialog__content {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  min-width: 20rem;
+  padding-top: 0.25rem;
+}
+
+.save-chart-dialog__field {
+  width: 100%;
+}
+
+.save-chart-dialog__error {
+  color: var(--mds-color-danger, #b42318);
+  font-size: 0.875rem;
+}

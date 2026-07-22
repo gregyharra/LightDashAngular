@@ -2,10 +2,17 @@ from __future__ import annotations
 
 from fastapi import HTTPException
 
+from sqlalchemy.orm import Session
+
 from mds.db.models import Project, Warehouse
 from mds.schemas.project import ProjectCreate, ProjectUpdate
 from mds.services.encryption import encrypt_secret
-from mds.services.project.git import GIT_PROVIDERS, detect_git_provider, get_repo_status
+from mds.services.project.git import (
+    GIT_PROVIDERS,
+    detect_git_provider,
+    get_repo_status,
+    remove_project_data_dir,
+)
 
 
 def format_dt(value) -> str:
@@ -100,3 +107,9 @@ def apply_git_fields_on_update(project: Project, body: ProjectUpdate) -> None:
 
     if "dbt_project_path" in body.model_fields_set:
         project.dbt_project_path = (body.dbt_project_path or "").strip() or None
+
+
+def delete_project(db: Session, project: Project) -> None:
+    remove_project_data_dir(str(project.uuid))
+    db.delete(project)
+    db.commit()

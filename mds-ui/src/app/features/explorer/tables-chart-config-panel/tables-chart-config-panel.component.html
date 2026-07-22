@@ -3,10 +3,12 @@
     <h3 class="tables-chart-config__heading">Chart type</h3>
     <button
       mat-stroked-button
+      type="button"
       class="tables-chart-config__type-trigger"
       [matMenuTriggerFor]="chartTypeMenu"
       [disabled]="!hasQueryResults()"
-      [matTooltip]="hasQueryResults() ? '' : 'Run a query to change chart type'"
+      matTooltip="Run a query to change chart type"
+      [matTooltipDisabled]="hasQueryResults()"
     >
       <mat-icon>{{ selectedChartType().icon }}</mat-icon>
       <span>{{ selectedChartType().label }}</span>
@@ -17,6 +19,7 @@
       @for (option of chartTypeOptions; track option.value) {
         <button
           mat-menu-item
+          type="button"
           [class.tables-chart-config__type-item--active]="chartKind() === option.value"
           (click)="setChartKind(option.value)"
         >

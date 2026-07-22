@@ -1,4 +1,4 @@
-import { Component, input, output } from '@angular/core';
+import { Component, effect, input, output, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
@@ -21,23 +21,38 @@ export class TimeTravelControlComponent {
 
   readonly valueChange = output<TimeTravelConfig | null>();
 
+  protected readonly datetimeLocal = signal('');
   protected readonly formatTimeTravelLabel = formatTimeTravelLabel;
 
-  protected onDatetimeChange(rawValue: string): void {
-    const iso = fromDatetimeLocalValue(rawValue);
-    if (!iso) {
-      this.valueChange.emit(null);
-      return;
-    }
+  constructor() {
+    effect(() => {
+      const external = toDatetimeLocalValue(this.value()?.asOfTimestamp);
+      if (external !== this.datetimeLocal()) {
+        this.datetimeLocal.set(external);
+      }
+    });
+  }
 
-    this.valueChange.emit({ asOfTimestamp: iso });
+  resolveValue(): TimeTravelConfig | null {
+    return this.toTimeTravelConfig(this.datetimeLocal());
+  }
+
+  protected onDatetimeChange(rawValue: string): void {
+    this.datetimeLocal.set(rawValue);
+    this.valueChange.emit(this.toTimeTravelConfig(rawValue));
   }
 
   protected clearTimeTravel(): void {
+    this.datetimeLocal.set('');
     this.valueChange.emit(null);
   }
 
-  protected inputValue(): string {
-    return toDatetimeLocalValue(this.value()?.asOfTimestamp);
+  private toTimeTravelConfig(rawValue: string): TimeTravelConfig | null {
+    const iso = fromDatetimeLocalValue(rawValue);
+    if (!iso) {
+      return null;
+    }
+
+    return { asOfTimestamp: iso };
   }
 }

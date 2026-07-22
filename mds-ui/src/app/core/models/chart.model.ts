@@ -94,3 +94,13 @@ export type SavedChart = SavedChartBasic & {
     lastName: string;
   };
 };
+
+export type CreateSavedChartPayload = {
+  name: string;
+  description?: string;
+  spaceUuid?: string;
+  tableName: string;
+  chartKind: ChartKind;
+  metricQuery: MetricQuery;
+  chartConfig: ChartConfig;
+};

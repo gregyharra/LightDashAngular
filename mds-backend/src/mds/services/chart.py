@@ -1,10 +1,13 @@
 import uuid
+from datetime import datetime, timezone
 from typing import Any
 
 from fastapi import HTTPException
 from sqlalchemy.orm import Session
 
 from mds.db.models import Project, SavedChart, Space, User
+from mds.db.seed import MOCK_SPACE_UUID, MOCK_USER_UUID
+from mds.schemas.chart import CreateSavedChartPayload
 
 
 def _user_summary(user: User | None) -> dict[str, Any] | None:
@@ -82,4 +85,37 @@ def get_saved_chart(
     chart = db.get(SavedChart, chart_id)
     if not chart or chart.project_uuid != project_id:
         raise HTTPException(status_code=404, detail="Chart not found")
+    return chart_to_detail(db, chart)
+
+
+def create_saved_chart(
+    db: Session, project_uuid: str | uuid.UUID, payload: CreateSavedChartPayload
+) -> dict[str, Any]:
+    project_id = uuid.UUID(str(project_uuid))
+    _ensure_project(db, project_id)
+    space_uuid = payload.space_uuid or MOCK_SPACE_UUID
+    now = datetime.now(timezone.utc)
+
+    chart = SavedChart(
+        uuid=uuid.uuid4(),
+        project_uuid=project_id,
+        space_uuid=space_uuid,
+        name=payload.name.strip() or "Untitled chart",
+        description=payload.description,
+        chart_kind=payload.chart_kind,
+        table_name=payload.table_name,
+        metric_query=payload.metric_query,
+        chart_config=payload.chart_config,
+        views=0,
+        first_viewed_at=None,
+        updated_at=now,
+        updated_by_user_uuid=MOCK_USER_UUID,
+        is_private=False,
+        access=[],
+        pinned_list_uuid=None,
+        pinned_list_order=None,
+    )
+    db.add(chart)
+    db.commit()
+    db.refresh(chart)
     return chart_to_detail(db, chart)

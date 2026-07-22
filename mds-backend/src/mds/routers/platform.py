@@ -17,6 +17,7 @@ from mds.services.project.git import (
 from mds.services.project.helpers import (
     apply_git_fields_on_create,
     apply_git_fields_on_update,
+    delete_project,
     project_payload,
 )
 
@@ -203,6 +204,13 @@ def update_project(
     db.refresh(project)
 
     return ok(project_payload(project, _warehouse_for_project(db, project)))
+
+
+@router.delete("/projects/{project_uuid}")
+def remove_project(project_uuid: str, db: Session = Depends(get_db)):
+    project = _get_project_or_404(db, project_uuid)
+    delete_project(db, project)
+    return ok(None)
 
 
 @router.get("/projects/{project_uuid}/repo")

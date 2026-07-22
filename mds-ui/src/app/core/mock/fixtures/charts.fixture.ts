@@ -1,5 +1,5 @@
-import { SavedChart, SavedChartBasic } from '../../models/chart.model';
-import { getFieldId } from '../../models/explore.model';
+import { SavedChart, SavedChartBasic, ChartConfig, ChartKind } from '../../models/chart.model';
+import { MetricQuery } from '../../models/explore.model';
 import {
   MOCK_CHART_2_UUID,
   MOCK_CHART_3_UUID,
@@ -11,6 +11,16 @@ import {
   MOCK_SPACE_UUID,
   MOCK_USER_UUID,
 } from './ids.fixture';
+import { getFieldId } from '../../models/explore.model';
+
+const SPACE_NAMES: Record<string, string> = {
+  [MOCK_SPACE_UUID]: 'Shared',
+  'f6a7b8c9-d0e1-2345-f012-456789012345': 'Private',
+};
+
+function resolveSpaceName(spaceUuid: string): string {
+  return SPACE_NAMES[spaceUuid] ?? 'Shared';
+}
 
 const revenueByMonthQuery = {
   exploreName: 'orders',
@@ -287,3 +297,66 @@ export const mockSavedChartsList: SavedChartBasic[] = Object.values(
     tableName,
   }),
 );
+
+export type CreateMockSavedChartInput = {
+  name: string;
+  description?: string;
+  projectUuid: string;
+  spaceUuid?: string;
+  tableName: string;
+  chartKind: ChartKind;
+  metricQuery: MetricQuery;
+  chartConfig: ChartConfig;
+};
+
+export function createMockSavedChart(input: CreateMockSavedChartInput): SavedChart {
+  const uuid = crypto.randomUUID();
+  const spaceUuid = input.spaceUuid ?? MOCK_SPACE_UUID;
+  const now = new Date().toISOString();
+
+  const chart: SavedChart = {
+    uuid,
+    name: input.name,
+    description: input.description,
+    spaceUuid,
+    spaceName: resolveSpaceName(spaceUuid),
+    projectUuid: input.projectUuid,
+    updatedAt: now,
+    pinnedListUuid: null,
+    pinnedListOrder: null,
+    views: 0,
+    firstViewedAt: now,
+    isPrivate: false,
+    access: [],
+    chartKind: input.chartKind,
+    tableName: input.tableName,
+    metricQuery: input.metricQuery,
+    chartConfig: input.chartConfig,
+    updatedByUser: {
+      userUuid: MOCK_USER_UUID,
+      firstName: 'Demo',
+      lastName: 'Analyst',
+    },
+  };
+
+  mockSavedChartDetails[uuid] = chart;
+  mockSavedChartsList.unshift({
+    uuid: chart.uuid,
+    name: chart.name,
+    description: chart.description,
+    spaceUuid: chart.spaceUuid,
+    spaceName: chart.spaceName,
+    projectUuid: chart.projectUuid,
+    updatedAt: chart.updatedAt,
+    pinnedListUuid: chart.pinnedListUuid,
+    pinnedListOrder: chart.pinnedListOrder,
+    views: chart.views,
+    firstViewedAt: chart.firstViewedAt,
+    isPrivate: chart.isPrivate,
+    access: chart.access,
+    chartKind: chart.chartKind,
+    tableName: chart.tableName,
+  });
+
+  return chart;
+}

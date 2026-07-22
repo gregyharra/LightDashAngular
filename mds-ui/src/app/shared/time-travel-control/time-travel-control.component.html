@@ -1,7 +1,7 @@
 <div
   class="time-travel-control"
   [class.time-travel-control--compact]="compact()"
-  [class.time-travel-control--active]="!!value()"
+  [class.time-travel-control--active]="!!resolveValue()"
 >
   <label class="time-travel-control__label">
     <mat-icon>history</mat-icon>
@@ -13,12 +13,12 @@
   <input
     class="time-travel-control__input"
     type="datetime-local"
-    [value]="inputValue()"
-    (change)="onDatetimeChange($any($event.target).value)"
+    [ngModel]="datetimeLocal()"
+    (ngModelChange)="onDatetimeChange($event)"
     aria-label="View data as of timestamp"
   />
 
-  @if (value(); as active) {
+  @if (resolveValue(); as active) {
     <span class="time-travel-control__active-label">
       {{ formatTimeTravelLabel(active.asOfTimestamp) }}
     </span>

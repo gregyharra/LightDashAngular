@@ -1,0 +1,41 @@
+<h2 mat-dialog-title>Save chart</h2>
+
+<mat-dialog-content class="save-chart-dialog__content">
+  <mat-form-field appearance="outline" class="save-chart-dialog__field">
+    <mat-label>Name</mat-label>
+    <input
+      matInput
+      [(ngModel)]="name"
+      [disabled]="spacesLoading()"
+      autofocus
+    />
+  </mat-form-field>
+
+  <mat-form-field appearance="outline" class="save-chart-dialog__field">
+    <mat-label>Space</mat-label>
+    <mat-select
+      [(ngModel)]="spaceUuid"
+      [disabled]="spacesLoading()"
+    >
+      @for (space of spaces(); track space.uuid) {
+        <mat-option [value]="space.uuid">{{ space.name }}</mat-option>
+      }
+    </mat-select>
+  </mat-form-field>
+
+  @if (error()) {
+    <div class="save-chart-dialog__error">{{ error() }}</div>
+  }
+</mat-dialog-content>
+
+<mat-dialog-actions align="end">
+  <button mat-stroked-button type="button" (click)="cancel()">Cancel</button>
+  <button
+    mat-flat-button
+    type="button"
+    [disabled]="spacesLoading() || !name.trim() || !spaceUuid"
+    (click)="save()"
+  >
+    Save
+  </button>
+</mat-dialog-actions>

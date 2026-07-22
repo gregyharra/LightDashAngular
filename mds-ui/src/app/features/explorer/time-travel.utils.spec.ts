@@ -1,7 +1,9 @@
 import {
+  fromDatetimeLocalValue,
   getDateAnchor,
   mergeTimeTravelIntoMetricQuery,
   resolveSqlTableWithTimeTravel,
+  toDatetimeLocalValue,
 } from './time-travel.utils';
 import { MetricQuery } from '../../core/models/explore.model';
 
@@ -54,5 +56,19 @@ describe('time-travel.utils', () => {
     });
 
     expect(merged.timeTravel?.asOfTimestamp).toBe('2024-01-01T00:00:00.000Z');
+  });
+
+  it('converts datetime-local values to ISO timestamps', () => {
+    const iso = fromDatetimeLocalValue('2024-06-15T14:30');
+    expect(iso).toBeTruthy();
+    expect(iso).toMatch(/2024-06-15T\d{2}:30:00/);
+    expect(fromDatetimeLocalValue('')).toBeNull();
+  });
+
+  it('round-trips datetime-local formatting', () => {
+    const iso = '2024-01-15T12:00:00.000Z';
+    const local = toDatetimeLocalValue(iso);
+    expect(local).toMatch(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/);
+    expect(fromDatetimeLocalValue(local)).toBe(iso);
   });
 });

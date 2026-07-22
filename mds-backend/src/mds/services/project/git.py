@@ -38,6 +38,16 @@ def project_clone_dir(project_uuid: str) -> Path:
     return normalize_dbt_path(settings.projects_data_dir) / project_uuid / "repo"
 
 
+def project_data_dir(project_uuid: str) -> Path:
+    return normalize_dbt_path(settings.projects_data_dir) / project_uuid
+
+
+def remove_project_data_dir(project_uuid: str) -> None:
+    project_dir = project_data_dir(project_uuid)
+    if project_dir.is_dir():
+        shutil.rmtree(project_dir)
+
+
 def _effective_clone_dbt_path(clone_dir: Path, subdirectory: str | None) -> str:
     subdir = (subdirectory or "").strip().strip("/")
     if subdir:

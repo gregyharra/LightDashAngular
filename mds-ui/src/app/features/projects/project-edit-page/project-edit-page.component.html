@@ -246,7 +246,7 @@
               <button mat-stroked-button type="button" (click)="cancel()" [disabled]="saving()">
                 Cancel
               </button>
-              <button mat-flat-button type="submit" [disabled]="saving()">
+              <button mat-flat-button type="submit" [disabled]="saving() || deleting()">
                 @if (saving()) {
                   Saving…
                 } @else {
@@ -255,6 +255,27 @@
               </button>
             </div>
           </form>
+
+          <section class="project-edit__danger-zone" aria-labelledby="project-delete-heading">
+            <h2 id="project-delete-heading" class="project-edit__danger-title">Danger zone</h2>
+            <p class="project-edit__danger-text">
+              Permanently delete this project and all of its spaces, dashboards, and saved charts.
+              Warehouse connections are kept.
+            </p>
+            <button
+              mat-stroked-button
+              type="button"
+              class="project-edit__delete-btn"
+              [disabled]="deleting() || saving() || syncing() || desyncing()"
+              (click)="deleteProject()"
+            >
+              @if (deleting()) {
+                Deleting…
+              } @else {
+                Delete project
+              }
+            </button>
+          </section>
         }
       </div>
     </section>

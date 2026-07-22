@@ -48,7 +48,7 @@ Alternatively, set `SEED_DEMO_DATA=true` in `.env` to seed automatically on star
 | GET | `/api/v1/health` | Bootstrap health check |
 | GET | `/api/v1/user` | Current user stub |
 | GET | `/api/v1/projects` | Project list |
-| GET/POST/PATCH | `/api/v1/projects/{uuid}` | Get / create / update (includes Git repo config) |
+| GET/POST/PATCH/DELETE | `/api/v1/projects/{uuid}` | Get / create / update / delete (includes Git repo config) |
 | GET | `/api/v1/projects/{uuid}/repo` | Repository clone/sync status |
 | POST | `/api/v1/projects/{uuid}/sync` | Clone or pull the configured Git repository |
 | POST | `/api/v1/projects/{uuid}/desync` | Remove local clone; keep Git config |
@@ -144,6 +144,10 @@ GET  /api/v1/projects/{uuid}/repo
 ```
 
 Cloned repositories are stored under `PROJECTS_DATA_DIR` (default: `.data/projects/{projectUuid}/repo`). After sync, `dbt_project_path` on the project is set automatically (including `gitSubdirectory` for monorepos). Semantic endpoints (`/lineage`, `/explores`, etc.) read artifacts from that path.
+
+Deleting a project (`DELETE /api/v1/projects/{uuid}`) removes its spaces, dashboards, saved charts, and local clone data. Warehouses are org-scoped and are **not** deleted.
+
+**SQLite dev databases:** foreign-key cascade rules are applied automatically on startup via a lightweight migration. If you hit FK errors on an old local SQLite file, delete the database file and restart the API so tables are recreated.
 
 **Per-project filesystem override:** set `dbt_project_path` on a row in the `projects` table (nullable). When set, it overrides both `DBT_PROJECT_PATH` and the cloned repo path for that project only.
 

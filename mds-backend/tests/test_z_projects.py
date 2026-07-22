@@ -7,7 +7,7 @@ os.environ.setdefault("SEED_DEMO_DATA", "true")
 import pytest
 from fastapi.testclient import TestClient
 
-from mds.db.models import Project, Space
+from mds.db.models import Dashboard, Project, SavedChart, Space
 from mds.db.seed import MOCK_PROJECT_UUID
 from mds.db.session import SessionLocal
 from mds.main import app
@@ -61,6 +61,9 @@ def test_create_project_without_users_in_db(client: TestClient) -> None:
 
     db = SessionLocal()
     try:
+        db.query(Project).update({Project.created_by_user_uuid: None})
+        db.query(SavedChart).update({SavedChart.updated_by_user_uuid: None})
+        db.query(Dashboard).update({Dashboard.updated_by_user_uuid: None})
         db.query(User).delete()
         db.commit()
         assert db.query(User).count() == 0

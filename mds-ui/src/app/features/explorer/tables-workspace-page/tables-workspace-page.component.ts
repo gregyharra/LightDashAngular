@@ -1,14 +1,15 @@
-import { Component, computed, inject, signal } from '@angular/core';
+import { Component, computed, inject, signal, viewChild } from '@angular/core';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { forkJoin } from 'rxjs';
 import { MatButtonModule } from '@angular/material/button';
+import { MatDialog } from '@angular/material/dialog';
 import { MatExpansionModule } from '@angular/material/expansion';
 import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatTableModule } from '@angular/material/table';
 import { DashboardDimensionFilter } from '../../../core/models/dashboard.model';
 import { DbtTreeNode } from '../../../core/models/lineage.model';
-import { ChartKind } from '../../../core/models/chart.model';
+import { ChartConfig, ChartKind } from '../../../core/models/chart.model';
 import { ActiveProjectService } from '../../../core/services/active-project.service';
 import { apiErrorMessage } from '../../../core/api/lightdash-api.service';
 import { queryErrorWarning } from '../../../core/api/api-error.service';
@@ -17,6 +18,7 @@ import {
   Explore,
   ExploreSummary,
   FieldId,
+  MetricQuery,
   QueryResults,
   QueryWarning,
   TimeTravelConfig,
@@ -50,6 +52,11 @@ import { getFilterableDimensions } from '../tables-filters-panel/tables-filters.
 import { TablesFiltersPanelComponent } from '../tables-filters-panel/tables-filters-panel.component';
 import { TimeTravelControlComponent } from '../../../shared/time-travel-control/time-travel-control.component';
 import { QueryWarningsBannerComponent } from '../../../shared/query-warnings-banner/query-warnings-banner.component';
+import { ChartService } from '../../charts/chart.service';
+import {
+  SaveChartDialogComponent,
+  SaveChartDialogResult,
+} from '../../charts/save-chart-dialog/save-chart-dialog.component';
 
 type TableFieldGroup = {
   table: CompiledTable;
@@ -79,8 +86,12 @@ type TableFieldGroup = {
   styleUrl: './tables-workspace-page.component.scss',
 })
 export class TablesWorkspacePageComponent {
+  private readonly timeTravelControl = viewChild(TimeTravelControlComponent);
+
   private readonly explorerService = inject(ExplorerService);
   private readonly lineageService = inject(LineageService);
+  private readonly chartService = inject(ChartService);
+  private readonly dialog = inject(MatDialog);
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
   protected readonly activeProjectService = inject(ActiveProjectService);
@@ -111,6 +122,7 @@ export class TablesWorkspacePageComponent {
   protected readonly dimensionFilters = signal<DashboardDimensionFilter[]>([]);
   protected readonly timeTravel = signal<TimeTravelConfig | null>(null);
   protected readonly queryWarnings = signal<QueryWarning[]>([]);
+  protected readonly saveChartLoading = signal(false);
 
   protected readonly selectedTreeNode = computed(() => {
     const nodeId = this.tableId();
@@ -216,6 +228,16 @@ export class TablesWorkspacePageComponent {
 
     return !!(this.chartXField() && this.chartYFields().length > 0);
   });
+
+  protected readonly canSaveChart = computed(
+    () =>
+      this.hasRunQuery() &&
+      this.canRenderChart() &&
+      !this.queryLoading() &&
+      !this.queryError() &&
+      !!this.explore() &&
+      !this.saveChartLoading(),
+  );
 
   protected readonly displayedColumns = computed(() => {
     const results = this.queryResults();
@@ -647,6 +669,10 @@ export class TablesWorkspacePageComponent {
     this.timeTravel.set(timeTravel);
   }
 
+  private resolveTimeTravelForQuery(): TimeTravelConfig | null {
+    return this.timeTravelControl()?.resolveValue() ?? this.timeTravel();
+  }
+
   protected runQuery(): void {
     const projectUuid = this.projectUuid();
     const explore = this.explore();
@@ -656,34 +682,15 @@ export class TablesWorkspacePageComponent {
       return;
     }
 
-    const dimensions = selected.filter((id) => !this.isMetricField(id));
-    const metrics = selected.filter((id) => this.isMetricField(id));
-
     this.queryLoading.set(true);
     this.queryError.set(null);
     this.queryWarnings.set([]);
     this.hasRunQuery.set(true);
 
+    const timeTravel = this.resolveTimeTravelForQuery();
+
     this.explorerService
-      .runQuery(
-        projectUuid,
-        mergeTimeTravelIntoMetricQuery(
-          mergeDashboardFiltersIntoMetricQuery(
-            {
-              exploreName: explore.name,
-              dimensions,
-              metrics,
-              filters: {},
-              sorts: [],
-              limit: 500,
-              tableCalculations: [],
-              additionalMetrics: [],
-            },
-            this.dimensionFilters(),
-          ),
-          this.timeTravel(),
-        ),
-      )
+      .runQuery(projectUuid, this.buildCurrentMetricQuery(timeTravel))
       .subscribe({
         next: (results) => {
           this.queryResults.set(results);
@@ -696,5 +703,96 @@ export class TablesWorkspacePageComponent {
           this.queryLoading.set(false);
         },
       });
+  }
+
+  protected openSaveChartDialog(): void {
+    const projectUuid = this.projectUuid();
+    const explore = this.explore();
+
+    if (!projectUuid || !explore || !this.canSaveChart()) {
+      return;
+    }
+
+    const dialogRef = this.dialog.open<
+      SaveChartDialogComponent,
+      { projectUuid: string; suggestedName?: string },
+      SaveChartDialogResult
+    >(SaveChartDialogComponent, {
+      data: {
+        projectUuid,
+        suggestedName: `${this.selectedNodeLabel()} chart`,
+      },
+      width: '24rem',
+    });
+
+    dialogRef.afterClosed().subscribe((result) => {
+      if (!result) {
+        return;
+      }
+
+      this.saveChartLoading.set(true);
+
+      this.chartService
+        .create(projectUuid, {
+          name: result.name,
+          spaceUuid: result.spaceUuid,
+          tableName: explore.name,
+          chartKind: this.chartKind(),
+          metricQuery: this.buildCurrentMetricQuery(this.resolveTimeTravelForQuery()),
+          chartConfig: this.buildCurrentChartConfig(),
+        })
+        .subscribe({
+          next: (chart) => {
+            this.saveChartLoading.set(false);
+            void this.router.navigate([
+              '/projects',
+              projectUuid,
+              'charts',
+              chart.uuid,
+            ]);
+          },
+          error: () => {
+            this.saveChartLoading.set(false);
+          },
+        });
+    });
+  }
+
+  private buildCurrentMetricQuery(
+    timeTravel: TimeTravelConfig | null = this.resolveTimeTravelForQuery(),
+  ): MetricQuery {
+    const explore = this.explore();
+    const selected = this.selectedFieldList();
+    const dimensions = selected.filter((id) => !this.isMetricField(id));
+    const metrics = selected.filter((id) => this.isMetricField(id));
+
+    return mergeTimeTravelIntoMetricQuery(
+      mergeDashboardFiltersIntoMetricQuery(
+        {
+          exploreName: explore!.name,
+          dimensions,
+          metrics,
+          filters: {},
+          sorts: [],
+          limit: 500,
+          tableCalculations: [],
+          additionalMetrics: [],
+        },
+        this.dimensionFilters(),
+      ),
+      timeTravel,
+    );
+  }
+
+  private buildCurrentChartConfig(): ChartConfig {
+    const yFields = this.chartYFields();
+
+    return {
+      type: this.chartKind(),
+      xField: this.chartXField() ?? undefined,
+      yField: yFields[0] ?? undefined,
+      yFields,
+      displayConfig: this.chartDisplayConfig(),
+    };
   }
 }

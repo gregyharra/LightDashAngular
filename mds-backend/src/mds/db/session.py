@@ -1,9 +1,10 @@
 from collections.abc import Generator
 import uuid as uuid_lib
 
-from sqlalchemy import create_engine, event, inspect, text
+from sqlalchemy import MetaData, create_engine, event, inspect, text
 from sqlalchemy.orm import Session, sessionmaker
 from sqlalchemy.pool import StaticPool
+from sqlalchemy.schema import CreateTable
 
 from mds.config import settings
 from mds.db.base import Base
@@ -17,6 +18,14 @@ if settings.database_url.startswith("sqlite"):
 
 engine = create_engine(settings.database_url, **_engine_kwargs)
 SessionLocal = sessionmaker(bind=engine, autoflush=False, autocommit=False)
+
+if settings.database_url.startswith("sqlite"):
+
+    @event.listens_for(engine, "connect")
+    def _sqlite_enable_foreign_keys(dbapi_connection, _connection_record) -> None:
+        cursor = dbapi_connection.cursor()
+        cursor.execute("PRAGMA foreign_keys=ON")
+        cursor.close()
 
 _ORG_COLUMN_TABLES = ("users", "warehouses", "projects", "dashboards")
 
@@ -201,19 +210,99 @@ def _migrate_legacy_warehouse_connections() -> None:
         connection.exec_driver_sql("DROP TABLE warehouse_connections")
 
 
+def _sqlite_fk_on_delete_cascade(connection, table: str, from_column: str, ref_table: str) -> bool:
+    rows = connection.execute(text(f"PRAGMA foreign_key_list({table})")).fetchall()
+    for row in rows:
+        # id, seq, table, from, to, on_update, on_delete, match
+        if row[3] == from_column and row[2] == ref_table:
+            return str(row[6]).upper() == "CASCADE"
+    return False
+
+
+def _sqlite_rebuild_table(connection, table) -> None:
+    temp_name = f"{table.name}_cascade_new"
+    temp_meta = MetaData()
+    temp_table = table.tometadata(temp_meta, name=temp_name)
+    create_ddl = str(CreateTable(temp_table).compile(dialect=engine.dialect))
+    connection.execute(text(create_ddl))
+
+    column_names = ", ".join(f'"{column.name}"' for column in table.columns)
+    connection.execute(
+        text(f'INSERT INTO "{temp_name}" SELECT {column_names} FROM "{table.name}"')
+    )
+    connection.execute(text(f'DROP TABLE "{table.name}"'))
+    connection.execute(text(f'ALTER TABLE "{temp_name}" RENAME TO "{table.name}"'))
+
+
+def _migrate_project_cascade_fks() -> None:
+    """Rebuild project child tables so ON DELETE CASCADE applies (SQLite cannot alter FKs)."""
+    inspector = inspect(engine)
+    if not inspector.has_table("spaces"):
+        return
+
+    is_sqlite = settings.database_url.startswith("sqlite")
+
+    if is_sqlite:
+        with engine.connect() as connection:
+            if _sqlite_fk_on_delete_cascade(connection, "spaces", "project_uuid", "projects"):
+                return
+    else:
+        with engine.connect() as connection:
+            rows = connection.execute(
+                text(
+                    """
+                    SELECT confdeltype
+                    FROM pg_constraint
+                    WHERE conname = 'spaces_project_uuid_fkey'
+                    """
+                )
+            ).fetchall()
+            if rows and rows[0][0] == "c":
+                return
+
+    from mds.db.models import Dashboard, SavedChart, Space
+
+    rebuild_order = [SavedChart.__table__, Dashboard.__table__, Space.__table__]
+
+    with engine.begin() as connection:
+        if is_sqlite:
+            connection.exec_driver_sql("PRAGMA foreign_keys=OFF")
+            for table in rebuild_order:
+                _sqlite_rebuild_table(connection, table)
+            connection.exec_driver_sql("PRAGMA foreign_keys=ON")
+        else:
+            fk_updates = [
+                ("saved_charts", "saved_charts_project_uuid_fkey", "project_uuid"),
+                ("saved_charts", "saved_charts_space_uuid_fkey", "space_uuid"),
+                ("dashboards", "dashboards_project_uuid_fkey", "project_uuid"),
+                ("dashboards", "dashboards_space_uuid_fkey", "space_uuid"),
+                ("spaces", "spaces_project_uuid_fkey", "project_uuid"),
+            ]
+            for table, constraint, column in fk_updates:
+                ref_table = "projects" if column == "project_uuid" else "spaces"
+                connection.execute(
+                    text(f'ALTER TABLE {table} DROP CONSTRAINT IF EXISTS {constraint}')
+                )
+                connection.execute(
+                    text(
+                        f"ALTER TABLE {table} ADD CONSTRAINT {constraint} "
+                        f"FOREIGN KEY ({column}) REFERENCES {ref_table}(uuid) "
+                        f"ON DELETE CASCADE"
+                    )
+                )
+
+
 def init_db() -> None:
+    if settings.database_url.startswith("sqlite"):
+        with engine.connect() as connection:
+            connection.exec_driver_sql("PRAGMA foreign_keys=ON")
+
     Base.metadata.create_all(bind=engine)
     _migrate_additive_schema()
     _migrate_remove_organizations()
     _migrate_nullable_project_created_by()
     _migrate_legacy_warehouse_connections()
-    if settings.database_url.startswith("sqlite"):
-
-        @event.listens_for(engine, "connect")
-        def _sqlite_fk(dbapi_connection, _connection_record) -> None:
-            cursor = dbapi_connection.cursor()
-            cursor.execute("PRAGMA foreign_keys=ON")
-            cursor.close()
+    _migrate_project_cascade_fks()
 
 
 def get_db() -> Generator[Session, None, None]:

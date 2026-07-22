@@ -70,7 +70,7 @@ describe('dashboard-filters', () => {
       },
     ]);
 
-    expect(merged.filters.dimensions).toEqual([
+    expect(merged.filters['dimensions']).toEqual([
       {
         id: 'filter-1',
         target: {
@@ -91,7 +91,7 @@ describe('dashboard-filters', () => {
       { asOfTimestamp: '2024-01-01T00:00:00.000Z' },
     );
 
-    expect(merged.filters.dimensions).toHaveSize(1);
+    expect(merged.filters['dimensions']).toHaveSize(1);
     expect(merged.timeTravel?.asOfTimestamp).toBe('2024-01-01T00:00:00.000Z');
   });
 });
