@@ -52,6 +52,7 @@ import { getFilterableDimensions } from '../tables-filters-panel/tables-filters.
 import { TablesFiltersPanelComponent } from '../tables-filters-panel/tables-filters-panel.component';
 import { TimeTravelControlComponent } from '../../../shared/time-travel-control/time-travel-control.component';
 import { QueryWarningsBannerComponent } from '../../../shared/query-warnings-banner/query-warnings-banner.component';
+import { SqlHighlightComponent } from '../../../shared/sql-highlight/sql-highlight.component';
 import { ChartService } from '../../charts/chart.service';
 import {
   SaveChartDialogComponent,
@@ -80,6 +81,7 @@ type TableFieldGroup = {
     TablesFiltersPanelComponent,
     TimeTravelControlComponent,
     QueryWarningsBannerComponent,
+    SqlHighlightComponent,
     ResizableSidebarDirective,
   ],
   templateUrl: './tables-workspace-page.component.html',

@@ -115,7 +115,7 @@ export function collectUniqueValues<T>(
   return [...new Set(items.map(getValue))].sort((a, b) => a.localeCompare(b));
 }
 
-function matchesTextFilter(value: string, filter: TextFilterValue): boolean {
+export function matchesTextFilter(value: string, filter: TextFilterValue): boolean {
   const query = filter.query.trim().toLowerCase();
   if (!query) {
     return true;
@@ -123,7 +123,7 @@ function matchesTextFilter(value: string, filter: TextFilterValue): boolean {
   return value.toLowerCase().includes(query);
 }
 
-function matchesSelectFilter(value: string, filter: SelectFilterValue): boolean {
+export function matchesSelectFilter(value: string, filter: SelectFilterValue): boolean {
   if (!isSelectFilterActive(filter)) {
     return true;
   }

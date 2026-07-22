@@ -355,35 +355,6 @@
   background-color: var(--ld-background);
 }
 
-.tables-workspace__sql-block {
-  margin: 0;
-  padding: var(--ld-spacing-md);
-  overflow: auto;
-  border: 1px solid var(--ld-gray-2);
-  border-radius: var(--ld-radius-md);
-  background-color: var(--ld-gray-0);
-  color: var(--ld-gray-8);
-  font-family: var(
-    --ld-font-mono,
-    ui-monospace,
-    SFMono-Regular,
-    Menlo,
-    Monaco,
-    Consolas,
-    'Liberation Mono',
-    'Courier New',
-    monospace
-  );
-  font-size: var(--ld-font-size-xs);
-  line-height: 1.5;
-  white-space: pre-wrap;
-  word-break: break-word;
-
-  code {
-    font-family: inherit;
-    font-size: inherit;
-  }
-}
 
 .tables-workspace__results-table {
   width: 100%;

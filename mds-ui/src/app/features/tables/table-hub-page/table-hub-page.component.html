@@ -236,31 +236,70 @@
                   <table class="table-hub__table">
                     <thead>
                       <tr>
-                        <th>Name</th>
-                        <th>Type</th>
-                        <th>Description</th>
+                        <th scope="col">
+                          <app-content-list-column-header
+                            label="Name"
+                            filterType="text"
+                            textPlaceholder="Filter names…"
+                            [value]="columnFilters().name"
+                            (valueChange)="updateColumnFilter('name', $event)"
+                          />
+                        </th>
+                        <th scope="col">
+                          <app-content-list-column-header
+                            label="Type"
+                            filterType="select"
+                            [options]="columnTypeOptions()"
+                            [value]="columnFilters().type"
+                            (valueChange)="updateColumnFilter('type', $event)"
+                          />
+                        </th>
+                        <th scope="col" class="table-hub__desc-header">
+                          <app-content-list-column-header
+                            label="Description"
+                            filterType="text"
+                            textPlaceholder="Filter descriptions…"
+                            [value]="columnFilters().description"
+                            (valueChange)="updateColumnFilter('description', $event)"
+                          />
+                        </th>
                         @for (attr of attributeDefs(); track attr.id) {
-                          <th class="table-hub__attr-header">
-                            <span>{{ attr.name }}</span>
-                            <button
-                              type="button"
-                              class="table-hub__attr-delete"
-                              [attr.aria-label]="'Delete attribute ' + attr.name"
-                              (click)="deleteAttribute(attr)"
-                            >
-                              <mat-icon inline>close</mat-icon>
-                            </button>
+                          <th scope="col" class="table-hub__attr-header">
+                            <div class="table-hub__attr-header-row">
+                              <app-content-list-column-header
+                                [label]="attr.name"
+                                filterType="text"
+                                textPlaceholder="Filter values…"
+                                [value]="attributeFilterValue(attr.id)"
+                                (valueChange)="updateAttributeFilter(attr.id, $event)"
+                              />
+                              <button
+                                type="button"
+                                class="table-hub__attr-delete"
+                                [attr.aria-label]="'Delete attribute ' + attr.name"
+                                (click)="deleteAttribute(attr)"
+                              >
+                                <mat-icon inline>close</mat-icon>
+                              </button>
+                            </div>
                           </th>
                         }
-                        <th></th>
+                        <th scope="col"></th>
                       </tr>
                     </thead>
                     <tbody>
-                      @for (column of entry()!.columns; track column.name) {
+                      @if (filteredColumns().length === 0) {
+                        <tr>
+                          <td [attr.colspan]="4 + attributeDefs().length">
+                            <p class="table-hub__empty-filter">No columns match your filters.</p>
+                          </td>
+                        </tr>
+                      }
+                      @for (column of filteredColumns(); track column.name) {
                         <tr>
                           <td class="table-hub__mono">{{ column.name }}</td>
                           <td>{{ column.type }}</td>
-                          <td>
+                          <td class="table-hub__desc-cell">
                             <input
                               class="table-hub__input table-hub__input--inline"
                               [value]="column.descriptionOverride ?? column.description ?? ''"
@@ -272,7 +311,7 @@
                             }
                           </td>
                           @for (attr of attributeDefs(); track attr.id) {
-                            <td>
+                            <td class="table-hub__attr-cell">
                               @switch (attr.type) {
                                 @case ('enum') {
                                   <select
@@ -367,8 +406,32 @@
 
             @if (activeTab() === 'sql') {
               <section class="table-hub__panel">
-                @if (entry()!.sql) {
-                  <pre class="table-hub__sql">{{ entry()!.sql }}</pre>
+                @if (hasAnySql()) {
+                  <div class="table-hub__sql-toolbar">
+                    <mat-button-toggle-group
+                      class="table-hub__sql-toggle"
+                      [value]="sqlViewMode()"
+                      (change)="setSqlViewMode($event.value)"
+                      aria-label="SQL view"
+                    >
+                      <mat-button-toggle value="compiled" [disabled]="!hasCompiledSql()">
+                        Compiled
+                      </mat-button-toggle>
+                      <mat-button-toggle value="uncompiled" [disabled]="!hasUncompiledSql()">
+                        Uncompiled
+                      </mat-button-toggle>
+                    </mat-button-toggle-group>
+                  </div>
+                  @if (showCompiledUnavailableHint()) {
+                    <p class="table-hub__hint">
+                      Compiled SQL is unavailable for this model. Run
+                      <code>dbt compile</code>
+                      to generate it.
+                    </p>
+                  }
+                  @if (displaySql(); as sql) {
+                    <app-sql-highlight [sql]="sql" ariaLabel="Model SQL" />
+                  }
                 } @else {
                   <p class="table-hub__hint">No SQL available for this model.</p>
                 }

@@ -46,7 +46,10 @@ export type DictionaryEntry = {
   materialization?: string;
   packageName?: string;
   dbtPath?: string;
+  /** Uncompiled dbt source SQL (may include Jinja). */
   sql?: string;
+  /** Compiled warehouse SQL from dbt artifacts when available. */
+  compiledSql?: string;
   description?: string | null;
   dbtDescription?: string | null;
   descriptionOverride?: string | null;

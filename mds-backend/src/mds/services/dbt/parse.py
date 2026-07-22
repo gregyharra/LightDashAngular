@@ -296,36 +296,78 @@ def _build_column_edges(
     return column_edges
 
 
-def _node_sql(artifacts: DbtArtifacts, node: dict[str, Any]) -> str | None:
+def _strip_sql(value: Any) -> str | None:
+    if value is None:
+        return None
+    text = str(value).strip()
+    return text or None
+
+
+def _read_sql_file(path: Path) -> str | None:
+    if not path.is_file():
+        return None
+    try:
+        return _strip_sql(path.read_text(encoding="utf-8"))
+    except OSError:
+        return None
+
+
+def _node_raw_sql(artifacts: DbtArtifacts, node: dict[str, Any]) -> str | None:
+    """Uncompiled dbt source (Jinja), from manifest raw_code or the project .sql file."""
     resource_type = node.get("resource_type")
     if resource_type not in {"model", "snapshot"}:
         return None
 
-    raw_code = node.get("raw_code")
-    if raw_code:
-        text = str(raw_code).strip()
-        if text:
-            return text
-
-    compiled_code = node.get("compiled_code")
-    if compiled_code:
-        text = str(compiled_code).strip()
-        if text:
-            return text
+    raw = _strip_sql(node.get("raw_code"))
+    if raw:
+        return raw
 
     dbt_path = _dbt_path(node)
     if not dbt_path:
         return None
+    return _read_sql_file(artifacts.project_path / dbt_path)
 
-    file_path = artifacts.project_path / dbt_path
-    if not file_path.is_file():
+
+def _node_compiled_sql(artifacts: DbtArtifacts, node: dict[str, Any]) -> str | None:
+    """Warehouse-ready SQL after dbt compile (manifest compiled_code or target/compiled)."""
+    resource_type = node.get("resource_type")
+    if resource_type not in {"model", "snapshot"}:
         return None
 
-    try:
-        text = file_path.read_text(encoding="utf-8").strip()
-    except OSError:
-        return None
-    return text or None
+    compiled = _strip_sql(node.get("compiled_code"))
+    if compiled:
+        return compiled
+
+    compiled_path = node.get("compiled_path")
+    if compiled_path:
+        # Manifest paths are usually relative to the project root (e.g. target/compiled/...).
+        relative = Path(str(compiled_path))
+        candidates = [
+            artifacts.project_path / relative,
+            artifacts.manifest_path.parent / relative,
+        ]
+        if not relative.is_absolute() and relative.parts[:1] != ("target",):
+            candidates.append(artifacts.manifest_path.parent / "compiled" / relative)
+        for candidate in candidates:
+            text = _read_sql_file(candidate)
+            if text:
+                return text
+
+    package_name = node.get("package_name")
+    dbt_path = _dbt_path(node)
+    if package_name and dbt_path:
+        text = _read_sql_file(
+            artifacts.manifest_path.parent / "compiled" / str(package_name) / dbt_path
+        )
+        if text:
+            return text
+
+    return None
+
+
+def _node_sql(artifacts: DbtArtifacts, node: dict[str, Any]) -> str | None:
+    """Best-effort SQL for column inference: prefer raw, then compiled."""
+    return _node_raw_sql(artifacts, node) or _node_compiled_sql(artifacts, node)
 
 
 def _dbt_path(node: dict[str, Any]) -> str | None:
@@ -401,9 +443,12 @@ def build_project_lineage(
             "packageName": node.get("package_name"),
             "dbtPath": _dbt_path(node),
         }
-        sql = _node_sql(artifacts, node)
+        sql = _node_raw_sql(artifacts, node)
         if sql:
             lineage_node["sql"] = sql
+        compiled_sql = _node_compiled_sql(artifacts, node)
+        if compiled_sql:
+            lineage_node["compiledSql"] = compiled_sql
         lineage_nodes.append(lineage_node)
 
         for dependency in (node.get("depends_on") or {}).get("nodes") or []:

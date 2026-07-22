@@ -1,0 +1,76 @@
+:host {
+  display: block;
+  min-width: 0;
+  max-width: 100%;
+}
+
+.sql-highlight {
+  --sql-keyword: var(--ld-blue-6, #228be6);
+  --sql-string: #c92a2a;
+  --sql-comment: var(--ld-gray-6, #868e96);
+  --sql-jinja: var(--ld-brand, #7262ff);
+  --sql-number: #e8590c;
+  --sql-fg: var(--ld-gray-8, #343a40);
+  --sql-bg: var(--ld-gray-0, #f8f9fa);
+
+  box-sizing: border-box;
+  margin: 0;
+  padding: var(--ld-spacing-md, 1rem);
+  max-width: 100%;
+  overflow-x: auto;
+  overflow-y: auto;
+  border: 1px solid var(--ld-gray-2, #e9ecef);
+  border-radius: var(--ld-radius-md, 8px);
+  background: var(--sql-bg);
+  color: var(--sql-fg);
+  font-family: var(
+    --ld-font-mono,
+    ui-monospace,
+    SFMono-Regular,
+    Menlo,
+    Monaco,
+    Consolas,
+    'Liberation Mono',
+    'Courier New',
+    monospace
+  );
+  font-size: var(--ld-font-size-xs, 12px);
+  line-height: 1.5;
+  white-space: pre;
+  word-break: normal;
+  tab-size: 2;
+
+  code {
+    display: block;
+    min-width: min-content;
+    font-family: inherit;
+    font-size: inherit;
+    color: inherit;
+    white-space: inherit;
+  }
+
+  // Token spans are rendered in the template (not via innerHTML) so
+  // ViewEncapsulation attributes apply and these colors take effect.
+  .sql-highlight__keyword {
+    color: var(--sql-keyword);
+    font-weight: 600;
+  }
+
+  .sql-highlight__string {
+    color: var(--sql-string);
+  }
+
+  .sql-highlight__comment {
+    color: var(--sql-comment);
+    font-style: italic;
+  }
+
+  .sql-highlight__jinja {
+    color: var(--sql-jinja);
+    font-weight: 600;
+  }
+
+  .sql-highlight__number {
+    color: var(--sql-number);
+  }
+}

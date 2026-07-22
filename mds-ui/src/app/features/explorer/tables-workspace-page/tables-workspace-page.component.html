@@ -403,7 +403,7 @@
                     <p>Select dimensions or metrics to generate SQL.</p>
                   </div>
                 } @else {
-                  <pre class="tables-workspace__sql-block"><code>{{ displaySql() }}</code></pre>
+                  <app-sql-highlight [sql]="displaySql()" ariaLabel="Generated SQL" />
                 }
               </mat-expansion-panel>
             </mat-accordion>

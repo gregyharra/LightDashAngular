@@ -3,6 +3,7 @@ import { Component, computed, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { MatButtonModule } from '@angular/material/button';
+import { MatButtonToggleModule } from '@angular/material/button-toggle';
 import { MatChipInputEvent, MatChipsModule } from '@angular/material/chips';
 import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
@@ -35,22 +36,60 @@ import { UNLIMITED_HOP_DEPTH } from '../../lineage/lineage-focus-utils';
 import { LineageService } from '../../lineage/lineage.service';
 import { ResizableSidebarDirective } from '../../../layout/resizable-sidebar/resizable-sidebar.directive';
 import { DictionaryService } from '../dictionary.service';
+import { SqlHighlightComponent } from '../../../shared/sql-highlight/sql-highlight.component';
+import {
+  ModelSqlViewMode,
+  preferredModelSqlViewMode,
+  resolveModelSqlDisplay,
+} from '../../../shared/sql-highlight/model-sql-view';
+import {
+  ContentListColumnHeaderComponent,
+  ColumnFilterValue,
+} from '../../../ui/content-list-column-header/content-list-column-header.component';
+import {
+  SelectFilterValue,
+  SelectOption,
+  TextFilterValue,
+  collectUniqueValues,
+  emptySelectFilter,
+  emptyTextFilter,
+  matchesSelectFilter,
+  matchesTextFilter,
+} from '../../../ui/content-list-filter.utils';
 
 type HubTab = 'overview' | 'columns' | 'lineage' | 'sql';
 
+type ColumnsTableFilters = {
+  name: TextFilterValue;
+  type: SelectFilterValue;
+  description: TextFilterValue;
+  attributes: Record<string, TextFilterValue>;
+};
+
+function createEmptyColumnsTableFilters(): ColumnsTableFilters {
+  return {
+    name: emptyTextFilter(),
+    type: emptySelectFilter(),
+    description: emptyTextFilter(),
+    attributes: {},
+  };
+}
 @Component({
   selector: 'app-table-hub-page',
   imports: [
     FormsModule,
     RouterLink,
     MatButtonModule,
+    MatButtonToggleModule,
     MatChipsModule,
     MatIconModule,
     MatProgressSpinnerModule,
     AddAttributeDialogComponent,
+    ContentListColumnHeaderComponent,
     FolderSearchPanelComponent,
     LineageGraphComponent,
     ResizableSidebarDirective,
+    SqlHighlightComponent,
   ],
   templateUrl: './table-hub-page.component.html',
   styleUrl: './table-hub-page.component.scss',
@@ -74,11 +113,13 @@ export class TableHubPageComponent {
   protected readonly entryError = signal<string | null>(null);
   protected readonly saving = signal(false);
   protected readonly activeTab = signal<HubTab>('overview');
+  protected readonly sqlViewMode = signal<ModelSqlViewMode>('compiled');
   protected readonly lineageViewMode = signal<LineageViewMode>('models');
   protected readonly lineageGraphMode = signal<LineageGraphMode>('focus');
   protected readonly lineageHopDepth = signal<LineageHopDepth>(UNLIMITED_HOP_DEPTH);
   protected readonly selectedColumn = signal<SelectedColumnRef | null>(null);
   protected readonly showAddAttribute = signal(false);
+  protected readonly columnFilters = signal<ColumnsTableFilters>(createEmptyColumnsTableFilters());
 
   protected readonly descriptionDraft = signal('');
   protected readonly tagsDraft = signal<string[]>([]);
@@ -93,6 +134,24 @@ export class TableHubPageComponent {
     return lineage.nodes.find((node) => node.id === id || node.name === id) ?? null;
   });
 
+  protected readonly hasCompiledSql = computed(
+    () => !!this.entry()?.compiledSql?.trim(),
+  );
+  protected readonly hasUncompiledSql = computed(() => !!this.entry()?.sql?.trim());
+  protected readonly hasAnySql = computed(
+    () => this.hasCompiledSql() || this.hasUncompiledSql(),
+  );
+  protected readonly displaySql = computed(() => {
+    const entry = this.entry();
+    if (!entry) {
+      return null;
+    }
+    return resolveModelSqlDisplay(entry.sql, entry.compiledSql, this.sqlViewMode());
+  });
+  protected readonly showCompiledUnavailableHint = computed(
+    () => !this.hasCompiledSql() && this.hasUncompiledSql(),
+  );
+
   protected readonly attributeDefs = computed<CustomAttributeDef[]>(() => {
     const raw = this.entry()?.custom?.[CUSTOM_ATTRIBUTE_DEFS_KEY];
     return Array.isArray(raw) ? (raw as CustomAttributeDef[]) : [];
@@ -101,6 +160,44 @@ export class TableHubPageComponent {
   protected readonly existingAttributeNames = computed(() =>
     this.attributeDefs().map((def) => def.name),
   );
+
+  protected readonly columnTypeOptions = computed<SelectOption[]>(() => {
+    const columns = this.entry()?.columns ?? [];
+    return collectUniqueValues(columns, (column) => column.type).map((type) => ({
+      value: type,
+      label: type,
+    }));
+  });
+
+  protected readonly filteredColumns = computed(() => {
+    const columns = this.entry()?.columns ?? [];
+    const filters = this.columnFilters();
+    const attrs = this.attributeDefs();
+
+    return columns.filter((column) => {
+      if (!matchesTextFilter(column.name, filters.name)) {
+        return false;
+      }
+      if (!matchesSelectFilter(column.type, filters.type)) {
+        return false;
+      }
+
+      const description =
+        column.descriptionOverride ?? column.description ?? column.dbtDescription ?? '';
+      if (!matchesTextFilter(description, filters.description)) {
+        return false;
+      }
+
+      for (const attr of attrs) {
+        const attrFilter = filters.attributes[attr.id] ?? emptyTextFilter();
+        if (!matchesTextFilter(this.columnAttributeText(column, attr.id), attrFilter)) {
+          return false;
+        }
+      }
+
+      return true;
+    });
+  });
 
   constructor() {
     this.route.paramMap.subscribe((params) => {
@@ -151,16 +248,20 @@ export class TableHubPageComponent {
       this.entry.set(null);
       this.entryError.set(null);
       this.entryLoading.set(false);
+      this.columnFilters.set(createEmptyColumnsTableFilters());
+      this.sqlViewMode.set('compiled');
       return;
     }
 
     this.entryLoading.set(true);
     this.entryError.set(null);
+    this.columnFilters.set(createEmptyColumnsTableFilters());
     this.dictionaryService.get(projectUuid, tableId).subscribe({
       next: (entry) => {
         this.entry.set(entry);
         this.descriptionDraft.set(entry.descriptionOverride ?? entry.description ?? '');
         this.tagsDraft.set([...(entry.tags ?? [])]);
+        this.sqlViewMode.set(preferredModelSqlViewMode(entry.sql, entry.compiledSql));
         this.entryLoading.set(false);
       },
       error: (err) => {
@@ -180,6 +281,16 @@ export class TableHubPageComponent {
 
   protected setTab(tab: HubTab): void {
     this.activeTab.set(tab);
+  }
+
+  protected setSqlViewMode(mode: ModelSqlViewMode): void {
+    if (mode === 'compiled' && !this.hasCompiledSql()) {
+      return;
+    }
+    if (mode === 'uncompiled' && !this.hasUncompiledSql()) {
+      return;
+    }
+    this.sqlViewMode.set(mode);
   }
 
   protected addTagFromInput(event: MatChipInputEvent): void {
@@ -269,6 +380,30 @@ export class TableHubPageComponent {
       return;
     }
     this.showAddAttribute.set(true);
+  }
+
+  protected attributeFilterValue(attrId: string): TextFilterValue {
+    return this.columnFilters().attributes[attrId] ?? emptyTextFilter();
+  }
+
+  protected updateColumnFilter(
+    key: 'name' | 'type' | 'description',
+    value: ColumnFilterValue,
+  ): void {
+    this.columnFilters.update((filters) => ({
+      ...filters,
+      [key]: value as ColumnsTableFilters[typeof key],
+    }));
+  }
+
+  protected updateAttributeFilter(attrId: string, value: ColumnFilterValue): void {
+    this.columnFilters.update((filters) => ({
+      ...filters,
+      attributes: {
+        ...filters.attributes,
+        [attrId]: value as TextFilterValue,
+      },
+    }));
   }
 
   protected onAddAttributeCancelled(): void {

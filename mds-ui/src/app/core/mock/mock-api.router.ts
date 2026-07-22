@@ -346,6 +346,7 @@ const dictionaryDetail = (request: MockRequest) => {
     packageName: node.packageName,
     dbtPath: node.dbtPath,
     sql: node.sql,
+    compiledSql: node.compiledSql,
     description: overlay?.descriptionOverride || node.description || null,
     dbtDescription: node.description || null,
     descriptionOverride: overlay?.descriptionOverride ?? null,

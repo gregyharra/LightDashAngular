@@ -11,6 +11,7 @@ import {
   signal,
   viewChild,
 } from '@angular/core';
+import { MatButtonToggleModule } from '@angular/material/button-toggle';
 import { MatIconModule } from '@angular/material/icon';
 import { RouterLink } from '@angular/router';
 import {
@@ -36,6 +37,12 @@ import {
   inferColumnTransformation,
 } from '../column-transformation.utils';
 import { TransformationChipComponent } from '../transformation-chip/transformation-chip.component';
+import { SqlHighlightComponent } from '../../../shared/sql-highlight/sql-highlight.component';
+import {
+  ModelSqlViewMode,
+  preferredModelSqlViewMode,
+  resolveModelSqlDisplay,
+} from '../../../shared/sql-highlight/model-sql-view';
 
 type DetailTab = LineageDetailTab;
 type ColumnSortKey = 'name' | 'type';
@@ -44,7 +51,13 @@ const COLLAPSED_STORAGE_KEY = 'lightdash-lineage-detail-panel-collapsed';
 
 @Component({
   selector: 'app-lineage-detail-panel',
-  imports: [MatIconModule, TransformationChipComponent, RouterLink],
+  imports: [
+    MatButtonToggleModule,
+    MatIconModule,
+    TransformationChipComponent,
+    RouterLink,
+    SqlHighlightComponent,
+  ],
   templateUrl: './lineage-detail-panel.component.html',
   styleUrl: './lineage-detail-panel.component.scss',
 })
@@ -68,13 +81,24 @@ export class LineageDetailPanelComponent {
 
   protected readonly collapsed = signal(this.readCollapsedState());
   protected readonly activeTab = signal<DetailTab>('overview');
+  protected readonly sqlViewMode = signal<ModelSqlViewMode>('compiled');
   protected readonly columnSortKey = signal<ColumnSortKey>('name');
   protected readonly columnSortAsc = signal(true);
   protected readonly columnSearch = signal('');
 
   private readonly panelRef = viewChild<ElementRef<HTMLElement>>('panelRoot');
+  private lastSqlNodeId: string | null = null;
 
   constructor() {
+    effect(() => {
+      const node = this.node();
+      if (node.id === this.lastSqlNodeId) {
+        return;
+      }
+      this.lastSqlNodeId = node.id;
+      this.sqlViewMode.set(preferredModelSqlViewMode(node.sql, node.compiledSql));
+    });
+
     effect(() => {
       if (!this.selectedColumn()) {
         this.activeTab.set('overview');
@@ -106,6 +130,19 @@ export class LineageDetailPanelComponent {
       });
     });
   }
+
+  protected readonly hasCompiledSql = computed(() => !!this.node().compiledSql?.trim());
+  protected readonly hasUncompiledSql = computed(() => !!this.node().sql?.trim());
+  protected readonly hasAnySql = computed(
+    () => this.hasCompiledSql() || this.hasUncompiledSql(),
+  );
+  protected readonly displaySql = computed(() => {
+    const node = this.node();
+    return resolveModelSqlDisplay(node.sql, node.compiledSql, this.sqlViewMode());
+  });
+  protected readonly showCompiledUnavailableHint = computed(
+    () => !this.hasCompiledSql() && this.hasUncompiledSql(),
+  );
 
   protected readonly upstream = computed(() => {
     const node = this.node();
@@ -203,6 +240,16 @@ export class LineageDetailPanelComponent {
 
   protected setTab(tab: DetailTab): void {
     this.activeTab.set(tab);
+  }
+
+  protected setSqlViewMode(mode: ModelSqlViewMode): void {
+    if (mode === 'compiled' && !this.hasCompiledSql()) {
+      return;
+    }
+    if (mode === 'uncompiled' && !this.hasUncompiledSql()) {
+      return;
+    }
+    this.sqlViewMode.set(mode);
   }
 
   protected onColumnSearch(value: string): void {

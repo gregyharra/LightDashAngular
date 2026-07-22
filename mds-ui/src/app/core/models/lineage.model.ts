@@ -74,8 +74,10 @@ export interface LineageNode {
   packageName?: string;
   /** dbt project file path, e.g. models/marts/fct_orders.sql */
   dbtPath?: string;
-  /** Model SQL from dbt manifest raw_code or project file */
+  /** Uncompiled dbt source SQL (manifest raw_code or project file; may include Jinja). */
   sql?: string;
+  /** Compiled warehouse SQL from dbt manifest compiled_code or target/compiled. */
+  compiledSql?: string;
 }
 
 export interface LineageEdge {

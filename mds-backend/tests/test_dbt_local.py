@@ -50,11 +50,17 @@ def test_lineage_from_local_dbt_artifacts(client: TestClient) -> None:
     nodes_by_id = {node["id"]: node for node in lineage["nodes"]}
     fct_orders = nodes_by_id["model.jaffle_shop.marts.fct_orders"]
     assert fct_orders["sql"] == "select * from {{ ref('stg_orders') }}"
+    assert (
+        fct_orders["compiledSql"]
+        == 'select * from "jaffle_shop"."staging"."stg_orders"'
+    )
 
     stg_orders = nodes_by_id["model.jaffle_shop.staging.stg_orders"]
     assert "from {{ source('raw', 'raw_orders') }}" in stg_orders["sql"]
+    assert "compiledSql" not in stg_orders
 
     assert "sql" not in nodes_by_id["source.jaffle_shop.raw.raw_orders"]
+    assert "compiledSql" not in nodes_by_id["source.jaffle_shop.raw.raw_orders"]
 
     column_edges = lineage.get("columnEdges") or []
     assert column_edges

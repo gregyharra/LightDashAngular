@@ -494,6 +494,18 @@ const LINEAGE_NODES: LineageNode[] = [
 from {{ ref('stg_orders') }} as orders
 left join {{ ref('stg_customers') }} as customers
   on orders.customer_id = customers.customer_id`,
+      compiledSql: `select
+  orders.order_id,
+  orders.customer_id,
+  customers.full_name as customer_name,
+  orders.order_date,
+  orders.status,
+  orders.amount,
+  orders.tax_paid,
+  orders.amount_with_tax
+from "jaffle_shop"."staging"."stg_orders" as orders
+left join "jaffle_shop"."staging"."stg_customers" as customers
+  on orders.customer_id = customers.customer_id`,
     },
     {
       id: 'model.jaffle_shop.marts.fct_order_items',

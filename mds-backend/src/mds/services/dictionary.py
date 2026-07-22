@@ -6,6 +6,7 @@ from typing import Any
 
 from fastapi import HTTPException
 from sqlalchemy.orm import Session
+from sqlalchemy.orm.attributes import flag_modified
 
 from mds.db.models import DictionaryColumn, DictionaryModel, Project
 from mds.db.seed import MOCK_USER_UUID
@@ -21,6 +22,10 @@ from mds.services.dbt.parse import (
     find_lineage_node,
 )
 from mds.services.project.git import resolve_dbt_path_for_loading
+
+
+def _custom_map(value: dict[str, Any] | None) -> dict[str, Any]:
+    return dict(value) if value else {}
 
 
 def _ensure_project(db: Session, project_uuid: uuid.UUID) -> Project:
@@ -114,7 +119,7 @@ def list_dictionary(db: Session, project_uuid: str | uuid.UUID) -> dict[str, Any
                 "tags": _merged_tags(
                     node.get("tags"), overlay.tags if overlay else None
                 ),
-                "custom": overlay.custom if overlay else {},
+                "custom": _custom_map(overlay.custom if overlay else None),
                 "columnCount": node.get("columnCount") or len(node.get("columns") or []),
                 "hasOverlay": overlay is not None,
             }
@@ -165,7 +170,7 @@ def get_dictionary_entry(
                 "tags": _merged_tags(
                     column.get("tags"), col_overlay.tags if col_overlay else None
                 ),
-                "custom": col_overlay.custom if col_overlay else {},
+                "custom": _custom_map(col_overlay.custom if col_overlay else None),
                 "hasOverlay": col_overlay is not None,
             }
         )
@@ -181,6 +186,7 @@ def get_dictionary_entry(
         "packageName": node.get("packageName"),
         "dbtPath": node.get("dbtPath"),
         "sql": node.get("sql"),
+        "compiledSql": node.get("compiledSql"),
         "description": _merged_description(
             node.get("description"),
             overlay.description_override if overlay else None,
@@ -188,7 +194,7 @@ def get_dictionary_entry(
         "dbtDescription": node.get("description"),
         "descriptionOverride": overlay.description_override if overlay else None,
         "tags": _merged_tags(node.get("tags"), overlay.tags if overlay else None),
-        "custom": overlay.custom if overlay else {},
+        "custom": _custom_map(overlay.custom if overlay else None),
         "columns": columns,
         "hasOverlay": overlay is not None,
         "lineageNode": node,
@@ -233,7 +239,10 @@ def update_dictionary_model(
     if payload.tags is not None:
         row.tags = payload.tags
     if payload.custom is not None:
-        row.custom = payload.custom
+        # Assign a fresh dict and flag JSON as modified so nested attribute
+        # defs persist reliably across SQLAlchemy/SQLite JSON columns.
+        row.custom = _custom_map(payload.custom)
+        flag_modified(row, "custom")
 
     row.updated_at = datetime.now(timezone.utc)
     row.updated_by_user_uuid = MOCK_USER_UUID
@@ -286,7 +295,8 @@ def update_dictionary_column(
     if payload.tags is not None:
         row.tags = payload.tags
     if payload.custom is not None:
-        row.custom = payload.custom
+        row.custom = _custom_map(payload.custom)
+        flag_modified(row, "custom")
 
     row.updated_at = datetime.now(timezone.utc)
     row.updated_by_user_uuid = MOCK_USER_UUID
@@ -390,13 +400,13 @@ def get_overlay_for_explore(
         "model": {
             "descriptionOverride": model.description_override if model else None,
             "tags": model.tags if model else [],
-            "custom": model.custom if model else {},
+            "custom": _custom_map(model.custom if model else None),
         },
         "columns": {
             row.column_name: {
                 "descriptionOverride": row.description_override,
                 "tags": row.tags or [],
-                "custom": row.custom or {},
+                "custom": _custom_map(row.custom),
             }
             for row in columns
         },

@@ -34,6 +34,7 @@
       "config": { "materialized": "table", "schema": "marts" },
       "depends_on": { "nodes": ["model.jaffle_shop.staging.stg_orders"] },
       "raw_code": "select * from {{ ref('stg_orders') }}",
+      "compiled_code": "select * from \"jaffle_shop\".\"staging\".\"stg_orders\"",
       "columns": {}
     },
     "seed.jaffle_shop.seeds.country_codes": {

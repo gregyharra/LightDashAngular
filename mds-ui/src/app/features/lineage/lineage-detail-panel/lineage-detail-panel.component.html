@@ -254,9 +254,35 @@
       }
     } @else if (activeTab() === 'sql') {
       <section class="lineage-detail__section">
-        <h3 class="lineage-detail__section-title">Model SQL</h3>
-        @if (selected.sql) {
-          <pre class="lineage-detail__sql-block"><code>{{ selected.sql }}</code></pre>
+        <div class="lineage-detail__sql-header">
+          <h3 class="lineage-detail__section-title">Model SQL</h3>
+          @if (hasAnySql()) {
+            <mat-button-toggle-group
+              class="lineage-detail__sql-toggle"
+              [value]="sqlViewMode()"
+              (change)="setSqlViewMode($event.value)"
+              aria-label="SQL view"
+            >
+              <mat-button-toggle value="compiled" [disabled]="!hasCompiledSql()">
+                Compiled
+              </mat-button-toggle>
+              <mat-button-toggle value="uncompiled" [disabled]="!hasUncompiledSql()">
+                Uncompiled
+              </mat-button-toggle>
+            </mat-button-toggle-group>
+          }
+        </div>
+        @if (hasAnySql()) {
+          @if (showCompiledUnavailableHint()) {
+            <p class="lineage-detail__hint">
+              Compiled SQL is unavailable. Run
+              <code>dbt compile</code>
+              to generate it.
+            </p>
+          }
+          @if (displaySql(); as sql) {
+            <app-sql-highlight [sql]="sql" ariaLabel="Model SQL" />
+          }
         } @else {
           <p class="lineage-detail__empty">No SQL available for this node</p>
         }
@@ -324,18 +350,9 @@
                 </li>
               }
             </ul>
-        }
-      </section>
-    } @else if (activeTab() === 'sql') {
-      <section class="lineage-detail__section">
-        <h3 class="lineage-detail__section-title">Model SQL</h3>
-        @if (selected.sql) {
-          <pre class="lineage-detail__sql-block"><code>{{ selected.sql }}</code></pre>
-        } @else {
-          <p class="lineage-detail__empty">No SQL available for this node</p>
-        }
-      </section>
-    } @else {
+          }
+        </section>
+      } @else {
         <section class="lineage-detail__section">
           <h3 class="lineage-detail__section-title">
             <mat-icon>arrow_upward</mat-icon>
