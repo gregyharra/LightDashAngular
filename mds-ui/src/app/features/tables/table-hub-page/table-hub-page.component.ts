@@ -274,6 +274,7 @@ export class TableHubPageComponent {
       AddAttributeDialogResult
     >(AddAttributeDialogComponent, {
       width: '420px',
+      panelClass: 'add-attribute-dialog-panel',
       data: { existingNames: this.attributeDefs().map((def) => def.name) },
     });
 

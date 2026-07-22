@@ -86,7 +86,7 @@
             <div class="table-hub__error">{{ entryError() }}</div>
           } @else if (entry()) {
             <header class="table-hub__header">
-              <div>
+              <div class="table-hub__header-title">
                 <p class="table-hub__meta">
                   {{ entry()!.type }}
                   @if (entry()!.schema) {
@@ -104,10 +104,17 @@
               <button
                 mat-flat-button
                 type="button"
+                class="table-hub__explore-btn"
+                aria-label="Explore in Charts"
                 (click)="exploreInCharts()"
               >
                 <mat-icon>bar_chart</mat-icon>
-                Explore in Charts
+                <span class="table-hub__explore-label table-hub__explore-label--full">
+                  Explore in Charts
+                </span>
+                <span class="table-hub__explore-label table-hub__explore-label--short">
+                  Explore
+                </span>
               </button>
             </header>
 
@@ -225,97 +232,99 @@
                   </button>
                 </div>
 
-                <table class="table-hub__table">
-                  <thead>
-                    <tr>
-                      <th>Name</th>
-                      <th>Type</th>
-                      <th>Description</th>
-                      @for (attr of attributeDefs(); track attr.id) {
-                        <th class="table-hub__attr-header">
-                          <span>{{ attr.name }}</span>
-                          <button
-                            type="button"
-                            class="table-hub__attr-delete"
-                            [attr.aria-label]="'Delete attribute ' + attr.name"
-                            (click)="deleteAttribute(attr)"
-                          >
-                            <mat-icon inline>close</mat-icon>
-                          </button>
-                        </th>
-                      }
-                      <th></th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    @for (column of entry()!.columns; track column.name) {
+                <div class="table-hub__table-scroll">
+                  <table class="table-hub__table">
+                    <thead>
                       <tr>
-                        <td class="table-hub__mono">{{ column.name }}</td>
-                        <td>{{ column.type }}</td>
-                        <td>
-                          <input
-                            class="table-hub__input table-hub__input--inline"
-                            [value]="column.descriptionOverride ?? column.description ?? ''"
-                            (change)="saveColumnDescription(column.name, $any($event.target).value)"
-                            [attr.aria-label]="'Description for ' + column.name"
-                          />
-                          @if (column.dbtDescription) {
-                            <p class="table-hub__hint">dbt: {{ column.dbtDescription }}</p>
-                          }
-                        </td>
+                        <th>Name</th>
+                        <th>Type</th>
+                        <th>Description</th>
                         @for (attr of attributeDefs(); track attr.id) {
+                          <th class="table-hub__attr-header">
+                            <span>{{ attr.name }}</span>
+                            <button
+                              type="button"
+                              class="table-hub__attr-delete"
+                              [attr.aria-label]="'Delete attribute ' + attr.name"
+                              (click)="deleteAttribute(attr)"
+                            >
+                              <mat-icon inline>close</mat-icon>
+                            </button>
+                          </th>
+                        }
+                        <th></th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      @for (column of entry()!.columns; track column.name) {
+                        <tr>
+                          <td class="table-hub__mono">{{ column.name }}</td>
+                          <td>{{ column.type }}</td>
                           <td>
-                            @switch (attr.type) {
-                              @case ('enum') {
-                                <select
-                                  class="table-hub__input table-hub__input--inline"
-                                  [value]="columnAttributeText(column, attr.id)"
-                                  (change)="onAttributeValueChange(column.name, attr, $any($event.target).value)"
-                                  [attr.aria-label]="attr.name + ' for ' + column.name"
-                                >
-                                  <option value="">—</option>
-                                  @for (option of attr.options ?? []; track option) {
-                                    <option [value]="option">{{ option }}</option>
-                                  }
-                                </select>
-                              }
-                              @case ('boolean') {
-                                <input
-                                  type="checkbox"
-                                  [checked]="columnAttributeChecked(column, attr.id)"
-                                  (change)="onBooleanAttributeChange(column.name, attr, $any($event.target).checked)"
-                                  [attr.aria-label]="attr.name + ' for ' + column.name"
-                                />
-                              }
-                              @case ('number') {
-                                <input
-                                  type="number"
-                                  class="table-hub__input table-hub__input--inline"
-                                  [value]="columnAttributeText(column, attr.id)"
-                                  (change)="onAttributeValueChange(column.name, attr, $any($event.target).value)"
-                                  [attr.aria-label]="attr.name + ' for ' + column.name"
-                                />
-                              }
-                              @default {
-                                <input
-                                  class="table-hub__input table-hub__input--inline"
-                                  [value]="columnAttributeText(column, attr.id)"
-                                  (change)="onAttributeValueChange(column.name, attr, $any($event.target).value)"
-                                  [attr.aria-label]="attr.name + ' for ' + column.name"
-                                />
-                              }
+                            <input
+                              class="table-hub__input table-hub__input--inline"
+                              [value]="column.descriptionOverride ?? column.description ?? ''"
+                              (change)="saveColumnDescription(column.name, $any($event.target).value)"
+                              [attr.aria-label]="'Description for ' + column.name"
+                            />
+                            @if (column.dbtDescription) {
+                              <p class="table-hub__hint">dbt: {{ column.dbtDescription }}</p>
                             }
                           </td>
-                        }
-                        <td>
-                          @if (column.hasOverlay) {
-                            <span class="table-hub__badge">edited</span>
+                          @for (attr of attributeDefs(); track attr.id) {
+                            <td>
+                              @switch (attr.type) {
+                                @case ('enum') {
+                                  <select
+                                    class="table-hub__input table-hub__input--inline"
+                                    [value]="columnAttributeText(column, attr.id)"
+                                    (change)="onAttributeValueChange(column.name, attr, $any($event.target).value)"
+                                    [attr.aria-label]="attr.name + ' for ' + column.name"
+                                  >
+                                    <option value="">—</option>
+                                    @for (option of attr.options ?? []; track option) {
+                                      <option [value]="option">{{ option }}</option>
+                                    }
+                                  </select>
+                                }
+                                @case ('boolean') {
+                                  <input
+                                    type="checkbox"
+                                    [checked]="columnAttributeChecked(column, attr.id)"
+                                    (change)="onBooleanAttributeChange(column.name, attr, $any($event.target).checked)"
+                                    [attr.aria-label]="attr.name + ' for ' + column.name"
+                                  />
+                                }
+                                @case ('number') {
+                                  <input
+                                    type="number"
+                                    class="table-hub__input table-hub__input--inline"
+                                    [value]="columnAttributeText(column, attr.id)"
+                                    (change)="onAttributeValueChange(column.name, attr, $any($event.target).value)"
+                                    [attr.aria-label]="attr.name + ' for ' + column.name"
+                                  />
+                                }
+                                @default {
+                                  <input
+                                    class="table-hub__input table-hub__input--inline"
+                                    [value]="columnAttributeText(column, attr.id)"
+                                    (change)="onAttributeValueChange(column.name, attr, $any($event.target).value)"
+                                    [attr.aria-label]="attr.name + ' for ' + column.name"
+                                  />
+                                }
+                              }
+                            </td>
                           }
-                        </td>
-                      </tr>
-                    }
-                  </tbody>
-                </table>
+                          <td>
+                            @if (column.hasOverlay) {
+                              <span class="table-hub__badge">edited</span>
+                            }
+                          </td>
+                        </tr>
+                      }
+                    </tbody>
+                  </table>
+                </div>
               </section>
             }
 

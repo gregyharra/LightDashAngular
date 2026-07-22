@@ -300,10 +300,36 @@
                   </g>
                 }
 
-                <text class="lineage-graph__node-name" x="20" y="46" pointer-events="none">{{ node.name }}</text>
-                <text class="lineage-graph__node-meta" x="20" y="60" pointer-events="none">
-                  {{ node.schema }} · {{ node.columnCount }} cols
-                </text>
+                <foreignObject
+                  x="20"
+                  y="33"
+                  [attr.width]="nodeHeaderTextWidth(pos.width, nodeHasExpandButton(node))"
+                  height="18"
+                  pointer-events="none"
+                >
+                  <div
+                    xmlns="http://www.w3.org/1999/xhtml"
+                    class="lineage-graph__node-name"
+                    [attr.title]="node.name"
+                  >
+                    {{ node.name }}
+                  </div>
+                </foreignObject>
+                <foreignObject
+                  x="20"
+                  y="49"
+                  [attr.width]="nodeMetaTextWidth(pos.width)"
+                  height="14"
+                  pointer-events="none"
+                >
+                  <div
+                    xmlns="http://www.w3.org/1999/xhtml"
+                    class="lineage-graph__node-meta"
+                    [attr.title]="nodeMetaLabel(node)"
+                  >
+                    {{ nodeMetaLabel(node) }}
+                  </div>
+                </foreignObject>
               </g>
 
               @if (isNodeExpanded(node.id) && node.columns?.length) {

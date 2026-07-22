@@ -310,15 +310,27 @@
 }
 
 .lineage-graph__node-name {
-  fill: var(--ld-gray-9);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  margin: 0;
+  padding: 0;
+  color: var(--ld-gray-9);
   font-size: 13px;
   font-weight: 600;
+  line-height: 18px;
   pointer-events: none;
 }
 
 .lineage-graph__node-meta {
-  fill: var(--ld-gray-6);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  margin: 0;
+  padding: 0;
+  color: var(--ld-gray-6);
   font-size: 11px;
+  line-height: 14px;
   pointer-events: none;
 }
 

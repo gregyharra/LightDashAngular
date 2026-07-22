@@ -30,7 +30,8 @@
   min-width: 0;
   min-height: 0;
   padding: var(--ld-spacing-lg, 1.25rem);
-  overflow: auto;
+  overflow-x: hidden;
+  overflow-y: auto;
 }
 
 .table-hub__main:has(.table-hub__lineage) {
@@ -49,16 +50,29 @@
 }
 
 .table-hub__header {
+  container-type: inline-size;
+  container-name: table-hub-header;
   display: flex;
+  flex-wrap: wrap;
   justify-content: space-between;
   align-items: flex-start;
   gap: 1rem;
   margin-bottom: 1rem;
+  min-width: 0;
+  max-width: 100%;
+}
+
+.table-hub__header-title {
+  flex: 1 1 12rem;
+  min-width: 0;
 }
 
 .table-hub__title {
   margin: 0.25rem 0;
   font-size: 1.5rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .table-hub__meta,
@@ -69,8 +83,34 @@
   font-size: 0.875rem;
 }
 
+.table-hub__meta,
+.table-hub__path {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 .table-hub__path {
   font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+}
+
+.table-hub__explore-btn {
+  flex: 0 0 auto;
+  white-space: nowrap;
+}
+
+.table-hub__explore-label--short {
+  display: none;
+}
+
+@container table-hub-header (max-width: 420px) {
+  .table-hub__explore-label--full {
+    display: none;
+  }
+
+  .table-hub__explore-label--short {
+    display: inline;
+  }
 }
 
 .table-hub__quality {
@@ -123,6 +163,8 @@
   flex-direction: column;
   gap: 0.75rem;
   max-width: 56rem;
+  min-width: 0;
+  width: 100%;
 }
 
 .table-hub__label {
@@ -207,17 +249,28 @@
 
 .table-hub__columns-toolbar {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   justify-content: space-between;
   gap: 0.75rem;
+  min-width: 0;
 
   .table-hub__hint {
     margin: 0;
+    flex: 1;
+    min-width: 12rem;
   }
 }
 
-.table-hub__table {
+.table-hub__table-scroll {
   width: 100%;
+  min-width: 0;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.table-hub__table {
+  width: max(100%, max-content);
   border-collapse: collapse;
   font-size: 0.875rem;
 
@@ -284,7 +337,9 @@
 
 .table-hub__lineage {
   flex: 1;
+  min-width: 0;
   min-height: 0;
+  width: 100%;
   max-width: none;
   display: flex;
   flex-direction: column;
@@ -310,6 +365,7 @@
 
 .table-hub__lineage-graph {
   flex: 1;
+  min-width: 0;
   min-height: 320px;
   border: 1px solid var(--ld-gray-3, #dee2e6);
   border-radius: 8px;

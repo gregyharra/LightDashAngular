@@ -903,6 +903,23 @@ export class LineageGraphComponent implements AfterViewInit {
     return LINEAGE_NODE_HEADER_HEIGHT;
   }
 
+  protected nodeHasExpandButton(node: LineageNode): boolean {
+    return this.viewMode() === 'models' && (node.columns?.length ?? 0) > 0;
+  }
+
+  protected nodeHeaderTextWidth(nodeWidth: number, hasExpandButton: boolean): number {
+    const rightReserve = hasExpandButton ? 36 : 12;
+    return Math.max(0, nodeWidth - 20 - rightReserve);
+  }
+
+  protected nodeMetaTextWidth(nodeWidth: number): number {
+    return Math.max(0, nodeWidth - 32);
+  }
+
+  protected nodeMetaLabel(node: LineageNode): string {
+    return `${node.schema} · ${node.columnCount} cols`;
+  }
+
   protected columnTransformation(node: LineageNode, column: LineageColumn): ColumnTransformationType {
     return inferColumnTransformation(node, column, this.columnEdges(), this.nodes());
   }
