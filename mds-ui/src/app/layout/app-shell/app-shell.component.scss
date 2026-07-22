@@ -11,10 +11,13 @@
   z-index: 200;
   display: flex;
   align-items: center;
+  gap: var(--ld-spacing-xs);
   height: var(--ld-navbar-height);
+  min-width: 0;
   padding: 0 var(--ld-spacing-md);
   background-color: var(--ld-dark-0);
   box-shadow: 0 1px 0 0 var(--ld-dark-1);
+  overflow: hidden;
 }
 
 .shell__navbar-placeholder {
@@ -22,8 +25,7 @@
   flex-shrink: 0;
 }
 
-.shell__navbar-left,
-.shell__navbar-right {
+.shell__navbar-left {
   display: flex;
   align-items: center;
   gap: var(--ld-spacing-xs);
@@ -31,8 +33,12 @@
 }
 
 .shell__navbar-right {
-  margin-left: auto;
+  display: flex;
+  align-items: center;
   gap: var(--ld-spacing-sm);
+  margin-left: auto;
+  min-width: 0;
+  flex-shrink: 1;
 
   .shell__nav-group--secondary {
     margin-left: 0;
@@ -51,14 +57,31 @@
 .shell__search {
   display: flex;
   align-items: center;
-  flex: 1;
-  max-width: 480px;
+  flex: 1 1 auto;
+  min-width: 0;
+  max-width: none;
   height: 32px;
   margin: 0 var(--ld-spacing-md);
   padding: 0 var(--ld-spacing-sm);
   border: 1px solid var(--ld-dark-4);
   border-radius: var(--ld-radius-md);
   background-color: var(--ld-dark-2);
+}
+
+.shell__search-mobile-toggle,
+.shell__search-close {
+  display: none;
+}
+
+.shell__search-field {
+  display: flex;
+  align-items: center;
+  flex: 1;
+  min-width: 0;
+}
+
+.shell__search-backdrop {
+  display: none;
 }
 
 .shell__search-icon {
@@ -163,12 +186,35 @@
         }
       }
     }
+
+    .shell__nav-overflow--left {
+      background-color: var(--ld-dark-3);
+      border: 1px solid var(--ld-dark-4);
+    }
   }
 
   &--secondary {
+    min-width: 0;
+    flex-shrink: 1;
+    overflow: hidden;
+
+    .shell__nav-btn--icon {
+      flex-shrink: 0;
+    }
+
+    .shell__nav-overflow--right {
+      flex-shrink: 0;
+    }
+
+    .shell__nav-inline:not(.shell__nav-overflow):last-of-type {
+      border-top-right-radius: var(--ld-radius-md);
+      border-bottom-right-radius: var(--ld-radius-md);
+    }
+
     app-navbar-project-switcher {
       display: flex;
       min-width: 0;
+      flex-shrink: 1;
     }
   }
 }
@@ -234,6 +280,10 @@
   }
 }
 
+.shell__nav-overflow {
+  display: none;
+}
+
 .shell__content {
   min-width: 0;
   min-height: calc(100vh - var(--ld-navbar-height));
@@ -241,11 +291,11 @@
 }
 
 // ── Responsive navbar ──────────────────────────────────────────────────────
-// ≥961px: full layout (default)
-// ≤960px: hide search shortcut, shrink search
-// ≤860px: icon-only primary nav, hide Ask AI
-// ≤720px: hide search bar & help, tighten spacing
-// ≤480px: compact spacing & project switcher
+// ≥961px: full layout — search grows to fill center gap
+// ≤960px: hide search shortcut
+// ≤860px: icon-only primary nav, hide Ask AI, compact project switcher
+// ≤720px: left/right overflow menus, search fills available space
+// ≤480px: search icon + expandable overlay; icon-only project switcher
 
 @media (max-width: 960px) {
   .shell__search-shortcut {
@@ -253,7 +303,6 @@
   }
 
   .shell__search {
-    max-width: 360px;
     margin-inline: var(--ld-spacing-sm);
   }
 }
@@ -263,7 +312,7 @@
     display: none;
   }
 
-  .shell__nav-group--primary .shell__nav-btn:not(.shell__nav-btn--hide-md) {
+  .shell__nav-group--primary .shell__nav-inline:not(.shell__nav-inline--hide-md) {
     width: 30px;
     padding: 0;
 
@@ -272,12 +321,8 @@
     }
   }
 
-  .shell__nav-btn--hide-md {
+  .shell__nav-inline--hide-md {
     display: none;
-  }
-
-  .shell__search {
-    max-width: 200px;
   }
 }
 
@@ -291,15 +336,39 @@
   }
 
   .shell__search {
-    display: none;
-  }
-
-  .shell__nav-btn--hide-sm {
-    display: none;
+    flex: 1 1 auto;
+    min-width: 0;
+    max-width: none;
+    margin-inline: var(--ld-spacing-xs);
   }
 
   .shell__nav-group--primary {
     margin-left: var(--ld-spacing-xs);
+
+    .shell__nav-inline {
+      display: none;
+    }
+
+    .shell__nav-overflow--left {
+      display: inline-flex;
+      margin-left: 0;
+      border-radius: var(--ld-radius-md);
+    }
+  }
+
+  .shell__nav-group--secondary {
+    .shell__nav-inline {
+      display: none;
+    }
+
+    .shell__nav-overflow--right {
+      display: inline-flex;
+    }
+
+    .shell__nav-inline:not(.shell__nav-overflow):last-of-type {
+      border-top-right-radius: 0;
+      border-bottom-right-radius: 0;
+    }
   }
 }
 
@@ -307,5 +376,96 @@
   .shell__navbar-left,
   .shell__navbar-right {
     gap: var(--ld-spacing-xxs);
+  }
+
+  .shell__search {
+    position: relative;
+    z-index: 210;
+    flex: 0 0 30px;
+    width: 30px;
+    max-width: 30px;
+    min-width: 30px;
+    margin-inline: var(--ld-spacing-xxs);
+    padding: 0;
+    overflow: visible;
+  }
+
+  .shell__search-mobile-toggle {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 30px;
+    height: 30px;
+    padding: 0;
+    border: none;
+    border-radius: var(--ld-radius-md);
+    background: transparent;
+    color: var(--ld-dark-6);
+    cursor: pointer;
+
+    mat-icon {
+      width: 16px;
+      height: 16px;
+      font-size: 16px;
+    }
+  }
+
+  .shell__search-field {
+    display: none;
+  }
+
+  .shell__search--expanded {
+    position: fixed;
+    top: calc((var(--ld-navbar-height) - 32px) / 2);
+    left: var(--ld-spacing-sm);
+    right: calc(32px + var(--ld-spacing-sm) + var(--ld-spacing-xxs));
+    z-index: 220;
+    flex: 1 1 auto;
+    width: auto;
+    max-width: none;
+    min-width: 0;
+    margin: 0;
+    padding: 0 var(--ld-spacing-sm);
+
+    .shell__search-mobile-toggle {
+      display: none;
+    }
+
+    .shell__search-field {
+      display: flex;
+    }
+
+    .shell__search-close {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      width: 24px;
+      height: 24px;
+      margin-left: var(--ld-spacing-xs);
+      padding: 0;
+      border: none;
+      border-radius: var(--ld-radius-sm);
+      background: transparent;
+      color: var(--ld-dark-6);
+      cursor: pointer;
+
+      mat-icon {
+        width: 16px;
+        height: 16px;
+        font-size: 16px;
+      }
+    }
+  }
+
+  .shell__search-backdrop {
+    display: block;
+    position: fixed;
+    inset: 0;
+    z-index: 205;
+    padding: 0;
+    border: none;
+    background-color: rgba(0, 0, 0, 0.35);
+    cursor: pointer;
   }
 }

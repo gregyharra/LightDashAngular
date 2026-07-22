@@ -3,8 +3,10 @@
     mat-button
     class="shell__nav-btn project-switcher__trigger"
     [matMenuTriggerFor]="projectMenu"
-    aria-label="Switch project"
+    [attr.aria-label]="'Switch project: ' + active.name"
+    [attr.title]="active.name"
   >
+    <mat-icon class="project-switcher__icon">folder</mat-icon>
     <span class="project-switcher__label">{{ active.name }}</span>
     <mat-icon class="project-switcher__chevron" iconPositionEnd>expand_more</mat-icon>
   </button>
