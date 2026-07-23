@@ -7,6 +7,7 @@ from mds.services.dbt.parse import (
     _build_column_edges_for_dependency,
     _classify_expression,
     _extract_expression_refs,
+    _extract_join_key_columns,
     _infer_edge_transformation,
     _node_columns,
     _parse_select_output_columns,
@@ -787,6 +788,167 @@ def test_multi_column_arithmetic_expression_creates_edge_per_referenced_column()
     source_columns = {edge["sourceColumn"] for edge in edges}
     assert source_columns == {"amount", "tax_paid"}
     assert all(edge["transformationType"] == "derived" for edge in edges)
+
+
+def test_extract_join_key_columns_from_on_clause() -> None:
+    sql = """
+    select o.*, c.first_name
+    from {{ ref('stg_orders') }} o
+    inner join {{ ref('dim_customers') }} c on o.customer_id = c.customer_id
+    """
+    assert _extract_join_key_columns(sql) == {"customer_id"}
+
+
+def test_extract_join_key_columns_from_using_clause() -> None:
+    sql = "select a.*, b.y from {{ ref('t1') }} a join {{ ref('t2') }} b using (x)"
+    assert _extract_join_key_columns(sql) == {"x"}
+
+
+def test_extract_join_key_columns_multiple_and_conditions() -> None:
+    sql = """
+    select a.*
+    from {{ ref('t1') }} a
+    join {{ ref('t2') }} b on a.x = b.x and a.y = b.y
+    where a.z > 1
+    """
+    assert _extract_join_key_columns(sql) == {"x", "y"}
+
+
+def test_extract_join_key_columns_no_join_returns_empty() -> None:
+    assert _extract_join_key_columns("select id, amount from {{ ref('foo') }}") == set()
+
+
+def test_explicit_join_key_column_select_classified_as_join_key() -> None:
+    """customer_order_summary-style SQL: an explicitly selected join predicate
+    column (not just a passthrough) must be labeled join-key, not pass-through."""
+    dim_customers_id = "model.jaffle_shop.marts.dim_customers"
+    fct_orders_id = "model.jaffle_shop.marts.fct_orders"
+    summary_id = "model.jaffle_shop.marts.customer_order_summary"
+    summary_sql = """
+    select
+        c.customer_id,
+        c.first_name,
+        count(o.order_id) as order_count
+    from {{ ref('dim_customers') }} c
+    inner join {{ ref('fct_orders') }} o on c.customer_id = o.customer_id
+    group by 1, 2
+    """
+    artifacts = DbtArtifacts(
+        project_path=Path("/tmp"),
+        manifest_path=Path("/tmp/manifest.json"),
+        catalog_path=None,
+        manifest={
+            "nodes": {
+                dim_customers_id: {
+                    "resource_type": "model",
+                    "name": "dim_customers",
+                    "depends_on": {"nodes": []},
+                    "columns": {
+                        "customer_id": {"data_type": "bigint"},
+                        "first_name": {"data_type": "varchar"},
+                    },
+                },
+                fct_orders_id: {
+                    "resource_type": "model",
+                    "name": "fct_orders",
+                    "depends_on": {"nodes": []},
+                    "columns": {
+                        "order_id": {"data_type": "bigint"},
+                        "customer_id": {"data_type": "bigint"},
+                    },
+                },
+                summary_id: {
+                    "resource_type": "model",
+                    "name": "customer_order_summary",
+                    "depends_on": {"nodes": [dim_customers_id, fct_orders_id]},
+                    "columns": {
+                        "customer_id": {"data_type": "bigint"},
+                        "first_name": {"data_type": "varchar"},
+                        "order_count": {"data_type": "bigint"},
+                    },
+                    "raw_code": summary_sql,
+                },
+            },
+            "sources": {},
+        },
+        catalog={},
+        loaded_at=datetime.now(timezone.utc),
+    )
+
+    lineage = build_project_lineage(
+        artifacts, project_uuid="u", project_name="p", warehouse_type="trino"
+    )
+    edges = [edge for edge in lineage["columnEdges"] if edge["targetNodeId"] == summary_id]
+    by_target = {edge["targetColumn"]: edge for edge in edges}
+
+    assert by_target["customer_id"]["transformationType"] == "join-key"
+    assert by_target["customer_id"]["sourceNodeId"] == dim_customers_id
+    assert by_target["first_name"]["transformationType"] == "pass-through"
+    assert by_target["order_count"]["transformationType"] == "aggregate"
+
+
+def test_star_expanded_join_key_column_classified_as_join_key() -> None:
+    """fct_orders-style SQL: a join key brought in via ``alias.*`` star expansion
+    must still be labeled join-key rather than plain pass-through."""
+    stg_orders_id = "model.jaffle_shop.staging.stg_orders"
+    dim_customers_id = "model.jaffle_shop.marts.dim_customers"
+    fct_orders_id = "model.jaffle_shop.marts.fct_orders"
+    fct_sql = """
+    select
+        o.*,
+        c.first_name
+    from {{ ref('stg_orders') }} o
+    inner join {{ ref('dim_customers') }} c on o.customer_id = c.customer_id
+    """
+    artifacts = DbtArtifacts(
+        project_path=Path("/tmp"),
+        manifest_path=Path("/tmp/manifest.json"),
+        catalog_path=None,
+        manifest={
+            "nodes": {
+                stg_orders_id: {
+                    "resource_type": "model",
+                    "name": "stg_orders",
+                    "depends_on": {"nodes": []},
+                    "columns": {
+                        "order_id": {"data_type": "bigint"},
+                        "customer_id": {"data_type": "bigint"},
+                        "amount": {"data_type": "decimal"},
+                    },
+                },
+                dim_customers_id: {
+                    "resource_type": "model",
+                    "name": "dim_customers",
+                    "depends_on": {"nodes": []},
+                    "columns": {
+                        "customer_id": {"data_type": "bigint"},
+                        "first_name": {"data_type": "varchar"},
+                    },
+                },
+                fct_orders_id: {
+                    "resource_type": "model",
+                    "name": "fct_orders",
+                    "depends_on": {"nodes": [stg_orders_id, dim_customers_id]},
+                    "columns": {"first_name": {"data_type": "varchar"}},
+                    "raw_code": fct_sql,
+                },
+            },
+            "sources": {},
+        },
+        catalog={},
+        loaded_at=datetime.now(timezone.utc),
+    )
+
+    lineage = build_project_lineage(
+        artifacts, project_uuid="u", project_name="p", warehouse_type="trino"
+    )
+    edges = [edge for edge in lineage["columnEdges"] if edge["targetNodeId"] == fct_orders_id]
+    by_target = {edge["targetColumn"]: edge for edge in edges}
+
+    assert by_target["customer_id"]["transformationType"] == "join-key"
+    assert by_target["amount"]["transformationType"] == "pass-through"
+    assert by_target["first_name"]["transformationType"] == "pass-through"
+    assert by_target["first_name"]["sourceNodeId"] == dim_customers_id
 
 
 def test_cte_select_resolves_final_query_columns_not_inner_cte() -> None:

@@ -367,6 +367,42 @@ def _classify_expression(expr: str, ref_count: int) -> str:
     return "simple"
 
 
+_JOIN_ON_CLAUSE_PATTERN = re.compile(
+    r"\bjoin\b.*?\bon\b(.*?)(?=\bjoin\b|\bwhere\b|\bgroup\s+by\b|\border\s+by\b|\blimit\b|\bunion\b|$)",
+    re.IGNORECASE | re.DOTALL,
+)
+_JOIN_USING_CLAUSE_PATTERN = re.compile(r"\bjoin\b.*?\busing\s*\(([^)]*)\)", re.IGNORECASE | re.DOTALL)
+_AND_OR_SPLIT_PATTERN = re.compile(r"\b(?:and|or)\b", re.IGNORECASE)
+_EQUALITY_OPERATOR_PATTERN = re.compile(r"(?<![<>=!])=(?!=)")
+
+
+def _extract_join_key_columns(sql: str) -> set[str]:
+    """Best-effort column names used as equality join keys in ``JOIN ... ON``/``USING`` clauses."""
+    text = _strip_sql_noise(sql)
+    keys: set[str] = set()
+
+    for match in _JOIN_USING_CLAUSE_PATTERN.finditer(text):
+        for col in match.group(1).split(","):
+            name = col.strip().strip("`\"")
+            if name:
+                keys.add(name.lower())
+
+    for match in _JOIN_ON_CLAUSE_PATTERN.finditer(text):
+        on_clause = match.group(1)
+        for condition in _AND_OR_SPLIT_PATTERN.split(on_clause):
+            eq_matches = list(_EQUALITY_OPERATOR_PATTERN.finditer(condition))
+            if len(eq_matches) != 1:
+                continue
+            split_at = eq_matches[0].start()
+            left_refs = _extract_expression_refs(condition[:split_at])
+            right_refs = _extract_expression_refs(condition[split_at + 1 :])
+            if len(left_refs) == 1 and len(right_refs) == 1:
+                keys.add(left_refs[0][1].lower())
+                keys.add(right_refs[0][1].lower())
+
+    return keys
+
+
 def _find_upstream_column(
     artifacts: DbtArtifacts,
     dep_id: str,
@@ -862,8 +898,10 @@ def _build_column_edges(
     lineage_nodes: list[dict[str, Any]],
     edges: list[dict[str, str]],
     column_lineage: dict[str, dict[str, dict[str, Any]]] | None = None,
+    join_keys_by_node: dict[str, set[str]] | None = None,
 ) -> list[dict[str, Any]]:
     column_lineage = column_lineage or {}
+    join_keys_by_node = join_keys_by_node or {}
     nodes_by_id = {node["id"]: node for node in lineage_nodes}
     upstream_by_target: dict[str, list[str]] = {}
     for edge in edges:
@@ -882,6 +920,13 @@ def _build_column_edges(
         if key in seen:
             return
         seen.add(key)
+        # A pass-through column that also drives the model's own JOIN ON/USING
+        # predicate is more useful labeled as a join key than a plain pass-through.
+        join_keys = join_keys_by_node.get(edge["targetNodeId"])
+        if join_keys and edge.get("transformationType") == "pass-through" and (
+            edge["targetColumn"].lower() in join_keys or edge["sourceColumn"].lower() in join_keys
+        ):
+            edge = {**edge, "transformationType": "join-key"}
         column_edges.append(edge)
 
     for target_id, source_ids in upstream_by_target.items():
@@ -1043,6 +1088,7 @@ def build_project_lineage(
     column_cache: _ColumnCache = {}
     resolving: set[str] = set()
     column_lineage: dict[str, dict[str, dict[str, Any]]] = {}
+    join_keys_by_node: dict[str, set[str]] = {}
 
     for node_id, node in _iter_manifest_nodes(artifacts):
         resource_type = node.get("resource_type")
@@ -1086,6 +1132,9 @@ def build_project_lineage(
         sql = _node_raw_sql(artifacts, node)
         if sql:
             lineage_node["sql"] = sql
+            join_keys = _extract_join_key_columns(sql)
+            if join_keys:
+                join_keys_by_node[node_id] = join_keys
         compiled_sql = _node_compiled_sql(artifacts, node)
         if compiled_sql:
             lineage_node["compiledSql"] = compiled_sql
@@ -1095,7 +1144,7 @@ def build_project_lineage(
             edges.append({"source": dependency, "target": node_id})
 
     metadata = artifacts.metadata
-    column_edges = _build_column_edges(lineage_nodes, edges, column_lineage)
+    column_edges = _build_column_edges(lineage_nodes, edges, column_lineage, join_keys_by_node)
     result: dict[str, Any] = {
         "projectUuid": project_uuid,
         "projectName": project_name,

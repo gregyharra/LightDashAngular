@@ -131,11 +131,11 @@ export function inferColumnTransformation(
   }
 
   if (incoming.length > 1) {
+    // Backend classification (aggregate/coalesce/cast/derived/join-key/...) is per
+    // target-column expression, so every ref edge for this column carries the same
+    // explicit type — trust it instead of re-deriving from the raw edge shape.
     const explicit = incoming.find((edge) => edge.transformationType)?.transformationType;
-    if (explicit === 'coalesce' || explicit === 'join-key') {
-      return explicit;
-    }
-    return 'derived';
+    return explicit ?? 'derived';
   }
 
   return inferFromEdge(incoming[0], column, nodes);
