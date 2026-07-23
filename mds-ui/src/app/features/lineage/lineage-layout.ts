@@ -15,7 +15,8 @@ const TYPE_MIN_LAYER: Record<LineageNodeType, number> = {
   source: 0,
   seed: 0,
   staging: 1,
-  mart: 2,
+  intermediate: 2,
+  mart: 3,
 };
 
 const NODE_GAP_Y = 28;

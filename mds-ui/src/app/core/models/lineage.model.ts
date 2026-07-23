@@ -1,4 +1,4 @@
-export type LineageNodeType = 'source' | 'staging' | 'mart' | 'seed';
+export type LineageNodeType = 'source' | 'staging' | 'intermediate' | 'mart' | 'seed';
 
 export type LineageViewMode = 'models' | 'columns';
 

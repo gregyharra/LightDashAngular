@@ -8,21 +8,116 @@ import {
 export const LINEAGE_NODE_HEADER_HEIGHT = 72;
 export const LINEAGE_COLUMN_ROW_HEIGHT = 24;
 export const LINEAGE_NODE_WIDTH = 220;
+/** Max column rows shown at once inside an expanded node (body scrolls past this). */
+export const LINEAGE_MAX_VISIBLE_COLUMNS = 8;
+/** Bottom padding inside the column body below the last visible row. */
+export const LINEAGE_COLUMN_BODY_PADDING = 8;
+
+export function getColumnBodyContentHeight(columnCount: number): number {
+  if (columnCount <= 0) {
+    return 0;
+  }
+  const visible = Math.min(columnCount, LINEAGE_MAX_VISIBLE_COLUMNS);
+  return visible * LINEAGE_COLUMN_ROW_HEIGHT;
+}
+
+export function getColumnBodyHeight(columnCount: number): number {
+  const content = getColumnBodyContentHeight(columnCount);
+  return content === 0 ? 0 : content + LINEAGE_COLUMN_BODY_PADDING;
+}
 
 export function getExpandedNodeHeight(node: LineageNode): number {
   const columnCount = node.columns?.length ?? 0;
   if (columnCount === 0) {
     return LINEAGE_NODE_HEADER_HEIGHT;
   }
-  return LINEAGE_NODE_HEADER_HEIGHT + columnCount * LINEAGE_COLUMN_ROW_HEIGHT + 8;
+  return LINEAGE_NODE_HEADER_HEIGHT + getColumnBodyHeight(columnCount);
 }
 
-export function getColumnY(nodePos: { y: number }, columnIndex: number): number {
-  return nodePos.y + LINEAGE_NODE_HEADER_HEIGHT + columnIndex * LINEAGE_COLUMN_ROW_HEIGHT + LINEAGE_COLUMN_ROW_HEIGHT / 2;
+export function getMaxColumnScrollTop(columnCount: number): number {
+  const content = getColumnBodyContentHeight(columnCount);
+  const total = columnCount * LINEAGE_COLUMN_ROW_HEIGHT;
+  return Math.max(0, total - content);
+}
+
+/**
+ * Pin selected / highlighted columns to the top so a capped scrollable list
+ * never hides the columns the user is tracing.
+ */
+export function orderColumnsForDisplay(
+  columns: LineageColumn[],
+  nodeId: string,
+  options: {
+    selectedColumnName?: string | null;
+    highlightedKeys?: ReadonlySet<string>;
+  } = {},
+): LineageColumn[] {
+  if (columns.length === 0) {
+    return [];
+  }
+
+  const { selectedColumnName = null, highlightedKeys } = options;
+  const priority = new Map<string, number>();
+
+  for (const col of columns) {
+    const key = columnRefKey(nodeId, col.name);
+    let rank = 2;
+    if (selectedColumnName && col.name === selectedColumnName) {
+      rank = 0;
+    } else if (highlightedKeys?.has(key)) {
+      rank = 1;
+    }
+    priority.set(col.name, rank);
+  }
+
+  return [...columns].sort((a, b) => {
+    const rankDiff = (priority.get(a.name) ?? 2) - (priority.get(b.name) ?? 2);
+    if (rankDiff !== 0) {
+      return rankDiff;
+    }
+    return 0;
+  });
 }
 
 export function columnRefKey(nodeId: string, columnName: string): string {
   return `${nodeId}::${columnName}`;
+}
+
+export function getColumnY(nodePos: { y: number }, columnIndex: number): number {
+  return (
+    nodePos.y +
+    LINEAGE_NODE_HEADER_HEIGHT +
+    columnIndex * LINEAGE_COLUMN_ROW_HEIGHT +
+    LINEAGE_COLUMN_ROW_HEIGHT / 2
+  );
+}
+
+/**
+ * Column-edge anchor Y. When the column row is scrolled out of the capped
+ * window, fall back to the node header center so edges stay attached.
+ */
+export function getColumnAnchorY(
+  nodePos: { y: number },
+  displayIndex: number,
+  scrollTop: number,
+  columnCount: number,
+): number {
+  const bodyContentHeight = getColumnBodyContentHeight(columnCount);
+  if (bodyContentHeight <= 0 || displayIndex < 0) {
+    return nodePos.y + LINEAGE_NODE_HEADER_HEIGHT / 2;
+  }
+
+  const rowTop = displayIndex * LINEAGE_COLUMN_ROW_HEIGHT;
+  const rowBottom = rowTop + LINEAGE_COLUMN_ROW_HEIGHT;
+  const visibleTop = scrollTop;
+  const visibleBottom = scrollTop + bodyContentHeight;
+
+  if (rowBottom > visibleTop && rowTop < visibleBottom) {
+    const yInBody = rowTop - scrollTop + LINEAGE_COLUMN_ROW_HEIGHT / 2;
+    return nodePos.y + LINEAGE_NODE_HEADER_HEIGHT + yInBody;
+  }
+
+  return nodePos.y + LINEAGE_NODE_HEADER_HEIGHT / 2;
 }
 
 export function columnEdgeKey(edge: ColumnLineageEdge): string {
@@ -208,8 +303,27 @@ export function buildColumnEdgePaths(
   columnEdges: ColumnLineageEdge[],
   positions: Map<string, { x: number; y: number; width: number; height: number }>,
   nodes: LineageNode[],
+  options: {
+    scrollTops?: ReadonlyMap<string, number>;
+    selectedColumn?: { nodeId: string; columnName: string } | null;
+    highlightedKeys?: ReadonlySet<string>;
+  } = {},
 ): ColumnEdgePath[] {
   const nodeById = new Map(nodes.map((n) => [n.id, n]));
+  const orderedByNode = new Map<string, LineageColumn[]>();
+  const { scrollTops, selectedColumn = null, highlightedKeys } = options;
+
+  for (const node of nodes) {
+    const cols = node.columns ?? [];
+    orderedByNode.set(
+      node.id,
+      orderColumnsForDisplay(cols, node.id, {
+        selectedColumnName:
+          selectedColumn?.nodeId === node.id ? selectedColumn.columnName : null,
+        highlightedKeys,
+      }),
+    );
+  }
 
   return columnEdges
     .map((edge) => {
@@ -222,17 +336,32 @@ export function buildColumnEdgePaths(
         return null;
       }
 
-      const sourceIdx = getColumnIndex(sourceNode, edge.sourceColumn);
-      const targetIdx = getColumnIndex(targetNode, edge.targetColumn);
+      const sourceOrdered = orderedByNode.get(edge.sourceNodeId) ?? [];
+      const targetOrdered = orderedByNode.get(edge.targetNodeId) ?? [];
+      const sourceIdx = sourceOrdered.findIndex((col) => col.name === edge.sourceColumn);
+      const targetIdx = targetOrdered.findIndex((col) => col.name === edge.targetColumn);
 
       if (sourceIdx < 0 || targetIdx < 0) {
         return null;
       }
 
+      const sourceScroll = scrollTops?.get(edge.sourceNodeId) ?? 0;
+      const targetScroll = scrollTops?.get(edge.targetNodeId) ?? 0;
+
       const startX = sourcePos.x + sourcePos.width;
-      const startY = getColumnY(sourcePos, sourceIdx);
+      const startY = getColumnAnchorY(
+        sourcePos,
+        sourceIdx,
+        sourceScroll,
+        sourceOrdered.length,
+      );
       const endX = targetPos.x;
-      const endY = getColumnY(targetPos, targetIdx);
+      const endY = getColumnAnchorY(
+        targetPos,
+        targetIdx,
+        targetScroll,
+        targetOrdered.length,
+      );
       const controlOffset = Math.max(40, (endX - startX) * 0.45);
 
       const path = `M ${startX} ${startY} C ${startX + controlOffset} ${startY}, ${endX - controlOffset} ${endY}, ${endX} ${endY}`;

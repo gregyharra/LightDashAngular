@@ -323,6 +323,8 @@ export class LineageDetailPanelComponent {
         return 'Source';
       case 'staging':
         return 'Staging';
+      case 'intermediate':
+        return 'Intermediate';
       case 'mart':
         return 'Mart';
       case 'seed':

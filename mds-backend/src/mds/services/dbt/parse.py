@@ -27,12 +27,16 @@ def _infer_lineage_type(node_id: str, node: dict[str, Any]) -> LineageNodeType:
     tags = {str(tag).lower() for tag in node.get("tags") or []}
     if "staging" in tags:
         return "staging"
+    if "intermediate" in tags:
+        return "intermediate"
     if "mart" in tags:
         return "mart"
 
     path = (node.get("original_file_path") or node.get("path") or "").lower()
     if "/staging/" in path or path.startswith("staging/"):
         return "staging"
+    if "/intermediate/" in path or path.startswith("intermediate/"):
+        return "intermediate"
     if "/marts/" in path or path.startswith("marts/"):
         return "mart"
     return "mart"

@@ -13,11 +13,10 @@ import {
   ProjectLineage,
   SelectedColumnRef,
 } from '../../../core/models/lineage.model';
-import { UNLIMITED_HOP_DEPTH } from '../lineage-focus-utils';
+import { FolderSearchPanelComponent } from '../folder-search-panel/folder-search-panel.component';
 import { LineageService } from '../lineage.service';
 import { LineageGraphComponent } from '../lineage-graph/lineage-graph.component';
 import { LineageDetailPanelComponent } from '../lineage-detail-panel/lineage-detail-panel.component';
-import { FolderSearchPanelComponent } from '../folder-search-panel/folder-search-panel.component';
 import { findTreeNodeByLineageId } from '../dbt-tree-utils';
 import { ResizableSidebarDirective } from '../../../layout/resizable-sidebar/resizable-sidebar.directive';
 
@@ -50,7 +49,7 @@ export class LineagePageComponent {
   protected readonly selectedColumn = signal<SelectedColumnRef | null>(null);
   protected readonly viewMode = signal<LineageViewMode>('models');
   protected readonly graphMode = signal<LineageGraphMode>('focus');
-  protected readonly hopDepth = signal<LineageHopDepth>(UNLIMITED_HOP_DEPTH);
+  protected readonly hopDepth = signal<LineageHopDepth>(2);
   protected readonly requestedDetailTab = signal<LineageDetailTab | null>(null);
 
   protected readonly selectedNode = computed(() => {
@@ -102,7 +101,7 @@ export class LineagePageComponent {
     this.selectedColumn.set(null);
     this.viewMode.set('models');
     this.graphMode.set('focus');
-    this.hopDepth.set(UNLIMITED_HOP_DEPTH);
+    this.hopDepth.set(2);
 
     this.lineageService.getProjectLineage(projectUuid).subscribe({
       next: (lineage) => {

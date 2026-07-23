@@ -107,6 +107,39 @@
 
     <div class="lineage-graph__toolbar-divider" aria-hidden="true"></div>
 
+    <div class="lineage-graph__toolbar-group lineage-graph__toolbar-group--search">
+      <div class="lineage-graph__node-search">
+        <mat-icon class="lineage-graph__node-search-icon" aria-hidden="true">search</mat-icon>
+        <input
+          type="search"
+          class="lineage-graph__node-search-input"
+          placeholder="Find model…"
+          aria-label="Find model"
+          [value]="nodeSearchQuery()"
+          (input)="onNodeSearchInput($event)"
+          (focus)="onNodeSearchFocus()"
+          (blur)="onNodeSearchBlur()"
+        />
+        @if (nodeSearchOpen() && nodeSearchMatches().length) {
+          <ul class="lineage-graph__node-search-results" role="listbox">
+            @for (match of nodeSearchMatches(); track match.id) {
+              <li>
+                <button
+                  type="button"
+                  class="lineage-graph__node-search-option"
+                  (mousedown)="selectSearchResult(match)"
+                >
+                  {{ match.name }}
+                </button>
+              </li>
+            }
+          </ul>
+        }
+      </div>
+    </div>
+
+    <div class="lineage-graph__toolbar-divider" aria-hidden="true"></div>
+
     <div class="lineage-graph__toolbar-group lineage-graph__toolbar-group--zoom">
       <button type="button" class="lineage-graph__tool-btn" (click)="zoomOut()" aria-label="Zoom out" title="Zoom out">
         −
@@ -346,75 +379,107 @@
                     [attr.y2]="headerHeight()"
                   />
 
-                  @for (col of node.columns; track col.name; let i = $index) {
-                    <g
-                      class="lineage-graph__column-row"
-                      [class.lineage-graph__column-row--highlight]="isColumnPathHighlighted(node.id, col.name)"
-                      [class.lineage-graph__column-row--selected]="isColumnSelected(node.id, col.name)"
-                      [class.lineage-graph__column-row--dimmed]="isColumnDimmed(node.id, col.name) || isColumnFilteredOut(node, col)"
-                      [attr.transform]="'translate(0, ' + (headerHeight() + i * columnRowHeight()) + ')'"
-                      (pointerdown)="onColumnPointerDown($event)"
-                      (pointerup)="onColumnPointerUp(node.id, col.name, $event)"
-                      role="button"
-                      tabindex="0"
-                      [attr.aria-label]="'Select column ' + col.name + ' on ' + node.name"
-                      (keydown.enter)="selectColumn(node.id, col.name, $event)"
-                    >
-                      <title>Select {{ col.name }} ({{ col.type }}) — {{ transformationChipTitle(columnTransformation(node, col)) }}</title>
+                  <defs>
+                    <clipPath [attr.id]="columnClipPathId(node.id)">
                       <rect
-                        class="lineage-graph__column-bg"
-                        x="8"
-                        y="0"
-                        [attr.width]="pos.width - 16"
-                        [attr.height]="columnRowHeight()"
-                        rx="4"
+                        x="0"
+                        [attr.y]="headerHeight()"
+                        [attr.width]="pos.width"
+                        [attr.height]="columnBodyContentHeight(node)"
                       />
-                      <circle class="lineage-graph__column-dot" cx="18" [attr.cy]="columnRowHeight() / 2" r="3" />
-                      <text class="lineage-graph__column-name" x="28" [attr.y]="columnRowHeight() / 2 + 4">{{ col.name }}</text>
-                      @if (columnTransformation(node, col); as transformType) {
-                        <g class="lineage-graph__column-transform">
+                    </clipPath>
+                  </defs>
+
+                  <g
+                    class="lineage-graph__node-columns-clip"
+                    [attr.clip-path]="'url(#' + columnClipPathId(node.id) + ')'"
+                    (wheel)="onColumnBodyWheel(node.id, node, $event)"
+                  >
+                    <!-- Hit target so wheel events land on the clipped column body. -->
+                    <rect
+                      class="lineage-graph__node-columns-hit"
+                      x="0"
+                      [attr.y]="headerHeight()"
+                      [attr.width]="pos.width"
+                      [attr.height]="columnBodyContentHeight(node)"
+                      fill="transparent"
+                    />
+                    <g
+                      [attr.transform]=
+                        "'translate(0, ' + (headerHeight() - columnScrollTop(node.id)) + ')'"
+                    >
+                      @for (col of displayColumns(node); track col.name; let i = $index) {
+                        <g
+                          class="lineage-graph__column-row"
+                          [class.lineage-graph__column-row--highlight]="isColumnPathHighlighted(node.id, col.name)"
+                          [class.lineage-graph__column-row--selected]="isColumnSelected(node.id, col.name)"
+                          [class.lineage-graph__column-row--dimmed]="isColumnDimmed(node.id, col.name) || isColumnFilteredOut(node, col)"
+                          [attr.transform]="'translate(0, ' + (i * columnRowHeight()) + ')'"
+                          (pointerdown)="onColumnPointerDown($event)"
+                          (pointerup)="onColumnPointerUp(node.id, col.name, $event)"
+                          role="button"
+                          tabindex="0"
+                          [attr.aria-label]="'Select column ' + col.name + ' on ' + node.name"
+                          (keydown.enter)="selectColumn(node.id, col.name, $event)"
+                        >
+                          <title>Select {{ col.name }} ({{ col.type }}) — {{ transformationChipTitle(columnTransformation(node, col)) }}</title>
                           <rect
-                            class="lineage-graph__column-transform-chip"
-                            [attr.x]="transformChipX(pos.width, transformType)"
-                            y="5"
-                            [attr.width]="transformChipW(transformType)"
-                            [attr.height]="transformChipH()"
-                            [attr.rx]="transformChipH() / 2"
-                            [attr.fill]="transformChipFill(transformType)"
-                            [attr.stroke]="transformChipStroke(transformType)"
+                            class="lineage-graph__column-bg"
+                            x="8"
+                            y="0"
+                            [attr.width]="pos.width - 16"
+                            [attr.height]="columnRowHeight()"
+                            rx="4"
                           />
+                          <circle class="lineage-graph__column-dot" cx="18" [attr.cy]="columnRowHeight() / 2" r="3" />
+                          <text class="lineage-graph__column-name" x="28" [attr.y]="columnRowHeight() / 2 + 4">{{ col.name }}</text>
+                          @if (columnTransformation(node, col); as transformType) {
+                            <g class="lineage-graph__column-transform">
+                              <rect
+                                class="lineage-graph__column-transform-chip"
+                                [attr.x]="transformChipX(pos.width, transformType)"
+                                y="5"
+                                [attr.width]="transformChipW(transformType)"
+                                [attr.height]="transformChipH()"
+                                [attr.rx]="transformChipH() / 2"
+                                [attr.fill]="transformChipFill(transformType)"
+                                [attr.stroke]="transformChipStroke(transformType)"
+                              />
+                              <text
+                                class="lineage-graph__column-transform-text"
+                                [class.lineage-graph__column-transform-text--compact]="transformationChipMode() === 'compact'"
+                                [attr.x]="transformChipX(pos.width, transformType) + transformChipW(transformType) / 2"
+                                [attr.y]="columnRowHeight() / 2 + 3"
+                                text-anchor="middle"
+                                [attr.fill]="transformChipTextFill(transformType)"
+                              >
+                                {{ transformationChipText(transformType) }}
+                              </text>
+                            </g>
+                          }
                           <text
-                            class="lineage-graph__column-transform-text"
-                            [class.lineage-graph__column-transform-text--compact]="transformationChipMode() === 'compact'"
-                            [attr.x]="transformChipX(pos.width, transformType) + transformChipW(transformType) / 2"
-                            [attr.y]="columnRowHeight() / 2 + 3"
-                            text-anchor="middle"
-                            [attr.fill]="transformChipTextFill(transformType)"
+                            class="lineage-graph__column-type"
+                            [attr.x]="columnTypeX(pos.width, columnTransformation(node, col))"
+                            [attr.y]="columnRowHeight() / 2 + 4"
+                            text-anchor="end"
                           >
-                            {{ transformationChipText(transformType) }}
+                            {{ col.type }}
                           </text>
                         </g>
                       }
-                      <text
-                        class="lineage-graph__column-type"
-                        [attr.x]="columnTypeX(pos.width, columnTransformation(node, col))"
-                        [attr.y]="columnRowHeight() / 2 + 4"
-                        text-anchor="end"
-                      >
-                        {{ col.type }}
-                      </text>
                     </g>
-                  }
+                  </g>
 
-                  <rect
-                    class="lineage-graph__node-body-hit"
-                    x="0"
-                    [attr.y]="headerHeight() + (node.columns!.length * columnRowHeight())"
-                    [attr.width]="pos.width"
-                    [attr.height]="pos.height - headerHeight() - (node.columns!.length * columnRowHeight())"
-                    fill="transparent"
-                    pointer-events="all"
-                  />
+                  @if (hasColumnOverflow(node)) {
+                    <text
+                      class="lineage-graph__column-scroll-hint"
+                      [attr.x]="pos.width / 2"
+                      [attr.y]="pos.height - 2"
+                      text-anchor="middle"
+                    >
+                      scroll for {{ overflowColumnCount(node) }} more
+                    </text>
+                  }
                 </g>
               }
             </g>
@@ -423,7 +488,41 @@
       </svg>
     </div>
 
-    <div class="lineage-graph__minimap" aria-hidden="true">
+    @if (showDensityWarning()) {
+      <div class="lineage-graph__density-banner" role="status">
+        <span>
+          Showing {{ densityModelCount() }} models at low zoom
+        </span>
+        <div class="lineage-graph__density-banner-actions">
+          @if (selectedNodeId()) {
+            <button type="button" class="lineage-graph__density-banner-btn" (click)="narrowToDefaultHops()">
+              Narrow to 2 hops
+            </button>
+          } @else {
+            <span class="lineage-graph__density-banner-hint">Select a model to narrow focus</span>
+          }
+          <button
+            type="button"
+            class="lineage-graph__density-banner-btn lineage-graph__density-banner-btn--ghost"
+            (click)="dismissDensityWarning()"
+            aria-label="Dismiss"
+          >
+            Dismiss
+          </button>
+        </div>
+      </div>
+    }
+
+    <div
+      class="lineage-graph__minimap"
+      (pointerdown)="onMinimapPointerDown($event)"
+      (pointermove)="onMinimapPointerMove($event)"
+      (pointerup)="onMinimapPointerUp($event)"
+      (pointercancel)="onMinimapPointerUp($event)"
+      role="slider"
+      aria-label="Lineage minimap"
+      title="Drag to pan"
+    >
       <svg
         [attr.width]="bounds().width * minimapScale()"
         [attr.height]="bounds().height * minimapScale()"
@@ -460,6 +559,7 @@
         <span class="lineage-graph__legend-item lineage-graph__legend-item--source">Source</span>
         <span class="lineage-graph__legend-item lineage-graph__legend-item--seed">Seed</span>
         <span class="lineage-graph__legend-item lineage-graph__legend-item--staging">Staging</span>
+        <span class="lineage-graph__legend-item lineage-graph__legend-item--intermediate">Intermediate</span>
         <span class="lineage-graph__legend-item lineage-graph__legend-item--mart">Mart</span>
         @if (viewMode() === 'columns' || hasColumnFocus()) {
           <span class="lineage-graph__legend-item lineage-graph__legend-item--column-edge">Column lineage</span>

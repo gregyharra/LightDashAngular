@@ -32,7 +32,6 @@ import {
 } from '../../../core/models/lineage.model';
 import { FolderSearchPanelComponent } from '../../lineage/folder-search-panel/folder-search-panel.component';
 import { LineageGraphComponent } from '../../lineage/lineage-graph/lineage-graph.component';
-import { UNLIMITED_HOP_DEPTH } from '../../lineage/lineage-focus-utils';
 import { LineageService } from '../../lineage/lineage.service';
 import { ResizableSidebarDirective } from '../../../layout/resizable-sidebar/resizable-sidebar.directive';
 import { DictionaryService } from '../dictionary.service';
@@ -140,7 +139,7 @@ export class TableHubPageComponent {
   protected readonly sqlViewMode = signal<ModelSqlViewMode>('compiled');
   protected readonly lineageViewMode = signal<LineageViewMode>('models');
   protected readonly lineageGraphMode = signal<LineageGraphMode>('focus');
-  protected readonly lineageHopDepth = signal<LineageHopDepth>(UNLIMITED_HOP_DEPTH);
+  protected readonly lineageHopDepth = signal<LineageHopDepth>(2);
   protected readonly selectedColumn = signal<SelectedColumnRef | null>(null);
   protected readonly showAddAttribute = signal(false);
   protected readonly columnFilters = signal<ColumnsTableFilters>(createEmptyColumnsTableFilters());

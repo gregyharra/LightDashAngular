@@ -451,8 +451,14 @@
   border-radius: var(--ld-radius-sm);
   background: rgba(255, 255, 255, 0.92);
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
-  pointer-events: none;
-  opacity: 0.9;
+  cursor: grab;
+  opacity: 0.95;
+  z-index: 2;
+  touch-action: none;
+
+  &:active {
+    cursor: grabbing;
+  }
 }
 
 .lineage-graph__minimap-viewport {
@@ -460,6 +466,141 @@
   stroke: var(--ld-brand);
   stroke-width: 8;
   vector-effect: non-scaling-stroke;
+  pointer-events: none;
+}
+
+.lineage-graph__density-banner {
+  position: absolute;
+  left: 12px;
+  top: 12px;
+  z-index: 3;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 12px;
+  max-width: min(420px, calc(100% - 24px));
+  padding: 8px 10px;
+  border: 1px solid var(--ld-gray-3);
+  border-radius: var(--ld-radius-sm);
+  background: rgba(255, 255, 255, 0.96);
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
+  font-size: var(--ld-font-size-xs);
+  color: var(--ld-gray-8);
+}
+
+.lineage-graph__density-banner-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+}
+
+.lineage-graph__density-banner-hint {
+  color: var(--ld-gray-6);
+}
+
+.lineage-graph__density-banner-btn {
+  border: 1px solid var(--ld-brand);
+  border-radius: var(--ld-radius-sm);
+  background: var(--ld-brand);
+  color: #fff;
+  font: inherit;
+  font-size: var(--ld-font-size-xs);
+  font-weight: 600;
+  padding: 4px 8px;
+  cursor: pointer;
+  white-space: nowrap;
+
+  &--ghost {
+    border-color: var(--ld-gray-3);
+    background: transparent;
+    color: var(--ld-gray-7);
+  }
+}
+
+.lineage-graph__node-search {
+  position: relative;
+  display: flex;
+  align-items: center;
+  min-width: 0;
+  width: min(180px, 28vw);
+}
+
+.lineage-graph__node-search-icon {
+  position: absolute;
+  left: 6px;
+  width: 16px;
+  height: 16px;
+  font-size: 16px;
+  line-height: 16px;
+  color: var(--ld-gray-5);
+  pointer-events: none;
+}
+
+.lineage-graph__node-search-input {
+  width: 100%;
+  height: 28px;
+  padding: 0 8px 0 26px;
+  border: 1px solid var(--ld-gray-3);
+  border-radius: var(--ld-radius-sm);
+  background: var(--ld-background);
+  color: var(--ld-gray-8);
+  font: inherit;
+  font-size: var(--ld-font-size-xs);
+  min-width: 0;
+
+  &::placeholder {
+    color: var(--ld-gray-5);
+  }
+
+  &:focus {
+    outline: none;
+    border-color: var(--ld-brand);
+  }
+}
+
+.lineage-graph__node-search-results {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  right: 0;
+  z-index: 5;
+  margin: 0;
+  padding: 4px 0;
+  list-style: none;
+  border: 1px solid var(--ld-gray-3);
+  border-radius: var(--ld-radius-sm);
+  background: #fff;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
+  max-height: 220px;
+  overflow-y: auto;
+}
+
+.lineage-graph__node-search-option {
+  display: block;
+  width: 100%;
+  padding: 6px 10px;
+  border: none;
+  background: transparent;
+  color: var(--ld-gray-8);
+  font: inherit;
+  font-size: var(--ld-font-size-xs);
+  text-align: left;
+  cursor: pointer;
+
+  &:hover {
+    background: var(--ld-gray-1);
+  }
+}
+
+.lineage-graph__column-scroll-hint {
+  fill: var(--ld-gray-5);
+  font-size: 8px;
+  pointer-events: none;
+}
+
+.lineage-graph__node-columns-clip {
+  pointer-events: all;
 }
 
 .lineage-graph__legend {
@@ -528,6 +669,10 @@
 
   &--staging::before {
     background: #f59f00;
+  }
+
+  &--intermediate::before {
+    background: #e64980;
   }
 
   &--mart::before {

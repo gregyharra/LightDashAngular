@@ -29,8 +29,12 @@ import {
   buildColumnEdgePaths,
   columnRefKey,
   computeColumnLineageHighlight,
+  getColumnBodyContentHeight,
   getExpandedNodeHeight,
+  getMaxColumnScrollTop,
   getNodeIdsFromColumnKeys,
+  LINEAGE_MAX_VISIBLE_COLUMNS,
+  orderColumnsForDisplay,
 } from '../lineage-column-utils';
 import {
   buildEdgePaths,
@@ -56,12 +60,16 @@ import { TransformationLegendComponent } from '../transformation-legend/transfor
 const NODE_COLORS: Record<string, { fill: string; stroke: string; badge: string }> = {
   source: { fill: '#edf2ff', stroke: '#748ffc', badge: '#4263eb' },
   staging: { fill: '#fff9db', stroke: '#fcc419', badge: '#f59f00' },
+  intermediate: { fill: '#fff0f6', stroke: '#f783ac', badge: '#e64980' },
   mart: { fill: '#e6fcf5', stroke: '#38d9a9', badge: '#12b886' },
   seed: { fill: '#f3f0ff', stroke: '#b197fc', badge: '#7950f2' },
 };
 
 const MIN_ZOOM = 0.2;
 const MAX_ZOOM = 2.5;
+/** Below this fit scale, show a density warning instead of silently crushing the graph. */
+const DENSITY_WARN_ZOOM = 0.35;
+const DEFAULT_HOP_DEPTH = 2;
 const DRAG_THRESHOLD_PX = 4;
 const SNAP_GRID = 8;
 /** Distance (screen px) from a canvas edge at which node-drag auto-panning kicks in. */
@@ -130,6 +138,12 @@ export class LineageGraphComponent implements AfterViewInit {
   protected readonly draggingNodeId = signal<string | null>(null);
   protected readonly transformationChipMode = signal<TransformationChipMode>('compact');
   protected readonly transformationFilter = signal<ColumnTransformationType | null>(null);
+  /** Per-node scroll offset (px) for the capped column list. */
+  protected readonly columnScrollTops = signal<Map<string, number>>(new Map());
+  protected readonly nodeSearchQuery = signal('');
+  protected readonly nodeSearchOpen = signal(false);
+  protected readonly showDensityWarning = signal(false);
+  protected readonly densityModelCount = signal(0);
 
   private panStartX = 0;
   private panStartY = 0;
@@ -148,6 +162,8 @@ export class LineageGraphComponent implements AfterViewInit {
   private lastPointerClientX = 0;
   private lastPointerClientY = 0;
   private autoPanRafId: number | null = null;
+  private minimapDragging = false;
+  private minimapPointerId: number | null = null;
 
   protected readonly positions = computed(() => {
     this.layoutRevision();
@@ -195,7 +211,16 @@ export class LineageGraphComponent implements AfterViewInit {
       return [];
     }
 
-    const allPaths = buildColumnEdgePaths(this.columnEdges(), this.positions(), this.displayNodes());
+    const allPaths = buildColumnEdgePaths(
+      this.columnEdges(),
+      this.positions(),
+      this.displayNodes(),
+      {
+        scrollTops: this.columnScrollTops(),
+        selectedColumn,
+        highlightedKeys: highlight.columnKeys,
+      },
+    );
 
     if (selectedColumn) {
       return allPaths.filter((item) => highlight.edgeKeys.has(item.key));
@@ -305,10 +330,20 @@ export class LineageGraphComponent implements AfterViewInit {
     const zoom = this.zoom();
     const viewWidth = canvas.clientWidth / zoom;
     const viewHeight = canvas.clientHeight / zoom;
-    const viewX = -this.panX() / zoom;
-    const viewY = -this.panY() / zoom;
+    const viewX = -this.panX() / zoom - bounds.minX;
+    const viewY = -this.panY() / zoom - bounds.minY;
 
     return { x: viewX, y: viewY, width: viewWidth, height: viewHeight };
+  });
+
+  protected readonly nodeSearchMatches = computed(() => {
+    const query = this.nodeSearchQuery().trim().toLowerCase();
+    if (!query) {
+      return [] as LineageNode[];
+    }
+    return this.displayNodes()
+      .filter((node) => node.name.toLowerCase().includes(query))
+      .slice(0, 8);
   });
 
   constructor() {
@@ -360,6 +395,8 @@ export class LineageGraphComponent implements AfterViewInit {
           return;
         }
         this.expandedNodeIds.set(new Set(nextIds));
+        // Highlighted columns are pinned to the top — reset scroll so they stay visible.
+        this.columnScrollTops.set(new Map());
       }
     });
   }
@@ -388,6 +425,8 @@ export class LineageGraphComponent implements AfterViewInit {
         return 'Source';
       case 'staging':
         return 'Staging';
+      case 'intermediate':
+        return 'Intermediate';
       case 'mart':
         return 'Mart';
       case 'seed':
@@ -719,8 +758,143 @@ export class LineageGraphComponent implements AfterViewInit {
     }
   }
 
+  protected columnClipPathId(nodeId: string): string {
+    return `lineage-cols-clip-${nodeId.replace(/[^a-zA-Z0-9_-]/g, '_')}`;
+  }
+
+  protected hasColumnOverflow(node: LineageNode): boolean {
+    return (node.columns?.length ?? 0) > LINEAGE_MAX_VISIBLE_COLUMNS;
+  }
+
+  protected overflowColumnCount(node: LineageNode): number {
+    return Math.max(0, (node.columns?.length ?? 0) - LINEAGE_MAX_VISIBLE_COLUMNS);
+  }
+
   protected columnRowHeight(): number {
     return LINEAGE_COLUMN_ROW_HEIGHT;
+  }
+
+  protected displayColumns(node: LineageNode): LineageColumn[] {
+    const selected = this.selectedColumn();
+    return orderColumnsForDisplay(node.columns ?? [], node.id, {
+      selectedColumnName: selected?.nodeId === node.id ? selected.columnName : null,
+      highlightedKeys: this.columnHighlight().columnKeys,
+    });
+  }
+
+  protected columnScrollTop(nodeId: string): number {
+    return this.columnScrollTops().get(nodeId) ?? 0;
+  }
+
+  protected columnBodyContentHeight(node: LineageNode): number {
+    return getColumnBodyContentHeight(node.columns?.length ?? 0);
+  }
+
+  protected onColumnBodyWheel(nodeId: string, node: LineageNode, event: WheelEvent): void {
+    const maxScroll = getMaxColumnScrollTop(node.columns?.length ?? 0);
+    if (maxScroll <= 0) {
+      return;
+    }
+
+    event.preventDefault();
+    event.stopPropagation();
+
+    const current = this.columnScrollTop(nodeId);
+    const next = Math.min(maxScroll, Math.max(0, current + event.deltaY));
+    if (next === current) {
+      return;
+    }
+
+    const map = new Map(this.columnScrollTops());
+    map.set(nodeId, next);
+    this.columnScrollTops.set(map);
+  }
+
+  protected onNodeSearchInput(event: Event): void {
+    const value = (event.target as HTMLInputElement).value;
+    this.nodeSearchQuery.set(value);
+    this.nodeSearchOpen.set(true);
+  }
+
+  protected onNodeSearchFocus(): void {
+    this.nodeSearchOpen.set(true);
+  }
+
+  protected onNodeSearchBlur(): void {
+    // Delay so option mousedown can fire first.
+    window.setTimeout(() => this.nodeSearchOpen.set(false), 150);
+  }
+
+  protected selectSearchResult(node: LineageNode): void {
+    this.nodeSearchQuery.set(node.name);
+    this.nodeSearchOpen.set(false);
+    this.nodeSelected.emit(node.id);
+    this.scheduleCenterOnNode(node.id);
+  }
+
+  protected onMinimapPointerDown(event: PointerEvent): void {
+    event.preventDefault();
+    event.stopPropagation();
+    this.minimapDragging = true;
+    this.minimapPointerId = event.pointerId;
+    (event.currentTarget as HTMLElement).setPointerCapture(event.pointerId);
+    this.panFromMinimapEvent(event);
+  }
+
+  protected onMinimapPointerMove(event: PointerEvent): void {
+    if (!this.minimapDragging || event.pointerId !== this.minimapPointerId) {
+      return;
+    }
+    event.preventDefault();
+    this.panFromMinimapEvent(event);
+  }
+
+  protected onMinimapPointerUp(event: PointerEvent): void {
+    if (event.pointerId !== this.minimapPointerId) {
+      return;
+    }
+    this.minimapDragging = false;
+    this.minimapPointerId = null;
+    try {
+      (event.currentTarget as HTMLElement).releasePointerCapture(event.pointerId);
+    } catch {
+      // already released
+    }
+  }
+
+  private panFromMinimapEvent(event: PointerEvent): void {
+    const canvas = this.canvasRef()?.nativeElement;
+    const target = event.currentTarget as HTMLElement;
+    if (!canvas || !target) {
+      return;
+    }
+
+    const bounds = this.bounds();
+    const scale = this.minimapScale();
+    const rect = target.getBoundingClientRect();
+    // Account for 4px padding on the minimap container.
+    const localX = event.clientX - rect.left - 4;
+    const localY = event.clientY - rect.top - 4;
+    const graphX = localX / scale;
+    const graphY = localY / scale;
+    const zoom = this.zoom();
+    const viewWidth = canvas.clientWidth / zoom;
+    const viewHeight = canvas.clientHeight / zoom;
+
+    this.panX.set(-(graphX - viewWidth / 2 + bounds.minX) * zoom);
+    this.panY.set(-(graphY - viewHeight / 2 + bounds.minY) * zoom);
+  }
+
+  protected narrowToDefaultHops(): void {
+    if (!this.selectedNodeId()) {
+      return;
+    }
+    this.hopDepthChange.emit(DEFAULT_HOP_DEPTH);
+    this.showDensityWarning.set(false);
+  }
+
+  protected dismissDensityWarning(): void {
+    this.showDensityWarning.set(false);
   }
 
   protected reorganizeLayout(): void {
@@ -762,6 +936,10 @@ export class LineageGraphComponent implements AfterViewInit {
   }
 
   protected onWheel(event: WheelEvent): void {
+    const target = event.target as Element | null;
+    if (target?.closest('.lineage-graph__node-columns-clip')) {
+      return;
+    }
     event.preventDefault();
     const delta = event.deltaY > 0 ? -0.08 : 0.08;
     const next = Math.min(MAX_ZOOM, Math.max(MIN_ZOOM, this.zoom() + delta));
@@ -1017,9 +1195,14 @@ export class LineageGraphComponent implements AfterViewInit {
       return;
     }
 
-    const scale = Math.min(availableWidth / width, availableHeight / height, 1);
+    const rawScale = Math.min(availableWidth / width, availableHeight / height, 1);
+    const scale = Math.max(MIN_ZOOM, rawScale);
     this.zoom.set(scale);
     this.panX.set((availableWidth - width * scale) / 2 + 16);
     this.panY.set((availableHeight - height * scale) / 2 + 16);
+
+    const modelCount = this.displayNodes().length;
+    this.densityModelCount.set(modelCount);
+    this.showDensityWarning.set(rawScale < DENSITY_WARN_ZOOM && modelCount > 0);
   }
 }
