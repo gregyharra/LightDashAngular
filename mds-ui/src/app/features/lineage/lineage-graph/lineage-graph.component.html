@@ -258,7 +258,7 @@
               [class.lineage-graph__node--dimmed]="isNodeDimmed(node.id)"
               [class.lineage-graph__node--dragging]="draggingNodeId() === node.id"
               [class.lineage-graph__node--reorganizing]="isReorganizing()"
-              [style.transform]="'translate(' + pos.x + 'px,' + pos.y + 'px)'"
+              [style.transform]="nodeScreenTransform(pos)"
             >
               <rect
                 class="lineage-graph__node-bg"
@@ -489,13 +489,24 @@
     </div>
 
     @if (showDensityWarning()) {
-      <div class="lineage-graph__density-banner" role="status">
+      <div
+        class="lineage-graph__density-banner"
+        role="status"
+        (pointerdown)="$event.stopPropagation()"
+        (pointerup)="$event.stopPropagation()"
+        (click)="$event.stopPropagation()"
+      >
         <span>
           Showing {{ densityModelCount() }} models at low zoom
         </span>
         <div class="lineage-graph__density-banner-actions">
           @if (selectedNodeId()) {
-            <button type="button" class="lineage-graph__density-banner-btn" (click)="narrowToDefaultHops()">
+            <button
+              type="button"
+              class="lineage-graph__density-banner-btn"
+              (pointerdown)="$event.stopPropagation()"
+              (click)="narrowToDefaultHops($event)"
+            >
               Narrow to 2 hops
             </button>
           } @else {
@@ -504,7 +515,8 @@
           <button
             type="button"
             class="lineage-graph__density-banner-btn lineage-graph__density-banner-btn--ghost"
-            (click)="dismissDensityWarning()"
+            (pointerdown)="$event.stopPropagation()"
+            (click)="dismissDensityWarning($event)"
             aria-label="Dismiss"
           >
             Dismiss

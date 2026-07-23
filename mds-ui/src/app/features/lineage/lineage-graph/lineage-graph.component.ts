@@ -144,6 +144,12 @@ export class LineageGraphComponent implements AfterViewInit {
   protected readonly nodeSearchOpen = signal(false);
   protected readonly showDensityWarning = signal(false);
   protected readonly densityModelCount = signal(0);
+  /**
+   * Once the user dismisses (or narrows), fit effects must not resurrect the banner.
+   * Cleared only on explicit Fit, or when the focused node / graph mode changes.
+   */
+  private readonly densityWarningDismissed = signal(false);
+  private densityWarningScopeKey: string | null = null;
 
   private panStartX = 0;
   private panStartY = 0;
@@ -328,10 +334,15 @@ export class LineageGraphComponent implements AfterViewInit {
     }
 
     const zoom = this.zoom();
+    // Minimap is drawn in SVG-local coordinates (0..width, i.e. world minus
+    // bounds().minX/minY). The main viewport's pan/zoom transform is applied
+    // to the SVG element itself, whose viewBox already maps world (minX, minY)
+    // to that element's local (0, 0) — so -pan/zoom lands in the same local
+    // space without needing to subtract minX/minY again here.
     const viewWidth = canvas.clientWidth / zoom;
     const viewHeight = canvas.clientHeight / zoom;
-    const viewX = -this.panX() / zoom - bounds.minX;
-    const viewY = -this.panY() / zoom - bounds.minY;
+    const viewX = -this.panX() / zoom;
+    const viewY = -this.panY() / zoom;
 
     return { x: viewX, y: viewY, width: viewWidth, height: viewHeight };
   });
@@ -347,6 +358,19 @@ export class LineageGraphComponent implements AfterViewInit {
   });
 
   constructor() {
+    effect(() => {
+      // Reset dismiss only when the focused node changes. Do not tie to hopDepth
+      // or graphMode — "Narrow to 2 hops" emits those and must keep the banner down.
+      const scopeKey = this.selectedNodeId() ?? '';
+      if (
+        this.densityWarningScopeKey !== null &&
+        this.densityWarningScopeKey !== scopeKey
+      ) {
+        this.densityWarningDismissed.set(false);
+      }
+      this.densityWarningScopeKey = scopeKey;
+    });
+
     effect(() => {
       this.displayNodes();
       this.displayEdges();
@@ -689,7 +713,9 @@ export class LineageGraphComponent implements AfterViewInit {
     if (
       target.closest('.lineage-graph__node-header') ||
       target.closest('.lineage-graph__node-body') ||
-      target.closest('.lineage-graph__column-row')
+      target.closest('.lineage-graph__column-row') ||
+      target.closest('.lineage-graph__density-banner') ||
+      target.closest('.lineage-graph__minimap')
     ) {
       return;
     }
@@ -869,31 +895,48 @@ export class LineageGraphComponent implements AfterViewInit {
       return;
     }
 
-    const bounds = this.bounds();
     const scale = this.minimapScale();
     const rect = target.getBoundingClientRect();
     // Account for 4px padding on the minimap container.
     const localX = event.clientX - rect.left - 4;
     const localY = event.clientY - rect.top - 4;
+    // Minimap space is SVG-local (0-based), same as the main viewport.
     const graphX = localX / scale;
     const graphY = localY / scale;
     const zoom = this.zoom();
     const viewWidth = canvas.clientWidth / zoom;
     const viewHeight = canvas.clientHeight / zoom;
 
-    this.panX.set(-(graphX - viewWidth / 2 + bounds.minX) * zoom);
-    this.panY.set(-(graphY - viewHeight / 2 + bounds.minY) * zoom);
+    this.panX.set(-(graphX - viewWidth / 2) * zoom);
+    this.panY.set(-(graphY - viewHeight / 2) * zoom);
   }
 
-  protected narrowToDefaultHops(): void {
+  protected narrowToDefaultHops(event?: Event): void {
+    event?.preventDefault();
+    event?.stopPropagation();
     if (!this.selectedNodeId()) {
       return;
     }
-    this.hopDepthChange.emit(DEFAULT_HOP_DEPTH);
+
+    // Persist dismiss across the hopDepth-triggered fit effect.
+    this.densityWarningDismissed.set(true);
     this.showDensityWarning.set(false);
+
+    if (this.graphMode() !== 'focus') {
+      this.graphModeChange.emit('focus');
+    }
+
+    const current = this.hopDepth();
+    if (current === UNLIMITED_HOP_DEPTH || current > DEFAULT_HOP_DEPTH) {
+      this.hopDepthChange.emit(DEFAULT_HOP_DEPTH);
+    }
+    // Already at ≤2 hops: still just dismiss (and ensure focus mode above).
   }
 
-  protected dismissDensityWarning(): void {
+  protected dismissDensityWarning(event?: Event): void {
+    event?.preventDefault();
+    event?.stopPropagation();
+    this.densityWarningDismissed.set(true);
     this.showDensityWarning.set(false);
   }
 
@@ -955,7 +998,7 @@ export class LineageGraphComponent implements AfterViewInit {
   }
 
   protected resetView(): void {
-    this.fitToView();
+    this.fitToView({ resetDismissed: true });
   }
 
   private updateNodeDrag(event: PointerEvent): void {
@@ -1154,6 +1197,17 @@ export class LineageGraphComponent implements AfterViewInit {
     this.transformationFilter.set(type);
   }
 
+  /**
+   * CSS translate in the same world coordinates as edge paths (`buildEdgePaths`
+   * / `buildColumnEdgePaths`) and the SVG `viewBox` (which is itself offset by
+   * `bounds().minX/minY`, not reset to 0). Do NOT subtract bounds here — the
+   * viewBox already maps world (minX, minY) to the element's top-left, so
+   * subtracting again double-offsets nodes away from where edges attach.
+   */
+  protected nodeScreenTransform(pos: { x: number; y: number }): string {
+    return `translate(${pos.x}px, ${pos.y}px)`;
+  }
+
   private scheduleCenterOnNode(nodeId: string): void {
     queueMicrotask(() => {
       requestAnimationFrame(() => this.centerOnNode(nodeId));
@@ -1163,15 +1217,17 @@ export class LineageGraphComponent implements AfterViewInit {
   private centerOnNode(nodeId: string): void {
     const canvas = this.canvasRef()?.nativeElement;
     const pos = this.positions().get(nodeId);
-    if (!canvas || !pos) {
+    if (!canvas || !pos || canvas.clientWidth <= 0 || canvas.clientHeight <= 0) {
       return;
     }
 
     const zoom = this.zoom();
     const bounds = this.bounds();
-    // The SVG viewBox is offset by bounds().minX/minY (so dragged nodes with
-    // negative coordinates stay visible), so node positions must be
-    // translated into that local space before computing pan offsets.
+    // Nodes render at raw world (pos.x, pos.y) — see nodeScreenTransform — but
+    // the pan/zoom transform is applied to the SVG element itself, whose
+    // viewBox already maps world (minX, minY) to that element's local (0, 0).
+    // So panning math has to work in that same SVG-local space: subtract
+    // bounds().minX/minY once here to convert world -> local before centering.
     const centerX = pos.x - bounds.minX + pos.width / 2;
     const centerY = pos.y - bounds.minY + pos.height / 2;
     const viewCenterX = canvas.clientWidth / 2;
@@ -1181,7 +1237,7 @@ export class LineageGraphComponent implements AfterViewInit {
     this.panY.set(viewCenterY - centerY * zoom);
   }
 
-  private fitToView(): void {
+  private fitToView(options?: { resetDismissed?: boolean }): void {
     const canvas = this.canvasRef()?.nativeElement;
     if (!canvas) {
       return;
@@ -1195,6 +1251,10 @@ export class LineageGraphComponent implements AfterViewInit {
       return;
     }
 
+    if (options?.resetDismissed) {
+      this.densityWarningDismissed.set(false);
+    }
+
     const rawScale = Math.min(availableWidth / width, availableHeight / height, 1);
     const scale = Math.max(MIN_ZOOM, rawScale);
     this.zoom.set(scale);
@@ -1203,6 +1263,8 @@ export class LineageGraphComponent implements AfterViewInit {
 
     const modelCount = this.displayNodes().length;
     this.densityModelCount.set(modelCount);
-    this.showDensityWarning.set(rawScale < DENSITY_WARN_ZOOM && modelCount > 0);
+    this.showDensityWarning.set(
+      !this.densityWarningDismissed() && rawScale < DENSITY_WARN_ZOOM && modelCount > 0,
+    );
   }
 }
