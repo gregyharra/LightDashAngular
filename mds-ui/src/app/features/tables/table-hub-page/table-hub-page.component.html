@@ -178,23 +178,28 @@
                     @for (tag of tagsDraft(); track tag) {
                       <mat-chip-row
                         class="table-hub__tag"
-                        (removed)="removeTag(tag)"
+                        [removable]="enableTagEditing"
+                        (removed)="enableTagEditing && removeTag(tag)"
                       >
                         {{ tag }}
-                        <button matChipRemove [attr.aria-label]="'Remove tag ' + tag">
-                          <mat-icon>cancel</mat-icon>
-                        </button>
+                        @if (enableTagEditing) {
+                          <button matChipRemove [attr.aria-label]="'Remove tag ' + tag">
+                            <mat-icon>cancel</mat-icon>
+                          </button>
+                        }
                       </mat-chip-row>
                     }
                   </mat-chip-grid>
-                  <input
-                    id="hub-tags"
-                    class="table-hub__tags-input"
-                    placeholder="Add tag and press Enter"
-                    [matChipInputFor]="chipGrid"
-                    [matChipInputSeparatorKeyCodes]="tagSeparatorKeys"
-                    (matChipInputTokenEnd)="addTagFromInput($event)"
-                  />
+                  @if (enableTagEditing) {
+                    <input
+                      id="hub-tags"
+                      class="table-hub__tags-input"
+                      placeholder="Add tag and press Enter"
+                      [matChipInputFor]="chipGrid"
+                      [matChipInputSeparatorKeyCodes]="tagSeparatorKeys"
+                      (matChipInputTokenEnd)="addTagFromInput($event)"
+                    />
+                  }
                 </div>
 
                 <dl class="table-hub__dl">

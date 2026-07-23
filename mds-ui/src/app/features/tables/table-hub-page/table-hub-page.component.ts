@@ -87,6 +87,15 @@ function createEmptyColumnsTableFilters(): ColumnsTableFilters {
     attributes: {},
   };
 }
+
+/**
+ * Tag adding/removal in the Table Hub is not used for now. Existing tags are
+ * always shown (read-only). Flip this to `true` to re-enable interactive tag
+ * editing (add-tag input and per-chip remove buttons) in the overview tab
+ * without removing any of the underlying code.
+ */
+const ENABLE_TABLE_HUB_TAG_EDITING = false;
+
 @Component({
   selector: 'app-table-hub-page',
   imports: [
@@ -108,6 +117,8 @@ function createEmptyColumnsTableFilters(): ColumnsTableFilters {
   styleUrl: './table-hub-page.component.scss',
 })
 export class TableHubPageComponent {
+  protected readonly enableTagEditing = ENABLE_TABLE_HUB_TAG_EDITING;
+
   private readonly dictionaryService = inject(DictionaryService);
   private readonly lineageService = inject(LineageService);
   private readonly route = inject(ActivatedRoute);
