@@ -460,6 +460,18 @@ export class LineageGraphComponent implements AfterViewInit {
     }
   }
 
+  /**
+   * Approximate pixel width for the SVG type badge, sized to fit the
+   * (uppercased) label instead of a fixed width. Character-width estimate
+   * follows the same pattern as `transformationChipWidth` — the badge font
+   * is 10px/600 uppercase, so it uses a slightly wider per-char value.
+   */
+  protected typeBadgeWidth(type: string): number {
+    const label = this.typeLabel(type);
+    const minWidth = 40;
+    return Math.max(minWidth, Math.round(label.length * 6.5 + 16));
+  }
+
   protected isNodeExpanded(nodeId: string): boolean {
     return this.expandedNodeIds().has(nodeId) || this.viewMode() === 'columns';
   }
