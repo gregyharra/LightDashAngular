@@ -67,9 +67,6 @@ const NODE_COLORS: Record<string, { fill: string; stroke: string; badge: string 
 
 const MIN_ZOOM = 0.2;
 const MAX_ZOOM = 2.5;
-/** Below this fit scale, show a density warning instead of silently crushing the graph. */
-const DENSITY_WARN_ZOOM = 0.35;
-const DEFAULT_HOP_DEPTH = 2;
 const DRAG_THRESHOLD_PX = 4;
 const SNAP_GRID = 8;
 /** Distance (screen px) from a canvas edge at which node-drag auto-panning kicks in. */
@@ -142,14 +139,6 @@ export class LineageGraphComponent implements AfterViewInit {
   protected readonly columnScrollTops = signal<Map<string, number>>(new Map());
   protected readonly nodeSearchQuery = signal('');
   protected readonly nodeSearchOpen = signal(false);
-  protected readonly showDensityWarning = signal(false);
-  protected readonly densityModelCount = signal(0);
-  /**
-   * Once the user dismisses (or narrows), fit effects must not resurrect the banner.
-   * Cleared only on explicit Fit, or when the focused node / graph mode changes.
-   */
-  private readonly densityWarningDismissed = signal(false);
-  private densityWarningScopeKey: string | null = null;
 
   private panStartX = 0;
   private panStartY = 0;
@@ -277,7 +266,7 @@ export class LineageGraphComponent implements AfterViewInit {
       return false;
     }
     const depth = this.hopDepth();
-    return depth === UNLIMITED_HOP_DEPTH || depth > 1;
+    return depth === UNLIMITED_HOP_DEPTH || depth > 0;
   });
 
   protected readonly canIncreaseHopDepth = computed(() => {
@@ -358,19 +347,6 @@ export class LineageGraphComponent implements AfterViewInit {
   });
 
   constructor() {
-    effect(() => {
-      // Reset dismiss only when the focused node changes. Do not tie to hopDepth
-      // or graphMode — "Narrow to 2 hops" emits those and must keep the banner down.
-      const scopeKey = this.selectedNodeId() ?? '';
-      if (
-        this.densityWarningScopeKey !== null &&
-        this.densityWarningScopeKey !== scopeKey
-      ) {
-        this.densityWarningDismissed.set(false);
-      }
-      this.densityWarningScopeKey = scopeKey;
-    });
-
     effect(() => {
       this.displayNodes();
       this.displayEdges();
@@ -726,7 +702,6 @@ export class LineageGraphComponent implements AfterViewInit {
       target.closest('.lineage-graph__node-header') ||
       target.closest('.lineage-graph__node-body') ||
       target.closest('.lineage-graph__column-row') ||
-      target.closest('.lineage-graph__density-banner') ||
       target.closest('.lineage-graph__minimap')
     ) {
       return;
@@ -923,35 +898,6 @@ export class LineageGraphComponent implements AfterViewInit {
     this.panY.set(-(graphY - viewHeight / 2) * zoom);
   }
 
-  protected narrowToDefaultHops(event?: Event): void {
-    event?.preventDefault();
-    event?.stopPropagation();
-    if (!this.selectedNodeId()) {
-      return;
-    }
-
-    // Persist dismiss across the hopDepth-triggered fit effect.
-    this.densityWarningDismissed.set(true);
-    this.showDensityWarning.set(false);
-
-    if (this.graphMode() !== 'focus') {
-      this.graphModeChange.emit('focus');
-    }
-
-    const current = this.hopDepth();
-    if (current === UNLIMITED_HOP_DEPTH || current > DEFAULT_HOP_DEPTH) {
-      this.hopDepthChange.emit(DEFAULT_HOP_DEPTH);
-    }
-    // Already at ≤2 hops: still just dismiss (and ensure focus mode above).
-  }
-
-  protected dismissDensityWarning(event?: Event): void {
-    event?.preventDefault();
-    event?.stopPropagation();
-    this.densityWarningDismissed.set(true);
-    this.showDensityWarning.set(false);
-  }
-
   protected reorganizeLayout(): void {
     const nodes = this.displayNodes();
     const viewMode = this.effectiveViewMode();
@@ -1010,7 +956,7 @@ export class LineageGraphComponent implements AfterViewInit {
   }
 
   protected resetView(): void {
-    this.fitToView({ resetDismissed: true });
+    this.fitToView();
   }
 
   private updateNodeDrag(event: PointerEvent): void {
@@ -1249,7 +1195,7 @@ export class LineageGraphComponent implements AfterViewInit {
     this.panY.set(viewCenterY - centerY * zoom);
   }
 
-  private fitToView(options?: { resetDismissed?: boolean }): void {
+  private fitToView(): void {
     const canvas = this.canvasRef()?.nativeElement;
     if (!canvas) {
       return;
@@ -1263,20 +1209,10 @@ export class LineageGraphComponent implements AfterViewInit {
       return;
     }
 
-    if (options?.resetDismissed) {
-      this.densityWarningDismissed.set(false);
-    }
-
     const rawScale = Math.min(availableWidth / width, availableHeight / height, 1);
     const scale = Math.max(MIN_ZOOM, rawScale);
     this.zoom.set(scale);
     this.panX.set((availableWidth - width * scale) / 2 + 16);
     this.panY.set((availableHeight - height * scale) / 2 + 16);
-
-    const modelCount = this.displayNodes().length;
-    this.densityModelCount.set(modelCount);
-    this.showDensityWarning.set(
-      !this.densityWarningDismissed() && rawScale < DENSITY_WARN_ZOOM && modelCount > 0,
-    );
   }
 }

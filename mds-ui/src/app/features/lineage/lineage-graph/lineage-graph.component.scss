@@ -469,57 +469,6 @@
   pointer-events: none;
 }
 
-.lineage-graph__density-banner {
-  position: absolute;
-  left: 12px;
-  top: 12px;
-  z-index: 3;
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 8px 12px;
-  max-width: min(420px, calc(100% - 24px));
-  padding: 8px 10px;
-  border: 1px solid var(--ld-gray-3);
-  border-radius: var(--ld-radius-sm);
-  background: rgba(255, 255, 255, 0.96);
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
-  font-size: var(--ld-font-size-xs);
-  color: var(--ld-gray-8);
-  pointer-events: auto;
-  cursor: default;
-}
-
-.lineage-graph__density-banner-actions {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 6px;
-}
-
-.lineage-graph__density-banner-hint {
-  color: var(--ld-gray-6);
-}
-
-.lineage-graph__density-banner-btn {
-  border: 1px solid var(--ld-brand);
-  border-radius: var(--ld-radius-sm);
-  background: var(--ld-brand);
-  color: #fff;
-  font: inherit;
-  font-size: var(--ld-font-size-xs);
-  font-weight: 600;
-  padding: 4px 8px;
-  cursor: pointer;
-  white-space: nowrap;
-
-  &--ghost {
-    border-color: var(--ld-gray-3);
-    background: transparent;
-    color: var(--ld-gray-7);
-  }
-}
-
 .lineage-graph__node-search {
   position: relative;
   display: flex;

@@ -488,43 +488,6 @@
       </svg>
     </div>
 
-    @if (showDensityWarning()) {
-      <div
-        class="lineage-graph__density-banner"
-        role="status"
-        (pointerdown)="$event.stopPropagation()"
-        (pointerup)="$event.stopPropagation()"
-        (click)="$event.stopPropagation()"
-      >
-        <span>
-          Showing {{ densityModelCount() }} models at low zoom
-        </span>
-        <div class="lineage-graph__density-banner-actions">
-          @if (selectedNodeId()) {
-            <button
-              type="button"
-              class="lineage-graph__density-banner-btn"
-              (pointerdown)="$event.stopPropagation()"
-              (click)="narrowToDefaultHops($event)"
-            >
-              Narrow to 2 hops
-            </button>
-          } @else {
-            <span class="lineage-graph__density-banner-hint">Select a model to narrow focus</span>
-          }
-          <button
-            type="button"
-            class="lineage-graph__density-banner-btn lineage-graph__density-banner-btn--ghost"
-            (pointerdown)="$event.stopPropagation()"
-            (click)="dismissDensityWarning($event)"
-            aria-label="Dismiss"
-          >
-            Dismiss
-          </button>
-        </div>
-      </div>
-    }
-
     <div
       class="lineage-graph__minimap"
       (pointerdown)="onMinimapPointerDown($event)"

@@ -139,7 +139,7 @@ export class TableHubPageComponent {
   protected readonly sqlViewMode = signal<ModelSqlViewMode>('compiled');
   protected readonly lineageViewMode = signal<LineageViewMode>('models');
   protected readonly lineageGraphMode = signal<LineageGraphMode>('focus');
-  protected readonly lineageHopDepth = signal<LineageHopDepth>(2);
+  protected readonly lineageHopDepth = signal<LineageHopDepth>(0);
   protected readonly selectedColumn = signal<SelectedColumnRef | null>(null);
   protected readonly showAddAttribute = signal(false);
   protected readonly columnFilters = signal<ColumnsTableFilters>(createEmptyColumnsTableFilters());

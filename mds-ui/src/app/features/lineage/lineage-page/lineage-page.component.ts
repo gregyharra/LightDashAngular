@@ -49,7 +49,7 @@ export class LineagePageComponent {
   protected readonly selectedColumn = signal<SelectedColumnRef | null>(null);
   protected readonly viewMode = signal<LineageViewMode>('models');
   protected readonly graphMode = signal<LineageGraphMode>('focus');
-  protected readonly hopDepth = signal<LineageHopDepth>(2);
+  protected readonly hopDepth = signal<LineageHopDepth>(0);
   protected readonly requestedDetailTab = signal<LineageDetailTab | null>(null);
 
   protected readonly selectedNode = computed(() => {
@@ -101,7 +101,7 @@ export class LineagePageComponent {
     this.selectedColumn.set(null);
     this.viewMode.set('models');
     this.graphMode.set('focus');
-    this.hopDepth.set(2);
+    this.hopDepth.set(0);
 
     this.lineageService.getProjectLineage(projectUuid).subscribe({
       next: (lineage) => {
