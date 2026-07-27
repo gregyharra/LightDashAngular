@@ -1,3 +1,13 @@
+:host {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  min-width: 0;
+  height: 100%;
+  min-height: 0;
+  overflow: hidden;
+}
+
 .page-layout__content--flush {
   padding: 0;
 }
@@ -5,7 +15,8 @@
 .lineage-page {
   display: flex;
   flex-direction: column;
-  height: calc(100vh - var(--ld-navbar-height));
+  height: 100%;
+  min-height: 0;
 }
 
 .lineage-page__header {

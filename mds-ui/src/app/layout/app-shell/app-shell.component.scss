@@ -1,28 +1,40 @@
+// The shell fills its host (html/body/app-root/app-shell are height-locked)
+// and never scrolls itself — only `.shell__content` (or panels nested inside
+// it) scroll. The navbar lives in normal flex flow (not `position: fixed`)
+// so it always occupies real layout space above the content; nothing can
+// ever scroll above it or show through underneath it, in Chromium or Firefox.
+:host {
+  display: block;
+  height: 100%;
+  max-height: 100%;
+  overflow: hidden;
+}
+
 .shell {
-  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  max-height: 100%;
+  overflow: hidden;
+  overscroll-behavior: none;
   background-color: var(--ld-gray-0);
 }
 
 .shell__navbar {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
+  position: relative;
   z-index: 200;
   display: flex;
+  flex: 0 0 var(--ld-navbar-height);
   align-items: center;
   gap: var(--ld-spacing-xs);
   height: var(--ld-navbar-height);
+  min-height: var(--ld-navbar-height);
+  max-height: var(--ld-navbar-height);
   min-width: 0;
   padding: 0 var(--ld-spacing-md);
   background-color: var(--ld-dark-0);
   box-shadow: 0 1px 0 0 var(--ld-dark-1);
   overflow: hidden;
-}
-
-.shell__navbar-placeholder {
-  height: var(--ld-navbar-height);
-  flex-shrink: 0;
 }
 
 .shell__navbar-left {
@@ -165,6 +177,11 @@
   display: flex;
   align-items: stretch;
   margin-left: var(--ld-spacing-xs);
+  // Rounding the group container (rather than relying on :first-child/:last-child on
+  // .shell__nav-btn) keeps both edges rounded even though Angular Material's <mat-menu>
+  // host elements sit as trailing DOM siblings and break real last-child matching.
+  border-radius: var(--ld-radius-md);
+  overflow: hidden;
 
   &--primary {
     margin-left: var(--ld-spacing-sm);
@@ -285,9 +302,14 @@
 }
 
 .shell__content {
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 auto;
   min-width: 0;
-  min-height: calc(100vh - var(--ld-navbar-height));
+  min-height: 0;
   overflow-x: clip;
+  overflow-y: auto;
+  overscroll-behavior: contain;
 }
 
 // ── Responsive navbar ──────────────────────────────────────────────────────

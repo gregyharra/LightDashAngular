@@ -1,0 +1,59 @@
+// Overlay-style scrollbars, applied app-wide.
+//
+// Every internal scroll container (folder trees, page shells, table
+// scroll-wraps, resizable sidebars, dialogs, …) should get a scrollbar that
+// stays out of the way until the user actually wants it: invisible/subtle at
+// rest, revealed on hover (or while the container holds focus, e.g. keyboard
+// scrolling) so calm panels don't carry visual weight from a track/thumb
+// that's rarely needed. This is intentionally global — using `:where()` to
+// keep specificity at zero — so individual components don't need one-off
+// scrollbar CSS; anything with `overflow: auto/scroll` picks this up for
+// free, and a component can still override it locally if it ever needs to.
+//
+// Thumb colors use mid/dark gray tokens (--ld-gray-6 / --ld-gray-7) so they
+// stay readable on light content panes (where most scrolling happens) and
+// remain visible enough on dark surfaces. Avoid --ld-gray-4/5: on macOS
+// overlay scrollbars those light thumbs disappear against white backgrounds.
+//
+// Firefox implements this with the standard `scrollbar-width` / live
+// `scrollbar-color` properties (both react to `:hover` on the scrolling
+// element itself). Chromium/WebKit need the `::-webkit-scrollbar*`
+// pseudo-elements toggled the same way. Both are declared so the effect is
+// identical across browsers.
+
+:where(*) {
+  scrollbar-width: thin;
+  scrollbar-color: transparent transparent;
+}
+
+:where(*:hover),
+:where(*:focus-within) {
+  scrollbar-color: var(--ld-gray-6) transparent;
+}
+
+:where(*)::-webkit-scrollbar {
+  width: 12px;
+  height: 12px;
+}
+
+:where(*)::-webkit-scrollbar-track,
+:where(*)::-webkit-scrollbar-corner {
+  background: transparent;
+}
+
+:where(*)::-webkit-scrollbar-thumb {
+  background-color: transparent;
+  background-clip: padding-box;
+  border: 1px solid transparent;
+  border-radius: 20px;
+}
+
+:where(*:hover)::-webkit-scrollbar-thumb,
+:where(*:focus-within)::-webkit-scrollbar-thumb {
+  background-color: var(--ld-gray-6);
+  background-clip: padding-box;
+}
+
+:where(*)::-webkit-scrollbar-thumb:hover {
+  background-color: var(--ld-gray-7);
+}

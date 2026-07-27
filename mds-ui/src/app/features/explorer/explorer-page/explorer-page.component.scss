@@ -1,5 +1,15 @@
+:host {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  min-width: 0;
+  height: 100%;
+  min-height: 0;
+  overflow: hidden;
+}
+
 .page-layout--explorer {
-  min-height: calc(100vh - var(--ld-navbar-height));
+  min-height: 100%;
 }
 
 .page-layout__content--flush {
@@ -9,7 +19,7 @@
 .explorer-page {
   display: flex;
   flex-direction: column;
-  height: calc(100vh - var(--ld-navbar-height));
+  height: 100%;
   min-height: 0;
 }
 

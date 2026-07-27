@@ -1,7 +1,13 @@
 .page-layout {
   display: flex;
+  flex: 1 1 auto;
+  align-items: stretch;
   min-width: 0;
-  min-height: calc(100vh - var(--ld-navbar-height));
+  // Fill the shell content pane (below the in-flow navbar). Do NOT use
+  // `calc(100vh - navbar)` here — that assumed a fixed/overlay navbar and
+  // lets the sidebar's box start inside the navbar when the shell is a flex
+  // column instead.
+  min-height: 100%;
   overflow-x: clip;
   background-color: var(--ld-gray-0);
 }
