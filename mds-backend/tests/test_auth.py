@@ -300,3 +300,35 @@ def test_cli_reset_password():
             ).status_code
             == 200
         )
+
+
+def test_cli_generates_password_when_omitted():
+    with TestClient(app) as client:
+        client.post(
+            "/api/v1/setup",
+            json={
+                "email": "admin@example.com",
+                "firstName": "Ada",
+                "lastName": "Admin",
+                "password": "admin-password-1",
+            },
+        )
+
+    generated = reset_password("admin@example.com")
+    assert len(generated) >= 8
+
+    with TestClient(app) as client:
+        assert (
+            client.post(
+                "/api/v1/login",
+                json={"email": "admin@example.com", "password": "admin-password-1"},
+            ).status_code
+            == 401
+        )
+        assert (
+            client.post(
+                "/api/v1/login",
+                json={"email": "admin@example.com", "password": generated},
+            ).status_code
+            == 200
+        )
