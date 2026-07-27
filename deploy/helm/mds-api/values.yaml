@@ -1,0 +1,81 @@
+# Default values for mds-api.
+# Point DATABASE_URL at your external Postgres (not managed by this chart).
+
+replicaCount: 1
+
+image:
+  repository: mds-api
+  pullPolicy: IfNotPresent
+  tag: "0.1.0"
+
+imagePullSecrets: []
+nameOverride: ""
+fullnameOverride: ""
+
+serviceAccount:
+  create: false
+  name: ""
+
+podAnnotations: {}
+podLabels: {}
+
+service:
+  type: ClusterIP
+  port: 8080
+
+resources: {}
+
+nodeSelector: {}
+tolerations: []
+affinity: {}
+
+# Non-secret environment variables (CONFIGMAP-style).
+env:
+  ENVIRONMENT: production
+  CORS_ORIGINS: "https://mds.example.com"
+  SEED_DEMO_DATA: "false"
+  # Optional extras:
+  # DBT_PROJECT_PATH: /app/mds-transform
+  # PROJECTS_DATA_DIR: /app/.data/projects
+  # LOG_LEVEL: INFO
+
+# Secret handling. Prefer existingSecret in real environments.
+secrets:
+  # When true and existingSecret is empty, create a Secret from the map below.
+  create: false
+  # Name of an existing Secret that already contains DATABASE_URL / ENCRYPTION_KEY / etc.
+  existingSecret: ""
+  # Keys written into the chart-managed Secret when create=true.
+  # Do not commit real credentials — override via --set-file / sealed-secrets / ExternalSecrets.
+  data:
+    DATABASE_URL: "postgresql+psycopg2://mds:CHANGE_ME@postgres.example.com:5432/mds"
+    ENCRYPTION_KEY: ""
+    # OPENAI_API_KEY: ""
+
+# Extra env vars sourced from the secret (key = env name, value = secret key name).
+secretEnvKeys:
+  - DATABASE_URL
+  - ENCRYPTION_KEY
+
+livenessProbe:
+  httpGet:
+    path: /api/v1/health?skipMigrationCheck=true
+    port: http
+  initialDelaySeconds: 15
+  periodSeconds: 30
+
+readinessProbe:
+  httpGet:
+    path: /api/v1/health?skipMigrationCheck=true
+    port: http
+  initialDelaySeconds: 5
+  periodSeconds: 10
+
+# Optional PVC for PROJECTS_DATA_DIR (Git clones). Off by default.
+persistence:
+  enabled: false
+  mountPath: /app/.data/projects
+  size: 5Gi
+  storageClass: ""
+  accessModes:
+    - ReadWriteOnce

@@ -1,0 +1,6 @@
+apiVersion: v2
+name: mds-ui
+description: MDS Angular frontend (nginx static SPA)
+type: application
+version: 0.1.0
+appVersion: "0.1.0"

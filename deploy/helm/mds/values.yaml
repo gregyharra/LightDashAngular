@@ -1,0 +1,62 @@
+# Example umbrella values. Copy to values-prod.yaml and fill in real settings.
+# Postgres is external — set DATABASE_URL via secret.
+
+hostname: mds.example.com
+
+gateway:
+  # Existing Gateway API Gateway resource
+  name: shared-gateway
+  namespace: gateway-system
+  # Optional section name on the Gateway listener
+  sectionName: ""
+
+httpRoute:
+  enabled: true
+  # Must match subchart fullnameOverride values below
+  apiServiceName: mds-api
+  apiServicePort: 8080
+  uiServiceName: mds-ui
+  uiServicePort: 80
+  annotations: {}
+
+mds-api:
+  enabled: true
+  fullnameOverride: mds-api
+  image:
+    repository: ghcr.io/example/mds-api
+    tag: "0.1.0"
+    pullPolicy: IfNotPresent
+  # imagePullSecrets:
+  #   - name: ghcr-pull
+  env:
+    ENVIRONMENT: production
+    CORS_ORIGINS: "https://mds.example.com"
+    SEED_DEMO_DATA: "false"
+  secrets:
+    create: false
+    # Prefer a pre-created Secret in the release namespace:
+    existingSecret: mds-api-secrets
+    # Or set create: true and override secrets.data via --set / private values file.
+    data:
+      DATABASE_URL: "postgresql+psycopg2://mds:CHANGE_ME@postgres.example.com:5432/mds"
+      ENCRYPTION_KEY: ""
+  resources:
+    requests:
+      cpu: 100m
+      memory: 256Mi
+    limits:
+      memory: 512Mi
+
+mds-ui:
+  enabled: true
+  fullnameOverride: mds-ui
+  image:
+    repository: ghcr.io/example/mds-ui
+    tag: "0.1.0"
+    pullPolicy: IfNotPresent
+  resources:
+    requests:
+      cpu: 50m
+      memory: 64Mi
+    limits:
+      memory: 128Mi

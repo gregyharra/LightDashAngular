@@ -1,0 +1,15 @@
+apiVersion: v2
+name: mds
+description: MDS umbrella chart (UI + API + HTTPRoute). Postgres is external.
+type: application
+version: 0.1.0
+appVersion: "0.1.0"
+dependencies:
+  - name: mds-api
+    version: 0.1.0
+    repository: "file://../mds-api"
+    condition: mds-api.enabled
+  - name: mds-ui
+    version: 0.1.0
+    repository: "file://../mds-ui"
+    condition: mds-ui.enabled
