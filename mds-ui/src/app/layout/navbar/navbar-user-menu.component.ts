@@ -1,9 +1,8 @@
 import { Component, inject } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
-import { Router } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 import { MatButtonModule } from '@angular/material/button';
 import {
-  MatDialog,
   MatDialogModule,
   MatDialogRef,
 } from '@angular/material/dialog';
@@ -107,7 +106,7 @@ export class ChangePasswordDialogComponent {
 
 @Component({
   selector: 'app-navbar-user-menu',
-  imports: [MatButtonModule, MatIconModule, MatMenuModule],
+  imports: [RouterLink, MatButtonModule, MatIconModule, MatMenuModule],
   templateUrl: './navbar-user-menu.component.html',
   styleUrl: './navbar-user-menu.component.scss',
 })
@@ -115,7 +114,6 @@ export class NavbarUserMenuComponent {
   private readonly appState = inject(AppStateService);
   private readonly auth = inject(AuthService);
   private readonly router = inject(Router);
-  private readonly dialog = inject(MatDialog);
 
   protected readonly user = this.appState.user;
   protected readonly isAdmin = this.appState.isAdmin;
@@ -126,10 +124,6 @@ export class NavbarUserMenuComponent {
       return '?';
     }
     return `${u.firstName[0] ?? ''}${u.lastName[0] ?? ''}`.trim() || '?';
-  }
-
-  protected changePassword(): void {
-    this.dialog.open(ChangePasswordDialogComponent, { width: '24rem' });
   }
 
   protected logout(): void {

@@ -14,8 +14,6 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatSelectModule } from '@angular/material/select';
 import { MatTableModule } from '@angular/material/table';
 import { AuthService, ManagedUser } from '../../../core/services/auth.service';
-import { ResizableSidebarDirective } from '../../../layout/resizable-sidebar/resizable-sidebar.directive';
-import { SettingsSidebarNavComponent } from '../../../layout/settings-sidebar-nav/settings-sidebar-nav.component';
 
 @Component({
   selector: 'app-create-user-dialog',
@@ -146,8 +144,6 @@ export class ResetPasswordDialogComponent {
     MatProgressSpinnerModule,
     MatTableModule,
     MatDialogModule,
-    ResizableSidebarDirective,
-    SettingsSidebarNavComponent,
   ],
   templateUrl: './users-page.component.html',
   styleUrl: './users-page.component.scss',

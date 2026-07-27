@@ -12,8 +12,6 @@ import { apiErrorMessage } from '../../../core/api/lightdash-api.service';
 import { GitProvider } from '../../../core/models/project.model';
 import { WarehouseListItem } from '../../../core/models/warehouse.model';
 import { ActiveProjectService } from '../../../core/services/active-project.service';
-import { ResizableSidebarDirective } from '../../../layout/resizable-sidebar/resizable-sidebar.directive';
-import { SettingsSidebarNavComponent } from '../../../layout/settings-sidebar-nav/settings-sidebar-nav.component';
 import { WarehouseCreateDialogComponent } from '../../warehouses/warehouse-create-dialog/warehouse-create-dialog.component';
 import { ProjectsService } from '../projects.service';
 import { WarehouseService } from '../warehouse.service';
@@ -30,8 +28,6 @@ import { WarehouseService } from '../warehouse.service';
     MatInputModule,
     MatProgressSpinnerModule,
     MatSelectModule,
-    ResizableSidebarDirective,
-    SettingsSidebarNavComponent,
   ],
   templateUrl: './project-create-page.component.html',
   styleUrl: './project-create-page.component.scss',
@@ -114,7 +110,7 @@ export class ProjectCreatePageComponent {
   }
 
   protected cancel(): void {
-    void this.router.navigate(['/projects']);
+    void this.router.navigate(['/settings/projects']);
   }
 
   protected submit(): void {

@@ -31,56 +31,90 @@ export const routes: Routes = [
       },
       {
         path: 'projects/create',
-        canActivate: [adminGuard],
-        loadComponent: () =>
-          import('./features/projects/project-create-page/project-create-page.component').then(
-            (m) => m.ProjectCreatePageComponent,
-          ),
+        redirectTo: 'settings/projects/create',
       },
       {
         path: 'projects/:projectUuid/edit',
-        canActivate: [adminGuard],
-        loadComponent: () =>
-          import('./features/projects/project-edit-page/project-edit-page.component').then(
-            (m) => m.ProjectEditPageComponent,
-          ),
+        redirectTo: (route) => `/settings/projects/${route.params['projectUuid']}/edit`,
       },
       {
         path: 'projects/:projectUuid/settings/warehouse',
-        redirectTo: (route) => `/projects/${route.params['projectUuid']}/edit`,
+        redirectTo: (route) => `/settings/projects/${route.params['projectUuid']}/edit`,
       },
-      {
-        path: 'warehouses',
-        pathMatch: 'full',
-        canActivate: [adminGuard],
-        loadComponent: () =>
-          import('./features/warehouses/warehouses-page/warehouses-page.component').then(
-            (m) => m.WarehousesPageComponent,
-          ),
-      },
-      {
-        path: 'warehouses/create',
-        canActivate: [adminGuard],
-        loadComponent: () =>
-          import('./features/warehouses/warehouse-edit-page/warehouse-edit-page.component').then(
-            (m) => m.WarehouseEditPageComponent,
-          ),
-      },
+      { path: 'warehouses', pathMatch: 'full', redirectTo: 'settings/warehouses' },
+      { path: 'warehouses/create', redirectTo: 'settings/warehouses/create' },
       {
         path: 'warehouses/:warehouseUuid/edit',
-        canActivate: [adminGuard],
-        loadComponent: () =>
-          import('./features/warehouses/warehouse-edit-page/warehouse-edit-page.component').then(
-            (m) => m.WarehouseEditPageComponent,
-          ),
+        redirectTo: (route) => `/settings/warehouses/${route.params['warehouseUuid']}/edit`,
       },
+      { path: 'users', redirectTo: 'settings/users' },
       {
-        path: 'users',
-        canActivate: [adminGuard],
+        path: 'settings',
         loadComponent: () =>
-          import('./features/auth/users-page/users-page.component').then(
-            (m) => m.UsersPageComponent,
+          import('./features/settings/settings-shell/settings-shell.component').then(
+            (m) => m.SettingsShellComponent,
           ),
+        children: [
+          { path: '', pathMatch: 'full', redirectTo: 'projects' },
+          {
+            path: 'projects',
+            pathMatch: 'full',
+            data: { management: true },
+            loadComponent: () =>
+              import('./features/projects/projects-page/projects-page.component').then(
+                (m) => m.ProjectsPageComponent,
+              ),
+          },
+          {
+            path: 'projects/create',
+            canActivate: [adminGuard],
+            loadComponent: () =>
+              import('./features/projects/project-create-page/project-create-page.component').then(
+                (m) => m.ProjectCreatePageComponent,
+              ),
+          },
+          {
+            path: 'projects/:projectUuid/edit',
+            canActivate: [adminGuard],
+            loadComponent: () =>
+              import('./features/projects/project-edit-page/project-edit-page.component').then(
+                (m) => m.ProjectEditPageComponent,
+              ),
+          },
+          {
+            path: 'warehouses',
+            pathMatch: 'full',
+            canActivate: [adminGuard],
+            loadComponent: () =>
+              import('./features/warehouses/warehouses-page/warehouses-page.component').then(
+                (m) => m.WarehousesPageComponent,
+              ),
+          },
+          {
+            path: 'warehouses/create',
+            canActivate: [adminGuard],
+            loadComponent: () =>
+              import('./features/warehouses/warehouse-edit-page/warehouse-edit-page.component').then(
+                (m) => m.WarehouseEditPageComponent,
+              ),
+          },
+          {
+            path: 'warehouses/:warehouseUuid/edit',
+            canActivate: [adminGuard],
+            loadComponent: () =>
+              import('./features/warehouses/warehouse-edit-page/warehouse-edit-page.component').then(
+                (m) => m.WarehouseEditPageComponent,
+              ),
+          },
+          {
+            path: 'users',
+            canActivate: [adminGuard],
+            loadComponent: () =>
+              import('./features/auth/users-page/users-page.component').then(
+                (m) => m.UsersPageComponent,
+              ),
+          },
+        ],
       },
       {
         path: 'projects/:projectUuid/dashboards',

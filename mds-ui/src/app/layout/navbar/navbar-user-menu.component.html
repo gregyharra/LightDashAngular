@@ -17,12 +17,13 @@
     </span>
     <span class="user-menu__email">{{ user()?.email }}</span>
   </div>
-  <button mat-menu-item type="button" (click)="changePassword()">
-    <mat-icon>lock</mat-icon>
-    Change password
-  </button>
+
+  <a mat-menu-item routerLink="/settings">
+    <mat-icon>settings</mat-icon>
+    <span class="user-menu__item-label">Settings</span>
+  </a>
   <button mat-menu-item type="button" (click)="logout()">
     <mat-icon>logout</mat-icon>
-    Logout
+    <span class="user-menu__item-label">Logout</span>
   </button>
 </mat-menu>

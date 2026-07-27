@@ -13,8 +13,6 @@ import { apiErrorMessage } from '../../../core/api/lightdash-api.service';
 import { GitProvider, ProjectRepoStatus } from '../../../core/models/project.model';
 import { WarehouseListItem } from '../../../core/models/warehouse.model';
 import { ActiveProjectService } from '../../../core/services/active-project.service';
-import { ResizableSidebarDirective } from '../../../layout/resizable-sidebar/resizable-sidebar.directive';
-import { SettingsSidebarNavComponent } from '../../../layout/settings-sidebar-nav/settings-sidebar-nav.component';
 import { ProjectDetail, ProjectsService } from '../projects.service';
 import { WarehouseService } from '../warehouse.service';
 import { WarehouseCreateDialogComponent } from '../../warehouses/warehouse-create-dialog/warehouse-create-dialog.component';
@@ -32,8 +30,6 @@ import { WarehouseCreateDialogComponent } from '../../warehouses/warehouse-creat
     MatInputModule,
     MatProgressSpinnerModule,
     MatSelectModule,
-    ResizableSidebarDirective,
-    SettingsSidebarNavComponent,
   ],
   templateUrl: './project-edit-page.component.html',
   styleUrl: './project-edit-page.component.scss',
@@ -280,7 +276,7 @@ export class ProjectEditPageComponent {
   }
 
   protected cancel(): void {
-    void this.router.navigate(['/projects']);
+    void this.router.navigate(['/settings/projects']);
   }
 
   protected deleteProject(): void {
@@ -306,7 +302,7 @@ export class ProjectEditPageComponent {
           .projects()
           .filter((item) => item.projectUuid !== projectUuid);
         this.activeProjectService.setProjects(remaining);
-        void this.router.navigate(['/projects']);
+        void this.router.navigate(['/settings/projects']);
       },
       error: (err) => {
         this.error.set(apiErrorMessage(err));

@@ -63,3 +63,19 @@
   font-size: var(--ld-font-size-xs);
   color: var(--ld-gray-6);
 }
+
+.user-menu__section-header {
+  font-size: var(--ld-font-size-xs);
+  font-weight: 600;
+  color: var(--ld-gray-6);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  opacity: 1 !important;
+  cursor: default;
+  min-height: 28px !important;
+  padding-block: 6px;
+}
+
+.user-menu__item-label {
+  white-space: nowrap;
+}

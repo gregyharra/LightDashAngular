@@ -39,3 +39,33 @@
   width: 100%;
   overflow-x: auto;
 }
+
+.users__actions-cell {
+  width: 1%;
+  white-space: nowrap;
+}
+
+.users__actions {
+  display: flex;
+  flex-wrap: nowrap;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.5rem;
+}
+
+.users__action-btn {
+  flex-shrink: 0;
+  white-space: nowrap;
+
+  mat-icon {
+    width: 18px;
+    height: 18px;
+    font-size: 18px;
+    margin-right: 4px;
+  }
+}
+
+.users__action-btn--warn {
+  color: #c92a2a;
+  border-color: #ffa8a8;
+}
