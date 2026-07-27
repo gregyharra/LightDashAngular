@@ -1,0 +1,47 @@
+<div class="auth-page">
+  <form class="auth-card" [formGroup]="form" (ngSubmit)="submit()">
+    <h1 class="auth-card__title">Create admin account</h1>
+    <p class="auth-card__subtitle">
+      Welcome. Set up the first administrator to manage this workspace.
+    </p>
+
+    <div class="auth-card__row">
+      <mat-form-field appearance="outline">
+        <mat-label>First name</mat-label>
+        <input matInput formControlName="firstName" autocomplete="given-name" />
+      </mat-form-field>
+      <mat-form-field appearance="outline">
+        <mat-label>Last name</mat-label>
+        <input matInput formControlName="lastName" autocomplete="family-name" />
+      </mat-form-field>
+    </div>
+
+    <mat-form-field appearance="outline" class="auth-card__full">
+      <mat-label>Email</mat-label>
+      <input matInput type="email" formControlName="email" autocomplete="email" />
+    </mat-form-field>
+
+    <mat-form-field appearance="outline" class="auth-card__full">
+      <mat-label>Password</mat-label>
+      <input matInput type="password" formControlName="password" autocomplete="new-password" />
+    </mat-form-field>
+
+    <mat-form-field appearance="outline" class="auth-card__full">
+      <mat-label>Confirm password</mat-label>
+      <input
+        matInput
+        type="password"
+        formControlName="confirmPassword"
+        autocomplete="new-password"
+      />
+    </mat-form-field>
+
+    @if (error()) {
+      <p class="auth-card__error">{{ error() }}</p>
+    }
+
+    <button mat-flat-button color="primary" type="submit" [disabled]="submitting()">
+      {{ submitting() ? 'Creating…' : 'Create admin' }}
+    </button>
+  </form>
+</div>

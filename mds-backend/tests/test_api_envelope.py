@@ -6,11 +6,13 @@ os.environ.setdefault("SEED_DEMO_DATA", "false")
 from fastapi.testclient import TestClient
 
 from mds.main import app
+from auth_helpers import ensure_authenticated_admin
 
 
 def test_http_exception_uses_error_envelope() -> None:
-    client = TestClient(app)
-    response = client.get("/api/v1/warehouses/not-a-uuid")
+    with TestClient(app) as client:
+        ensure_authenticated_admin(client)
+        response = client.get("/api/v1/warehouses/not-a-uuid")
 
     assert response.status_code == 404
     body = response.json()
@@ -25,11 +27,12 @@ def test_http_exception_uses_error_envelope() -> None:
 
 
 def test_validation_error_uses_readable_message() -> None:
-    client = TestClient(app)
-    response = client.post(
-        "/api/v1/warehouses",
-        json={"name": "Missing required fields"},
-    )
+    with TestClient(app) as client:
+        ensure_authenticated_admin(client)
+        response = client.post(
+            "/api/v1/warehouses",
+            json={"name": "Missing required fields"},
+        )
 
     assert response.status_code == 422
     body = response.json()

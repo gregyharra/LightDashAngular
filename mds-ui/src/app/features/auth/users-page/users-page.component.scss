@@ -1,0 +1,41 @@
+.users__header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+  min-width: 0;
+}
+
+.users__title-block {
+  min-width: 0;
+}
+
+.users__title {
+  margin: 0;
+  font-size: 1.5rem;
+}
+
+.users__subtitle {
+  margin: 0.25rem 0 0;
+  color: rgba(0, 0, 0, 0.6);
+}
+
+.users__create-btn {
+  flex-shrink: 0;
+  white-space: nowrap;
+}
+
+.users__loading,
+.users__error {
+  padding: 2rem 0;
+}
+
+.users__error {
+  color: #b3261e;
+}
+
+.users__table {
+  width: 100%;
+  overflow-x: auto;
+}

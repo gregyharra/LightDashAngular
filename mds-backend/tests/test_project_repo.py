@@ -12,9 +12,13 @@ from mds.main import app
 from mds.services.encryption import decrypt_secret
 
 
+from auth_helpers import ensure_authenticated_admin
+
+
 @pytest.fixture(scope="module")
 def client() -> TestClient:
     with TestClient(app) as test_client:
+        ensure_authenticated_admin(test_client)
         yield test_client
 
 

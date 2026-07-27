@@ -45,6 +45,41 @@ def _column_is_not_null(inspector, table: str, column: str) -> bool:
     return False
 
 
+def _migrate_auth_columns() -> None:
+    """Add password_hash / is_active on users for existing databases."""
+    inspector = inspect(engine)
+    if not inspector.has_table("users"):
+        return
+
+    user_columns = {column["name"] for column in inspector.get_columns("users")}
+    is_sqlite = settings.database_url.startswith("sqlite")
+
+    with engine.begin() as connection:
+        if "password_hash" not in user_columns:
+            if is_sqlite:
+                connection.exec_driver_sql(
+                    "ALTER TABLE users ADD COLUMN password_hash VARCHAR(255) NOT NULL DEFAULT ''"
+                )
+            else:
+                connection.execute(
+                    text(
+                        "ALTER TABLE users ADD COLUMN password_hash VARCHAR(255) "
+                        "NOT NULL DEFAULT ''"
+                    )
+                )
+        if "is_active" not in user_columns:
+            if is_sqlite:
+                connection.exec_driver_sql(
+                    "ALTER TABLE users ADD COLUMN is_active BOOLEAN NOT NULL DEFAULT 1"
+                )
+            else:
+                connection.execute(
+                    text(
+                        "ALTER TABLE users ADD COLUMN is_active BOOLEAN NOT NULL DEFAULT TRUE"
+                    )
+                )
+
+
 def _migrate_additive_schema() -> None:
     """Apply lightweight additive migrations for local dev databases."""
     inspector = inspect(engine)
@@ -299,6 +334,7 @@ def init_db() -> None:
 
     Base.metadata.create_all(bind=engine)
     _migrate_additive_schema()
+    _migrate_auth_columns()
     _migrate_remove_organizations()
     _migrate_nullable_project_created_by()
     _migrate_legacy_warehouse_connections()

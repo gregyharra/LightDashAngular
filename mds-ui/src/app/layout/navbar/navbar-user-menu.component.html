@@ -11,14 +11,17 @@
   <div class="user-menu__header" mat-menu-item disabled>
     <span class="user-menu__name">
       {{ user()?.firstName }} {{ user()?.lastName }}
+      @if (isAdmin()) {
+        <span class="user-menu__role">Admin</span>
+      }
     </span>
     <span class="user-menu__email">{{ user()?.email }}</span>
   </div>
-  <button mat-menu-item disabled>
-    <mat-icon>person</mat-icon>
-    User settings
+  <button mat-menu-item type="button" (click)="changePassword()">
+    <mat-icon>lock</mat-icon>
+    Change password
   </button>
-  <button mat-menu-item disabled>
+  <button mat-menu-item type="button" (click)="logout()">
     <mat-icon>logout</mat-icon>
     Logout
   </button>

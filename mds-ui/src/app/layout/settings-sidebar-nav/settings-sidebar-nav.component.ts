@@ -1,8 +1,9 @@
-import { Component, input, output, signal } from '@angular/core';
+import { Component, inject, input } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { MatIconModule } from '@angular/material/icon';
+import { AppStateService } from '../../core/services/app-state.service';
 
-export type SettingsNavItem = 'projects' | 'warehouses';
+export type SettingsNavItem = 'projects' | 'warehouses' | 'users';
 
 @Component({
   selector: 'app-settings-sidebar-nav',
@@ -18,14 +19,24 @@ export type SettingsNavItem = 'projects' | 'warehouses';
         <mat-icon>folder</mat-icon>
         Projects
       </a>
-      <a
-        class="page-sidebar__link page-sidebar__link--clickable"
-        routerLink="/warehouses"
-        [class.page-sidebar__link--active]="active() === 'warehouses'"
-      >
-        <mat-icon>storage</mat-icon>
-        Warehouses
-      </a>
+      @if (appState.isAdmin()) {
+        <a
+          class="page-sidebar__link page-sidebar__link--clickable"
+          routerLink="/warehouses"
+          [class.page-sidebar__link--active]="active() === 'warehouses'"
+        >
+          <mat-icon>storage</mat-icon>
+          Warehouses
+        </a>
+        <a
+          class="page-sidebar__link page-sidebar__link--clickable"
+          routerLink="/users"
+          [class.page-sidebar__link--active]="active() === 'users'"
+        >
+          <mat-icon>group</mat-icon>
+          Users
+        </a>
+      }
     </nav>
   `,
   styles: `
@@ -38,4 +49,5 @@ export type SettingsNavItem = 'projects' | 'warehouses';
 })
 export class SettingsSidebarNavComponent {
   readonly active = input.required<SettingsNavItem>();
+  protected readonly appState = inject(AppStateService);
 }

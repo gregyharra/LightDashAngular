@@ -1,10 +1,24 @@
 import { Routes } from '@angular/router';
+import { adminGuard, authGuard, guestGuard, setupGuard } from './core/guards/auth.guard';
 import { AppShellComponent } from './layout/app-shell/app-shell.component';
 
 export const routes: Routes = [
   {
+    path: 'setup',
+    canActivate: [setupGuard],
+    loadComponent: () =>
+      import('./features/auth/setup-page/setup-page.component').then((m) => m.SetupPageComponent),
+  },
+  {
+    path: 'login',
+    canActivate: [guestGuard],
+    loadComponent: () =>
+      import('./features/auth/login-page/login-page.component').then((m) => m.LoginPageComponent),
+  },
+  {
     path: '',
     component: AppShellComponent,
+    canActivate: [authGuard],
     children: [
       { path: '', pathMatch: 'full', redirectTo: 'projects' },
       {
@@ -17,6 +31,7 @@ export const routes: Routes = [
       },
       {
         path: 'projects/create',
+        canActivate: [adminGuard],
         loadComponent: () =>
           import('./features/projects/project-create-page/project-create-page.component').then(
             (m) => m.ProjectCreatePageComponent,
@@ -24,6 +39,7 @@ export const routes: Routes = [
       },
       {
         path: 'projects/:projectUuid/edit',
+        canActivate: [adminGuard],
         loadComponent: () =>
           import('./features/projects/project-edit-page/project-edit-page.component').then(
             (m) => m.ProjectEditPageComponent,
@@ -36,6 +52,7 @@ export const routes: Routes = [
       {
         path: 'warehouses',
         pathMatch: 'full',
+        canActivate: [adminGuard],
         loadComponent: () =>
           import('./features/warehouses/warehouses-page/warehouses-page.component').then(
             (m) => m.WarehousesPageComponent,
@@ -43,6 +60,7 @@ export const routes: Routes = [
       },
       {
         path: 'warehouses/create',
+        canActivate: [adminGuard],
         loadComponent: () =>
           import('./features/warehouses/warehouse-edit-page/warehouse-edit-page.component').then(
             (m) => m.WarehouseEditPageComponent,
@@ -50,9 +68,18 @@ export const routes: Routes = [
       },
       {
         path: 'warehouses/:warehouseUuid/edit',
+        canActivate: [adminGuard],
         loadComponent: () =>
           import('./features/warehouses/warehouse-edit-page/warehouse-edit-page.component').then(
             (m) => m.WarehouseEditPageComponent,
+          ),
+      },
+      {
+        path: 'users',
+        canActivate: [adminGuard],
+        loadComponent: () =>
+          import('./features/auth/users-page/users-page.component').then(
+            (m) => m.UsersPageComponent,
           ),
       },
       {

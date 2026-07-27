@@ -92,6 +92,18 @@ class Settings(BaseSettings):
         default="gpt-4o-mini",
         description="Chat model id for the AI assistant when OPENAI_API_KEY is set.",
     )
+    session_secret: str = Field(
+        default="mds-dev-session-secret-change-me",
+        description="Secret used for signing session cookies. Override in production.",
+    )
+    session_ttl_hours: int = Field(
+        default=168,
+        description="Session lifetime in hours (default 7 days).",
+    )
+    session_cookie_secure: bool = Field(
+        default=False,
+        description="When true, set the Secure flag on the session cookie (production HTTPS).",
+    )
 
     @field_validator("dbt_artifacts_path", "encryption_key", "openai_api_key", mode="before")
     @classmethod

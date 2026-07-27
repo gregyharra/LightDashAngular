@@ -4,6 +4,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { ActiveProjectService } from '../../../core/services/active-project.service';
+import { AppStateService } from '../../../core/services/app-state.service';
 import { ApiErrorService } from '../../../core/api/api-error.service';
 import { ProjectSummary } from '../../../core/models/project.model';
 import { ProjectsService } from '../projects.service';
@@ -30,6 +31,7 @@ export class ProjectsPageComponent {
   private readonly apiErrorService = inject(ApiErrorService);
   private readonly router = inject(Router);
   protected readonly activeProjectService = inject(ActiveProjectService);
+  protected readonly appState = inject(AppStateService);
 
   protected readonly projects = signal<ProjectSummary[]>([]);
   protected readonly loading = signal(true);

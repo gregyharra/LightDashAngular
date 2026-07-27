@@ -12,9 +12,13 @@ from mds.services.dbt.loader import clear_dbt_artifacts_cache, normalize_dbt_pat
 from mds.services.project.git import resolve_dbt_path_for_loading
 
 
+from auth_helpers import ensure_authenticated_admin
+
+
 @pytest.fixture(scope="module")
 def client() -> TestClient:
     with TestClient(app) as test_client:
+        ensure_authenticated_admin(test_client)
         yield test_client
 
 

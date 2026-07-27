@@ -19,6 +19,7 @@ export type ApiResponse<T> = ApiSuccess<T> | ApiError;
 export type HealthResults = {
   version: string;
   isAuthenticated: boolean;
+  isSetupComplete?: boolean;
   healthy?: boolean;
   query?: {
     defaultLimit?: number;
@@ -33,4 +34,6 @@ export type UserProfile = {
   firstName: string;
   lastName: string;
   role: string;
+  isActive?: boolean;
+  abilityRules?: Array<{ action: string; subject: string }>;
 };

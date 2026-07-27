@@ -18,6 +18,8 @@ dependencies = [
   "python-multipart>=0.0.17",
   "cryptography>=44.0.0",
   "trino>=0.336.0",
+  "passlib[bcrypt]>=1.7.4",
+  "bcrypt>=4.0.1,<4.1",
 ]
 
 [project.optional-dependencies]

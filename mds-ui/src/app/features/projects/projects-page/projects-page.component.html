@@ -19,15 +19,17 @@
               Select a project to explore metrics, charts, and dashboards.
             </p>
           </div>
-          <button
-            mat-flat-button
-            class="projects__create-btn"
-            type="button"
-            (click)="createProject()"
-          >
-            <mat-icon>add</mat-icon>
-            Create new
-          </button>
+          @if (appState.isAdmin()) {
+            <button
+              mat-flat-button
+              class="projects__create-btn"
+              type="button"
+              (click)="createProject()"
+            >
+              <mat-icon>add</mat-icon>
+              Create new
+            </button>
+          }
         </header>
 
         @if (loading()) {
@@ -64,16 +66,18 @@
                       <span class="project-card__badge">Current</span>
                     }
                   </div>
-                  <button
-                    mat-icon-button
-                    type="button"
-                    class="project-card__settings-btn"
-                    aria-label="Edit project settings"
-                    title="Edit project settings"
-                    (click)="openProjectEdit($event, project.projectUuid)"
-                  >
-                    <mat-icon>settings</mat-icon>
-                  </button>
+                  @if (appState.isAdmin()) {
+                    <button
+                      mat-icon-button
+                      type="button"
+                      class="project-card__settings-btn"
+                      aria-label="Edit project settings"
+                      title="Edit project settings"
+                      (click)="openProjectEdit($event, project.projectUuid)"
+                    >
+                      <mat-icon>settings</mat-icon>
+                    </button>
+                  }
                 </div>
 
                 <div class="project-card__meta">
