@@ -1,0 +1,10 @@
+1. UI service:
+
+  kubectl get svc {{ include "mds-ui.fullname" . }} -n {{ .Release.Namespace }}
+
+2. Port-forward smoke check:
+
+  kubectl port-forward svc/{{ include "mds-ui.fullname" . }} 8088:{{ .Values.service.port }} -n {{ .Release.Namespace }}
+  open http://127.0.0.1:8088/
+
+API traffic should be routed via HTTPRoute (/api), not this Service.

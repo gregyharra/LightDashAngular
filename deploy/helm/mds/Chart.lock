@@ -1,0 +1,9 @@
+dependencies:
+- name: mds-api
+  repository: file://../mds-api
+  version: 0.1.0
+- name: mds-ui
+  repository: file://../mds-ui
+  version: 0.1.0
+digest: sha256:5aad9023af84ef53f4e0b68f6d395c0264efc2698883974b813683a5334bb3bb
+generated: "2026-07-24T15:00:22.862957+02:00"

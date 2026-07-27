@@ -60,6 +60,10 @@ Open **http://localhost:8081** — connects to `mds` / `mds@localhost:5432/mds` 
 
 Stop when done: `docker compose --profile dev stop pgweb`
 
+## Deploy (Kubernetes)
+
+Docker images and Helm charts (external Postgres, Gateway API HTTPRoute): see [`deploy/README.md`](./deploy/README.md).
+
 ## Documentation
 
 - [Backend implementation guide (current UI)](./docs/MDS_BACKEND_PLATFORM_SETUP.md)

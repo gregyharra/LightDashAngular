@@ -1,0 +1,11 @@
+MDS release {{ .Release.Name }} installed in namespace {{ .Release.Namespace }}.
+
+Hostname: {{ .Values.hostname }}
+Gateway: {{ .Values.gateway.namespace }}/{{ .Values.gateway.name }}
+
+Smoke checks (after DNS points at your Gateway):
+  curl -fsS "https://{{ .Values.hostname }}/api/v1/health?skipMigrationCheck=true"
+  open "https://{{ .Values.hostname }}/"
+
+Ensure the Secret referenced by mds-api (DATABASE_URL, ENCRYPTION_KEY) exists
+and that pods can reach your external Postgres.

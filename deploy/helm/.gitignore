@@ -1,0 +1,5 @@
+# Local / environment-specific Helm values (may contain secrets)
+values-prod.yaml
+values-*.local.yaml
+**/values-prod.yaml
+**/values-*.local.yaml
