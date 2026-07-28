@@ -14,6 +14,7 @@ import {
   exploreSupportsTimeTravel,
   filterRowsByAsOf,
 } from './mock-time-travel.utils';
+import { createUuid } from '../../utils/uuid';
 
 type RawOrderRow = {
   order_id: number;
@@ -46,7 +47,7 @@ const rawOrderRows: RawOrderRow[] = [
 const pendingQueries = new Map<string, QueryResults>();
 
 function createQueryUuid(): string {
-  return crypto.randomUUID();
+  return createUuid();
 }
 
 function formatValue(value: unknown): string {

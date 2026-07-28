@@ -50,6 +50,7 @@ import {
 import { DashboardTileGridInteractionDirective } from '../dashboard-tile-grid-interaction.directive';
 import { getLoomEmbedUrl } from '../dashboard-loom.utils';
 import { ResizableSidebarDirective } from '../../../layout/resizable-sidebar/resizable-sidebar.directive';
+import { createUuid } from '../../../core/utils/uuid';
 
 type DraftState = {
   name: string;
@@ -309,7 +310,7 @@ export class DashboardEditPageComponent {
       return;
     }
 
-    const tabUuid = crypto.randomUUID();
+    const tabUuid = createUuid();
     const tab: DashboardTab = {
       uuid: tabUuid,
       name: `Tab ${current.tabs.length + 1}`,
@@ -348,7 +349,7 @@ export class DashboardEditPageComponent {
       return;
     }
 
-    const newTabUuid = crypto.randomUUID();
+    const newTabUuid = createUuid();
     const newTab: DashboardTab = {
       uuid: newTabUuid,
       name: `${sourceTab.name} (copy)`,
@@ -360,7 +361,7 @@ export class DashboardEditPageComponent {
       .filter((tile) => tile.tabUuid === tabUuid)
       .map((tile) => ({
         ...tile,
-        uuid: crypto.randomUUID(),
+        uuid: createUuid(),
         tabUuid: newTabUuid,
         properties: { ...tile.properties },
       })) as DashboardTile[];
@@ -492,7 +493,7 @@ export class DashboardEditPageComponent {
     const nextY = tabTiles.reduce((max, tile) => Math.max(max, tile.y + tile.h), 0);
 
     const tile: DashboardTile = {
-      uuid: crypto.randomUUID(),
+      uuid: createUuid(),
       type: config.type,
       x: 0,
       y: nextY,

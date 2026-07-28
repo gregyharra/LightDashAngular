@@ -48,3 +48,6 @@ mds-transform/logs
 
 # Local reference clones
 /reference/
+
+# Git worktrees
+.worktrees/

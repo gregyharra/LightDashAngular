@@ -47,6 +47,7 @@ import { MetricQuery } from '../models/explore.model';
 import { ChartConfig, ChartKind } from '../models/chart.model';
 import { WarehouseCreate, WarehouseTestConnection, WarehouseUpdate } from '../models/warehouse.model';
 import { MockRequest, MockRoute } from './mock-api.types';
+import { createUuid } from '../utils/uuid';
 
 const savedChartsList = (request: MockRequest) => {
   const match = request.path.match(/^\/projects\/([^/]+)\/(?:saved|charts)$/);
@@ -551,7 +552,7 @@ const project = (request: MockRequest) => {
 const orgProjectsCreate = (request: MockRequest) => {
   const body = request.body as { name?: string; warehouseUuid?: string | null } | null;
   const name = body?.name?.trim() || 'Untitled project';
-  const projectUuid = crypto.randomUUID();
+  const projectUuid = createUuid();
   const warehouseUuid = body?.warehouseUuid ?? null;
   const warehouse = warehouseUuid ? getMockWarehouse(warehouseUuid) : null;
   const now = new Date().toISOString();
@@ -572,7 +573,7 @@ const orgProjectsCreate = (request: MockRequest) => {
 
   mockProjects.push(created);
 
-  const spaceUuid = crypto.randomUUID();
+  const spaceUuid = createUuid();
   mockSpaces.push({
     uuid: spaceUuid,
     name: 'Shared',
