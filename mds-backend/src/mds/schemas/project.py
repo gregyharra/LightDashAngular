@@ -13,6 +13,8 @@ class ProjectRepoSummary(BaseModel):
     branch: str | None = None
     commit_sha: str | None = Field(default=None, alias="commitSha")
     last_sync_at: str | None = Field(default=None, alias="lastSyncAt")
+    sync_status: str = Field(default="never", alias="syncStatus")
+    last_sync_error: str | None = Field(default=None, alias="lastSyncError")
 
 
 class ProjectResponse(BaseModel):
@@ -74,6 +76,8 @@ class ProjectRepoStatus(BaseModel):
     default_branch: str = Field(alias="defaultBranch")
     commit_sha: str | None = Field(default=None, alias="commitSha")
     last_sync_at: str | None = Field(default=None, alias="lastSyncAt")
+    sync_status: str = Field(default="never", alias="syncStatus")
+    last_sync_error: str | None = Field(default=None, alias="lastSyncError")
     git_repo_url: str | None = Field(default=None, alias="gitRepoUrl")
     git_provider: str | None = Field(default=None, alias="gitProvider")
     git_subdirectory: str | None = Field(default=None, alias="gitSubdirectory")

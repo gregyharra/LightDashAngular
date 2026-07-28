@@ -160,6 +160,17 @@ def test_sync_local_git_repo(
     assert synced["lastSyncAt"]
     assert synced["dbtProjectPath"]
     assert Path(synced["dbtProjectPath"]).is_dir()
+    assert synced["syncStatus"] == "ok"
+    assert synced.get("lastSyncError") in (None, "")
+
+    db = SessionLocal()
+    try:
+        project = db.get(Project, uuid_lib.UUID(project_uuid))
+        assert project is not None
+        assert project.git_sync_status == "ok"
+        assert project.git_last_sync_error is None
+    finally:
+        db.close()
 
     get_project = client.get(f"/api/v1/projects/{project_uuid}")
     assert get_project.json()["results"]["repo"]["cloned"] is True
@@ -204,6 +215,7 @@ def test_desync_local_git_repo(
     assert desynced["lastSyncAt"] is None
     assert desynced["commitSha"] is None
     assert not clone_path.exists()
+    assert desynced["syncStatus"] == "never"
 
     db = SessionLocal()
     try:

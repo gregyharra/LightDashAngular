@@ -12,6 +12,8 @@ from mds.services.project.git import (
     GitRepoError,
     desync_project_repo,
     get_repo_status,
+    mark_project_sync_error,
+    mark_project_syncing,
     sync_project_repo,
 )
 from mds.services.project.helpers import (
@@ -222,9 +224,12 @@ def get_project_repo(project_uuid: str, db: Session = Depends(get_db)):
 @router.post("/projects/{project_uuid}/sync")
 def sync_project_repository(project_uuid: str, db: Session = Depends(get_db)):
     project = _get_project_or_404(db, project_uuid)
+    mark_project_syncing(project)
     try:
         status = sync_project_repo(project)
     except GitRepoError as exc:
+        mark_project_sync_error(project, exc)
+        db.commit()
         raise HTTPException(status_code=400, detail=str(exc)) from exc
 
     db.commit()

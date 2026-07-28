@@ -17,10 +17,37 @@ from mds.services.dbt.manifest import ensure_fresh_manifest_for_path
 from mds.services.encryption import decrypt_secret
 
 GIT_PROVIDERS = frozenset({"github", "gitlab", "bitbucket", "generic"})
+GIT_SYNC_STATUS_OK = "ok"
+GIT_SYNC_STATUS_SYNCING = "syncing"
+GIT_SYNC_STATUS_ERROR = "error"
+GIT_SYNC_STATUS_NEVER = "never"
+_MAX_SYNC_ERROR_LEN = 2000
 
 
 class GitRepoError(Exception):
     pass
+
+
+def truncate_sync_error(message: str, limit: int = _MAX_SYNC_ERROR_LEN) -> str:
+    text = (message or "").strip()
+    if len(text) <= limit:
+        return text
+    return text[: limit - 3] + "..."
+
+
+def mark_project_syncing(project: Project) -> None:
+    project.git_sync_status = GIT_SYNC_STATUS_SYNCING
+    project.git_last_sync_error = None
+
+
+def mark_project_sync_ok(project: Project) -> None:
+    project.git_sync_status = GIT_SYNC_STATUS_OK
+    project.git_last_sync_error = None
+
+
+def mark_project_sync_error(project: Project, error: str | BaseException) -> None:
+    project.git_sync_status = GIT_SYNC_STATUS_ERROR
+    project.git_last_sync_error = truncate_sync_error(str(error))
 
 
 def detect_git_provider(url: str) -> str:
@@ -254,6 +281,8 @@ def get_repo_status(project: Project) -> dict:
         "gitSubdirectory": project.git_subdirectory,
         "gitUsername": project.git_username,
         "dbtProjectPath": resolve_project_dbt_path(project),
+        "syncStatus": project.git_sync_status or GIT_SYNC_STATUS_NEVER,
+        "lastSyncError": project.git_last_sync_error,
     }
 
 
@@ -296,6 +325,7 @@ def sync_project_repo(project: Project) -> dict:
         if ensure_fresh_manifest_for_path(project.dbt_project_path):
             clear_dbt_artifacts_cache()
 
+    mark_project_sync_ok(project)
     return get_repo_status(project)
 
 
@@ -326,6 +356,8 @@ def desync_project_repo(project: Project) -> dict:
 
     project.git_last_sync_at = None
     project.git_last_commit_sha = None
+    project.git_sync_status = GIT_SYNC_STATUS_NEVER
+    project.git_last_sync_error = None
 
     return get_repo_status(project)
 
