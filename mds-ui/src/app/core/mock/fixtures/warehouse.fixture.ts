@@ -5,11 +5,12 @@ import {
   WarehouseTestConnection,
   WarehouseUpdate,
 } from '../../models/warehouse.model';
+import { createUuid } from '../../utils/uuid';
 
 const warehouses = new Map<string, { warehouse: Warehouse; password?: string }>();
 
 function newUuid(): string {
-  return crypto.randomUUID();
+  return createUuid();
 }
 
 function toListItem(warehouse: Warehouse): WarehouseListItem {

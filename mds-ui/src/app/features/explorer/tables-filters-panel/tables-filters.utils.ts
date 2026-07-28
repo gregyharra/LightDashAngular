@@ -6,6 +6,7 @@ import {
 } from '../../../core/models/dashboard.model';
 import { DimensionType, Explore, FieldId, TimeTravelConfig, getFieldId } from '../../../core/models/explore.model';
 import { getDateAnchor } from '../time-travel.utils';
+import { createUuid } from '../../../core/utils/uuid';
 
 export type FilterableDimension = {
   fieldId: FieldId;
@@ -108,7 +109,7 @@ export function createExplorerFilter(
   settings?: DashboardFilterSettings,
 ): DashboardDimensionFilter {
   return {
-    id: crypto.randomUUID(),
+    id: createUuid(),
     label: dimension.label,
     operator,
     target: {

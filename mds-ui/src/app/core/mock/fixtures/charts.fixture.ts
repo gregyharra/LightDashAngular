@@ -12,6 +12,7 @@ import {
   MOCK_USER_UUID,
 } from './ids.fixture';
 import { getFieldId } from '../../models/explore.model';
+import { createUuid } from '../../utils/uuid';
 
 const SPACE_NAMES: Record<string, string> = {
   [MOCK_SPACE_UUID]: 'Shared',
@@ -310,7 +311,7 @@ export type CreateMockSavedChartInput = {
 };
 
 export function createMockSavedChart(input: CreateMockSavedChartInput): SavedChart {
-  const uuid = crypto.randomUUID();
+  const uuid = createUuid();
   const spaceUuid = input.spaceUuid ?? MOCK_SPACE_UUID;
   const now = new Date().toISOString();
 

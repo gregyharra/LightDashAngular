@@ -18,6 +18,7 @@ import {
   MOCK_SPACE_UUID,
   MOCK_USER_UUID,
 } from './ids.fixture';
+import { createUuid } from '../../utils/uuid';
 
 const MOCK_TAB_UUID = 'a1a1a1a1-b1b1-4c1c-d1d1-e1e1e1e1e1e1';
 
@@ -49,8 +50,8 @@ export type CreateMockDashboardInput = {
 };
 
 export function createMockDashboard(input: CreateMockDashboardInput): Dashboard {
-  const uuid = crypto.randomUUID();
-  const tabUuid = crypto.randomUUID();
+  const uuid = createUuid();
+  const tabUuid = createUuid();
   const spaceUuid = input.spaceUuid ?? MOCK_SPACE_UUID;
   const now = new Date().toISOString();
 
@@ -63,7 +64,7 @@ export function createMockDashboard(input: CreateMockDashboardInput): Dashboard 
     spaceUuid,
     spaceName: resolveSpaceName(spaceUuid),
     dashboardVersionId: 1,
-    versionUuid: crypto.randomUUID(),
+    versionUuid: createUuid(),
     updatedAt: now,
     updatedByUser: {
       userUuid: MOCK_USER_UUID,
@@ -154,7 +155,7 @@ export function updateMockDashboard(
     config: input.config ?? existing.config,
     updatedAt: now,
     dashboardVersionId: existing.dashboardVersionId + 1,
-    versionUuid: crypto.randomUUID(),
+    versionUuid: createUuid(),
   };
 
   mockDashboardDetails[dashboardUuid] = updated;
