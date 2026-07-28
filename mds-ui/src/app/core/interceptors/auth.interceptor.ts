@@ -22,7 +22,11 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
 
       if (status === 401) {
         const url = router.url;
-        if (!url.startsWith('/login') && !url.startsWith('/setup')) {
+        if (
+          !url.startsWith('/login') &&
+          !url.startsWith('/setup') &&
+          !url.startsWith('/reset-password')
+        ) {
           appState.clearUser();
           void router.navigate(['/login'], {
             queryParams: { redirect: url },

@@ -76,13 +76,21 @@ export class ProjectsPageComponent {
     });
   }
 
+  protected openCard(projectUuid: string): void {
+    if (this.managementMode()) {
+      this.openProjectEdit(projectUuid);
+      return;
+    }
+    this.openProject(projectUuid);
+  }
+
   protected openProject(projectUuid: string): void {
     this.activeProjectService.setActiveProject(projectUuid);
     void this.router.navigate(['/projects', projectUuid, 'dashboards']);
   }
 
-  protected openProjectEdit(event: Event, projectUuid: string): void {
-    event.stopPropagation();
+  protected openProjectEdit(projectUuid: string, event?: Event): void {
+    event?.stopPropagation();
     this.activeProjectService.setActiveProject(projectUuid);
     void this.router.navigate(['/settings/projects', projectUuid, 'edit']);
   }

@@ -1,5 +1,11 @@
 import { Routes } from '@angular/router';
-import { adminGuard, authGuard, guestGuard, setupGuard } from './core/guards/auth.guard';
+import {
+  adminGuard,
+  authGuard,
+  guestGuard,
+  resetPasswordGuard,
+  setupGuard,
+} from './core/guards/auth.guard';
 import { AppShellComponent } from './layout/app-shell/app-shell.component';
 
 export const routes: Routes = [
@@ -14,6 +20,14 @@ export const routes: Routes = [
     canActivate: [guestGuard],
     loadComponent: () =>
       import('./features/auth/login-page/login-page.component').then((m) => m.LoginPageComponent),
+  },
+  {
+    path: 'reset-password',
+    canActivate: [resetPasswordGuard],
+    loadComponent: () =>
+      import('./features/auth/reset-password-page/reset-password-page.component').then(
+        (m) => m.ResetPasswordPageComponent,
+      ),
   },
   {
     path: '',

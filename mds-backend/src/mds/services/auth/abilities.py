@@ -31,15 +31,16 @@ def user_payload(user) -> dict:
         "avatarUrl": None,
         "avatarGradient": None,
         "abilityRules": ability_rules_for_role(user.role),
+        "mustChangePassword": bool(getattr(user, "must_change_password", False)),
         "updatedAt": created,
         "createdAt": created,
         "impersonation": None,
     }
 
 
-def user_list_item(user) -> dict:
+def user_list_item(user, *, temporary_password: str | None = None) -> dict:
     created = user.created_at.isoformat().replace("+00:00", "Z") if user.created_at else None
-    return {
+    item = {
         "userUuid": str(user.uuid),
         "email": user.email,
         "firstName": user.first_name,
@@ -48,3 +49,6 @@ def user_list_item(user) -> dict:
         "isActive": user.is_active,
         "createdAt": created,
     }
+    if temporary_password is not None:
+        item["temporaryPassword"] = temporary_password
+    return item

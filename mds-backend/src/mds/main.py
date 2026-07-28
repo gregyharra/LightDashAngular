@@ -1,4 +1,5 @@
 from contextlib import asynccontextmanager
+import logging
 
 from fastapi import FastAPI
 from fastapi.exceptions import RequestValidationError
@@ -21,11 +22,13 @@ from mds.routers.semantic import router as semantic_router
 from mds.routers.warehouse import router as warehouse_router
 
 configure_logging(settings)
+logger = logging.getLogger(__name__)
 
 
 @asynccontextmanager
 async def lifespan(_app: FastAPI):
     settings.log_dev_encryption_key_warning()
+    logger.info("Using database: %s", settings.database_url_for_display)
     init_db()
     if settings.seed_demo_data:
         db = SessionLocal()

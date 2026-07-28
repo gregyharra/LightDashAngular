@@ -103,6 +103,7 @@ export const mockUser = {
   isSetupComplete: true,
   role: 'admin',
   isActive: true,
+  mustChangePassword: false,
   timezone: 'UTC',
   avatarUrl: null,
   avatarGradient: null,

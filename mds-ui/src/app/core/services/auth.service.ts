@@ -25,14 +25,15 @@ export type ManagedUser = {
   role: string;
   isActive: boolean;
   createdAt: string | null;
+  temporaryPassword?: string;
 };
 
 export type CreateUserPayload = {
   email: string;
   firstName: string;
   lastName: string;
-  password: string;
   role: 'admin' | 'member';
+  password?: string;
 };
 
 @Injectable({ providedIn: 'root' })
@@ -65,6 +66,12 @@ export class AuthService {
     return this.api.post<null>('/user/password', { currentPassword, newPassword });
   }
 
+  resetPassword(payload: { newPassword: string; token?: string }): Observable<UserProfile> {
+    return this.api.post<UserProfile>('/user/password/reset', payload).pipe(
+      switchMap((user) => from(this.appState.refresh()).pipe(switchMap(() => [user]))),
+    );
+  }
+
   listUsers(): Observable<ManagedUser[]> {
     return this.api.get<ManagedUser[]>('/users');
   }
@@ -81,13 +88,14 @@ export class AuthService {
       role: 'admin' | 'member';
       isActive: boolean;
       password: string;
+      resetPassword: boolean;
     }>,
   ): Observable<ManagedUser> {
     return this.api.patch<ManagedUser>(`/users/${userUuid}`, patch);
   }
 
-  resetUserPassword(userUuid: string, password: string): Observable<ManagedUser> {
-    return this.updateUser(userUuid, { password });
+  resetUserPassword(userUuid: string): Observable<ManagedUser> {
+    return this.updateUser(userUuid, { resetPassword: true });
   }
 
   deactivateUser(userUuid: string): Observable<null> {

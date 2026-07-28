@@ -132,7 +132,14 @@ def slugify(name: str) -> str:
 
 
 def seed_demo_data(db: Session) -> None:
-    if db.get(User, MOCK_USER_UUID):
+    existing = db.get(User, MOCK_USER_UUID)
+    if existing is not None:
+        # Pre-auth DBs may have an empty password_hash after column migration;
+        # seed skips creating the user, so backfill demo credentials once.
+        if not existing.password_hash:
+            existing.password_hash = hash_password(DEMO_USER_PASSWORD)
+            existing.is_active = True
+            db.commit()
         return
 
     user = User(

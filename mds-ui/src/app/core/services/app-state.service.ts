@@ -28,6 +28,7 @@ export class AppStateService {
   readonly isAuthenticated = computed(() => !!this.healthSignal()?.isAuthenticated);
   readonly isSetupComplete = computed(() => !!this.healthSignal()?.isSetupComplete);
   readonly isAdmin = computed(() => this.userSignal()?.role === 'admin');
+  readonly mustChangePassword = computed(() => !!this.userSignal()?.mustChangePassword);
 
   async bootstrap(): Promise<void> {
     if (this.bootstrappedSignal()) {

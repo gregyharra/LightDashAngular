@@ -51,8 +51,8 @@
             [class.project-card--active]="
               project.projectUuid === activeProjectService.activeProjectUuid()
             "
-            (click)="openProject(project.projectUuid)"
-            (keydown.enter)="openProject(project.projectUuid)"
+            (click)="openCard(project.projectUuid)"
+            (keydown.enter)="openCard(project.projectUuid)"
             tabindex="0"
             role="button"
             [attr.aria-pressed]="
@@ -73,7 +73,7 @@
                   class="project-card__settings-btn"
                   aria-label="Edit project settings"
                   title="Edit project settings"
-                  (click)="openProjectEdit($event, project.projectUuid)"
+                  (click)="openProjectEdit(project.projectUuid, $event)"
                 >
                   <mat-icon>settings</mat-icon>
                 </button>

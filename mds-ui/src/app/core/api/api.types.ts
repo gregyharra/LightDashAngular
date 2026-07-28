@@ -35,5 +35,6 @@ export type UserProfile = {
   lastName: string;
   role: string;
   isActive?: boolean;
+  mustChangePassword?: boolean;
   abilityRules?: Array<{ action: string; subject: string }>;
 };

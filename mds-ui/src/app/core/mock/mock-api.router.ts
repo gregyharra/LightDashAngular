@@ -732,6 +732,7 @@ const routes: MockRoute[] = [
   { pattern: /^\/user\/me\/complete$/, handler: () => mockUser },
   { pattern: /^\/user\/me\/allowedOrganizations$/, handler: () => [] },
   { pattern: /^\/user\/me\/personal-access-tokens/, handler: () => [] },
+  { pattern: /^\/user\/password\/reset$/, method: 'POST', handler: () => mockUser },
   { pattern: /^\/user\/password/, handler: () => null },
   { pattern: /^\/user\/identity$/, handler: () => [] },
   { pattern: /^\/user\/warehouseCredentials/, handler: () => [] },

@@ -5,7 +5,7 @@ import uuid as uuid_lib
 from fastapi import APIRouter, HTTPException, Request, Response
 from sqlalchemy.orm import Session
 
-from mds.api.deps import AdminUser, CurrentUser
+from mds.api.deps import AdminUser, CurrentUser, OptionalUser
 from mds.api.envelope import ok
 from mds.config import settings
 from mds.db.models import User
@@ -13,12 +13,15 @@ from mds.db.session import get_db
 from mds.schemas.auth import (
     ChangePasswordRequest,
     LoginRequest,
+    ResetPasswordRequest,
     SetupRequest,
     UserCreateRequest,
     UserUpdateRequest,
 )
 from mds.services.auth.abilities import user_list_item, user_payload
 from mds.services.auth.passwords import (
+    find_user_by_reset_token,
+    generate_password,
     hash_password,
     set_user_password,
     validate_password_strength,
@@ -164,6 +167,39 @@ def change_own_password(
     return ok(None)
 
 
+@router.post("/user/password/reset")
+def reset_password_with_token(
+    body: ResetPasswordRequest,
+    response: Response,
+    user: OptionalUser,
+    db: Session = Depends(get_db),
+):
+    """Set a new password via one-time token, or when the session must change password."""
+    target: User | None = None
+    if body.token:
+        target = find_user_by_reset_token(db, body.token)
+        if target is None:
+            raise HTTPException(status_code=400, detail="Invalid or expired reset token")
+    elif user is not None and user.must_change_password:
+        target = user
+    else:
+        raise HTTPException(
+            status_code=400,
+            detail="A valid reset token is required",
+        )
+
+    try:
+        set_user_password(db, target, body.new_password)
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+
+    session = create_session(db, target)
+    db.commit()
+    db.refresh(target)
+    _set_session_cookie(response, session.id)
+    return ok(user_payload(target))
+
+
 @router.get("/users")
 def list_users(admin: AdminUser, db: Session = Depends(get_db)):
     del admin
@@ -189,8 +225,9 @@ def create_user(
     if not first_name or not last_name:
         raise HTTPException(status_code=400, detail="First and last name are required")
 
+    plain = body.password if body.password else generate_password()
     try:
-        validate_password_strength(body.password)
+        validate_password_strength(plain)
     except ValueError as exc:
         raise HTTPException(status_code=400, detail=str(exc)) from exc
 
@@ -200,13 +237,14 @@ def create_user(
         first_name=first_name,
         last_name=last_name,
         role=body.role,
-        password_hash=hash_password(body.password),
+        password_hash=hash_password(plain),
         is_active=True,
+        must_change_password=True,
     )
     db.add(user)
     db.commit()
     db.refresh(user)
-    return ok(user_list_item(user))
+    return ok(user_list_item(user, temporary_password=plain))
 
 
 @router.patch("/users/{user_uuid}")
@@ -259,15 +297,18 @@ def update_user(
         if not body.is_active:
             delete_user_sessions(db, user.uuid)
 
-    if body.password is not None:
+    temporary_password: str | None = None
+    if body.password is not None or body.reset_password:
+        plain = body.password if body.password else generate_password()
         try:
-            set_user_password(db, user, body.password)
+            set_user_password(db, user, plain, require_change=True)
         except ValueError as exc:
             raise HTTPException(status_code=400, detail=str(exc)) from exc
+        temporary_password = plain
 
     db.commit()
     db.refresh(user)
-    return ok(user_list_item(user))
+    return ok(user_list_item(user, temporary_password=temporary_password))
 
 
 @router.delete("/users/{user_uuid}")

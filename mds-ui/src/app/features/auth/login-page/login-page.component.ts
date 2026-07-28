@@ -36,8 +36,12 @@ export class LoginPageComponent {
     const value = this.form.getRawValue();
     this.submitting.set(true);
     this.auth.login(value).subscribe({
-      next: () => {
+      next: (user) => {
         this.submitting.set(false);
+        if (user.mustChangePassword) {
+          void this.router.navigate(['/reset-password']);
+          return;
+        }
         const redirect = this.route.snapshot.queryParamMap.get('redirect') || '/projects';
         void this.router.navigateByUrl(redirect);
       },
