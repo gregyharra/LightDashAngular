@@ -12,6 +12,29 @@ from mds.main import app
 from mds.services.encryption import decrypt_secret
 
 
+def test_mark_project_sync_error_redacts_credentials_before_truncating() -> None:
+    from mds.services.project.git import _MAX_SYNC_ERROR_LEN, mark_project_sync_error
+
+    token = "super-secret-token"
+    project = Project(
+        uuid=uuid_lib.uuid4(),
+        name="Credential redaction test",
+        warehouse_type="trino",
+    )
+
+    mark_project_sync_error(
+        project,
+        f"git command failed: https://oauth2:{token}@gitlab.example/repo.git "
+        + ("x" * _MAX_SYNC_ERROR_LEN),
+    )
+
+    assert project.git_sync_status == "error"
+    assert project.git_last_sync_error is not None
+    assert token not in project.git_last_sync_error
+    assert "https://***@gitlab.example/repo.git" in project.git_last_sync_error
+    assert len(project.git_last_sync_error) == _MAX_SYNC_ERROR_LEN
+
+
 @pytest.fixture(scope="module")
 def client() -> TestClient:
     with TestClient(app) as test_client:

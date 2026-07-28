@@ -225,6 +225,7 @@ def get_project_repo(project_uuid: str, db: Session = Depends(get_db)):
 def sync_project_repository(project_uuid: str, db: Session = Depends(get_db)):
     project = _get_project_or_404(db, project_uuid)
     mark_project_syncing(project)
+    db.commit()
     try:
         status = sync_project_repo(project)
     except GitRepoError as exc:

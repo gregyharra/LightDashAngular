@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import re
 import shutil
 import subprocess
 from datetime import datetime, timezone
@@ -22,6 +23,7 @@ GIT_SYNC_STATUS_SYNCING = "syncing"
 GIT_SYNC_STATUS_ERROR = "error"
 GIT_SYNC_STATUS_NEVER = "never"
 _MAX_SYNC_ERROR_LEN = 2000
+_HTTP_URL_USERINFO_RE = re.compile(r"(?i)\b(https?://)[^/\s@]+@")
 
 
 class GitRepoError(Exception):
@@ -33,6 +35,11 @@ def truncate_sync_error(message: str, limit: int = _MAX_SYNC_ERROR_LEN) -> str:
     if len(text) <= limit:
         return text
     return text[: limit - 3] + "..."
+
+
+def redact_git_credentials(message: str) -> str:
+    """Redact HTTP(S) URL userinfo before exposing git command failures."""
+    return _HTTP_URL_USERINFO_RE.sub(r"\1***@", message or "")
 
 
 def mark_project_syncing(project: Project) -> None:
@@ -47,7 +54,7 @@ def mark_project_sync_ok(project: Project) -> None:
 
 def mark_project_sync_error(project: Project, error: str | BaseException) -> None:
     project.git_sync_status = GIT_SYNC_STATUS_ERROR
-    project.git_last_sync_error = truncate_sync_error(str(error))
+    project.git_last_sync_error = truncate_sync_error(redact_git_credentials(str(error)))
 
 
 def detect_git_provider(url: str) -> str:
@@ -235,10 +242,12 @@ def _run_git(args: list[str], *, timeout: int = 120) -> subprocess.CompletedProc
     except FileNotFoundError as exc:
         raise GitRepoError("git executable not found; install Git to sync repositories") from exc
     except subprocess.TimeoutExpired as exc:
-        raise GitRepoError(f"git command timed out: {' '.join(args)}") from exc
+        message = f"git command timed out: {' '.join(args)}"
+        raise GitRepoError(redact_git_credentials(message)) from exc
     except subprocess.CalledProcessError as exc:
         detail = (exc.stderr or exc.stdout or "").strip()
-        raise GitRepoError(detail or f"git command failed: {' '.join(args)}") from exc
+        message = detail or f"git command failed: {' '.join(args)}"
+        raise GitRepoError(redact_git_credentials(message)) from exc
 
 
 def _current_commit(clone_dir: Path) -> str | None:
