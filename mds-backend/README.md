@@ -7,9 +7,11 @@ FastAPI backend for the MDS platform. Serves the Lightdash-compatible API expect
 ```bash
 python -m venv .venv
 source .venv/bin/activate
-pip install -e ".[dev]"
+pip install -e ".[dev,dbt]"
 cp .env.example .env
 ```
+
+dbt is required for Git sync / `dbt parse` (same packages as the API image).
 
 Start PostgreSQL from the repo root:
 

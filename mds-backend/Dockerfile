@@ -18,7 +18,8 @@ RUN apt-get update \
 COPY pyproject.toml README.md ./
 COPY src ./src
 
-RUN pip install .
+# dbt-core + trino adapter (see [project.optional-dependencies].dbt)
+RUN pip install ".[dbt]"
 
 RUN useradd --create-home --uid 10001 --shell /usr/sbin/nologin appuser \
     && mkdir -p /app/.data/projects \
