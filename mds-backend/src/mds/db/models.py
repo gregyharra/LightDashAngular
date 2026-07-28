@@ -58,6 +58,10 @@ class Project(Base):
     encrypted_git_token: Mapped[str | None] = mapped_column(Text, nullable=True)
     git_last_sync_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
     git_last_commit_sha: Mapped[str | None] = mapped_column(String(64), nullable=True)
+    git_sync_status: Mapped[str] = mapped_column(
+        String(32), default="never", nullable=False
+    )
+    git_last_sync_error: Mapped[str | None] = mapped_column(Text, nullable=True)
     created_by_user_uuid: Mapped[uuid_lib.UUID | None] = mapped_column(
         Uuid, ForeignKey("users.uuid", ondelete="SET NULL"), nullable=True
     )

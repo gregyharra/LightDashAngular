@@ -82,6 +82,8 @@ def _migrate_additive_schema() -> None:
             ("encrypted_git_token", "TEXT"),
             ("git_last_sync_at", "TIMESTAMP WITH TIME ZONE"),
             ("git_last_commit_sha", "VARCHAR(64)"),
+            ("git_sync_status", "VARCHAR(32) DEFAULT 'never' NOT NULL"),
+            ("git_last_sync_error", "TEXT"),
         ]
         for column_name, column_type in git_columns:
             if column_name not in project_columns:
