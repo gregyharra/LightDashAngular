@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import logging
 import re
 import shutil
 import subprocess
@@ -14,8 +15,10 @@ from mds.services.dbt.loader import (
     normalize_dbt_path,
     path_has_dbt_artifacts,
 )
-from mds.services.dbt.manifest import ensure_fresh_manifest_for_path
+from mds.services.dbt.manifest import regenerate_manifest
 from mds.services.encryption import decrypt_secret
+
+logger = logging.getLogger(__name__)
 
 GIT_PROVIDERS = frozenset({"github", "gitlab", "bitbucket", "generic"})
 GIT_SYNC_STATUS_OK = "ok"
@@ -330,9 +333,25 @@ def sync_project_repo(project: Project) -> dict:
     project.git_last_commit_sha = _current_commit(clone_dir)
     project.git_last_sync_at = datetime.now(timezone.utc)
 
-    if settings.auto_regenerate_manifest and project.dbt_project_path:
-        if ensure_fresh_manifest_for_path(project.dbt_project_path):
-            clear_dbt_artifacts_cache()
+    # Startup recovery is useless without a fresh manifest, so always parse
+    # after a successful clone/pull regardless of AUTO_REGENERATE_MANIFEST
+    # (that setting only controls stale-manifest checks on semantic reads).
+    if project.dbt_project_path:
+        try:
+            if regenerate_manifest(Path(project.dbt_project_path)):
+                clear_dbt_artifacts_cache()
+            else:
+                logger.warning(
+                    "dbt parse did not produce a manifest for project %s at %s",
+                    project.uuid,
+                    project.dbt_project_path,
+                )
+        except Exception as exc:  # noqa: BLE001 - never let parse failures fail the sync
+            logger.warning(
+                "Manifest regeneration failed for project %s after git sync: %s",
+                project.uuid,
+                redact_git_credentials(str(exc)),
+            )
 
     mark_project_sync_ok(project)
     return get_repo_status(project)

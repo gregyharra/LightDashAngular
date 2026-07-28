@@ -53,6 +53,8 @@ spec:
             - name: projects-data
               mountPath: {{ .Values.persistence.mountPath }}
           {{- end }}
+          startupProbe:
+            {{- toYaml .Values.startupProbe | nindent 12 }}
           livenessProbe:
             {{- toYaml .Values.livenessProbe | nindent 12 }}
           readinessProbe:

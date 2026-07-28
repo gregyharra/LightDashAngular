@@ -66,6 +66,21 @@ class Settings(BaseSettings):
             "Runtime environment. Non-production defaults to DEBUG logging for mds.* loggers."
         ),
     )
+    startup_resync_git_projects: bool = Field(
+        default=True,
+        description=(
+            "When true (default) and ENVIRONMENT=production, block API startup until "
+            "every Git-backed project has been re-synced. Set to false as an escape "
+            "hatch if startup resync is causing crash-loops."
+        ),
+    )
+    startup_resync_timeout_seconds: int = Field(
+        default=300,
+        description=(
+            "Total time budget (seconds) for the production startup Git resync loop. "
+            "Remaining projects are marked git_sync_status=error if the budget is exceeded."
+        ),
+    )
     log_level: Optional[str] = Field(
         default=None,
         description=(

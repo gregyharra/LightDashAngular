@@ -67,10 +67,16 @@ Set at least:
 Do not commit real credentials.
 
 Production API pods (`ENVIRONMENT=production`) re-clone or pull every Git-backed
-project on boot before serving traffic. Startup time scales with repository
-count and size — raise `mds-api` readiness/liveness `initialDelaySeconds` if
-probes fail during rollout. A PVC for `PROJECTS_DATA_DIR` is still recommended
-to cache clones across restarts but is not required.
+project on boot before serving traffic, and always re-parse the dbt manifest
+after each sync (startup recovery is useless without one). `mds-api` ships a
+`startupProbe` with a generous `failureThreshold` (~6 minutes) so
+liveness/readiness are not evaluated until resync finishes or the
+`STARTUP_RESYNC_TIMEOUT_SECONDS` budget is hit; raise `failureThreshold` further
+for many/large repositories, or set `STARTUP_RESYNC_GIT_PROJECTS=false` as an
+escape hatch to disable the blocking resync. `AUTO_REGENERATE_MANIFEST: "true"`
+is set by default so semantic API reads also refresh a stale manifest between
+syncs. A PVC for `PROJECTS_DATA_DIR` is still recommended to cache clones
+across restarts but is not required.
 
 ## 4. Install with Helm
 
