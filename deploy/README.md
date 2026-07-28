@@ -66,6 +66,12 @@ Set at least:
 
 Do not commit real credentials.
 
+Production API pods (`ENVIRONMENT=production`) re-clone or pull every Git-backed
+project on boot before serving traffic. Startup time scales with repository
+count and size — raise `mds-api` readiness/liveness `initialDelaySeconds` if
+probes fail during rollout. A PVC for `PROJECTS_DATA_DIR` is still recommended
+to cache clones across restarts but is not required.
+
 ## 4. Install with Helm
 
 ```bash

@@ -57,18 +57,21 @@ secretEnvKeys:
   - DATABASE_URL
   - ENCRYPTION_KEY
 
+# ENVIRONMENT=production triggers blocking Git resync for every project with a
+# git_repo_url before the API accepts traffic. Raise initialDelaySeconds further
+# if you have many large repositories.
 livenessProbe:
   httpGet:
     path: /api/v1/health?skipMigrationCheck=true
     port: http
-  initialDelaySeconds: 15
+  initialDelaySeconds: 60
   periodSeconds: 30
 
 readinessProbe:
   httpGet:
     path: /api/v1/health?skipMigrationCheck=true
     port: http
-  initialDelaySeconds: 5
+  initialDelaySeconds: 30
   periodSeconds: 10
 
 # Optional PVC for PROJECTS_DATA_DIR (Git clones). Off by default.
