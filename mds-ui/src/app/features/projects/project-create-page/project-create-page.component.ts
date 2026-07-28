@@ -17,6 +17,7 @@ import { SettingsSidebarNavComponent } from '../../../layout/settings-sidebar-na
 import { WarehouseCreateDialogComponent } from '../../warehouses/warehouse-create-dialog/warehouse-create-dialog.component';
 import { ProjectsService } from '../projects.service';
 import { WarehouseService } from '../warehouse.service';
+import { detectGitProvider } from '../git-provider.utils';
 
 @Component({
   selector: 'app-project-create-page',
@@ -54,8 +55,10 @@ export class ProjectCreatePageComponent {
   protected gitDefaultBranch = 'main';
   protected gitProvider: GitProvider | null = null;
   protected gitSubdirectory = '';
+  protected gitUsername = '';
   protected gitToken = '';
   protected dbtProjectPath = '';
+  private providerManuallySet = false;
 
   protected readonly gitProviders: { value: GitProvider; label: string }[] = [
     { value: 'github', label: 'GitHub' },
@@ -66,6 +69,24 @@ export class ProjectCreatePageComponent {
 
   constructor() {
     this.loadWarehouses();
+  }
+
+  protected onGitRepoUrlChange(url: string): void {
+    this.gitRepoUrl = url;
+    if (this.providerManuallySet) {
+      return;
+    }
+    this.gitProvider = detectGitProvider(url);
+  }
+
+  protected onGitProviderChange(provider: GitProvider | null): void {
+    this.gitProvider = provider;
+    if (provider === null) {
+      this.providerManuallySet = false;
+      this.gitProvider = detectGitProvider(this.gitRepoUrl);
+      return;
+    }
+    this.providerManuallySet = true;
   }
 
   private loadWarehouses(): void {
@@ -134,6 +155,7 @@ export class ProjectCreatePageComponent {
         gitDefaultBranch: this.gitDefaultBranch.trim() || 'main',
         gitProvider: this.gitProvider,
         gitSubdirectory: this.gitSubdirectory.trim() || null,
+        gitUsername: this.gitUsername.trim() || null,
         gitToken: this.gitToken.trim() || null,
         dbtProjectPath: this.dbtProjectPath.trim() || null,
       })

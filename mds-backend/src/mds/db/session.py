@@ -78,6 +78,7 @@ def _migrate_additive_schema() -> None:
             ("git_default_branch", "VARCHAR(255) DEFAULT 'main' NOT NULL"),
             ("git_provider", "VARCHAR(50)"),
             ("git_subdirectory", "VARCHAR(1024)"),
+            ("git_username", "VARCHAR(255)"),
             ("encrypted_git_token", "TEXT"),
             ("git_last_sync_at", "TIMESTAMP WITH TIME ZONE"),
             ("git_last_commit_sha", "VARCHAR(64)"),

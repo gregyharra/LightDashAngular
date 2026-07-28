@@ -4,7 +4,7 @@ import shutil
 import subprocess
 from datetime import datetime, timezone
 from pathlib import Path
-from urllib.parse import urlparse, urlunparse
+from urllib.parse import quote, urlparse, urlunparse
 
 from mds.config import settings
 from mds.db.models import Project
@@ -130,7 +130,13 @@ def resolve_project_dbt_path(project: Project) -> str | None:
     return None
 
 
-def _inject_token_into_url(url: str, token: str | None) -> str:
+def _inject_token_into_url(
+    url: str,
+    token: str | None,
+    *,
+    username: str | None = None,
+    provider: str | None = None,
+) -> str:
     if not token:
         return url
 
@@ -143,12 +149,28 @@ def _inject_token_into_url(url: str, token: str | None) -> str:
         return url
 
     host = (parsed.hostname or "").lower()
-    if "github" in host:
-        auth_netloc = f"x-access-token:{token}@{netloc}"
-    elif "bitbucket" in host:
-        auth_netloc = f"x-token-auth:{token}@{netloc}"
+    resolved_provider = (provider or "").strip().lower() or detect_git_provider(url)
+
+    if resolved_provider == "github" or "github" in host:
+        auth_netloc = f"x-access-token:{quote(token, safe='')}@{netloc}"
+    elif resolved_provider == "bitbucket" or "bitbucket" in host:
+        # Bitbucket Cloud HTTPS auth requires username:http-access-token (or app password).
+        bitbucket_user = (username or "").strip()
+        bitbucket_password = token.strip()
+        if not bitbucket_user and ":" in token:
+            bitbucket_user, bitbucket_password = token.split(":", 1)
+            bitbucket_user = bitbucket_user.strip()
+            bitbucket_password = bitbucket_password.strip()
+        if not bitbucket_user or not bitbucket_password:
+            raise GitRepoError(
+                "Bitbucket Cloud requires a username and HTTP access token "
+                "(or app password)"
+            )
+        auth_netloc = (
+            f"{quote(bitbucket_user, safe='')}:{quote(bitbucket_password, safe='')}@{netloc}"
+        )
     else:
-        auth_netloc = f"oauth2:{token}@{netloc}"
+        auth_netloc = f"oauth2:{quote(token, safe='')}@{netloc}"
 
     return urlunparse(parsed._replace(netloc=auth_netloc))
 
@@ -161,7 +183,12 @@ def _clone_url(project: Project) -> str | None:
     token = None
     if project.encrypted_git_token:
         token = decrypt_secret(project.encrypted_git_token)
-    return _inject_token_into_url(url, token)
+    return _inject_token_into_url(
+        url,
+        token,
+        username=project.git_username,
+        provider=project.git_provider,
+    )
 
 
 def is_cloned(project: Project) -> bool:
@@ -225,6 +252,7 @@ def get_repo_status(project: Project) -> dict:
         "gitRepoUrl": project.git_repo_url,
         "gitProvider": project.git_provider,
         "gitSubdirectory": project.git_subdirectory,
+        "gitUsername": project.git_username,
         "dbtProjectPath": resolve_project_dbt_path(project),
     }
 

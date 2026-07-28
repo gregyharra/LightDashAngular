@@ -92,7 +92,8 @@
                 <input
                   matInput
                   name="gitRepoUrl"
-                  [(ngModel)]="gitRepoUrl"
+                  [ngModel]="gitRepoUrl"
+                  (ngModelChange)="onGitRepoUrlChange($event)"
                   placeholder="https://github.com/org/dbt-project.git"
                   autocomplete="off"
                   [disabled]="submitting()"
@@ -104,7 +105,8 @@
                   <mat-label>Provider</mat-label>
                   <mat-select
                     name="gitProvider"
-                    [(ngModel)]="gitProvider"
+                    [ngModel]="gitProvider"
+                    (ngModelChange)="onGitProviderChange($event)"
                     [disabled]="submitting()"
                   >
                     <mat-option [value]="null">Auto-detect</mat-option>
@@ -139,6 +141,20 @@
                 <mat-hint>Path to the dbt project within the repository, if not at the root.</mat-hint>
               </mat-form-field>
 
+              @if (gitProvider === 'bitbucket') {
+                <mat-form-field appearance="outline" class="project-create__field">
+                  <mat-label>Bitbucket username</mat-label>
+                  <input
+                    matInput
+                    name="gitUsername"
+                    [(ngModel)]="gitUsername"
+                    autocomplete="username"
+                    [disabled]="submitting()"
+                  />
+                  <mat-hint>Required for Bitbucket Cloud HTTP access tokens / app passwords.</mat-hint>
+                </mat-form-field>
+              }
+
               <mat-form-field appearance="outline" class="project-create__field">
                 <mat-label>Access token</mat-label>
                 <input
@@ -149,7 +165,13 @@
                   autocomplete="new-password"
                   [disabled]="submitting()"
                 />
-                <mat-hint>For private repositories. Stored encrypted on the server.</mat-hint>
+                <mat-hint>
+                  @if (gitProvider === 'bitbucket') {
+                    Bitbucket Cloud HTTP access token or app password.
+                  } @else {
+                    For private repositories. Stored encrypted on the server.
+                  }
+                </mat-hint>
               </mat-form-field>
             </div>
 

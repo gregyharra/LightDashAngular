@@ -327,6 +327,51 @@ def test_sync_fails_when_git_subdirectory_missing(
     assert "Configured git subdirectory does not exist" in sync.json()["error"]["message"]
 
 
+def test_bitbucket_token_injection_uses_username_http_token() -> None:
+    from mds.services.project.git import GitRepoError, _inject_token_into_url
+
+    url = "https://bitbucket.org/workspace/repo.git"
+    injected = _inject_token_into_url(
+        url,
+        "ATAT_http_token",
+        username="bbuser",
+        provider="bitbucket",
+    )
+    assert injected.startswith("https://bbuser:ATAT_http_token@bitbucket.org/")
+
+    # Legacy combined credential still accepted when username is omitted.
+    legacy = _inject_token_into_url(url, "bbuser:ATAT_http_token")
+    assert legacy.startswith("https://bbuser:ATAT_http_token@bitbucket.org/")
+
+    with pytest.raises(GitRepoError, match="username and HTTP access token"):
+        _inject_token_into_url(url, "token-without-username", provider="bitbucket")
+
+
+def test_create_project_stores_git_username(client: TestClient) -> None:
+    response = client.post(
+        "/api/v1/projects",
+        json={
+            "name": "Bitbucket username project",
+            "gitRepoUrl": "https://bitbucket.org/example/repo.git",
+            "gitProvider": "bitbucket",
+            "gitUsername": "bb-cloud-user",
+            "gitToken": "ATAT_token",
+        },
+    )
+    assert response.status_code == 200
+    created = response.json()["results"]
+    assert created["gitProvider"] == "bitbucket"
+    assert created["gitUsername"] == "bb-cloud-user"
+    assert created["hasGitToken"] is True
+
+    update = client.patch(
+        f"/api/v1/projects/{created['projectUuid']}",
+        json={"gitUsername": "renamed-user"},
+    )
+    assert update.status_code == 200
+    assert update.json()["results"]["gitUsername"] == "renamed-user"
+
+
 def test_create_project_invalid_git_provider(client: TestClient) -> None:
     response = client.post(
         "/api/v1/projects",

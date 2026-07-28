@@ -19,6 +19,7 @@ export interface ProjectCreate {
   gitDefaultBranch?: string;
   gitProvider?: GitProvider | null;
   gitSubdirectory?: string | null;
+  gitUsername?: string | null;
   gitToken?: string | null;
   dbtProjectPath?: string | null;
 }
@@ -30,6 +31,7 @@ export interface ProjectUpdate {
   gitDefaultBranch?: string;
   gitProvider?: GitProvider | null;
   gitSubdirectory?: string | null;
+  gitUsername?: string | null;
   gitToken?: string | null;
   clearGitToken?: boolean;
   dbtProjectPath?: string | null;

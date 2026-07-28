@@ -18,6 +18,7 @@ import { SettingsSidebarNavComponent } from '../../../layout/settings-sidebar-na
 import { ProjectDetail, ProjectsService } from '../projects.service';
 import { WarehouseService } from '../warehouse.service';
 import { WarehouseCreateDialogComponent } from '../../warehouses/warehouse-create-dialog/warehouse-create-dialog.component';
+import { detectGitProvider } from '../git-provider.utils';
 
 @Component({
   selector: 'app-project-edit-page',
@@ -63,10 +64,12 @@ export class ProjectEditPageComponent {
   protected gitDefaultBranch = 'main';
   protected gitProvider: GitProvider | null = null;
   protected gitSubdirectory = '';
+  protected gitUsername = '';
   protected gitToken = '';
   protected clearGitToken = false;
   protected hasGitToken = false;
   protected dbtProjectPath = '';
+  private providerManuallySet = false;
 
   protected readonly gitProviders: { value: GitProvider; label: string }[] = [
     { value: 'github', label: 'GitHub' },
@@ -86,6 +89,24 @@ export class ProjectEditPageComponent {
       this.activeProjectService.setActiveProject(projectUuid);
       this.loadPage(projectUuid);
     });
+  }
+
+  protected onGitRepoUrlChange(url: string): void {
+    this.gitRepoUrl = url;
+    if (this.providerManuallySet) {
+      return;
+    }
+    this.gitProvider = detectGitProvider(url);
+  }
+
+  protected onGitProviderChange(provider: GitProvider | null): void {
+    this.gitProvider = provider;
+    if (provider === null) {
+      this.providerManuallySet = false;
+      this.gitProvider = detectGitProvider(this.gitRepoUrl);
+      return;
+    }
+    this.providerManuallySet = true;
   }
 
   private loadPage(projectUuid: string): void {
@@ -130,12 +151,14 @@ export class ProjectEditPageComponent {
     this.selectedWarehouseUuid = project.warehouseUuid ?? null;
     this.gitRepoUrl = project.gitRepoUrl ?? '';
     this.gitDefaultBranch = project.gitDefaultBranch ?? 'main';
-    this.gitProvider = project.gitProvider ?? null;
+    this.gitProvider = project.gitProvider ?? detectGitProvider(project.gitRepoUrl ?? '');
     this.gitSubdirectory = project.gitSubdirectory ?? '';
+    this.gitUsername = project.gitUsername ?? '';
     this.dbtProjectPath = project.dbtProjectPath ?? '';
     this.hasGitToken = project.hasGitToken ?? false;
     this.gitToken = '';
     this.clearGitToken = false;
+    this.providerManuallySet = project.gitProvider != null;
     this.activeProjectService.setProjects(
       this.activeProjectService.projects().map((item) =>
         item.projectUuid === project.projectUuid
@@ -195,6 +218,7 @@ export class ProjectEditPageComponent {
         gitDefaultBranch: this.gitDefaultBranch.trim() || 'main',
         gitProvider: this.gitProvider,
         gitSubdirectory: this.gitSubdirectory.trim() || null,
+        gitUsername: this.gitUsername.trim() || null,
         gitToken: this.gitToken.trim() || undefined,
         clearGitToken: this.clearGitToken,
         dbtProjectPath: this.dbtProjectPath.trim() || null,
