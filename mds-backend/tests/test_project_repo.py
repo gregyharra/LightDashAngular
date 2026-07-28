@@ -31,6 +31,20 @@ def bare_repo(tmp_path: Path) -> str:
     return str(repo_dir)
 
 
+@pytest.fixture()
+def nested_bare_repo(tmp_path: Path) -> str:
+    repo_dir = tmp_path / "sample-mono-repo"
+    dbt_dir = repo_dir / "mds-transform" / "dbt"
+    dbt_dir.mkdir(parents=True)
+    (dbt_dir / "dbt_project.yml").write_text("name: sample_nested\nversion: 1.0.0\n")
+    subprocess.run(["git", "init"], cwd=repo_dir, check=True, capture_output=True)
+    subprocess.run(["git", "config", "user.email", "test@example.com"], cwd=repo_dir, check=True)
+    subprocess.run(["git", "config", "user.name", "Test"], cwd=repo_dir, check=True)
+    subprocess.run(["git", "add", "."], cwd=repo_dir, check=True)
+    subprocess.run(["git", "commit", "-m", "init"], cwd=repo_dir, check=True)
+    return str(repo_dir)
+
+
 def test_create_project_with_git_config(client: TestClient) -> None:
     response = client.post(
         "/api/v1/projects",
@@ -245,6 +259,72 @@ def test_sync_without_repo_url(client: TestClient) -> None:
 
     sync = client.post(f"/api/v1/projects/{project_uuid}/sync")
     assert sync.status_code == 400
+
+
+def test_sync_respects_nested_git_subdirectory(
+    client: TestClient,
+    nested_bare_repo: str,
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    projects_dir = tmp_path / "projects-data"
+    monkeypatch.setenv("PROJECTS_DATA_DIR", str(projects_dir))
+
+    from mds.config import settings
+
+    monkeypatch.setattr(settings, "projects_data_dir", str(projects_dir))
+
+    create = client.post(
+        "/api/v1/projects",
+        json={
+            "name": "Nested subdir project",
+            "gitRepoUrl": nested_bare_repo,
+            "gitDefaultBranch": "main",
+            "gitProvider": "generic",
+            "gitSubdirectory": "mds-transform/dbt",
+        },
+    )
+    project_uuid = create.json()["results"]["projectUuid"]
+
+    sync = client.post(f"/api/v1/projects/{project_uuid}/sync")
+    assert sync.status_code == 200
+    synced = sync.json()["results"]
+    assert synced["cloned"] is True
+    assert synced["gitSubdirectory"] == "mds-transform/dbt"
+    assert synced["dbtProjectPath"]
+    assert synced["dbtProjectPath"].endswith("mds-transform/dbt")
+    assert Path(synced["dbtProjectPath"]).is_dir()
+    assert (Path(synced["dbtProjectPath"]) / "dbt_project.yml").is_file()
+
+
+def test_sync_fails_when_git_subdirectory_missing(
+    client: TestClient,
+    nested_bare_repo: str,
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    projects_dir = tmp_path / "projects-data"
+    monkeypatch.setenv("PROJECTS_DATA_DIR", str(projects_dir))
+
+    from mds.config import settings
+
+    monkeypatch.setattr(settings, "projects_data_dir", str(projects_dir))
+
+    create = client.post(
+        "/api/v1/projects",
+        json={
+            "name": "Missing subdir project",
+            "gitRepoUrl": nested_bare_repo,
+            "gitDefaultBranch": "main",
+            "gitProvider": "generic",
+            "gitSubdirectory": "missing/subdir",
+        },
+    )
+    project_uuid = create.json()["results"]["projectUuid"]
+
+    sync = client.post(f"/api/v1/projects/{project_uuid}/sync")
+    assert sync.status_code == 400
+    assert "Configured git subdirectory does not exist" in sync.json()["error"]["message"]
 
 
 def test_create_project_invalid_git_provider(client: TestClient) -> None:

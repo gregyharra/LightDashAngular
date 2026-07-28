@@ -51,10 +51,20 @@ def remove_project_data_dir(project_uuid: str) -> None:
 def _effective_clone_dbt_path(clone_dir: Path, subdirectory: str | None) -> str:
     subdir = (subdirectory or "").strip().strip("/")
     if subdir:
-        candidate = clone_dir / subdir
-        if candidate.is_dir():
-            return str(candidate.resolve())
+        return str((clone_dir / subdir).resolve())
     return str(clone_dir.resolve())
+
+
+def _validate_configured_subdirectory(clone_dir: Path, subdirectory: str | None) -> None:
+    subdir = (subdirectory or "").strip().strip("/")
+    if not subdir:
+        return
+
+    candidate = clone_dir / subdir
+    if not candidate.is_dir():
+        raise GitRepoError(
+            f"Configured git subdirectory does not exist in repository: {subdir}"
+        )
 
 
 def _dbt_path_candidates(project: Project) -> list[str]:
@@ -99,7 +109,16 @@ def resolve_dbt_path_for_loading(project: Project) -> str | None:
 
 
 def resolve_project_dbt_path(project: Project) -> str | None:
-    """Return the best dbt path for display (prefers paths with artifacts)."""
+    """Return the dbt path that the project is configured to use for display."""
+    explicit = (project.dbt_project_path or "").strip()
+    if explicit:
+        return str(normalize_dbt_path(explicit))
+
+    clone_dir = project_clone_dir(str(project.uuid))
+    if clone_dir.is_dir():
+        return str(normalize_dbt_path(_effective_clone_dbt_path(clone_dir, project.git_subdirectory)))
+
+    # No explicit/configured path yet; surface an env-backed path only if it has artifacts.
     for candidate in _dbt_path_candidates(project):
         normalized = str(normalize_dbt_path(candidate))
         if path_has_dbt_artifacts(normalized):
@@ -240,6 +259,7 @@ def sync_project_repo(project: Project) -> dict:
             ]
         )
 
+    _validate_configured_subdirectory(clone_dir, project.git_subdirectory)
     project.dbt_project_path = _effective_clone_dbt_path(clone_dir, project.git_subdirectory)
     project.git_last_commit_sha = _current_commit(clone_dir)
     project.git_last_sync_at = datetime.now(timezone.utc)
