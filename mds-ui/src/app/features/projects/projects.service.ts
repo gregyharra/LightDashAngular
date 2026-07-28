@@ -22,6 +22,7 @@ export interface ProjectCreate {
   gitUsername?: string | null;
   gitToken?: string | null;
   dbtProjectPath?: string | null;
+  dbtTarget?: string | null;
 }
 
 export interface ProjectUpdate {
@@ -35,6 +36,7 @@ export interface ProjectUpdate {
   gitToken?: string | null;
   clearGitToken?: boolean;
   dbtProjectPath?: string | null;
+  dbtTarget?: string | null;
 }
 
 @Injectable({ providedIn: 'root' })

@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import logging
 import shutil
 import subprocess
 from datetime import datetime, timezone
@@ -13,8 +14,10 @@ from mds.services.dbt.loader import (
     normalize_dbt_path,
     path_has_dbt_artifacts,
 )
-from mds.services.dbt.manifest import ensure_fresh_manifest_for_path
+from mds.services.dbt.manifest import regenerate_manifest
 from mds.services.encryption import decrypt_secret
+
+logger = logging.getLogger(__name__)
 
 GIT_PROVIDERS = frozenset({"github", "gitlab", "bitbucket", "generic"})
 
@@ -254,6 +257,7 @@ def get_repo_status(project: Project) -> dict:
         "gitSubdirectory": project.git_subdirectory,
         "gitUsername": project.git_username,
         "dbtProjectPath": resolve_project_dbt_path(project),
+        "dbtTarget": project.dbt_target,
     }
 
 
@@ -292,9 +296,17 @@ def sync_project_repo(project: Project) -> dict:
     project.git_last_commit_sha = _current_commit(clone_dir)
     project.git_last_sync_at = datetime.now(timezone.utc)
 
-    if settings.auto_regenerate_manifest and project.dbt_project_path:
-        if ensure_fresh_manifest_for_path(project.dbt_project_path):
+    # Always rebuild manifest after sync so lineage/explores use the freshly pulled sources.
+    # Prefer project scripts/generate_manifest.py, otherwise `dbt deps` + `dbt parse`.
+    if project.dbt_project_path:
+        dbt_path = Path(project.dbt_project_path)
+        if regenerate_manifest(dbt_path, target=project.dbt_target):
             clear_dbt_artifacts_cache()
+        else:
+            logger.warning(
+                "Git sync completed but manifest.json could not be regenerated for %s",
+                dbt_path,
+            )
 
     return get_repo_status(project)
 

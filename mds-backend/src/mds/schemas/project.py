@@ -32,6 +32,7 @@ class ProjectResponse(BaseModel):
     git_username: str | None = Field(default=None, alias="gitUsername")
     has_git_token: bool = Field(default=False, alias="hasGitToken")
     dbt_project_path: str | None = Field(default=None, alias="dbtProjectPath")
+    dbt_target: str | None = Field(default=None, alias="dbtTarget")
     repo: ProjectRepoSummary | None = None
 
 
@@ -47,6 +48,7 @@ class ProjectCreate(BaseModel):
     git_username: str | None = Field(default=None, alias="gitUsername")
     git_token: str | None = Field(default=None, alias="gitToken")
     dbt_project_path: str | None = Field(default=None, alias="dbtProjectPath")
+    dbt_target: str | None = Field(default=None, alias="dbtTarget")
 
 
 class ProjectUpdate(BaseModel):
@@ -62,6 +64,7 @@ class ProjectUpdate(BaseModel):
     git_token: str | None = Field(default=None, alias="gitToken")
     clear_git_token: bool = Field(default=False, alias="clearGitToken")
     dbt_project_path: str | None = Field(default=None, alias="dbtProjectPath")
+    dbt_target: str | None = Field(default=None, alias="dbtTarget")
 
 
 class ProjectRepoStatus(BaseModel):
@@ -79,3 +82,4 @@ class ProjectRepoStatus(BaseModel):
     git_subdirectory: str | None = Field(default=None, alias="gitSubdirectory")
     git_username: str | None = Field(default=None, alias="gitUsername")
     dbt_project_path: str | None = Field(default=None, alias="dbtProjectPath")
+    dbt_target: str | None = Field(default=None, alias="dbtTarget")

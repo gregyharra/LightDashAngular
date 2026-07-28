@@ -1,5 +1,20 @@
 @if (node(); as selected) {
-  <aside class="lineage-detail" [class.lineage-detail--collapsed]="collapsed()" #panelRoot>
+  <aside
+    class="lineage-detail"
+    [class.lineage-detail--collapsed]="collapsed()"
+    [class.lineage-detail--resizing]="resizing()"
+    [style.width.px]="collapsed() ? collapsedWidth : panelWidth()"
+    #panelRoot
+  >
+    <div
+      class="lineage-detail__resize-handle"
+      role="separator"
+      aria-orientation="vertical"
+      aria-label="Resize detail panel"
+      tabindex="0"
+      (pointerdown)="onResizeStart($event)"
+    ></div>
+
     <button
       type="button"
       class="lineage-detail__fold-btn"

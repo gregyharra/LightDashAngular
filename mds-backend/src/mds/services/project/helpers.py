@@ -42,6 +42,7 @@ def project_payload(project: Project, warehouse: Warehouse | None = None) -> dic
         "gitUsername": project.git_username,
         "hasGitToken": project.encrypted_git_token is not None,
         "dbtProjectPath": project.dbt_project_path,
+        "dbtTarget": project.dbt_target,
         "repo": {
             "configured": repo_status["configured"],
             "cloned": repo_status["cloned"],
@@ -70,6 +71,7 @@ def apply_git_fields_on_create(project: Project, body: ProjectCreate) -> None:
     project.git_default_branch = (body.git_default_branch or "main").strip() or "main"
     project.git_subdirectory = (body.git_subdirectory or "").strip() or None
     project.git_username = (body.git_username or "").strip() or None
+    project.dbt_target = (body.dbt_target or "").strip() or None
 
     if body.git_provider is not None:
         project.git_provider = _validate_git_provider(body.git_provider)
@@ -101,6 +103,9 @@ def apply_git_fields_on_update(project: Project, body: ProjectUpdate) -> None:
 
     if "git_username" in body.model_fields_set:
         project.git_username = (body.git_username or "").strip() or None
+
+    if "dbt_target" in body.model_fields_set:
+        project.dbt_target = (body.dbt_target or "").strip() or None
 
     if "git_provider" in body.model_fields_set:
         project.git_provider = _validate_git_provider(body.git_provider)

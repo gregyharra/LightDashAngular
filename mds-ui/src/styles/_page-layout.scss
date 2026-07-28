@@ -75,6 +75,11 @@ body.tables-fields-panel--resizing {
   user-select: none;
 }
 
+body.lineage-detail--resizing {
+  cursor: col-resize !important;
+  user-select: none;
+}
+
 .page-layout__content {
   flex: 1;
   min-width: 0;

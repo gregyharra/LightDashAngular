@@ -34,6 +34,7 @@ env:
   ENVIRONMENT: production
   CORS_ORIGINS: "https://mds.example.com"
   SEED_DEMO_DATA: "false"
+  AUTO_REGENERATE_MANIFEST: "true"
   # Optional extras:
   # DBT_PROJECT_PATH: /app/mds-transform
   # PROJECTS_DATA_DIR: /app/.data/projects

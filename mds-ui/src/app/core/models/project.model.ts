@@ -27,6 +27,7 @@ export type ProjectSummary = {
   gitUsername?: string | null;
   hasGitToken?: boolean;
   dbtProjectPath?: string | null;
+  dbtTarget?: string | null;
   repo?: ProjectRepoSummary;
 };
 
@@ -43,4 +44,5 @@ export type ProjectRepoStatus = {
   gitSubdirectory?: string | null;
   gitUsername?: string | null;
   dbtProjectPath?: string | null;
+  dbtTarget?: string | null;
 };

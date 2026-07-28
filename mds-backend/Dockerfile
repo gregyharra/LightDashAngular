@@ -13,12 +13,16 @@ RUN apt-get update \
     && apt-get install -y --no-install-recommends \
         libpq5 \
         curl \
+        git \
+        ca-certificates \
     && rm -rf /var/lib/apt/lists/*
 
 COPY pyproject.toml README.md ./
 COPY src ./src
 
-RUN pip install .
+# dbt-core + trino adapter: used after Git sync to run `dbt deps` / `dbt parse`
+# and produce target/manifest.json without requiring a local generate_manifest.py.
+RUN pip install . "dbt-core>=1.8,<1.10" "dbt-trino>=1.8,<1.10"
 
 RUN useradd --create-home --uid 10001 --shell /usr/sbin/nologin appuser \
     && mkdir -p /app/.data/projects \
