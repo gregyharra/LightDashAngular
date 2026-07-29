@@ -86,18 +86,40 @@ def _build_sqlglot_schema(
 
     Input: {"staging.users": {"_node_id": "...", "user_id": "bigint", ...}}
     Output: {"staging": {"users": {"user_id": "bigint", ...}}}
+
+    Tables with no real columns (only metadata like ``_node_id``) are omitted
+    because SQLGlot's qualify step rejects empty table definitions.
     """
     schema: dict = {}
     for table_key, cols in upstream_schemas.items():
+        real_cols = {
+            col_name: col_type
+            for col_name, col_type in cols.items()
+            if not col_name.startswith("_")
+        }
+        if not real_cols:
+            continue
         parts = table_key.split(".")
         current = schema
         for part in parts:
             current = current.setdefault(part, {})
-        for col_name, col_type in cols.items():
-            if col_name.startswith("_"):
-                continue
-            current[col_name] = col_type
+        current.update(real_cols)
     return schema
+
+
+def _schema_has_columns(schema: dict[str, Any]) -> bool:
+    """Return True when the nested sqlglot schema contains at least one column."""
+    for value in schema.values():
+        if not isinstance(value, dict):
+            return True
+        if _schema_has_columns(value):
+            return True
+    return False
+
+
+def _select_has_unexpanded_star(select: exp.Select) -> bool:
+    """True when the SELECT list still contains a bare or qualified star."""
+    return any(isinstance(select_expr, exp.Star) for select_expr in select.selects)
 
 
 def _table_to_node_id(
@@ -261,17 +283,24 @@ def extract_column_lineage(
     schema = _build_sqlglot_schema(upstream_schemas)
     table_node_map = _table_to_node_id(upstream_schemas)
 
-    try:
-        qualified = qualify.qualify(
-            parsed,
-            dialect=dialect,
-            schema=schema,
-            validate_qualify_columns=False,
-            identify=False,
-            allow_partial_qualification=True,
-        )
-    except Exception as exc:  # noqa: BLE001 - sqlglot's optimizer can raise assertions on edge cases
-        logger.debug("SQLGlot qualify failed for %s: %s, continuing with unqualified AST", node_id, exc)
+    if _schema_has_columns(schema):
+        try:
+            qualified = qualify.qualify(
+                parsed,
+                dialect=dialect,
+                schema=schema,
+                validate_qualify_columns=False,
+                identify=False,
+                allow_partial_qualification=True,
+            )
+        except Exception as exc:  # noqa: BLE001 - sqlglot's optimizer can raise assertions on edge cases
+            logger.debug(
+                "SQLGlot qualify failed for %s: %s, continuing with unqualified AST",
+                node_id,
+                exc,
+            )
+            qualified = parsed
+    else:
         qualified = parsed
 
     outer_select = qualified if isinstance(qualified, exp.Select) else qualified.find(exp.Select)
@@ -282,7 +311,7 @@ def extract_column_lineage(
     # upstream schema key didn't match the table reference), the result is
     # incomplete. Bail out so the caller falls back to the regex-based parser,
     # which expands stars using the already-resolved upstream node columns.
-    if any(select_expr.alias_or_name == "*" for select_expr in outer_select.selects):
+    if _select_has_unexpanded_star(outer_select):
         logger.debug("SQLGlot could not expand star selection for %s", node_id)
         return None
 

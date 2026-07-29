@@ -432,6 +432,48 @@ def test_node_columns_uses_sqlglot_for_rename():
     assert any(r["column"] == "user_id" for r in refs)
 
 
+def test_build_sqlglot_schema_skips_tables_without_columns():
+    from mds.services.dbt.sqlglot_lineage import _build_sqlglot_schema
+
+    schema = _build_sqlglot_schema({
+        "raw.empty": {"_node_id": "source.proj.raw.empty"},
+        "staging.users": {
+            "_node_id": "source.proj.public.users",
+            "user_id": "bigint",
+        },
+    })
+    assert "raw" not in schema
+    assert schema["staging"]["users"]["user_id"] == "bigint"
+
+
+def test_extract_star_without_upstream_columns_returns_none_for_regex_fallback():
+    """SELECT * with no upstream column metadata must fall back to regex expansion."""
+    result = extract_column_lineage(
+        sql="select * from raw",
+        node_id="model.proj.my_model",
+        depends_on=["source.proj.raw.empty"],
+        upstream_schemas={
+            "raw.empty": {"_node_id": "source.proj.raw.empty"},
+        },
+        dialect=None,
+    )
+    assert result is None
+
+
+def test_extract_explicit_columns_without_upstream_schema_still_works():
+    result = extract_column_lineage(
+        sql="select user_id as uid from raw",
+        node_id="model.proj.my_model",
+        depends_on=["source.proj.raw.empty"],
+        upstream_schemas={
+            "raw.empty": {"_node_id": "source.proj.raw.empty"},
+        },
+        dialect=None,
+    )
+    assert result is not None
+    assert "uid" in [c["name"] for c in result.columns]
+
+
 def test_build_project_lineage_rename_edge():
     """A renamed column (user_id as uid) must produce a rename edge in columnEdges."""
     source_id = "source.proj.public.users"
