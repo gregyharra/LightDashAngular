@@ -270,8 +270,8 @@ def extract_column_lineage(
             identify=False,
             allow_partial_qualification=True,
         )
-    except Exception:  # noqa: BLE001 - sqlglot's optimizer can raise assertions on edge cases
-        logger.debug("SQLGlot qualify failed for %s, continuing with unqualified AST", node_id)
+    except Exception as exc:  # noqa: BLE001 - sqlglot's optimizer can raise assertions on edge cases
+        logger.debug("SQLGlot qualify failed for %s: %s, continuing with unqualified AST", node_id, exc)
         qualified = parsed
 
     outer_select = qualified if isinstance(qualified, exp.Select) else qualified.find(exp.Select)
