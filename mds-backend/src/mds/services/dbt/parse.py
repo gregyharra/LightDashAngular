@@ -141,7 +141,8 @@ def _node_columns(
         # back to the regex parser when SQLGlot can't handle the SQL, so both
         # paths feed the same catalog/manifest preference logic below.
         sqlglot_sql = _node_sql_for_sqlglot(artifacts, node)
-        if sqlglot_sql:
+        has_star = _sql_select_has_star(sqlglot_sql or sql)
+        if sqlglot_sql and not has_star:
             sqlglot_columns = _sqlglot_columns_from_sql(
                 sqlglot_sql,
                 node,
@@ -157,6 +158,19 @@ def _node_columns(
         if not sql_columns and sql:
             sql_columns = _columns_from_sql(
                 sql, node, artifacts, cache=cache, resolving=resolving, lineage_out=lineage_out
+            )
+
+        # SQLGlot can return column names without refs (e.g. compiled SQL joins).
+        # Fill gaps with the regex parser so rename/join edges still render.
+        lineage_sql = sqlglot_sql or sql
+        if lineage_sql and lineage_out is not None and not has_star:
+            _supplement_lineage_from_regex(
+                lineage_sql,
+                node,
+                artifacts,
+                cache=cache,
+                resolving=resolving,
+                lineage_out=lineage_out,
             )
 
         # Stars must expand from SQL — incomplete catalog/manifest cannot represent them.
@@ -216,7 +230,7 @@ def _columns_from_sql(
         return []
 
     depends_on = list((node.get("depends_on") or {}).get("nodes") or [])
-    alias_map = _relation_alias_map(sql, depends_on)
+    alias_map = _relation_alias_map(sql, depends_on, artifacts)
     primary_dep = _primary_relation_id(sql, depends_on, alias_map)
 
     columns: list[dict[str, Any]] = []
@@ -264,6 +278,31 @@ def _columns_from_sql(
     return columns
 
 
+def _supplement_lineage_from_regex(
+    sql: str,
+    node: dict[str, Any],
+    artifacts: DbtArtifacts,
+    *,
+    cache: _ColumnCache | None = None,
+    resolving: set[str] | None = None,
+    lineage_out: dict[str, dict[str, Any]],
+) -> None:
+    """Fill lineage_out entries SQLGlot left empty using the regex expression parser."""
+    regex_lineage: dict[str, dict[str, Any]] = {}
+    _columns_from_sql(
+        sql,
+        node,
+        artifacts,
+        cache=cache,
+        resolving=resolving,
+        lineage_out=regex_lineage,
+    )
+    for key, entry in regex_lineage.items():
+        existing = lineage_out.get(key)
+        if not existing or not existing.get("refs"):
+            lineage_out[key] = entry
+
+
 def _sqlglot_columns_from_sql(
     sql: str,
     node: dict[str, Any],
@@ -275,10 +314,11 @@ def _sqlglot_columns_from_sql(
     lineage_out: dict[str, dict[str, Any]] | None = None,
 ) -> list[dict[str, Any]] | None:
     """Try SQLGlot-based column extraction. Returns None if SQLGlot can't handle the SQL."""
-    from mds.services.dbt.sqlglot_lineage import extract_column_lineage
+    from mds.services.dbt.sqlglot_lineage import dep_table_node_keys, extract_column_lineage
 
     depends_on = list((node.get("depends_on") or {}).get("nodes") or [])
     upstream_schemas: dict[str, dict[str, str]] = {}
+    dep_nodes: list[tuple[str, dict[str, Any]]] = []
 
     for dep_id in depends_on:
         dep_columns = _upstream_columns(artifacts, dep_id, cache=cache, resolving=resolving)
@@ -287,6 +327,7 @@ def _sqlglot_columns_from_sql(
         ).get(dep_id)
         if not dep_node:
             continue
+        dep_nodes.append((dep_id, dep_node))
         schema_name = dep_node.get("schema") or "default"
         table_name = dep_node.get("name") or dep_id.split(".")[-1]
         table_key = f"{schema_name}.{table_name}"
@@ -294,6 +335,8 @@ def _sqlglot_columns_from_sql(
         for col in dep_columns:
             col_dict[col["name"]] = col.get("type") or "string"
         upstream_schemas[table_key] = col_dict
+
+    extra_table_keys = dep_table_node_keys(dep_nodes)
 
     metadata = artifacts.manifest.get("metadata") or {}
     adapter_type = metadata.get("adapter_type")
@@ -315,6 +358,7 @@ def _sqlglot_columns_from_sql(
         depends_on=depends_on,
         upstream_schemas=upstream_schemas,
         dialect=dialect,
+        extra_table_keys=extra_table_keys,
     )
     if result is None:
         return None
@@ -792,7 +836,56 @@ def _resolve_source_dependency(
     return None
 
 
-def _relation_alias_map(sql: str, depends_on: list[str]) -> dict[str, str]:
+def _dep_table_name_index(
+    depends_on: list[str],
+    artifacts: DbtArtifacts,
+) -> dict[str, str]:
+    """Map qualified table names from compiled SQL to dependency node ids."""
+    from mds.services.dbt.sqlglot_lineage import dep_table_node_keys
+
+    dep_nodes: list[tuple[str, dict[str, Any]]] = []
+    for dep_id in depends_on:
+        dep_node = (artifacts.manifest.get("nodes") or {}).get(dep_id) or (
+            artifacts.manifest.get("sources") or {}
+        ).get(dep_id)
+        if dep_node:
+            dep_nodes.append((dep_id, dep_node))
+    return dep_table_node_keys(dep_nodes)
+
+
+def _compiled_relation_alias_map(sql: str, table_index: dict[str, str]) -> dict[str, str]:
+    """Map table aliases in compiled warehouse SQL to dependency node ids."""
+    from sqlglot import exp, maybe_parse
+    from sqlglot.errors import SqlglotError
+
+    from mds.services.dbt.sqlglot_lineage import _table_name_variants
+
+    try:
+        parsed = maybe_parse(sql)
+    except SqlglotError:
+        return {}
+    if not isinstance(parsed, exp.Expression):
+        return {}
+
+    alias_to_id: dict[str, str] = {}
+    for table in parsed.find_all(exp.Table):
+        dep_id = None
+        for key in _table_name_variants(table):
+            dep_id = table_index.get(key)
+            if dep_id:
+                break
+        if not dep_id:
+            continue
+        alias = (table.alias or table.name).lower()
+        alias_to_id[alias] = dep_id
+    return alias_to_id
+
+
+def _relation_alias_map(
+    sql: str,
+    depends_on: list[str],
+    artifacts: DbtArtifacts | None = None,
+) -> dict[str, str]:
     """Map relation alias / model name (lowercased) → dependency node id."""
     alias_to_id: dict[str, str] = {}
     for match in _REF_RELATION_PATTERN.finditer(sql):
@@ -812,6 +905,12 @@ def _relation_alias_map(sql: str, depends_on: list[str]) -> dict[str, str]:
             continue
         alias_to_id[alias.lower()] = dep_id
         alias_to_id[table_name.lower()] = dep_id
+    if artifacts is not None:
+        compiled_map = _compiled_relation_alias_map(
+            sql, _dep_table_name_index(depends_on, artifacts)
+        )
+        for alias, dep_id in compiled_map.items():
+            alias_to_id.setdefault(alias, dep_id)
     return alias_to_id
 
 

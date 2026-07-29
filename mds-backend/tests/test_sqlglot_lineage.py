@@ -1,5 +1,6 @@
 from datetime import datetime, timezone
 from pathlib import Path
+from typing import Any
 
 from mds.services.dbt.loader import DbtArtifacts
 from mds.services.dbt.parse import _node_columns, build_project_lineage
@@ -472,6 +473,153 @@ def test_extract_explicit_columns_without_upstream_schema_still_works():
     )
     assert result is not None
     assert "uid" in [c["name"] for c in result.columns]
+
+
+def test_dep_table_node_keys_includes_catalog_schema_table():
+    from mds.services.dbt.sqlglot_lineage import dep_table_node_keys
+
+    node_id = "model.proj.facility_t_facility_request_freq"
+    keys = dep_table_node_keys([
+        (
+            node_id,
+            {
+                "name": "facility_t_facility_request_freq",
+                "schema": "bronze",
+                "database": "postgres_prod",
+            },
+        ),
+    ])
+    assert keys["facility_t_facility_request_freq"] == node_id
+    assert keys["bronze.facility_t_facility_request_freq"] == node_id
+    assert keys["postgres_prod.bronze.facility_t_facility_request_freq"] == node_id
+
+
+def test_extract_trino_compiled_join_rename():
+    from mds.services.dbt.sqlglot_lineage import dep_table_node_keys
+
+    freq_id = "model.proj.facility_t_facility_request_freq"
+    fac_id = "model.proj.facility_t_facility_fac"
+    target_id = "model.proj.asn_facility_request_afare"
+    sql = """
+    SELECT
+        FREQ.FREQ_ID AS AFARE_FAC_REQ_ID,
+        FAC.FAC_UNIQUE_ID AS AFARE_FACILITY_FCT_ID
+    FROM "postgres_prod"."bronze"."facility_t_facility_request_freq" FREQ
+    LEFT JOIN "postgres_prod"."bronze"."facility_t_facility_fac" FAC
+      ON FREQ.FREQ_FAC_ID = FAC.FAC_ID
+    """
+    dep_nodes = [
+        (
+            freq_id,
+            {
+                "name": "facility_t_facility_request_freq",
+                "schema": "bronze",
+                "database": "postgres_prod",
+            },
+        ),
+        (
+            fac_id,
+            {
+                "name": "facility_t_facility_fac",
+                "schema": "bronze",
+                "database": "postgres_prod",
+            },
+        ),
+    ]
+    result = extract_column_lineage(
+        sql=sql,
+        node_id=target_id,
+        depends_on=[freq_id, fac_id],
+        upstream_schemas={
+            "bronze.facility_t_facility_request_freq": {
+                "_node_id": freq_id,
+                "freq_id": "bigint",
+            },
+            "bronze.facility_t_facility_fac": {
+                "_node_id": fac_id,
+                "fac_unique_id": "bigint",
+            },
+        },
+        dialect="trino",
+        extra_table_keys=dep_table_node_keys(dep_nodes),
+    )
+    assert result is not None
+    req_entry = result.lineage.get("AFARE_FAC_REQ_ID") or result.lineage.get("afare_fac_req_id")
+    fac_entry = result.lineage.get("AFARE_FACILITY_FCT_ID") or result.lineage.get(
+        "afare_facility_fct_id"
+    )
+    assert req_entry is not None
+    assert fac_entry is not None
+    assert req_entry.refs[0]["nodeId"] == freq_id
+    assert req_entry.refs[0]["column"].lower() == "freq_id"
+    assert fac_entry.refs[0]["nodeId"] == fac_id
+    assert fac_entry.refs[0]["column"].lower() == "fac_unique_id"
+
+
+def test_node_columns_supplements_sqlglot_lineage_for_compiled_join():
+    """Compiled SQL without Jinja: regex supplements refs when SQLGlot misses them."""
+    freq_id = "model.proj.facility_t_facility_request_freq"
+    fac_id = "model.proj.facility_t_facility_fac"
+    target_id = "model.proj.asn_facility_request_afare"
+    compiled_sql = """
+    SELECT
+        FREQ.FREQ_ID AS AFARE_FAC_REQ_ID,
+        FAC.FAC_UNIQUE_ID AS AFARE_FACILITY_FCT_ID
+    FROM "postgres_prod"."bronze"."facility_t_facility_request_freq" FREQ
+    LEFT JOIN "postgres_prod"."bronze"."facility_t_facility_fac" FAC
+      ON FREQ.FREQ_FAC_ID = FAC.FAC_ID
+    """
+    artifacts = DbtArtifacts(
+        project_path=Path("/tmp"),
+        manifest_path=Path("/tmp/manifest.json"),
+        catalog_path=None,
+        manifest={
+            "metadata": {"adapter_type": "trino"},
+            "nodes": {
+                target_id: {
+                    "resource_type": "model",
+                    "name": "asn_facility_request_afare",
+                    "schema": "silver",
+                    "database": "postgres_prod",
+                    "depends_on": {"nodes": [freq_id, fac_id]},
+                    "columns": {},
+                    "compiled_code": compiled_sql,
+                },
+                freq_id: {
+                    "resource_type": "model",
+                    "name": "facility_t_facility_request_freq",
+                    "schema": "bronze",
+                    "database": "postgres_prod",
+                    "depends_on": {"nodes": []},
+                    "columns": {"freq_id": {"data_type": "bigint"}},
+                },
+                fac_id: {
+                    "resource_type": "model",
+                    "name": "facility_t_facility_fac",
+                    "schema": "bronze",
+                    "database": "postgres_prod",
+                    "depends_on": {"nodes": []},
+                    "columns": {"fac_unique_id": {"data_type": "bigint"}},
+                },
+            },
+            "sources": {},
+        },
+        catalog={"nodes": {}, "sources": {}},
+        loaded_at=datetime.now(timezone.utc),
+    )
+    lineage_out: dict[str, dict[str, Any]] = {}
+    _node_columns(
+        artifacts,
+        target_id,
+        artifacts.manifest["nodes"][target_id],
+        cache={},
+        resolving=set(),
+        lineage_out=lineage_out,
+    )
+    req_lineage = lineage_out.get("afare_fac_req_id")
+    assert req_lineage is not None
+    assert req_lineage["refs"]
+    assert any(r["nodeId"] == freq_id for r in req_lineage["refs"])
 
 
 def test_build_project_lineage_rename_edge():

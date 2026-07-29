@@ -124,8 +124,10 @@ def _select_has_unexpanded_star(select: exp.Select) -> bool:
 
 def _table_to_node_id(
     upstream_schemas: dict[str, dict[str, str]],
+    *,
+    extra_keys: dict[str, str] | None = None,
 ) -> dict[str, str]:
-    """Map lowercased 'schema.table' keys to their _node_id values."""
+    """Map lowercased table identifiers to their dependency node ids."""
     mapping: dict[str, str] = {}
     for table_key, cols in upstream_schemas.items():
         node_id = cols.get("_node_id")
@@ -133,22 +135,49 @@ def _table_to_node_id(
             mapping[table_key.lower()] = node_id
             table_name = table_key.split(".")[-1]
             mapping[table_name.lower()] = node_id
+    if extra_keys:
+        mapping.update(extra_keys)
     return mapping
 
 
+def dep_table_node_keys(dep_nodes: list[tuple[str, dict[str, Any]]]) -> dict[str, str]:
+    """Build lookup keys for manifest nodes (bare name, schema.table, catalog.schema.table)."""
+    mapping: dict[str, str] = {}
+    for node_id, node in dep_nodes:
+        name = (node.get("name") or node_id.split(".")[-1]).lower()
+        schema = (node.get("schema") or "").lower()
+        database = (node.get("database") or "").lower()
+        mapping[name] = node_id
+        if schema:
+            mapping[f"{schema}.{name}"] = node_id
+        if database and schema:
+            mapping[f"{database}.{schema}.{name}"] = node_id
+    return mapping
+
+
+def _table_name_variants(table: exp.Table) -> list[str]:
+    """Return progressively shorter qualified table names for lookup."""
+    name = table.name.lower()
+    db = (table.db or "").lower()
+    catalog = (table.catalog or "").lower()
+    variants: list[str] = []
+    if catalog and db:
+        variants.append(f"{catalog}.{db}.{name}")
+    if db:
+        variants.append(f"{db}.{name}")
+    variants.append(name)
+    return variants
+
+
 def _build_alias_map(root: exp.Expression) -> dict[str, str]:
-    """Map lowercased table aliases (or bare table names) to their
-    lowercased 'schema.table' (or 'table') identifier, as referenced in the
-    query's FROM/JOIN clauses. Column references after qualification carry
-    the alias, not the original table name, so this bridges the two.
-    """
+    """Map lowercased table aliases to their lowercased qualified table name."""
     mapping: dict[str, str] = {}
     for table in root.find_all(exp.Table):
         alias = table.alias_or_name
         if not alias:
             continue
-        full_name = f"{table.db}.{table.name}" if table.db else table.name
-        mapping[alias.lower()] = full_name.lower()
+        variants = _table_name_variants(table)
+        mapping[alias.lower()] = variants[0]
     return mapping
 
 
@@ -158,13 +187,13 @@ def _resolve_leaf_node_id(
     depends_on: list[str],
 ) -> str | None:
     """Map a leaf `exp.Table` (a real FROM-clause table, not a CTE) to its node id."""
-    full_name = f"{table.db}.{table.name}" if table.db else table.name
-    node_id = table_node_map.get(full_name.lower())
-    if not node_id:
-        node_id = table_node_map.get(table.name.lower())
-    if not node_id and len(depends_on) == 1:
-        node_id = depends_on[0]
-    return node_id
+    for key in _table_name_variants(table):
+        node_id = table_node_map.get(key)
+        if node_id:
+            return node_id
+    if len(depends_on) == 1:
+        return depends_on[0]
+    return None
 
 
 def _trace_column_to_sources(
@@ -245,9 +274,10 @@ def _naive_column_refs(
         resolved_node_id = None
         if table_ref:
             canonical = alias_map.get(table_ref.lower(), table_ref.lower())
-            resolved_node_id = table_node_map.get(canonical)
-            if not resolved_node_id:
-                resolved_node_id = table_node_map.get(canonical.split(".")[-1])
+            for key in (canonical, canonical.rsplit(".", 1)[-1]):
+                resolved_node_id = table_node_map.get(key)
+                if resolved_node_id:
+                    break
         if not resolved_node_id and len(depends_on) == 1:
             resolved_node_id = depends_on[0]
         if resolved_node_id:
@@ -266,6 +296,8 @@ def extract_column_lineage(
     depends_on: list[str],
     upstream_schemas: dict[str, dict[str, str]],
     dialect: str | None,
+    *,
+    extra_table_keys: dict[str, str] | None = None,
 ) -> ColumnLineageResult | None:
     """Use SQLGlot to parse SQL and extract column-level lineage.
 
@@ -281,7 +313,7 @@ def extract_column_lineage(
         return None
 
     schema = _build_sqlglot_schema(upstream_schemas)
-    table_node_map = _table_to_node_id(upstream_schemas)
+    table_node_map = _table_to_node_id(upstream_schemas, extra_keys=extra_table_keys)
 
     if _schema_has_columns(schema):
         try:
