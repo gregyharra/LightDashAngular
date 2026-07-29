@@ -761,6 +761,137 @@ def test_afare_style_compiled_and_raw_produces_rename_edges():
     assert req_col.get("transformationType") == "rename"
 
 
+def test_cached_columns_still_fill_lineage_out():
+    source_id = "model.proj.stg_users"
+    mid_id = "model.proj.dim_users"
+    artifacts = DbtArtifacts(
+        project_path=Path("/tmp"),
+        manifest_path=Path("/tmp/manifest.json"),
+        catalog_path=None,
+        manifest={
+            "metadata": {"adapter_type": "trino"},
+            "nodes": {
+                mid_id: {
+                    "resource_type": "model",
+                    "name": "dim_users",
+                    "schema": "marts",
+                    "database": "db",
+                    "depends_on": {"nodes": [source_id]},
+                    "columns": {},
+                    "raw_code": "select user_id as uid from {{ ref('stg_users') }}",
+                },
+                source_id: {
+                    "resource_type": "model",
+                    "name": "stg_users",
+                    "schema": "staging",
+                    "database": "db",
+                    "depends_on": {"nodes": []},
+                    "columns": {"user_id": {"data_type": "bigint"}},
+                },
+            },
+            "sources": {},
+        },
+        catalog={"nodes": {}, "sources": {}},
+        loaded_at=datetime.now(timezone.utc),
+    )
+    cache: dict = {}
+    resolving: set = set()
+    # Simulate downstream resolving mid as an upstream dependency (no lineage_out).
+    _node_columns(
+        artifacts,
+        mid_id,
+        artifacts.manifest["nodes"][mid_id],
+        cache=cache,
+        resolving=resolving,
+        lineage_out=None,
+    )
+    assert mid_id in cache
+
+    lineage_out: dict = {}
+    _node_columns(
+        artifacts,
+        mid_id,
+        artifacts.manifest["nodes"][mid_id],
+        cache=cache,
+        resolving=resolving,
+        lineage_out=lineage_out,
+    )
+    assert "uid" in lineage_out
+    assert lineage_out["uid"]["refs"]
+    assert lineage_out["uid"]["refs"][0]["column"].lower() == "user_id"
+
+
+def test_node_columns_lineage_not_skipped_when_cached_by_downstream():
+    """Downstream models cache upstream columns without lineage_out.
+
+    When the upstream model is later resolved with lineage_out, the cache must
+    not skip SQL lineage extraction — otherwise rename edges are lost.
+    """
+    source_id = "model.proj.stg_users"
+    mid_id = "model.proj.dim_users"
+    down_id = "model.proj.report_users"
+
+    artifacts = DbtArtifacts(
+        project_path=Path("/tmp"),
+        manifest_path=Path("/tmp/manifest.json"),
+        catalog_path=None,
+        manifest={
+            "metadata": {"adapter_type": "trino"},
+            "nodes": {
+                # Intentionally list downstream BEFORE mid so build order
+                # caches mid via upstream resolution first.
+                down_id: {
+                    "resource_type": "model",
+                    "name": "report_users",
+                    "schema": "marts",
+                    "database": "db",
+                    "depends_on": {"nodes": [mid_id]},
+                    "columns": {},
+                    "raw_code": "select uid as user_id from {{ ref('dim_users') }}",
+                    "tags": ["mart"],
+                },
+                mid_id: {
+                    "resource_type": "model",
+                    "name": "dim_users",
+                    "schema": "marts",
+                    "database": "db",
+                    "depends_on": {"nodes": [source_id]},
+                    "columns": {},
+                    "raw_code": "select user_id as uid from {{ ref('stg_users') }}",
+                    "tags": ["mart"],
+                },
+                source_id: {
+                    "resource_type": "model",
+                    "name": "stg_users",
+                    "schema": "staging",
+                    "database": "db",
+                    "depends_on": {"nodes": []},
+                    "columns": {"user_id": {"data_type": "bigint"}},
+                    "tags": ["staging"],
+                },
+            },
+            "sources": {},
+        },
+        catalog={"nodes": {}, "sources": {}},
+        loaded_at=datetime.now(timezone.utc),
+    )
+
+    lineage = build_project_lineage(
+        artifacts,
+        project_uuid="test-uuid",
+        project_name="Test",
+        warehouse_type="trino",
+    )
+    incoming = [
+        e
+        for e in lineage.get("columnEdges", [])
+        if e["targetNodeId"] == mid_id and e["targetColumn"].lower() == "uid"
+    ]
+    assert incoming, "dim_users.uid must have an incoming column edge from stg_users"
+    assert incoming[0]["sourceColumn"].lower() == "user_id"
+    assert incoming[0]["transformationType"] == "rename"
+
+
 def test_build_project_lineage_rename_edge():
     """A renamed column (user_id as uid) must produce a rename edge in columnEdges."""
     source_id = "source.proj.public.users"

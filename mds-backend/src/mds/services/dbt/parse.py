@@ -123,10 +123,14 @@ def _node_columns(
     resolving: set[str] | None = None,
     lineage_out: dict[str, dict[str, Any]] | None = None,
 ) -> list[dict[str, Any]]:
-    if cache is not None and node_id in cache:
-        return cache[node_id]
+    # Upstream resolution (via ``_upstream_columns``) caches columns WITHOUT
+    # lineage_out. If we short-circuit on that cache when the caller later asks
+    # for lineage, rename/join edges for this node are silently dropped.
+    cached = cache.get(node_id) if cache is not None else None
+    if cached is not None and lineage_out is None:
+        return cached
     if resolving is not None and node_id in resolving:
-        return []
+        return cached or []
 
     catalog_cols = _catalog_columns(artifacts, node_id)
     manifest_cols = _manifest_columns(node)
@@ -173,6 +177,11 @@ def _node_columns(
                 resolving=resolving,
                 lineage_out=lineage_out,
             )
+
+        # Columns were already resolved via an upstream cache hit; lineage_out is
+        # now populated so return the cached list as-is.
+        if cached is not None:
+            return cached
 
         # Stars must expand from SQL — incomplete catalog/manifest cannot represent them.
         if _sql_select_has_star(sql) and sql_columns:
