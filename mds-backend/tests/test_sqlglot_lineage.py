@@ -2,7 +2,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 
 from mds.services.dbt.loader import DbtArtifacts
-from mds.services.dbt.parse import _node_columns
+from mds.services.dbt.parse import _node_columns, build_project_lineage
 from mds.services.dbt.sqlglot_lineage import extract_column_lineage, render_jinja_refs
 
 
@@ -430,3 +430,85 @@ def test_node_columns_uses_sqlglot_for_rename():
     assert "uid" in lineage_out
     refs = lineage_out["uid"]["refs"]
     assert any(r["column"] == "user_id" for r in refs)
+
+
+def test_build_project_lineage_rename_edge():
+    """A renamed column (user_id as uid) must produce a rename edge in columnEdges."""
+    source_id = "source.proj.public.users"
+    stg_id = "model.proj.stg_users"
+    mart_id = "model.proj.dim_users"
+
+    artifacts = DbtArtifacts(
+        project_path=Path("/tmp"),
+        manifest_path=Path("/tmp/manifest.json"),
+        catalog_path=None,
+        manifest={
+            "metadata": {"project_name": "proj", "project_version": "1.0.0"},
+            "nodes": {
+                stg_id: {
+                    "resource_type": "model",
+                    "name": "stg_users",
+                    "schema": "staging",
+                    "database": "db",
+                    "depends_on": {"nodes": [source_id]},
+                    "columns": {},
+                    "tags": ["staging"],
+                    "raw_code": "select id as user_id, name from {{ source('public', 'users') }}",
+                },
+                mart_id: {
+                    "resource_type": "model",
+                    "name": "dim_users",
+                    "schema": "marts",
+                    "database": "db",
+                    "depends_on": {"nodes": [stg_id]},
+                    "columns": {},
+                    "tags": ["mart"],
+                    "raw_code": "select user_id as uid, name from {{ ref('stg_users') }}",
+                },
+            },
+            "sources": {
+                source_id: {
+                    "resource_type": "source",
+                    "name": "users",
+                    "source_name": "public",
+                    "schema": "staging",
+                    "database": "db",
+                    "columns": {
+                        "id": {"data_type": "bigint"},
+                        "name": {"data_type": "varchar"},
+                    },
+                },
+            },
+        },
+        catalog={
+            "nodes": {},
+            "sources": {
+                source_id: {
+                    "columns": {
+                        "id": {"type": "bigint"},
+                        "name": {"type": "varchar"},
+                    },
+                    "metadata": {},
+                },
+            },
+        },
+        loaded_at=datetime.now(timezone.utc),
+    )
+
+    lineage = build_project_lineage(
+        artifacts,
+        project_uuid="test-uuid",
+        project_name="Test",
+        warehouse_type="trino",
+    )
+
+    column_edges = lineage.get("columnEdges", [])
+    rename_edges = [
+        e
+        for e in column_edges
+        if e["targetNodeId"] == mart_id and e["targetColumn"] == "uid"
+    ]
+    assert len(rename_edges) >= 1
+    edge = rename_edges[0]
+    assert edge["sourceColumn"] == "user_id"
+    assert edge["transformationType"] == "rename"
