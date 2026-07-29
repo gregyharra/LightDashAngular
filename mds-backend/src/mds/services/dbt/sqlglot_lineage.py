@@ -8,6 +8,7 @@ from typing import Any
 from sqlglot import exp, maybe_parse
 from sqlglot.errors import SqlglotError
 from sqlglot.optimizer import qualify
+from sqlglot.optimizer.scope import Scope, build_scope, find_all_in_scope
 
 logger = logging.getLogger(__name__)
 
@@ -129,6 +130,114 @@ def _build_alias_map(root: exp.Expression) -> dict[str, str]:
     return mapping
 
 
+def _resolve_leaf_node_id(
+    table: exp.Table,
+    table_node_map: dict[str, str],
+    depends_on: list[str],
+) -> str | None:
+    """Map a leaf `exp.Table` (a real FROM-clause table, not a CTE) to its node id."""
+    full_name = f"{table.db}.{table.name}" if table.db else table.name
+    node_id = table_node_map.get(full_name.lower())
+    if not node_id:
+        node_id = table_node_map.get(table.name.lower())
+    if not node_id and len(depends_on) == 1:
+        node_id = depends_on[0]
+    return node_id
+
+
+def _trace_column_to_sources(
+    select_expr: exp.Expression,
+    scope: Scope,
+    table_node_map: dict[str, str],
+    depends_on: list[str],
+    visited: set[tuple[int, str]] | None = None,
+) -> list[dict[str, Any]]:
+    """Recursively trace the columns referenced by `select_expr` back to their
+    leaf source tables, following SQLGlot's scope graph through CTEs and
+    subqueries so joins nested inside a CTE resolve to the correct upstream
+    table (rather than only the outer query's tables).
+    """
+    if visited is None:
+        visited = set()
+
+    refs: list[dict[str, Any]] = []
+    for src_col in find_all_in_scope(select_expr, exp.Column):
+        table_ref = src_col.table
+        source = scope.sources.get(table_ref) if table_ref else None
+        if source is None and not table_ref and len(scope.sources) == 1:
+            source = next(iter(scope.sources.values()))
+
+        if isinstance(source, Scope):
+            key = (id(source), src_col.name.lower())
+            if key in visited:
+                continue
+            visited.add(key)
+            inner_select = next(
+                (
+                    s
+                    for s in source.expression.selects
+                    if s.alias_or_name == src_col.name
+                ),
+                None,
+            )
+            if inner_select is None:
+                continue
+            refs.extend(
+                _trace_column_to_sources(
+                    inner_select, source, table_node_map, depends_on, visited
+                )
+            )
+        elif isinstance(source, exp.Table):
+            node_id = _resolve_leaf_node_id(source, table_node_map, depends_on)
+            if node_id:
+                refs.append({
+                    "nodeId": node_id,
+                    "column": src_col.name,
+                    "type": None,
+                    "description": None,
+                })
+        elif len(depends_on) == 1:
+            refs.append({
+                "nodeId": depends_on[0],
+                "column": src_col.name,
+                "type": None,
+                "description": None,
+            })
+
+    return refs
+
+
+def _naive_column_refs(
+    select_expr: exp.Expression,
+    alias_map: dict[str, str],
+    table_node_map: dict[str, str],
+    depends_on: list[str],
+) -> list[dict[str, Any]]:
+    """Fallback resolution used when scope analysis is unavailable: resolves
+    columns using only the outer query's table/alias map, without tracing
+    through CTEs.
+    """
+    refs: list[dict[str, Any]] = []
+    for src_col in select_expr.find_all(exp.Column):
+        table_ref = src_col.table
+        resolved_node_id = None
+        if table_ref:
+            canonical = alias_map.get(table_ref.lower(), table_ref.lower())
+            resolved_node_id = table_node_map.get(canonical)
+            if not resolved_node_id:
+                resolved_node_id = table_node_map.get(canonical.split(".")[-1])
+        if not resolved_node_id and len(depends_on) == 1:
+            resolved_node_id = depends_on[0]
+        if resolved_node_id:
+            refs.append({
+                "nodeId": resolved_node_id,
+                "column": src_col.name,
+                "type": None,
+                "description": None,
+            })
+    return refs
+
+
 def extract_column_lineage(
     sql: str,
     node_id: str,
@@ -179,6 +288,19 @@ def extract_column_lineage(
 
     alias_map = _build_alias_map(outer_select)
 
+    # Build the scope graph so column refs can be traced through CTEs/subqueries
+    # to their leaf source tables. This can fail on unusual trees SQLGlot's
+    # scope analyzer doesn't support; fall back to the naive outer-query-only
+    # resolution below in that case.
+    outer_scope: Scope | None = None
+    try:
+        root_scope = build_scope(qualified)
+    except Exception:  # noqa: BLE001 - sqlglot's scope builder can raise on edge cases
+        logger.debug("SQLGlot build_scope failed for %s", node_id)
+        root_scope = None
+    if root_scope is not None:
+        outer_scope = root_scope.union_scopes[0] if root_scope.union_scopes else root_scope
+
     columns: list[dict[str, Any]] = []
     lineage: dict[str, ColumnLineageEntry] = {}
 
@@ -189,26 +311,13 @@ def extract_column_lineage(
 
         columns.append({"name": col_name, "type": "string", "description": None})
 
-        source_columns = list(select_expr.find_all(exp.Column))
         refs: list[dict[str, Any]] = []
-        for src_col in source_columns:
-            table_ref = src_col.table
-            src_col_name = src_col.name
-            resolved_node_id = None
-            if table_ref:
-                canonical = alias_map.get(table_ref.lower(), table_ref.lower())
-                resolved_node_id = table_node_map.get(canonical)
-                if not resolved_node_id:
-                    resolved_node_id = table_node_map.get(canonical.split(".")[-1])
-            if not resolved_node_id and len(depends_on) == 1:
-                resolved_node_id = depends_on[0]
-            if resolved_node_id:
-                refs.append({
-                    "nodeId": resolved_node_id,
-                    "column": src_col_name,
-                    "type": None,
-                    "description": None,
-                })
+        if outer_scope is not None:
+            refs = _trace_column_to_sources(
+                select_expr, outer_scope, table_node_map, depends_on
+            )
+        if not refs:
+            refs = _naive_column_refs(select_expr, alias_map, table_node_map, depends_on)
 
         expression_sql = select_expr.sql(dialect=dialect, comments=False)
         lineage[col_name] = ColumnLineageEntry(

@@ -188,6 +188,187 @@ def test_extract_returns_none_on_unparseable():
     assert result is None
 
 
+def test_extract_cte_passthrough():
+    sql = """
+    with base as (
+        select user_id, name from staging.users
+    )
+    select user_id, name from base
+    """
+    result = extract_column_lineage(
+        sql=sql,
+        node_id="model.proj.my_model",
+        depends_on=["source.proj.public.users"],
+        upstream_schemas={
+            "staging.users": {
+                "_node_id": "source.proj.public.users",
+                "user_id": "bigint",
+                "name": "varchar",
+            }
+        },
+        dialect=None,
+    )
+    assert result is not None
+    assert "user_id" in [c["name"] for c in result.columns]
+    entry = result.lineage.get("user_id")
+    assert entry is not None
+    assert any(r["nodeId"] == "source.proj.public.users" for r in entry.refs)
+
+
+def test_extract_cte_join_resolves_each_column_to_its_own_upstream_table():
+    """Two CTEs joined together, each wrapping a different upstream table.
+
+    The naive (non-scope-aware) extractor can't tell that ``o.order_id`` and
+    ``c.first_name`` come from different physical tables once they're routed
+    through ``orders_cte``/``customers_cte`` aliases, so this exercises real
+    CTE tracing rather than the single-dependency fallback.
+    """
+    sql = """
+    with orders_cte as (
+        select order_id, customer_id from staging.orders
+    ),
+    customers_cte as (
+        select customer_id, first_name from staging.customers
+    )
+    select o.order_id, c.first_name
+    from orders_cte o
+    join customers_cte c on o.customer_id = c.customer_id
+    """
+    result = extract_column_lineage(
+        sql=sql,
+        node_id="model.proj.enriched",
+        depends_on=[
+            "model.proj.stg_orders",
+            "model.proj.stg_customers",
+        ],
+        upstream_schemas={
+            "staging.orders": {
+                "_node_id": "model.proj.stg_orders",
+                "order_id": "bigint",
+                "customer_id": "bigint",
+            },
+            "staging.customers": {
+                "_node_id": "model.proj.stg_customers",
+                "customer_id": "bigint",
+                "first_name": "varchar",
+            },
+        },
+        dialect=None,
+    )
+    assert result is not None
+    lineage = result.lineage
+    assert lineage["order_id"].refs
+    assert lineage["order_id"].refs[0]["nodeId"] == "model.proj.stg_orders"
+    assert lineage["order_id"].refs[0]["column"] == "order_id"
+    assert lineage["first_name"].refs
+    assert lineage["first_name"].refs[0]["nodeId"] == "model.proj.stg_customers"
+    assert lineage["first_name"].refs[0]["column"] == "first_name"
+
+
+def test_extract_chained_ctes_with_expression_traces_through_both_layers():
+    """A CTE built on top of another CTE, with an arithmetic expression in the
+    second layer; the final column must still trace back to the base table.
+    """
+    sql = """
+    with base as (
+        select order_id, customer_id, amount from staging.orders
+    ),
+    final as (
+        select order_id, customer_id, amount * 1.1 as amount_with_fee from base
+    )
+    select order_id, customer_id, amount_with_fee from final
+    """
+    result = extract_column_lineage(
+        sql=sql,
+        node_id="model.proj.fct_orders",
+        depends_on=["model.proj.stg_orders"],
+        upstream_schemas={
+            "staging.orders": {
+                "_node_id": "model.proj.stg_orders",
+                "order_id": "bigint",
+                "customer_id": "bigint",
+                "amount": "decimal",
+            },
+        },
+        dialect=None,
+    )
+    assert result is not None
+    entry = result.lineage.get("amount_with_fee")
+    assert entry is not None
+    assert any(
+        r["nodeId"] == "model.proj.stg_orders" and r["column"] == "amount"
+        for r in entry.refs
+    )
+
+
+def test_extract_cte_renames_column_before_final_select():
+    sql = """
+    with renamed as (
+        select user_id as uid, name from staging.users
+    )
+    select uid, name from renamed
+    """
+    result = extract_column_lineage(
+        sql=sql,
+        node_id="model.proj.stg_users",
+        depends_on=["source.proj.public.users"],
+        upstream_schemas={
+            "staging.users": {
+                "_node_id": "source.proj.public.users",
+                "user_id": "bigint",
+                "name": "varchar",
+            },
+        },
+        dialect=None,
+    )
+    assert result is not None
+    entry = result.lineage.get("uid")
+    assert entry is not None
+    assert entry.refs[0]["nodeId"] == "source.proj.public.users"
+    assert entry.refs[0]["column"] == "user_id"
+
+
+def test_extract_cast_expression():
+    sql = "select cast(order_date as date) as order_date from staging.orders"
+    result = extract_column_lineage(
+        sql=sql,
+        node_id="model.proj.stg",
+        depends_on=["source.proj.public.orders"],
+        upstream_schemas={
+            "staging.orders": {
+                "_node_id": "source.proj.public.orders",
+                "order_id": "bigint",
+                "order_date": "varchar",
+            }
+        },
+        dialect=None,
+    )
+    assert result is not None
+    entry = result.lineage.get("order_date")
+    assert entry is not None
+    assert entry.refs[0]["column"] == "order_date"
+
+
+def test_extract_coalesce():
+    sql = "select coalesce(amount, 0) as amount from staging.orders"
+    result = extract_column_lineage(
+        sql=sql,
+        node_id="model.proj.stg",
+        depends_on=["source.proj.public.orders"],
+        upstream_schemas={
+            "staging.orders": {
+                "_node_id": "source.proj.public.orders",
+                "amount": "decimal",
+            }
+        },
+        dialect=None,
+    )
+    assert result is not None
+    entry = result.lineage.get("amount")
+    assert entry is not None
+    assert entry.refs[0]["column"] == "amount"
+
+
 def test_node_columns_uses_sqlglot_for_rename():
     """End-to-end: select u.user_id as uid should produce a 'uid' column via SQLGlot."""
     source_id = "source.proj.public.users"
