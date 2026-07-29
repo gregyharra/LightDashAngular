@@ -622,6 +622,145 @@ def test_node_columns_supplements_sqlglot_lineage_for_compiled_join():
     assert any(r["nodeId"] == freq_id for r in req_lineage["refs"])
 
 
+def test_afare_style_compiled_and_raw_produces_rename_edges():
+    """Regression: asn_facility_request_afare nested join with renames."""
+    freq_id = "model.mds_transform.facility_t_facility_request_freq"
+    creq_id = "model.mds_transform.request_t_credit_request_creq"
+    fac_id = "model.mds_transform.facility_t_facility_fac"
+    fv_id = "model.mds_transform.facility_t_facility_version_fv"
+    fvreq_id = "model.mds_transform.facility_t_facility_version_request_fvreq"
+    target_id = "model.mds_transform.asn_facility_request_afare"
+
+    raw_sql = """
+    {{ config(materialized='incremental') }}
+    SELECT
+        FREQ.FREQ_ID AS AFARE_FAC_REQ_ID,
+        CREQ.CREQ_ID AS AFARE_REQUEST_ID,
+        FAC.FAC_UNIQUE_ID AS AFARE_FACILITY_FCT_ID,
+        FREQ.FREQ_REQUEST_TYPE AS AFARE_FACILITY_REQUEST_TYPE,
+        CASE WHEN MAX(CREQ.CREQ_CREATED_TIME) OVER (PARTITION BY FREQ.FREQ_FAC_ID) = CREQ.CREQ_CREATED_TIME
+            THEN 1 ELSE 0 END AS AFARE_LAST_REQUEST_FLAG,
+        CASE WHEN FAC.FAC_LATEST_APPROVED_FV_ID = FV.FV_ID THEN 1 ELSE 0 END AS AFARE_LAST_DECIDED_REQUEST_FLAG,
+        FREQ.FREQ_FOR_DECISION AS AFARE_FOR_DECISION_FLAG,
+        CREQ.CREQ_CREATED_TIME AS AFARE_CREATED_TIME
+    FROM {{ ref('facility_t_facility_request_freq') }} FREQ
+    LEFT JOIN {{ ref('request_t_credit_request_creq') }} CREQ
+        ON CREQ.CREQ_ID = FREQ.FREQ_REQUEST_UNIQUE_ID
+    LEFT JOIN {{ ref('facility_t_facility_fac') }} FAC
+        ON FAC.FAC_ID = FREQ.FREQ_FAC_ID
+    LEFT JOIN {{ ref('facility_t_facility_version_fv') }} FV
+        JOIN {{ ref('facility_t_facility_version_request_fvreq') }} FVREQ
+            ON FV.FV_ID = FVREQ.FVREQ_FV_ID
+        ON FAC.FAC_ID = FV.FV_FAC_ID
+        AND FVREQ.FVREQ_REQUEST_UNIQUE_ID = FREQ.FREQ_REQUEST_UNIQUE_ID
+        AND FV.FV_VERSION = 'DECIDED'
+    {% if is_incremental() %}
+    WHERE CREQ.CREQ_CREATED_TIME > (SELECT MAX(AFARE_CREATED_TIME) FROM {{ this }})
+    {% endif %}
+    """
+    compiled_sql = """
+    SELECT
+        FREQ.FREQ_ID AS AFARE_FAC_REQ_ID,
+        CREQ.CREQ_ID AS AFARE_REQUEST_ID,
+        FAC.FAC_UNIQUE_ID AS AFARE_FACILITY_FCT_ID,
+        FREQ.FREQ_REQUEST_TYPE AS AFARE_FACILITY_REQUEST_TYPE,
+        CASE WHEN MAX(CREQ.CREQ_CREATED_TIME) OVER (PARTITION BY FREQ.FREQ_FAC_ID) = CREQ.CREQ_CREATED_TIME
+            THEN 1 ELSE 0 END AS AFARE_LAST_REQUEST_FLAG,
+        CASE WHEN FAC.FAC_LATEST_APPROVED_FV_ID = FV.FV_ID THEN 1 ELSE 0 END AS AFARE_LAST_DECIDED_REQUEST_FLAG,
+        FREQ.FREQ_FOR_DECISION AS AFARE_FOR_DECISION_FLAG,
+        CREQ.CREQ_CREATED_TIME AS AFARE_CREATED_TIME
+    FROM "postgres_prod"."bronze"."facility_t_facility_request_freq" FREQ
+    LEFT JOIN "postgres_prod"."bronze"."request_t_credit_request_creq" CREQ
+        ON CREQ.CREQ_ID = FREQ.FREQ_REQUEST_UNIQUE_ID
+    LEFT JOIN "postgres_prod"."bronze"."facility_t_facility_fac" FAC
+        ON FAC.FAC_ID = FREQ.FREQ_FAC_ID
+    LEFT JOIN "postgres_prod"."bronze"."facility_t_facility_version_fv" FV
+        JOIN "postgres_prod"."bronze"."facility_t_facility_version_request_fvreq" FVREQ
+            ON FV.FV_ID = FVREQ.FVREQ_FV_ID
+        ON FAC.FAC_ID = FV.FV_FAC_ID
+        AND FVREQ.FVREQ_REQUEST_UNIQUE_ID = FREQ.FREQ_REQUEST_UNIQUE_ID
+        AND FV.FV_VERSION = 'DECIDED'
+    """
+
+    def make_model(name, cols, deps=None, raw=None, compiled=None, schema="bronze"):
+        return {
+            "resource_type": "model",
+            "name": name,
+            "schema": schema,
+            "database": "postgres_prod",
+            "depends_on": {"nodes": deps or []},
+            "columns": {c: {"data_type": "bigint"} for c in cols},
+            **({"raw_code": raw} if raw else {}),
+            **({"compiled_code": compiled} if compiled else {}),
+            "tags": ["staging"] if schema == "bronze" else ["intermediate"],
+        }
+
+    artifacts = DbtArtifacts(
+        project_path=Path("/tmp"),
+        manifest_path=Path("/tmp/manifest.json"),
+        catalog_path=None,
+        manifest={
+            "metadata": {
+                "adapter_type": "trino",
+                "project_name": "mds_transform",
+                "project_version": "1.0.0",
+            },
+            "nodes": {
+                freq_id: make_model(
+                    "facility_t_facility_request_freq",
+                    ["freq_id", "freq_request_type", "freq_for_decision", "freq_fac_id"],
+                ),
+                creq_id: make_model(
+                    "request_t_credit_request_creq",
+                    ["creq_id", "creq_created_time"],
+                ),
+                fac_id: make_model(
+                    "facility_t_facility_fac",
+                    ["fac_id", "fac_unique_id", "fac_latest_approved_fv_id"],
+                ),
+                fv_id: make_model(
+                    "facility_t_facility_version_fv",
+                    ["fv_id", "fv_fac_id", "fv_version"],
+                ),
+                fvreq_id: make_model(
+                    "facility_t_facility_version_request_fvreq",
+                    ["fvreq_fv_id", "fvreq_request_unique_id"],
+                ),
+                target_id: make_model(
+                    "asn_facility_request_afare",
+                    [],
+                    deps=[freq_id, creq_id, fac_id, fv_id, fvreq_id],
+                    raw=raw_sql,
+                    compiled=compiled_sql,
+                    schema="silver",
+                ),
+            },
+            "sources": {},
+        },
+        catalog={"nodes": {}, "sources": {}},
+        loaded_at=datetime.now(timezone.utc),
+    )
+
+    lineage = build_project_lineage(
+        artifacts,
+        project_uuid="test-uuid",
+        project_name="Test",
+        warehouse_type="trino",
+    )
+    edges = [e for e in lineage["columnEdges"] if e["targetNodeId"] == target_id]
+    by_target = {e["targetColumn"].lower(): e for e in edges}
+
+    assert by_target["afare_fac_req_id"]["sourceColumn"].lower() == "freq_id"
+    assert by_target["afare_fac_req_id"]["transformationType"] == "rename"
+    assert by_target["afare_request_id"]["transformationType"] == "rename"
+    assert by_target["afare_facility_fct_id"]["transformationType"] == "rename"
+    assert by_target["afare_created_time"]["transformationType"] == "rename"
+
+    target_node = next(n for n in lineage["nodes"] if n["id"] == target_id)
+    req_col = next(c for c in target_node["columns"] if c["name"].lower() == "afare_fac_req_id")
+    assert req_col.get("transformationType") == "rename"
+
+
 def test_build_project_lineage_rename_edge():
     """A renamed column (user_id as uid) must produce a rename edge in columnEdges."""
     source_id = "source.proj.public.users"

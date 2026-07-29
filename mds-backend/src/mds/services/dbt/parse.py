@@ -161,8 +161,9 @@ def _node_columns(
             )
 
         # SQLGlot can return column names without refs (e.g. compiled SQL joins).
-        # Fill gaps with the regex parser so rename/join edges still render.
-        lineage_sql = sqlglot_sql or sql
+        # Prefer raw SQL for the regex supplement — ``{{ ref() }}`` aliases resolve
+        # more reliably than compiled catalog.schema.table names.
+        lineage_sql = sql or sqlglot_sql
         if lineage_sql and lineage_out is not None and not has_star:
             _supplement_lineage_from_regex(
                 lineage_sql,
@@ -1050,10 +1051,20 @@ def _sql_derived_edges_for_target(
         for ref in refs:
             source_node = nodes_by_id.get(ref["nodeId"])
             source_columns = (source_node or {}).get("columns") or []
-            source_col = _column_by_name(source_columns, ref["column"]) or {
-                "name": ref["column"],
-                "type": ref.get("type") or "string",
-            }
+            source_col = _column_by_name(source_columns, ref["column"])
+            if source_col is None:
+                # Column referenced in SQL but missing from upstream metadata —
+                # inject it so the UI can draw the edge to a real column row.
+                source_col = {
+                    "name": ref["column"],
+                    "type": ref.get("type") or "string",
+                    "description": ref.get("description"),
+                }
+                if source_node is not None:
+                    if source_node.get("columns") is None:
+                        source_node["columns"] = []
+                    source_node["columns"].append(source_col)
+                    source_node["columnCount"] = len(source_node["columns"])
             if classification == "simple":
                 transformation = _infer_edge_transformation(
                     source_col, target_col, source_col["name"], target_col["name"]
@@ -1073,6 +1084,8 @@ def _sql_derived_edges_for_target(
             if classification != "simple" and expression:
                 edge["expression"] = expression
             edges.append(edge)
+            if not target_col.get("transformationType"):
+                target_col["transformationType"] = transformation
 
     return edges, resolved_targets
 

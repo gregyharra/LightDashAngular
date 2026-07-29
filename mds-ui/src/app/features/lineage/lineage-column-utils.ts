@@ -80,7 +80,7 @@ export function orderColumnsForDisplay(
 }
 
 export function columnRefKey(nodeId: string, columnName: string): string {
-  return `${nodeId}::${columnName}`;
+  return `${nodeId}::${columnName.toLowerCase()}`;
 }
 
 export function getColumnY(nodePos: { y: number }, columnIndex: number): number {
@@ -122,6 +122,22 @@ export function getColumnAnchorY(
 
 export function columnEdgeKey(edge: ColumnLineageEdge): string {
   return `${edge.sourceNodeId}::${edge.sourceColumn}->${edge.targetNodeId}::${edge.targetColumn}`;
+}
+
+/** Case-insensitive column name match (warehouse catalogs often differ in casing from SQL). */
+export function columnNamesEqual(a: string, b: string): boolean {
+  return a.localeCompare(b, undefined, { sensitivity: 'accent' }) === 0;
+}
+
+export function findColumnIndexByName(columns: LineageColumn[], name: string): number {
+  return columns.findIndex((col) => columnNamesEqual(col.name, name));
+}
+
+export function findColumnByName(
+  columns: LineageColumn[] | undefined,
+  name: string,
+): LineageColumn | undefined {
+  return (columns ?? []).find((col) => columnNamesEqual(col.name, name));
 }
 
 export interface ColumnLineageHighlight {
@@ -338,8 +354,8 @@ export function buildColumnEdgePaths(
 
       const sourceOrdered = orderedByNode.get(edge.sourceNodeId) ?? [];
       const targetOrdered = orderedByNode.get(edge.targetNodeId) ?? [];
-      const sourceIdx = sourceOrdered.findIndex((col) => col.name === edge.sourceColumn);
-      const targetIdx = targetOrdered.findIndex((col) => col.name === edge.targetColumn);
+      const sourceIdx = findColumnIndexByName(sourceOrdered, edge.sourceColumn);
+      const targetIdx = findColumnIndexByName(targetOrdered, edge.targetColumn);
 
       if (sourceIdx < 0 || targetIdx < 0) {
         return null;
@@ -385,9 +401,9 @@ export function getColumnUpstream(
   const results: { node: LineageNode; column: LineageColumn }[] = [];
 
   for (const edge of columnEdges) {
-    if (edge.targetNodeId === nodeId && edge.targetColumn === columnName) {
+    if (edge.targetNodeId === nodeId && columnNamesEqual(edge.targetColumn, columnName)) {
       const node = nodeById.get(edge.sourceNodeId);
-      const column = node?.columns?.find((c) => c.name === edge.sourceColumn);
+      const column = findColumnByName(node?.columns, edge.sourceColumn);
       if (node && column) {
         results.push({ node, column });
       }
@@ -407,9 +423,9 @@ export function getColumnDownstream(
   const results: { node: LineageNode; column: LineageColumn }[] = [];
 
   for (const edge of columnEdges) {
-    if (edge.sourceNodeId === nodeId && edge.sourceColumn === columnName) {
+    if (edge.sourceNodeId === nodeId && columnNamesEqual(edge.sourceColumn, columnName)) {
       const node = nodeById.get(edge.targetNodeId);
-      const column = node?.columns?.find((c) => c.name === edge.targetColumn);
+      const column = findColumnByName(node?.columns, edge.targetColumn);
       if (node && column) {
         results.push({ node, column });
       }
