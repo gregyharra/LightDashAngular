@@ -1,3 +1,8 @@
+from datetime import datetime, timezone
+from pathlib import Path
+
+from mds.services.dbt.loader import DbtArtifacts
+from mds.services.dbt.parse import _node_columns
 from mds.services.dbt.sqlglot_lineage import extract_column_lineage, render_jinja_refs
 
 
@@ -181,3 +186,66 @@ def test_extract_returns_none_on_unparseable():
         dialect=None,
     )
     assert result is None
+
+
+def test_node_columns_uses_sqlglot_for_rename():
+    """End-to-end: select u.user_id as uid should produce a 'uid' column via SQLGlot."""
+    source_id = "source.proj.public.users"
+    model_id = "model.proj.my_model"
+    artifacts = DbtArtifacts(
+        project_path=Path("/tmp"),
+        manifest_path=Path("/tmp/manifest.json"),
+        catalog_path=None,
+        manifest={
+            "nodes": {
+                model_id: {
+                    "resource_type": "model",
+                    "name": "my_model",
+                    "depends_on": {"nodes": [source_id]},
+                    "columns": {},
+                    "raw_code": "select u.user_id as uid from {{ source('public', 'users') }} u",
+                },
+            },
+            "sources": {
+                source_id: {
+                    "resource_type": "source",
+                    "name": "users",
+                    "source_name": "public",
+                    "schema": "staging",
+                    "database": "db",
+                    "columns": {
+                        "user_id": {"data_type": "bigint"},
+                        "name": {"data_type": "varchar"},
+                    },
+                },
+            },
+        },
+        catalog={
+            "nodes": {},
+            "sources": {
+                source_id: {
+                    "columns": {
+                        "user_id": {"type": "bigint"},
+                        "name": {"type": "varchar"},
+                    },
+                    "metadata": {},
+                },
+            },
+        },
+        loaded_at=datetime.now(timezone.utc),
+    )
+    lineage_out: dict = {}
+    columns = _node_columns(
+        artifacts,
+        model_id,
+        artifacts.manifest["nodes"][model_id],
+        cache={},
+        resolving=set(),
+        lineage_out=lineage_out,
+    )
+    col_names = [c["name"] for c in columns]
+    assert "uid" in col_names
+    # lineage_out should map uid -> user_id ref
+    assert "uid" in lineage_out
+    refs = lineage_out["uid"]["refs"]
+    assert any(r["column"] == "user_id" for r in refs)

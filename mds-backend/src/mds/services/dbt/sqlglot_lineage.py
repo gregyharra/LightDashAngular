@@ -161,12 +161,20 @@ def extract_column_lineage(
             identify=False,
             allow_partial_qualification=True,
         )
-    except SqlglotError:
+    except Exception:  # noqa: BLE001 - sqlglot's optimizer can raise assertions on edge cases
         logger.debug("SQLGlot qualify failed for %s", node_id)
         return None
 
     outer_select = qualified if isinstance(qualified, exp.Select) else qualified.find(exp.Select)
     if not outer_select:
+        return None
+
+    # If qualify couldn't expand a `*`/`alias.*` into concrete columns (e.g. the
+    # upstream schema key didn't match the table reference), the result is
+    # incomplete. Bail out so the caller falls back to the regex-based parser,
+    # which expands stars using the already-resolved upstream node columns.
+    if any(select_expr.alias_or_name == "*" for select_expr in outer_select.selects):
+        logger.debug("SQLGlot could not expand star selection for %s", node_id)
         return None
 
     alias_map = _build_alias_map(outer_select)

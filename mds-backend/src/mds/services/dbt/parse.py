@@ -136,7 +136,25 @@ def _node_columns(
     try:
         sql = _node_sql(artifacts, node)
         sql_columns: list[dict[str, Any]] = []
-        if sql:
+
+        # Try SQLGlot first (more accurate than the regex parser); only fall
+        # back to the regex parser when SQLGlot can't handle the SQL, so both
+        # paths feed the same catalog/manifest preference logic below.
+        sqlglot_sql = _node_sql_for_sqlglot(artifacts, node)
+        if sqlglot_sql:
+            sqlglot_columns = _sqlglot_columns_from_sql(
+                sqlglot_sql,
+                node,
+                node_id,
+                artifacts,
+                cache=cache,
+                resolving=resolving,
+                lineage_out=lineage_out,
+            )
+            if sqlglot_columns:
+                sql_columns = sqlglot_columns
+
+        if not sql_columns and sql:
             sql_columns = _columns_from_sql(
                 sql, node, artifacts, cache=cache, resolving=resolving, lineage_out=lineage_out
             )
@@ -244,6 +262,72 @@ def _columns_from_sql(
                 lineage_out[key] = {"expression": expression.strip(), "refs": refs}
 
     return columns
+
+
+def _sqlglot_columns_from_sql(
+    sql: str,
+    node: dict[str, Any],
+    node_id: str,
+    artifacts: DbtArtifacts,
+    *,
+    cache: _ColumnCache | None = None,
+    resolving: set[str] | None = None,
+    lineage_out: dict[str, dict[str, Any]] | None = None,
+) -> list[dict[str, Any]] | None:
+    """Try SQLGlot-based column extraction. Returns None if SQLGlot can't handle the SQL."""
+    from mds.services.dbt.sqlglot_lineage import extract_column_lineage
+
+    depends_on = list((node.get("depends_on") or {}).get("nodes") or [])
+    upstream_schemas: dict[str, dict[str, str]] = {}
+
+    for dep_id in depends_on:
+        dep_columns = _upstream_columns(artifacts, dep_id, cache=cache, resolving=resolving)
+        dep_node = (artifacts.manifest.get("nodes") or {}).get(dep_id) or (
+            artifacts.manifest.get("sources") or {}
+        ).get(dep_id)
+        if not dep_node:
+            continue
+        schema_name = dep_node.get("schema") or "default"
+        table_name = dep_node.get("name") or dep_id.split(".")[-1]
+        table_key = f"{schema_name}.{table_name}"
+        col_dict: dict[str, str] = {"_node_id": dep_id}
+        for col in dep_columns:
+            col_dict[col["name"]] = col.get("type") or "string"
+        upstream_schemas[table_key] = col_dict
+
+    metadata = artifacts.manifest.get("metadata") or {}
+    adapter_type = metadata.get("adapter_type")
+    dialect_map = {
+        "trino": "trino",
+        "snowflake": "snowflake",
+        "bigquery": "bigquery",
+        "postgres": "postgres",
+        "redshift": "redshift",
+        "duckdb": "duckdb",
+        "databricks": "databricks",
+        "spark": "spark",
+    }
+    dialect = dialect_map.get(adapter_type)
+
+    result = extract_column_lineage(
+        sql=sql,
+        node_id=node_id,
+        depends_on=depends_on,
+        upstream_schemas=upstream_schemas,
+        dialect=dialect,
+    )
+    if result is None:
+        return None
+
+    if lineage_out is not None:
+        for col_name, entry in result.lineage.items():
+            if entry.refs:
+                lineage_out[col_name.lower()] = {
+                    "expression": entry.expression,
+                    "refs": entry.refs,
+                }
+
+    return result.columns
 
 
 def _upstream_columns(
@@ -1040,6 +1124,20 @@ def _node_compiled_sql(artifacts: DbtArtifacts, node: dict[str, Any]) -> str | N
 def _node_sql(artifacts: DbtArtifacts, node: dict[str, Any]) -> str | None:
     """Best-effort SQL for column inference: prefer raw, then compiled."""
     return _node_raw_sql(artifacts, node) or _node_compiled_sql(artifacts, node)
+
+
+def _node_sql_for_sqlglot(artifacts: DbtArtifacts, node: dict[str, Any]) -> str | None:
+    """SQL suitable for SQLGlot: prefer compiled (no Jinja), else render raw."""
+    compiled = _node_compiled_sql(artifacts, node)
+    if compiled:
+        return compiled
+    raw = _node_raw_sql(artifacts, node)
+    if not raw:
+        return None
+    from mds.services.dbt.sqlglot_lineage import render_jinja_refs
+
+    depends_on = list((node.get("depends_on") or {}).get("nodes") or [])
+    return render_jinja_refs(raw, depends_on)
 
 
 def _dbt_path(node: dict[str, Any]) -> str | None:
