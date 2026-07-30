@@ -412,11 +412,11 @@ export class LineageDetailPanelComponent {
       case 'source':
         return 'Source';
       case 'staging':
-        return 'Staging';
+        return 'Bronze';
       case 'intermediate':
-        return 'Intermediate';
+        return 'Silver';
       case 'mart':
-        return 'Mart';
+        return 'Gold';
       case 'seed':
         return 'Seed';
       default:

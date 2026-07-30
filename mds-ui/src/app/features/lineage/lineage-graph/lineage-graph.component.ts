@@ -106,6 +106,7 @@ function edgeAutoPanVelocity(pointerPos: number, edgeStart: number, edgeEnd: num
 }
 
 const REORGANIZE_TRANSITION_MS = 280;
+const LEGEND_COLLAPSED_STORAGE_KEY = 'lightdash-lineage-legend-collapsed';
 
 @Component({
   selector: 'app-lineage-graph',
@@ -146,6 +147,7 @@ export class LineageGraphComponent implements AfterViewInit {
   protected readonly draggingNodeId = signal<string | null>(null);
   protected readonly transformationChipMode = signal<TransformationChipMode>('compact');
   protected readonly transformationFilter = signal<ColumnTransformationType | null>(null);
+  protected readonly legendCollapsed = signal(this.readLegendCollapsed());
   /** Per-node scroll offset (px) for the capped column list. */
   protected readonly columnScrollTops = signal<Map<string, number>>(new Map());
   protected readonly nodeSearchQuery = signal('');
@@ -455,15 +457,33 @@ export class LineageGraphComponent implements AfterViewInit {
       case 'source':
         return 'Source';
       case 'staging':
-        return 'Staging';
+        return 'Bronze';
       case 'intermediate':
-        return 'Intermediate';
+        return 'Silver';
       case 'mart':
-        return 'Mart';
+        return 'Gold';
       case 'seed':
         return 'Seed';
       default:
         return type;
+    }
+  }
+
+  protected toggleLegendCollapsed(): void {
+    const next = !this.legendCollapsed();
+    this.legendCollapsed.set(next);
+    try {
+      sessionStorage.setItem(LEGEND_COLLAPSED_STORAGE_KEY, String(next));
+    } catch {
+      // Ignore storage failures (private mode / quota).
+    }
+  }
+
+  private readLegendCollapsed(): boolean {
+    try {
+      return sessionStorage.getItem(LEGEND_COLLAPSED_STORAGE_KEY) === 'true';
+    } catch {
+      return false;
     }
   }
 
