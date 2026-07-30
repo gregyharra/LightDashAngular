@@ -11,10 +11,12 @@ import {
   input,
   output,
   signal,
+  untracked,
   viewChild,
 } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { MatIconModule } from '@angular/material/icon';
+import { MatTooltipModule } from '@angular/material/tooltip';
 import { DbtTreeNode, LineageNode } from '../../../core/models/lineage.model';
 import {
   buildSchemaGroupedTree,
@@ -32,7 +34,7 @@ import {
   host: {
     class: 'folder-panel-host',
   },
-  imports: [FormsModule, MatIconModule],
+  imports: [FormsModule, MatIconModule, MatTooltipModule],
   templateUrl: './folder-search-panel.component.html',
   styleUrl: './folder-search-panel.component.scss',
 })
@@ -68,6 +70,9 @@ export class FolderSearchPanelComponent {
   protected readonly searchQuery = signal('');
   protected readonly expandedPaths = signal<Set<string>>(new Set());
   protected readonly treeViewMode = signal<'folder' | 'schema'>('folder');
+
+  /** Last selection id for which we auto-expanded ancestor folders. */
+  private lastRevealedSelectedId: string | null = null;
 
   private isDragging = false;
   private startX = 0;
@@ -143,22 +148,38 @@ export class FolderSearchPanelComponent {
 
     effect(() => {
       const selectedId = this.selectedNodeId();
-      const tree = this.activeTree();
-      if (!selectedId || tree.length === 0) {
+      if (!selectedId) {
+        this.lastRevealedSelectedId = null;
         return;
       }
 
+      // Only auto-reveal on selection change — not when the user collapses a folder
+      // (which would otherwise re-trigger via expandedPaths) or on unrelated CD cycles.
+      if (selectedId === this.lastRevealedSelectedId) {
+        return;
+      }
+
+      const tree = this.activeTree();
+      if (tree.length === 0) {
+        return;
+      }
+
+      this.lastRevealedSelectedId = selectedId;
+
       const folderPaths = findAncestorFolderPaths(tree, selectedId);
       if (folderPaths.length > 0) {
-        const current = this.expandedPaths();
-        const hasMissingPath = folderPaths.some((path) => !current.has(path));
-        if (hasMissingPath) {
-          const next = new Set(current);
-          for (const path of folderPaths) {
-            next.add(path);
+        untracked(() => {
+          const current = this.expandedPaths();
+          const hasMissingPath = folderPaths.some((path) => !current.has(path));
+          if (hasMissingPath) {
+            const next = new Set(current);
+            for (const path of folderPaths) {
+              next.add(path);
+            }
+            this.expandedPaths.set(next);
+            this.persistExpandedPaths(next);
           }
-          this.expandedPaths.set(next);
-        }
+        });
       }
 
       queueMicrotask(() => {

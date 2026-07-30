@@ -142,7 +142,8 @@
   cursor: pointer;
   transition:
     background-color 0.15s ease,
-    color 0.15s ease;
+    color 0.15s ease,
+    filter 0.15s ease;
 
   mat-icon {
     width: 16px;
@@ -157,12 +158,13 @@
   }
 
   &--active {
-    background: var(--ld-gray-1);
-    color: var(--ld-gray-8);
+    background: var(--ld-brand);
+    color: #fff;
 
     &:hover {
-      background: var(--ld-gray-1);
-      color: var(--ld-gray-8);
+      background: var(--ld-brand);
+      color: #fff;
+      filter: brightness(1.05);
     }
   }
 

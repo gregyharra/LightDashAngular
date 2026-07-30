@@ -29,7 +29,8 @@
           [attr.aria-checked]="treeViewMode() === 'folder'"
           [class.folder-panel__view-btn--active]="treeViewMode() === 'folder'"
           aria-label="Folder view"
-          title="Folder view"
+          matTooltip="Folder view"
+          matTooltipPosition="below"
           (click)="setTreeViewMode('folder')"
         >
           <mat-icon aria-hidden="true">folder</mat-icon>
@@ -41,7 +42,8 @@
           [attr.aria-checked]="treeViewMode() === 'schema'"
           [class.folder-panel__view-btn--active]="treeViewMode() === 'schema'"
           aria-label="Schema view"
-          title="Schema view"
+          matTooltip="Schema view"
+          matTooltipPosition="below"
           (click)="setTreeViewMode('schema')"
         >
           <mat-icon aria-hidden="true">schema</mat-icon>
