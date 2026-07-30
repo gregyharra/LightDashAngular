@@ -1,0 +1,14 @@
+---
+description: Always execute implementation plans via Subagent-Driven Development; never ask which execution mode.
+alwaysApply: true
+---
+
+# Plan execution: Subagent-Driven only
+
+When an implementation plan is ready to execute (after writing-plans or user says go):
+
+- **Always** use Subagent-Driven Development (`superpowers:subagent-driven-development`).
+- **Never** ask the user to choose between Subagent-Driven and Inline Execution.
+- Do not offer the writing-plans "Which approach?" prompt.
+
+Continue through all plan tasks without pausing for "should I continue?" check-ins.
