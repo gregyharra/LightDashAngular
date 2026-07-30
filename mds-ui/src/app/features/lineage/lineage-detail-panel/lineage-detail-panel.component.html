@@ -144,7 +144,7 @@
         </section>
       }
     } @else if (activeTab() === 'columns') {
-      <section class="lineage-detail__section">
+      <section class="lineage-detail__section lineage-detail__section--columns">
         @if (!selected.columns?.length) {
           <p class="lineage-detail__empty">No column metadata available</p>
         } @else {
@@ -216,7 +216,7 @@
       </section>
 
       @if (selectedColumn()?.nodeId === selected.id) {
-        <section class="lineage-detail__section">
+        <section class="lineage-detail__section lineage-detail__section--column-context">
           <h3 class="lineage-detail__section-title">Selected column</h3>
           <p class="lineage-detail__selected-col">{{ selectedColumn()!.columnName }}</p>
 

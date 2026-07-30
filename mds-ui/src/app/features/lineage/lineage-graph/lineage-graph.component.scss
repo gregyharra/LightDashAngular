@@ -17,6 +17,11 @@
 }
 
 .lineage-graph__view-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  box-sizing: border-box;
   padding: 4px 12px;
   border: none;
   background: var(--ld-background);
@@ -24,6 +29,7 @@
   font-family: inherit;
   font-size: var(--ld-font-size-xs);
   font-weight: 500;
+  line-height: 1;
   cursor: pointer;
 
   &:hover {

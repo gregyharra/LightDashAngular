@@ -1,10 +1,24 @@
+:host {
+  display: flex;
+  flex-direction: column;
+  align-self: stretch;
+  flex-shrink: 0;
+  min-width: 0;
+  min-height: 0;
+  height: 100%;
+  max-height: 100%;
+  overflow: hidden;
+}
+
 .lineage-detail {
   position: relative;
   display: flex;
   flex-direction: column;
   gap: var(--ld-spacing-md);
-  flex-shrink: 0;
+  flex: 1 1 auto;
   min-width: 44px;
+  min-height: 0;
+  height: 100%;
   padding: var(--ld-spacing-md);
   border-left: 1px solid var(--ld-gray-2);
   background: var(--ld-background);
@@ -20,6 +34,11 @@
     width: 44px;
     padding-left: 0;
     padding-right: 0;
+    overflow: hidden;
+  }
+
+  // Columns tab: contain scroll in the table wrapper (sticky header works here).
+  &:has(.lineage-detail__section--columns) {
     overflow: hidden;
   }
 }
@@ -358,6 +377,23 @@
   }
 }
 
+.lineage-detail__section--columns {
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 auto;
+  min-height: 0;
+  min-width: 0;
+}
+
+.lineage-detail__section--column-context {
+  flex: 0 1 auto;
+  min-height: 0;
+  max-height: 40%;
+  overflow-x: hidden;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
 .lineage-detail__tab {
   flex: 1;
   display: inline-flex;
@@ -395,24 +431,36 @@
 }
 
 .lineage-detail__table-wrap {
-  overflow-x: auto;
+  flex: 1 1 auto;
+  min-width: 0;
+  min-height: 0;
+  overflow: auto;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
 }
 
 .lineage-detail__table {
-  width: 100%;
-  border-collapse: collapse;
+  width: max-content;
+  min-width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
   font-size: var(--ld-font-size-sm);
 }
 
 .lineage-detail__table th {
+  position: sticky;
+  top: 0;
+  z-index: 1;
   padding: 6px 8px;
   border-bottom: 1px solid var(--ld-gray-2);
+  background: var(--ld-background);
   text-align: left;
   font-size: 10px;
   font-weight: 600;
   letter-spacing: 0.02em;
   text-transform: uppercase;
   color: var(--ld-gray-6);
+  white-space: nowrap;
 }
 
 .lineage-detail__sort-btn {
@@ -425,8 +473,6 @@
 }
 
 .lineage-detail__table-row {
-  border-bottom: 1px solid var(--ld-gray-1);
-
   &--clickable {
     cursor: pointer;
 
@@ -446,6 +492,7 @@
 
 .lineage-detail__column-search-wrap {
   display: flex;
+  flex-shrink: 0;
   align-items: center;
   gap: 6px;
   margin-bottom: var(--ld-spacing-sm);
@@ -478,6 +525,13 @@
 .lineage-detail__table td {
   padding: 8px;
   vertical-align: top;
+  white-space: nowrap;
+  border-bottom: 1px solid var(--ld-gray-1);
+}
+
+.lineage-detail__table td:first-child {
+  white-space: normal;
+  min-width: 7rem;
 }
 
 .lineage-detail__col-name {
