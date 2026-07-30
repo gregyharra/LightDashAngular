@@ -473,8 +473,8 @@ export class LineageGraphComponent implements AfterViewInit {
    * is 10px/600 uppercase, so it uses a slightly wider per-char value.
    */
   protected typeBadgeWidth(type: string): number {
-    const label = this.typeLabel(type);
-    const minWidth = 40;
+    const label = this.typeIconGlyph(type);
+    const minWidth = 24;
     return Math.max(minWidth, Math.round(label.length * 6.5 + 16));
   }
 
