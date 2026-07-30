@@ -1,7 +1,9 @@
 import {
   LINEAGE_MAX_VISIBLE_COLUMNS,
+  LINEAGE_NODE_FOOTER_HEIGHT,
   LINEAGE_NODE_HEADER_HEIGHT,
   columnRefKey,
+  getCollapsedNodeHeight,
   getColumnAnchorY,
   getExpandedNodeHeight,
   getMaxColumnScrollTop,
@@ -38,6 +40,23 @@ describe('lineage-column-utils density helpers', () => {
       ),
     );
     expect(shortHeight).toBeLessThan(tallHeight);
+  });
+
+  it('collapsed card height is header + footer', () => {
+    expect(getCollapsedNodeHeight()).toBe(
+      LINEAGE_NODE_HEADER_HEIGHT + LINEAGE_NODE_FOOTER_HEIGHT,
+    );
+  });
+
+  it('falls back to the collapsed height when a node has no columns', () => {
+    const empty = makeNode([]);
+    expect(getExpandedNodeHeight(empty)).toBe(getCollapsedNodeHeight());
+  });
+
+  it('expanded height always includes header and footer around the column body', () => {
+    const node = makeNode(cols(['a', 'b', 'c']));
+    const expanded = getExpandedNodeHeight(node);
+    expect(expanded).toBeGreaterThan(LINEAGE_NODE_HEADER_HEIGHT + LINEAGE_NODE_FOOTER_HEIGHT);
   });
 
   it('orders selected and highlighted columns first', () => {

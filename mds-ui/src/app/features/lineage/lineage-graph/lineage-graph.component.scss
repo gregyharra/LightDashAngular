@@ -346,7 +346,7 @@
   pointer-events: none;
 }
 
-.lineage-graph__expand-btn {
+.lineage-graph__chevron-btn {
   cursor: pointer;
 
   &:hover rect {
@@ -358,6 +358,55 @@
 .lineage-graph__expand-icon {
   fill: var(--ld-gray-7);
   font-size: 14px;
+  font-weight: 600;
+  pointer-events: none;
+}
+
+.lineage-graph__node-footer {
+  pointer-events: none;
+}
+
+.lineage-graph__hop-btn {
+  cursor: pointer;
+  pointer-events: all;
+
+  rect {
+    fill: var(--ld-gray-0);
+    stroke: var(--ld-gray-4);
+    stroke-width: 1;
+  }
+
+  text {
+    fill: var(--ld-gray-7);
+    font-size: 12px;
+    font-weight: 600;
+    pointer-events: none;
+  }
+
+  &:hover:not(&--disabled) rect {
+    fill: #fff;
+    stroke: var(--ld-brand);
+  }
+
+  &--active rect {
+    stroke: var(--ld-brand);
+    stroke-width: 1.5;
+  }
+
+  &--active text {
+    fill: var(--ld-brand);
+  }
+
+  &--disabled {
+    cursor: default;
+    pointer-events: none;
+    opacity: 0.35;
+  }
+}
+
+.lineage-graph__column-type-hint {
+  fill: var(--ld-gray-5);
+  font-size: 9px;
   font-weight: 600;
   pointer-events: none;
 }

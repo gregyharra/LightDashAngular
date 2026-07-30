@@ -311,12 +311,12 @@
                   pointer-events="none"
                 />
                 <text class="lineage-graph__node-badge-text" x="26" y="24" pointer-events="none">
-                  {{ typeLabel(node.type) }}
+                  {{ typeIconGlyph(node.type) }}
                 </text>
 
-                @if (viewMode() === 'models' && node.columns?.length) {
+                @if (nodeHasExpandButton(node)) {
                   <g
-                    class="lineage-graph__expand-btn"
+                    class="lineage-graph__chevron-btn"
                     [attr.transform]="'translate(' + (pos.width - 28) + ', 10)'"
                     (click)="toggleNodeExpand(node.id, $event)"
                     (pointerdown)="$event.stopPropagation()"
@@ -328,7 +328,7 @@
                     <title>{{ isNodeExpanded(node.id) ? 'Collapse columns' : 'Expand columns' }}</title>
                     <rect width="18" height="18" rx="4" fill="rgba(255,255,255,0.85)" stroke="var(--ld-gray-4)" />
                     <text x="9" y="13" text-anchor="middle" class="lineage-graph__expand-icon">
-                      {{ isNodeExpanded(node.id) ? '−' : '+' }}
+                      {{ isNodeExpanded(node.id) ? '▾' : '▸' }}
                     </text>
                   </g>
                 }
@@ -358,9 +358,9 @@
                   <div
                     xmlns="http://www.w3.org/1999/xhtml"
                     class="lineage-graph__node-meta"
-                    [attr.title]="nodeMetaLabel(node)"
+                    [attr.title]="columnCountLabel(node)"
                   >
-                    {{ nodeMetaLabel(node) }}
+                    {{ columnCountLabel(node) }}
                   </div>
                 </foreignObject>
               </g>
@@ -432,7 +432,12 @@
                             rx="4"
                           />
                           <circle class="lineage-graph__column-dot" cx="18" [attr.cy]="columnRowHeight() / 2" r="3" />
-                          <text class="lineage-graph__column-name" x="28" [attr.y]="columnRowHeight() / 2 + 4">{{ col.name }}</text>
+                          @if (typeHintForColumn(col); as hint) {
+                            <text class="lineage-graph__column-type-hint" x="28" [attr.y]="columnRowHeight() / 2 + 4">{{ hint }}</text>
+                            <text class="lineage-graph__column-name" x="48" [attr.y]="columnRowHeight() / 2 + 4">{{ col.name }}</text>
+                          } @else {
+                            <text class="lineage-graph__column-name" x="28" [attr.y]="columnRowHeight() / 2 + 4">{{ col.name }}</text>
+                          }
                           @if (columnTransformation(node, col); as transformType) {
                             <g class="lineage-graph__column-transform">
                               <rect
@@ -474,7 +479,7 @@
                     <text
                       class="lineage-graph__column-scroll-hint"
                       [attr.x]="pos.width / 2"
-                      [attr.y]="pos.height - 2"
+                      [attr.y]="pos.height - footerHeight() - 2"
                       text-anchor="middle"
                     >
                       scroll for {{ overflowColumnCount(node) }} more
@@ -482,6 +487,51 @@
                   }
                 </g>
               }
+
+              <g
+                class="lineage-graph__node-footer"
+                [attr.transform]="'translate(0, ' + (pos.height - footerHeight()) + ')'"
+              >
+                <line
+                  class="lineage-graph__node-divider"
+                  x1="8"
+                  [attr.x2]="pos.width - 8"
+                  y1="0"
+                  y2="0"
+                />
+                <g
+                  class="lineage-graph__hop-btn"
+                  [class.lineage-graph__hop-btn--disabled]="!canToggleNeighborhood(node.id, 'upstream')"
+                  [class.lineage-graph__hop-btn--active]="isNeighborhoodExpanded(node.id, 'upstream')"
+                  transform="translate(12, 4)"
+                  (click)="canToggleNeighborhood(node.id, 'upstream') && toggleNeighborhood(node.id, 'upstream', $event)"
+                  (pointerdown)="$event.stopPropagation()"
+                  (pointerup)="$event.stopPropagation()"
+                  role="button"
+                  [attr.aria-disabled]="!canToggleNeighborhood(node.id, 'upstream')"
+                  [attr.aria-label]="'Toggle upstream neighbors for ' + node.name"
+                >
+                  <title>Toggle upstream neighbors</title>
+                  <rect width="22" height="20" rx="4" />
+                  <text x="11" y="14" text-anchor="middle">−</text>
+                </g>
+                <g
+                  class="lineage-graph__hop-btn"
+                  [class.lineage-graph__hop-btn--disabled]="!canToggleNeighborhood(node.id, 'downstream')"
+                  [class.lineage-graph__hop-btn--active]="isNeighborhoodExpanded(node.id, 'downstream')"
+                  [attr.transform]="'translate(' + (pos.width - 34) + ', 4)'"
+                  (click)="canToggleNeighborhood(node.id, 'downstream') && toggleNeighborhood(node.id, 'downstream', $event)"
+                  (pointerdown)="$event.stopPropagation()"
+                  (pointerup)="$event.stopPropagation()"
+                  role="button"
+                  [attr.aria-disabled]="!canToggleNeighborhood(node.id, 'downstream')"
+                  [attr.aria-label]="'Toggle downstream neighbors for ' + node.name"
+                >
+                  <title>Toggle downstream neighbors</title>
+                  <rect width="22" height="20" rx="4" />
+                  <text x="11" y="14" text-anchor="middle">+</text>
+                </g>
+              </g>
             </g>
           }
         }

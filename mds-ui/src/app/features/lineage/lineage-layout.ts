@@ -6,6 +6,7 @@ import {
   LineageViewMode,
 } from '../../core/models/lineage.model';
 import {
+  getCollapsedNodeHeight,
   getExpandedNodeHeight,
   LINEAGE_NODE_WIDTH,
 } from './lineage-column-utils';
@@ -213,7 +214,7 @@ function nodeHeight(
   if (expanded) {
     return getExpandedNodeHeight(node);
   }
-  return 72;
+  return getCollapsedNodeHeight();
 }
 
 function getMaxStackHeight(

@@ -25,6 +25,7 @@ import {
 } from '../../../core/models/lineage.model';
 import {
   LINEAGE_COLUMN_ROW_HEIGHT,
+  LINEAGE_NODE_FOOTER_HEIGHT,
   LINEAGE_NODE_HEADER_HEIGHT,
   buildColumnEdgePaths,
   columnRefKey,
@@ -36,6 +37,7 @@ import {
   LINEAGE_MAX_VISIBLE_COLUMNS,
   orderColumnsForDisplay,
 } from '../lineage-column-utils';
+import { columnTypeHint } from '../column-type-hint.utils';
 import {
   buildEdgePaths,
   getGraphBounds,
@@ -672,7 +674,7 @@ export class LineageGraphComponent implements AfterViewInit {
     // Drag from the whole node header (grip + title). Expand / columns stay click-only.
     if (
       !target.closest('.lineage-graph__node-header') ||
-      target.closest('.lineage-graph__expand-btn') ||
+      target.closest('.lineage-graph__chevron-btn') ||
       target.closest('.lineage-graph__column-row')
     ) {
       return;
@@ -705,7 +707,7 @@ export class LineageGraphComponent implements AfterViewInit {
     // onCanvasPointerUp. This is a fallback when capture is unavailable.
     if (this.dragNodeId !== nodeId) {
       if (
-        target.closest('.lineage-graph__expand-btn') ||
+        target.closest('.lineage-graph__chevron-btn') ||
         target.closest('.lineage-graph__column-row')
       ) {
         return;
@@ -722,7 +724,7 @@ export class LineageGraphComponent implements AfterViewInit {
 
     if (
       wasDrag ||
-      target.closest('.lineage-graph__expand-btn') ||
+      target.closest('.lineage-graph__chevron-btn') ||
       target.closest('.lineage-graph__column-row')
     ) {
       return;
@@ -1140,8 +1142,34 @@ export class LineageGraphComponent implements AfterViewInit {
     return Math.max(0, nodeWidth - 32);
   }
 
-  protected nodeMetaLabel(node: LineageNode): string {
-    return `${node.schema} · ${node.columnCount} cols`;
+  protected columnCountLabel(node: LineageNode): string {
+    const n = node.columnCount ?? node.columns?.length ?? 0;
+    return `${n} column${n === 1 ? '' : 's'}`;
+  }
+
+  protected typeHintForColumn(column: LineageColumn): '#' | 'Aa' | null {
+    return columnTypeHint(column.type);
+  }
+
+  protected footerHeight(): number {
+    return LINEAGE_NODE_FOOTER_HEIGHT;
+  }
+
+  protected typeIconGlyph(type: string): string {
+    switch (type) {
+      case 'source':
+        return 'Src';
+      case 'seed':
+        return 'Seed';
+      case 'staging':
+        return 'S';
+      case 'intermediate':
+        return 'I';
+      case 'mart':
+        return 'M';
+      default:
+        return '?';
+    }
   }
 
   protected columnTransformation(node: LineageNode, column: LineageColumn): ColumnTransformationType {
