@@ -48,6 +48,14 @@ import {
   UNLIMITED_HOP_DEPTH,
 } from '../lineage-focus-utils';
 import {
+  emptyManualNeighborhood,
+  hasDirectNeighbors,
+  isNeighborhoodSideExpanded,
+  NeighborhoodSide,
+  toggleNeighborhoodSide,
+  unionHopAndManualIds,
+} from '../lineage-neighborhood-utils';
+import {
   inferColumnTransformation,
   transformationChipLabel,
   transformationChipWidth,
@@ -139,6 +147,8 @@ export class LineageGraphComponent implements AfterViewInit {
   protected readonly columnScrollTops = signal<Map<string, number>>(new Map());
   protected readonly nodeSearchQuery = signal('');
   protected readonly nodeSearchOpen = signal(false);
+  protected readonly manualNeighborhood = signal(emptyManualNeighborhood());
+  private lastFocusRootId: string | null = null;
 
   private panStartX = 0;
   private panStartY = 0;
@@ -290,19 +300,27 @@ export class LineageGraphComponent implements AfterViewInit {
   );
 
   protected readonly displayNodes = computed(() => {
-    const related = this.relatedNodeIds();
-    if (!related || this.graphMode() === 'full') {
+    if (this.graphMode() === 'full') {
       return this.nodes();
     }
-    return this.nodes().filter((node) => related.has(node.id));
+    const related = this.relatedNodeIds();
+    const visibleIds = unionHopAndManualIds(related, this.manualNeighborhood());
+    if (!visibleIds) {
+      return this.nodes();
+    }
+    return this.nodes().filter((node) => visibleIds.has(node.id));
   });
 
   protected readonly displayEdges = computed(() => {
-    const related = this.relatedNodeIds();
-    if (!related || this.graphMode() === 'full') {
+    if (this.graphMode() === 'full') {
       return this.edges();
     }
-    return this.edges().filter((edge) => isEdgeInSubgraph(edge, related));
+    const related = this.relatedNodeIds();
+    const visibleIds = unionHopAndManualIds(related, this.manualNeighborhood());
+    if (!visibleIds) {
+      return this.edges();
+    }
+    return this.edges().filter((edge) => isEdgeInSubgraph(edge, visibleIds));
   });
 
   protected readonly transform = computed(
@@ -348,13 +366,23 @@ export class LineageGraphComponent implements AfterViewInit {
 
   constructor() {
     effect(() => {
-      this.displayNodes();
-      this.displayEdges();
-      this.viewMode();
+      this.nodes();
+      this.edges();
+      this.relatedNodeIds();
       this.graphMode();
+      this.viewMode();
       this.hopDepth();
+      // Do not read manualNeighborhood() or displayNodes() here — −/+ must not fit.
       if (!this.selectedColumn()) {
         this.scheduleFitToView();
+      }
+    });
+
+    effect(() => {
+      const focusRoot = this.selectedNodeId();
+      if (focusRoot !== this.lastFocusRootId) {
+        this.lastFocusRootId = focusRoot;
+        this.manualNeighborhood.set(emptyManualNeighborhood());
       }
     });
 
@@ -573,6 +601,23 @@ export class LineageGraphComponent implements AfterViewInit {
   protected selectNode(nodeId: string, event?: Event): void {
     event?.stopPropagation();
     this.nodeSelected.emit(nodeId);
+  }
+
+  protected toggleNeighborhood(nodeId: string, side: NeighborhoodSide, event: Event): void {
+    event.stopPropagation();
+    event.preventDefault();
+    this.manualNeighborhood.set(
+      toggleNeighborhoodSide(this.manualNeighborhood(), nodeId, side, this.edges()),
+    );
+    // Intentionally do not call scheduleFitToView / scheduleCenterOnNode.
+  }
+
+  protected isNeighborhoodExpanded(nodeId: string, side: NeighborhoodSide): boolean {
+    return isNeighborhoodSideExpanded(this.manualNeighborhood(), nodeId, side);
+  }
+
+  protected canToggleNeighborhood(nodeId: string, side: NeighborhoodSide): boolean {
+    return hasDirectNeighbors(nodeId, side, this.edges());
   }
 
   protected selectColumn(nodeId: string, columnName: string, event: Event): void {
