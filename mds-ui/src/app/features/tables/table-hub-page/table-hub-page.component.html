@@ -53,6 +53,8 @@
       } @else {
         <app-folder-search-panel
           [tree]="dbtTree()"
+          [lineageNodes]="lineage()?.nodes ?? []"
+          [projectUuid]="projectUuid()"
           [selectedNodeId]="tableId()"
           searchPlaceholder="Search models…"
           emptyMessage="No models match your search"

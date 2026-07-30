@@ -15,7 +15,28 @@
   </button>
 
   <header class="folder-panel__header">
-    <h2 class="folder-panel__title">{{ title() }}</h2>
+    <div class="folder-panel__header-top">
+      <h2 class="folder-panel__title">{{ title() }}</h2>
+      <button
+        type="button"
+        class="folder-panel__view-toggle"
+        [attr.aria-label]="
+          treeViewMode() === 'folder'
+            ? 'Switch to schema view'
+            : 'Switch to folder view'
+        "
+        [attr.title]="
+          treeViewMode() === 'folder'
+            ? 'Schema view'
+            : 'Folder view'
+        "
+        (click)="toggleTreeViewMode()"
+      >
+        <mat-icon>{{ treeViewMode() === 'folder' ? 'folder' : 'schema' }}</mat-icon>
+        <mat-icon class="folder-panel__view-toggle-swap">swap_horiz</mat-icon>
+        <mat-icon>{{ treeViewMode() === 'folder' ? 'schema' : 'folder' }}</mat-icon>
+      </button>
+    </div>
     <div class="folder-panel__search-wrap">
       <mat-icon class="folder-panel__search-icon">search</mat-icon>
       <input
@@ -78,7 +99,7 @@
             </button>
 
             @if (showLeafCount(item.node)) {
-              <span class="folder-panel__count" aria-label="{{ leafCount(item.node) }} items">
+              <span class="folder-panel__count" [attr.aria-label]="leafCount(item.node) + ' items'">
                 {{ leafCount(item.node) }}
               </span>
             }
