@@ -76,6 +76,12 @@
             >
               {{ item.node.name }}
             </button>
+
+            @if (showLeafCount(item.node)) {
+              <span class="folder-panel__count" aria-label="{{ leafCount(item.node) }} items">
+                {{ leafCount(item.node) }}
+              </span>
+            }
           </li>
         }
       </ul>

@@ -133,3 +133,36 @@ export function getDefaultExpandedPaths(nodes: DbtTreeNode[]): Set<string> {
   visit(nodes);
   return paths;
 }
+
+export function countSelectableDescendants(node: DbtTreeNode): number {
+  let count = 0;
+  const visit = (items: DbtTreeNode[]): void => {
+    for (const item of items) {
+      if (item.lineageNodeId) {
+        count += 1;
+      }
+      if (item.children?.length) {
+        visit(item.children);
+      }
+    }
+  };
+  visit(node.children ?? []);
+  return count;
+}
+
+export function iconForDbtTreeType(type: DbtTreeNode['type']): string {
+  switch (type) {
+    case 'folder':
+      return 'folder';
+    case 'model':
+      return 'table_chart';
+    case 'seed':
+      return 'eco';
+    case 'source':
+      return 'storage';
+    case 'sources_file':
+      return 'description';
+    default:
+      return 'insert_drive_file';
+  }
+}

@@ -18,10 +18,12 @@ import { MatIconModule } from '@angular/material/icon';
 import { DbtTreeNode } from '../../../core/models/lineage.model';
 import {
   collectSelectableNodes,
+  countSelectableDescendants,
   filterTreeNodes,
   findAncestorFolderPaths,
   flattenVisibleTree,
   getDefaultExpandedPaths,
+  iconForDbtTreeType,
 } from '../dbt-tree-utils';
 
 @Component({
@@ -266,19 +268,14 @@ export class FolderSearchPanelComponent {
   }
 
   protected iconForType(type: DbtTreeNode['type']): string {
-    switch (type) {
-      case 'folder':
-        return 'folder';
-      case 'model':
-        return 'table_chart';
-      case 'seed':
-        return 'grass';
-      case 'source':
-        return 'input';
-      case 'sources_file':
-        return 'description';
-      default:
-        return 'insert_drive_file';
-    }
+    return iconForDbtTreeType(type);
+  }
+
+  protected leafCount(node: DbtTreeNode): number {
+    return countSelectableDescendants(node);
+  }
+
+  protected showLeafCount(node: DbtTreeNode): boolean {
+    return node.type === 'folder' || !!(node.children?.length);
   }
 }
