@@ -120,37 +120,57 @@
 
 .folder-panel__view-toggle {
   display: inline-flex;
-  align-items: center;
-  gap: 1px;
   flex-shrink: 0;
-  white-space: nowrap;
   height: 28px;
-  padding: 0 6px;
   border: 1px solid var(--ld-gray-3);
   border-radius: var(--ld-radius-sm);
+  overflow: hidden;
   background: var(--ld-background);
-  color: var(--ld-gray-6);
+}
+
+.folder-panel__view-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  width: 28px;
+  height: 100%;
+  padding: 0;
+  border: none;
+  background: transparent;
+  color: var(--ld-gray-5);
   cursor: pointer;
   transition:
     background-color 0.15s ease,
-    color 0.15s ease,
-    border-color 0.15s ease;
+    color 0.15s ease;
 
   mat-icon {
     width: 16px;
     height: 16px;
     font-size: 16px;
+    line-height: 16px;
   }
 
   &:hover {
     background: var(--ld-gray-0);
-    color: var(--ld-gray-8);
-    border-color: var(--ld-gray-4);
+    color: var(--ld-gray-7);
   }
-}
 
-.folder-panel__view-toggle-swap {
-  color: var(--ld-gray-5);
+  &--active {
+    background: var(--ld-gray-1);
+    color: var(--ld-gray-8);
+
+    &:hover {
+      background: var(--ld-gray-1);
+      color: var(--ld-gray-8);
+    }
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--ld-brand);
+    outline-offset: -2px;
+    z-index: 1;
+  }
 }
 
 .folder-panel__search-wrap {

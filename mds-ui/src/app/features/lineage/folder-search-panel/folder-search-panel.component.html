@@ -17,25 +17,36 @@
   <header class="folder-panel__header">
     <div class="folder-panel__header-top">
       <h2 class="folder-panel__title">{{ title() }}</h2>
-      <button
-        type="button"
+      <div
         class="folder-panel__view-toggle"
-        [attr.aria-label]="
-          treeViewMode() === 'folder'
-            ? 'Switch to schema view'
-            : 'Switch to folder view'
-        "
-        [attr.title]="
-          treeViewMode() === 'folder'
-            ? 'Schema view'
-            : 'Folder view'
-        "
-        (click)="toggleTreeViewMode()"
+        role="radiogroup"
+        aria-label="Tree view mode"
       >
-        <mat-icon>{{ treeViewMode() === 'folder' ? 'folder' : 'schema' }}</mat-icon>
-        <mat-icon class="folder-panel__view-toggle-swap">swap_horiz</mat-icon>
-        <mat-icon>{{ treeViewMode() === 'folder' ? 'schema' : 'folder' }}</mat-icon>
-      </button>
+        <button
+          type="button"
+          class="folder-panel__view-btn"
+          role="radio"
+          [attr.aria-checked]="treeViewMode() === 'folder'"
+          [class.folder-panel__view-btn--active]="treeViewMode() === 'folder'"
+          aria-label="Folder view"
+          title="Folder view"
+          (click)="setTreeViewMode('folder')"
+        >
+          <mat-icon aria-hidden="true">folder</mat-icon>
+        </button>
+        <button
+          type="button"
+          class="folder-panel__view-btn"
+          role="radio"
+          [attr.aria-checked]="treeViewMode() === 'schema'"
+          [class.folder-panel__view-btn--active]="treeViewMode() === 'schema'"
+          aria-label="Schema view"
+          title="Schema view"
+          (click)="setTreeViewMode('schema')"
+        >
+          <mat-icon aria-hidden="true">schema</mat-icon>
+        </button>
+      </div>
     </div>
     <div class="folder-panel__search-wrap">
       <mat-icon class="folder-panel__search-icon">search</mat-icon>

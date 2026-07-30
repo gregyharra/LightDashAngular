@@ -171,10 +171,12 @@ export class FolderSearchPanelComponent {
     });
   }
 
-  protected toggleTreeViewMode(): void {
-    const next = this.treeViewMode() === 'folder' ? 'schema' : 'folder';
-    this.treeViewMode.set(next);
-    this.persistTreeViewMode(next);
+  protected setTreeViewMode(mode: 'folder' | 'schema'): void {
+    if (this.treeViewMode() === mode) {
+      return;
+    }
+    this.treeViewMode.set(mode);
+    this.persistTreeViewMode(mode);
     // Reset expand set for the new tree shape (prefer saved for this mode if present).
     const saved = this.readExpandedPaths();
     this.expandedPaths.set(saved ?? getDefaultExpandedPaths(this.activeTree()));
