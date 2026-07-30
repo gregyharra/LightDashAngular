@@ -2,9 +2,11 @@ import {
   LINEAGE_MAX_VISIBLE_COLUMNS,
   LINEAGE_NODE_FOOTER_HEIGHT,
   LINEAGE_NODE_HEADER_HEIGHT,
+  LINEAGE_NODE_WIDTH,
   columnRefKey,
   getCollapsedNodeHeight,
   getColumnAnchorY,
+  getColumnRowLayout,
   getExpandedNodeHeight,
   getMaxColumnScrollTop,
   orderColumnsForDisplay,
@@ -79,5 +81,77 @@ describe('lineage-column-utils density helpers', () => {
 
     const hiddenY = getColumnAnchorY(pos, 0, scrollTop, columnCount);
     expect(hiddenY).toBe(pos.y + LINEAGE_NODE_HEADER_HEIGHT / 2);
+  });
+});
+
+describe('getColumnRowLayout', () => {
+  it('reserves right slots so name, type, and chip do not overlap', () => {
+    const layout = getColumnRowLayout({
+      nodeWidth: LINEAGE_NODE_WIDTH,
+      hasTypeHint: true,
+      columnType: 'string',
+      chipWidth: 18,
+    });
+
+    expect(layout.nameX).toBe(48);
+    expect(layout.chipX + layout.chipWidth).toBeLessThanOrEqual(LINEAGE_NODE_WIDTH - 8);
+    expect(layout.typeX).toBeLessThan(layout.chipX);
+    // Name box ends before the type text starts (type is end-anchored at typeX).
+    expect(layout.nameX + layout.nameMaxWidth).toBeLessThanOrEqual(
+      layout.typeX - layout.typeWidth,
+    );
+    expect(layout.nameMaxWidth).toBeGreaterThan(40);
+  });
+
+  it('starts the name further left when there is no type hint', () => {
+    const withHint = getColumnRowLayout({
+      nodeWidth: LINEAGE_NODE_WIDTH,
+      hasTypeHint: true,
+      columnType: 'string',
+      chipWidth: 18,
+    });
+    const withoutHint = getColumnRowLayout({
+      nodeWidth: LINEAGE_NODE_WIDTH,
+      hasTypeHint: false,
+      columnType: 'string',
+      chipWidth: 18,
+    });
+
+    expect(withoutHint.nameX).toBeLessThan(withHint.nameX);
+    expect(withoutHint.nameMaxWidth).toBeGreaterThan(withHint.nameMaxWidth);
+  });
+
+  it('shrinks the name slot when the full transform chip is wide', () => {
+    const compact = getColumnRowLayout({
+      nodeWidth: LINEAGE_NODE_WIDTH,
+      hasTypeHint: true,
+      columnType: 'string',
+      chipWidth: 18,
+    });
+    const full = getColumnRowLayout({
+      nodeWidth: LINEAGE_NODE_WIDTH,
+      hasTypeHint: true,
+      columnType: 'string',
+      chipWidth: 84,
+    });
+
+    expect(full.nameMaxWidth).toBeLessThan(compact.nameMaxWidth);
+    expect(full.nameX + full.nameMaxWidth).toBeLessThanOrEqual(full.typeX - full.typeWidth);
+    expect(full.typeX).toBeLessThan(full.chipX);
+  });
+
+  it('still lays out when there is no chip', () => {
+    const layout = getColumnRowLayout({
+      nodeWidth: LINEAGE_NODE_WIDTH,
+      hasTypeHint: true,
+      columnType: 'varchar',
+      chipWidth: 0,
+    });
+
+    expect(layout.chipWidth).toBe(0);
+    expect(layout.nameX + layout.nameMaxWidth).toBeLessThanOrEqual(
+      layout.typeX - layout.typeWidth,
+    );
+    expect(layout.typeX).toBeLessThanOrEqual(LINEAGE_NODE_WIDTH - 8);
   });
 });

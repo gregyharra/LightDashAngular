@@ -451,7 +451,7 @@
 
   &--highlight .lineage-graph__column-name,
   &--selected .lineage-graph__column-name {
-    fill: var(--ld-brand);
+    color: var(--ld-brand);
     font-weight: 600;
   }
 
@@ -472,8 +472,14 @@
 }
 
 .lineage-graph__column-name {
-  fill: var(--ld-gray-8);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  margin: 0;
+  padding: 0;
+  color: var(--ld-gray-8);
   font-size: 11px;
+  line-height: 20px;
   pointer-events: none;
 }
 

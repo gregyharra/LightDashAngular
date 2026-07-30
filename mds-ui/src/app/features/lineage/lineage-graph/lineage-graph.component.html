@@ -440,17 +440,39 @@
                           <circle class="lineage-graph__column-dot" cx="18" [attr.cy]="columnRowHeight() / 2" r="3" />
                           @if (typeHintForColumn(col); as hint) {
                             <text class="lineage-graph__column-type-hint" x="28" [attr.y]="columnRowHeight() / 2 + 4">{{ hint }}</text>
-                            <text class="lineage-graph__column-name" x="48" [attr.y]="columnRowHeight() / 2 + 4">{{ col.name }}</text>
-                          } @else {
-                            <text class="lineage-graph__column-name" x="28" [attr.y]="columnRowHeight() / 2 + 4">{{ col.name }}</text>
                           }
-                          @if (columnTransformation(node, col); as transformType) {
+                          @let transformType = columnTransformation(node, col);
+                          @let rowLayout = columnRowLayout(pos.width, col, transformType);
+                          <foreignObject
+                            [attr.x]="rowLayout.nameX"
+                            y="2"
+                            [attr.width]="rowLayout.nameMaxWidth"
+                            [attr.height]="columnRowHeight() - 4"
+                            pointer-events="none"
+                          >
+                            <div
+                              xmlns="http://www.w3.org/1999/xhtml"
+                              class="lineage-graph__column-name"
+                              [attr.title]="col.name"
+                            >
+                              {{ col.name }}
+                            </div>
+                          </foreignObject>
+                          <text
+                            class="lineage-graph__column-type"
+                            [attr.x]="rowLayout.typeX"
+                            [attr.y]="columnRowHeight() / 2 + 4"
+                            text-anchor="end"
+                          >
+                            {{ col.type }}
+                          </text>
+                          @if (transformType) {
                             <g class="lineage-graph__column-transform">
                               <rect
                                 class="lineage-graph__column-transform-chip"
-                                [attr.x]="transformChipX(pos.width, transformType)"
+                                [attr.x]="rowLayout.chipX"
                                 y="5"
-                                [attr.width]="transformChipW(transformType)"
+                                [attr.width]="rowLayout.chipWidth"
                                 [attr.height]="transformChipH()"
                                 [attr.rx]="transformChipH() / 2"
                                 [attr.fill]="transformChipFill(transformType)"
@@ -459,7 +481,7 @@
                               <text
                                 class="lineage-graph__column-transform-text"
                                 [class.lineage-graph__column-transform-text--compact]="transformationChipMode() === 'compact'"
-                                [attr.x]="transformChipX(pos.width, transformType) + transformChipW(transformType) / 2"
+                                [attr.x]="rowLayout.chipX + rowLayout.chipWidth / 2"
                                 [attr.y]="columnRowHeight() / 2 + 3"
                                 text-anchor="middle"
                                 [attr.fill]="transformChipTextFill(transformType)"
@@ -468,14 +490,6 @@
                               </text>
                             </g>
                           }
-                          <text
-                            class="lineage-graph__column-type"
-                            [attr.x]="columnTypeX(pos.width, columnTransformation(node, col))"
-                            [attr.y]="columnRowHeight() / 2 + 4"
-                            text-anchor="end"
-                          >
-                            {{ col.type }}
-                          </text>
                         </g>
                       }
                     </g>

@@ -29,9 +29,11 @@ import {
   LINEAGE_NODE_HEADER_HEIGHT,
   buildColumnEdgePaths,
   columnRefKey,
+  ColumnRowLayout,
   computeColumnLineageHighlight,
   getCollapsedNodeHeight,
   getColumnBodyContentHeight,
+  getColumnRowLayout,
   getExpandedNodeHeight,
   getMaxColumnScrollTop,
   getNodeIdsFromColumnKeys,
@@ -1297,16 +1299,19 @@ export class LineageGraphComponent implements AfterViewInit {
     return transformationCssVar(type, 'text');
   }
 
-  protected columnTypeX(nodeWidth: number, transformType: ColumnTransformationType): number {
-    return nodeWidth - 10 - transformationChipWidth(transformType, this.transformationChipMode()) - 6;
-  }
-
-  protected transformChipX(nodeWidth: number, transformType: ColumnTransformationType): number {
-    return nodeWidth - 8 - transformationChipWidth(transformType, this.transformationChipMode());
-  }
-
-  protected transformChipW(type: ColumnTransformationType): number {
-    return transformationChipWidth(type, this.transformationChipMode());
+  protected columnRowLayout(
+    nodeWidth: number,
+    column: LineageColumn,
+    transformType: ColumnTransformationType | null,
+  ): ColumnRowLayout {
+    return getColumnRowLayout({
+      nodeWidth,
+      hasTypeHint: this.typeHintForColumn(column) !== null,
+      columnType: column.type,
+      chipWidth: transformType
+        ? transformationChipWidth(transformType, this.transformationChipMode())
+        : 0,
+    });
   }
 
   protected transformChipH(): number {
