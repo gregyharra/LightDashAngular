@@ -4,6 +4,7 @@ import {
   emptyManualNeighborhood,
   hasDirectNeighbors,
   isNeighborhoodSideExpanded,
+  neighborhoodSideToggleGlyph,
   toggleNeighborhoodSide,
   unionHopAndManualIds,
 } from './lineage-neighborhood-utils';
@@ -15,6 +16,27 @@ const edges: LineageEdge[] = [
 ];
 
 describe('lineage-neighborhood-utils', () => {
+  it('both hop sides start collapsed with + glyphs and expand independently', () => {
+    let state = emptyManualNeighborhood();
+    expect(neighborhoodSideToggleGlyph(state, 'b', 'upstream')).toBe('+');
+    expect(neighborhoodSideToggleGlyph(state, 'b', 'downstream')).toBe('+');
+
+    state = toggleNeighborhoodSide(state, 'b', 'upstream', edges);
+    expect(isNeighborhoodSideExpanded(state, 'b', 'upstream')).toBeTrue();
+    expect(isNeighborhoodSideExpanded(state, 'b', 'downstream')).toBeFalse();
+    expect(neighborhoodSideToggleGlyph(state, 'b', 'upstream')).toBe('−');
+    expect(neighborhoodSideToggleGlyph(state, 'b', 'downstream')).toBe('+');
+
+    state = toggleNeighborhoodSide(state, 'b', 'downstream', edges);
+    expect(neighborhoodSideToggleGlyph(state, 'b', 'upstream')).toBe('−');
+    expect(neighborhoodSideToggleGlyph(state, 'b', 'downstream')).toBe('−');
+
+    state = toggleNeighborhoodSide(state, 'b', 'upstream', edges);
+    expect(neighborhoodSideToggleGlyph(state, 'b', 'upstream')).toBe('+');
+    expect(neighborhoodSideToggleGlyph(state, 'b', 'downstream')).toBe('−');
+    expect([...collectManualNeighborIds(state)].sort()).toEqual(['c', 'd']);
+  });
+
   it('expands one hop upstream without duplicating', () => {
     let state = emptyManualNeighborhood();
     state = toggleNeighborhoodSide(state, 'b', 'upstream', edges);

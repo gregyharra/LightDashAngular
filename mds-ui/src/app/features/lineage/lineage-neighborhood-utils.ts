@@ -42,6 +42,15 @@ export function isNeighborhoodSideExpanded(
   );
 }
 
+/** Footer hop button label: + when that side is collapsed, − when expanded. */
+export function neighborhoodSideToggleGlyph(
+  state: ManualNeighborhoodState,
+  nodeId: string,
+  side: NeighborhoodSide,
+): '+' | '−' {
+  return isNeighborhoodSideExpanded(state, nodeId, side) ? '−' : '+';
+}
+
 export function toggleNeighborhoodSide(
   state: ManualNeighborhoodState,
   nodeId: string,

@@ -54,6 +54,7 @@ import {
   hasDirectNeighbors,
   isNeighborhoodSideExpanded,
   NeighborhoodSide,
+  neighborhoodSideToggleGlyph,
   toggleNeighborhoodSide,
   unionHopAndManualIds,
 } from '../lineage-neighborhood-utils';
@@ -616,6 +617,10 @@ export class LineageGraphComponent implements AfterViewInit {
 
   protected isNeighborhoodExpanded(nodeId: string, side: NeighborhoodSide): boolean {
     return isNeighborhoodSideExpanded(this.manualNeighborhood(), nodeId, side);
+  }
+
+  protected neighborhoodToggleGlyph(nodeId: string, side: NeighborhoodSide): '+' | '−' {
+    return neighborhoodSideToggleGlyph(this.manualNeighborhood(), nodeId, side);
   }
 
   protected canToggleNeighborhood(nodeId: string, side: NeighborhoodSide): boolean {
