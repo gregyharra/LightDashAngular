@@ -30,6 +30,7 @@ import {
   buildColumnEdgePaths,
   columnRefKey,
   computeColumnLineageHighlight,
+  getCollapsedNodeHeight,
   getColumnBodyContentHeight,
   getExpandedNodeHeight,
   getMaxColumnScrollTop,
@@ -42,6 +43,7 @@ import {
   buildEdgePaths,
   getGraphBounds,
   layoutLineageNodes,
+  placeNeighborsAroundAnchor,
 } from '../lineage-layout';
 import {
   computeMaxHopDepth,
@@ -53,6 +55,7 @@ import {
   emptyManualNeighborhood,
   hasDirectNeighbors,
   isNeighborhoodSideExpanded,
+  ManualNeighborhoodState,
   NeighborhoodSide,
   neighborhoodSideToggleGlyph,
   toggleNeighborhoodSide,
@@ -154,6 +157,8 @@ export class LineageGraphComponent implements AfterViewInit {
   protected readonly nodeSearchOpen = signal(false);
   protected readonly manualNeighborhood = signal(emptyManualNeighborhood());
   private lastFocusRootId: string | null = null;
+  /** Hop / mode / selection scope — when it changes, drop pinned positions for a fresh layout. */
+  private lastPositionScopeKey: string | null = null;
 
   private panStartX = 0;
   private panStartY = 0;
@@ -371,13 +376,25 @@ export class LineageGraphComponent implements AfterViewInit {
 
   constructor() {
     effect(() => {
+      const scopeKey = [
+        this.graphMode(),
+        String(this.hopDepth()),
+        this.viewMode(),
+        this.selectedNodeId() ?? '',
+      ].join('|');
       this.nodes();
       this.edges();
       this.relatedNodeIds();
-      this.graphMode();
-      this.viewMode();
-      this.hopDepth();
-      // Do not read manualNeighborhood() or displayNodes() here — −/+ must not fit.
+      // Do not read manualNeighborhood() or displayNodes() here — −/+ must not fit
+      // or clear hop-pinned positions.
+      if (
+        this.lastPositionScopeKey !== null &&
+        this.lastPositionScopeKey !== scopeKey
+      ) {
+        this.customPositions.set(new Map());
+      }
+      this.lastPositionScopeKey = scopeKey;
+
       if (!this.selectedColumn()) {
         this.scheduleFitToView();
       }
@@ -388,6 +405,8 @@ export class LineageGraphComponent implements AfterViewInit {
       if (focusRoot !== this.lastFocusRootId) {
         this.lastFocusRootId = focusRoot;
         this.manualNeighborhood.set(emptyManualNeighborhood());
+        // Fresh focus window — drop hop-pinned / drag positions so auto-layout applies.
+        this.customPositions.set(new Map());
       }
     });
 
@@ -629,10 +648,59 @@ export class LineageGraphComponent implements AfterViewInit {
   protected toggleNeighborhood(nodeId: string, side: NeighborhoodSide, event: Event): void {
     event.stopPropagation();
     event.preventDefault();
-    this.manualNeighborhood.set(
-      toggleNeighborhoodSide(this.manualNeighborhood(), nodeId, side, this.edges()),
+
+    const prevState = this.manualNeighborhood();
+    const expanding = !isNeighborhoodSideExpanded(prevState, nodeId, side);
+    const nextState = toggleNeighborhoodSide(prevState, nodeId, side, this.edges());
+    if (nextState === prevState) {
+      return;
+    }
+
+    if (expanding) {
+      this.pinExistingAndPlaceNewNeighbors(nodeId, side, nextState);
+    }
+
+    this.manualNeighborhood.set(nextState);
+    // Intentionally do not call scheduleFitToView / scheduleCenterOnNode /
+    // graphModeChange / hopDepthChange — hop +/− only toggles visibility.
+  }
+
+  /**
+   * Keep current nodes where they are and park newly revealed neighbors beside
+   * the clicked card (upstream left, downstream right). Avoids a full re-layout
+   * scramble when displayNodes grows.
+   */
+  private pinExistingAndPlaceNewNeighbors(
+    nodeId: string,
+    side: NeighborhoodSide,
+    nextState: ManualNeighborhoodState,
+  ): void {
+    const visibleBefore = new Set(this.displayNodes().map((node) => node.id));
+    const currentPositions = this.positions();
+    const custom = new Map(this.customPositions());
+
+    for (const id of visibleBefore) {
+      const pos = currentPositions.get(id);
+      if (pos) {
+        custom.set(id, { x: pos.x, y: pos.y });
+      }
+    }
+
+    const expansion = nextState.expansions.find(
+      (entry) => entry.fromNodeId === nodeId && entry.side === side,
     );
-    // Intentionally do not call scheduleFitToView / scheduleCenterOnNode.
+    const anchor = currentPositions.get(nodeId);
+    if (expansion && anchor) {
+      const placements = placeNeighborsAroundAnchor(anchor, expansion.neighborIds, side, {
+        nodeHeight: getCollapsedNodeHeight(),
+        alreadyPlacedIds: visibleBefore,
+      });
+      for (const [id, pos] of placements) {
+        custom.set(id, pos);
+      }
+    }
+
+    this.customPositions.set(custom);
   }
 
   protected isNeighborhoodExpanded(nodeId: string, side: NeighborhoodSide): boolean {
