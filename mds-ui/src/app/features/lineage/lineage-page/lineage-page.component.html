@@ -99,6 +99,8 @@
           <div class="lineage-page__workspace">
             <app-folder-search-panel
               [tree]="dbtTree()"
+              [lineageNodes]="data.nodes"
+              [projectUuid]="projectUuid()"
               [selectedNodeId]="selectedNodeId()"
               (nodeSelected)="onNodeSelected($event)"
             />

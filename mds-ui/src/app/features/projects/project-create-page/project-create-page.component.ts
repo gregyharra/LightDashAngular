@@ -58,6 +58,7 @@ export class ProjectCreatePageComponent {
   protected gitUsername = '';
   protected gitToken = '';
   protected dbtProjectPath = '';
+  protected dbtTarget = '';
   private providerManuallySet = false;
 
   protected readonly gitProviders: { value: GitProvider; label: string }[] = [
@@ -158,6 +159,7 @@ export class ProjectCreatePageComponent {
         gitUsername: this.gitUsername.trim() || null,
         gitToken: this.gitToken.trim() || null,
         dbtProjectPath: this.dbtProjectPath.trim() || null,
+        dbtTarget: this.dbtTarget.trim() || null,
       })
       .subscribe({
         next: (project) => {

@@ -5,13 +5,67 @@ import {
 } from '../../core/models/lineage.model';
 
 /** Compact node header + one row per column when expanded in column view. */
-export const LINEAGE_NODE_HEADER_HEIGHT = 72;
+export const LINEAGE_NODE_HEADER_HEIGHT = 56;
+/** −/+ neighborhood hop strip, always present below the header/body. */
+export const LINEAGE_NODE_FOOTER_HEIGHT = 28;
 export const LINEAGE_COLUMN_ROW_HEIGHT = 24;
 export const LINEAGE_NODE_WIDTH = 220;
 /** Max column rows shown at once inside an expanded node (body scrolls past this). */
 export const LINEAGE_MAX_VISIBLE_COLUMNS = 8;
 /** Bottom padding inside the column body below the last visible row. */
 export const LINEAGE_COLUMN_BODY_PADDING = 8;
+
+/** Horizontal inset of the column row background from the node edge. */
+export const LINEAGE_COLUMN_ROW_INSET = 8;
+/** X of the column name when a type hint (# / Aa) is present. */
+export const LINEAGE_COLUMN_NAME_X_WITH_HINT = 48;
+/** X of the column name when there is no type hint. */
+export const LINEAGE_COLUMN_NAME_X_NO_HINT = 28;
+/** Gap between end-anchored type text and the transform chip. */
+export const LINEAGE_COLUMN_TYPE_CHIP_GAP = 6;
+/** Gap between the truncated name box and the type text. */
+export const LINEAGE_COLUMN_NAME_TYPE_GAP = 4;
+/** ~9px muted type label character width used for reserved-slot layout. */
+export const LINEAGE_COLUMN_TYPE_CHAR_WIDTH = 5.5;
+
+export interface ColumnRowLayout {
+  nameX: number;
+  nameMaxWidth: number;
+  typeX: number;
+  typeWidth: number;
+  chipX: number;
+  chipWidth: number;
+}
+
+/** Approximate pixel width of the muted column type label. */
+export function estimateColumnTypeTextWidth(columnType: string): number {
+  return Math.max(12, Math.round(columnType.length * LINEAGE_COLUMN_TYPE_CHAR_WIDTH));
+}
+
+/**
+ * Fixed right-side slots for type + transform chip; the name gets whatever
+ * remains and is expected to ellipsis inside that width (SVG foreignObject).
+ */
+export function getColumnRowLayout(options: {
+  nodeWidth: number;
+  hasTypeHint: boolean;
+  columnType: string;
+  chipWidth: number;
+}): ColumnRowLayout {
+  const chipWidth = Math.max(0, options.chipWidth);
+  const rightEdge = options.nodeWidth - LINEAGE_COLUMN_ROW_INSET;
+  const chipX = chipWidth > 0 ? rightEdge - chipWidth : rightEdge;
+  const typeWidth = estimateColumnTypeTextWidth(options.columnType);
+  const typeX =
+    chipWidth > 0 ? chipX - LINEAGE_COLUMN_TYPE_CHIP_GAP : rightEdge - 2;
+  const nameX = options.hasTypeHint
+    ? LINEAGE_COLUMN_NAME_X_WITH_HINT
+    : LINEAGE_COLUMN_NAME_X_NO_HINT;
+  const nameRight = typeX - typeWidth - LINEAGE_COLUMN_NAME_TYPE_GAP;
+  const nameMaxWidth = Math.max(0, nameRight - nameX);
+
+  return { nameX, nameMaxWidth, typeX, typeWidth, chipX, chipWidth };
+}
 
 export function getColumnBodyContentHeight(columnCount: number): number {
   if (columnCount <= 0) {
@@ -26,12 +80,20 @@ export function getColumnBodyHeight(columnCount: number): number {
   return content === 0 ? 0 : content + LINEAGE_COLUMN_BODY_PADDING;
 }
 
+export function getCollapsedNodeHeight(): number {
+  return LINEAGE_NODE_HEADER_HEIGHT + LINEAGE_NODE_FOOTER_HEIGHT;
+}
+
 export function getExpandedNodeHeight(node: LineageNode): number {
   const columnCount = node.columns?.length ?? 0;
   if (columnCount === 0) {
-    return LINEAGE_NODE_HEADER_HEIGHT;
+    return getCollapsedNodeHeight();
   }
-  return LINEAGE_NODE_HEADER_HEIGHT + getColumnBodyHeight(columnCount);
+  return (
+    LINEAGE_NODE_HEADER_HEIGHT +
+    getColumnBodyHeight(columnCount) +
+    LINEAGE_NODE_FOOTER_HEIGHT
+  );
 }
 
 export function getMaxColumnScrollTop(columnCount: number): number {
@@ -80,7 +142,7 @@ export function orderColumnsForDisplay(
 }
 
 export function columnRefKey(nodeId: string, columnName: string): string {
-  return `${nodeId}::${columnName}`;
+  return `${nodeId}::${columnName.toLowerCase()}`;
 }
 
 export function getColumnY(nodePos: { y: number }, columnIndex: number): number {
@@ -122,6 +184,22 @@ export function getColumnAnchorY(
 
 export function columnEdgeKey(edge: ColumnLineageEdge): string {
   return `${edge.sourceNodeId}::${edge.sourceColumn}->${edge.targetNodeId}::${edge.targetColumn}`;
+}
+
+/** Case-insensitive column name match (warehouse catalogs often differ in casing from SQL). */
+export function columnNamesEqual(a: string, b: string): boolean {
+  return a.localeCompare(b, undefined, { sensitivity: 'accent' }) === 0;
+}
+
+export function findColumnIndexByName(columns: LineageColumn[], name: string): number {
+  return columns.findIndex((col) => columnNamesEqual(col.name, name));
+}
+
+export function findColumnByName(
+  columns: LineageColumn[] | undefined,
+  name: string,
+): LineageColumn | undefined {
+  return (columns ?? []).find((col) => columnNamesEqual(col.name, name));
 }
 
 export interface ColumnLineageHighlight {
@@ -338,8 +416,8 @@ export function buildColumnEdgePaths(
 
       const sourceOrdered = orderedByNode.get(edge.sourceNodeId) ?? [];
       const targetOrdered = orderedByNode.get(edge.targetNodeId) ?? [];
-      const sourceIdx = sourceOrdered.findIndex((col) => col.name === edge.sourceColumn);
-      const targetIdx = targetOrdered.findIndex((col) => col.name === edge.targetColumn);
+      const sourceIdx = findColumnIndexByName(sourceOrdered, edge.sourceColumn);
+      const targetIdx = findColumnIndexByName(targetOrdered, edge.targetColumn);
 
       if (sourceIdx < 0 || targetIdx < 0) {
         return null;
@@ -385,9 +463,9 @@ export function getColumnUpstream(
   const results: { node: LineageNode; column: LineageColumn }[] = [];
 
   for (const edge of columnEdges) {
-    if (edge.targetNodeId === nodeId && edge.targetColumn === columnName) {
+    if (edge.targetNodeId === nodeId && columnNamesEqual(edge.targetColumn, columnName)) {
       const node = nodeById.get(edge.sourceNodeId);
-      const column = node?.columns?.find((c) => c.name === edge.sourceColumn);
+      const column = findColumnByName(node?.columns, edge.sourceColumn);
       if (node && column) {
         results.push({ node, column });
       }
@@ -407,9 +485,9 @@ export function getColumnDownstream(
   const results: { node: LineageNode; column: LineageColumn }[] = [];
 
   for (const edge of columnEdges) {
-    if (edge.sourceNodeId === nodeId && edge.sourceColumn === columnName) {
+    if (edge.sourceNodeId === nodeId && columnNamesEqual(edge.sourceColumn, columnName)) {
       const node = nodeById.get(edge.targetNodeId);
-      const column = node?.columns?.find((c) => c.name === edge.targetColumn);
+      const column = findColumnByName(node?.columns, edge.targetColumn);
       if (node && column) {
         results.push({ node, column });
       }

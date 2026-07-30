@@ -4,6 +4,7 @@ import {
   LineageColumn,
   LineageNode,
 } from '../../core/models/lineage.model';
+import { columnNamesEqual, findColumnByName } from './lineage-column-utils';
 
 export type TransformationChipMode = 'compact' | 'full';
 
@@ -90,8 +91,8 @@ function inferFromEdge(
   }
 
   const sourceNode = nodes.find((node) => node.id === edge.sourceNodeId);
-  const sourceColumn = sourceNode?.columns?.find((col) => col.name === edge.sourceColumn);
-  const sameName = edge.sourceColumn === edge.targetColumn;
+  const sourceColumn = findColumnByName(sourceNode?.columns, edge.sourceColumn);
+  const sameName = columnNamesEqual(edge.sourceColumn, edge.targetColumn);
   const sameType =
     !!sourceColumn &&
     normalizeColumnType(sourceColumn.type) === normalizeColumnType(targetColumn.type);
@@ -120,7 +121,7 @@ export function inferColumnTransformation(
   }
 
   const incoming = columnEdges.filter(
-    (edge) => edge.targetNodeId === node.id && edge.targetColumn === column.name,
+    (edge) => edge.targetNodeId === node.id && columnNamesEqual(edge.targetColumn, column.name),
   );
 
   if (incoming.length === 0) {

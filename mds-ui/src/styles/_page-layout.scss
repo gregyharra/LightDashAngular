@@ -75,6 +75,11 @@ body.tables-fields-panel--resizing {
   user-select: none;
 }
 
+body.lineage-detail--resizing {
+  cursor: col-resize !important;
+  user-select: none;
+}
+
 .page-layout__content {
   flex: 1;
   min-width: 0;
@@ -350,10 +355,15 @@ body.tables-fields-panel--resizing {
 
 .lineage-graph__btn-icon {
   display: none;
+  box-sizing: content-box;
   width: 16px;
   height: 16px;
   font-size: 16px;
   line-height: 16px;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  flex-shrink: 0;
 }
 
 button.lineage-graph__view-btn mat-icon.lineage-graph__btn-icon,
@@ -370,6 +380,7 @@ button.lineage-graph__tool-btn--fit mat-icon.lineage-graph__btn-icon {
   align-items: center;
   justify-content: center;
   gap: 4px;
+  line-height: 1;
   white-space: nowrap;
 
   &--active .lineage-graph__btn-icon {
@@ -415,20 +426,33 @@ button.lineage-graph__tool-btn--fit mat-icon.lineage-graph__btn-icon {
 
   .lineage-graph__btn-icon {
     display: inline-flex;
+    align-items: center;
+    justify-content: center;
   }
 
   button.lineage-graph__view-btn mat-icon.lineage-graph__btn-icon,
   button.lineage-graph__tool-btn--fit mat-icon.lineage-graph__btn-icon {
     display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 18px;
+    height: 18px;
+    font-size: 18px;
+    line-height: 18px;
+    overflow: hidden;
   }
 
   .lineage-graph__btn-label {
     display: none;
   }
 
-  .lineage-graph__view-btn {
-    min-width: 28px;
-    padding: 4px 6px;
+  // Higher specificity than component-scoped padding so icon-only sizing applies
+  .lineage-graph button.lineage-graph__view-btn {
+    box-sizing: border-box;
+    min-width: 32px;
+    width: 32px;
+    height: 32px;
+    padding: 0;
   }
 
   .lineage-graph__tool-btn {

@@ -1,4 +1,5 @@
 import json
+import subprocess
 import time
 from pathlib import Path
 
@@ -153,6 +154,81 @@ def test_regenerate_manifest_uses_project_script(dbt_project: Path) -> None:
     assert regenerate_manifest(dbt_project) is True
     manifest = json.loads((dbt_project / "target" / "manifest.json").read_text(encoding="utf-8"))
     assert "model.sample.a.b" in manifest["nodes"]
+
+
+def test_regenerate_manifest_runs_dbt_deps_and_parse(
+    dbt_project: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    from mds.services.dbt import manifest as manifest_mod
+
+    (dbt_project / "dbt_project.yml").write_text(
+        "name: sample\nprofile: sample_profile\n",
+        encoding="utf-8",
+    )
+    (dbt_project / "packages.yml").write_text("packages: []\n", encoding="utf-8")
+
+    calls: list[list[str]] = []
+
+    def fake_which(name: str) -> str | None:
+        return "/usr/bin/dbt" if name == "dbt" else None
+
+    def fake_run(args, **kwargs):  # noqa: ANN001
+        calls.append(list(args))
+        if args[1] == "parse":
+            target = dbt_project / "target"
+            target.mkdir(exist_ok=True)
+            (target / "manifest.json").write_text(
+                json.dumps({"metadata": {}, "nodes": {}, "sources": {}}),
+                encoding="utf-8",
+            )
+        return subprocess.CompletedProcess(args=args, returncode=0, stdout="", stderr="")
+
+    monkeypatch.setattr(manifest_mod.shutil, "which", fake_which)
+    monkeypatch.setattr(manifest_mod.subprocess, "run", fake_run)
+
+    assert regenerate_manifest(dbt_project) is True
+    assert calls[0][:2] == ["/usr/bin/dbt", "deps"]
+    assert calls[1][:2] == ["/usr/bin/dbt", "parse"]
+    assert (dbt_project / ".mds_dbt_profiles" / "profiles.yml").is_file()
+
+
+def test_regenerate_manifest_passes_dbt_target(
+    dbt_project: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    from mds.services.dbt import manifest as manifest_mod
+
+    (dbt_project / "dbt_project.yml").write_text(
+        "name: sample\nprofile: sample_profile\n",
+        encoding="utf-8",
+    )
+
+    calls: list[list[str]] = []
+
+    def fake_which(name: str) -> str | None:
+        return "/usr/bin/dbt" if name == "dbt" else None
+
+    def fake_run(args, **kwargs):  # noqa: ANN001
+        calls.append(list(args))
+        if args[1] == "parse":
+            target = dbt_project / "target"
+            target.mkdir(exist_ok=True)
+            (target / "manifest.json").write_text(
+                json.dumps({"metadata": {}, "nodes": {}, "sources": {}}),
+                encoding="utf-8",
+            )
+        return subprocess.CompletedProcess(args=args, returncode=0, stdout="", stderr="")
+
+    monkeypatch.setattr(manifest_mod.shutil, "which", fake_which)
+    monkeypatch.setattr(manifest_mod.subprocess, "run", fake_run)
+
+    assert regenerate_manifest(dbt_project, target="dev") is True
+    assert calls[0][:2] == ["/usr/bin/dbt", "parse"]
+    assert calls[0][-2:] == ["--target", "dev"]
+    profiles = (dbt_project / ".mds_dbt_profiles" / "profiles.yml").read_text(encoding="utf-8")
+    assert "target: dev" in profiles
+    assert "dev:" in profiles
 
 
 def test_ensure_fresh_manifest_skips_when_manifest_is_current(dbt_project: Path) -> None:

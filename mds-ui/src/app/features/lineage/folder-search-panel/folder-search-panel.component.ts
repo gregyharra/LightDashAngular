@@ -11,17 +11,22 @@ import {
   input,
   output,
   signal,
+  untracked,
   viewChild,
 } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { MatIconModule } from '@angular/material/icon';
-import { DbtTreeNode } from '../../../core/models/lineage.model';
+import { MatTooltipModule } from '@angular/material/tooltip';
+import { DbtTreeNode, LineageNode } from '../../../core/models/lineage.model';
 import {
+  buildSchemaGroupedTree,
   collectSelectableNodes,
+  countSelectableDescendants,
   filterTreeNodes,
   findAncestorFolderPaths,
   flattenVisibleTree,
   getDefaultExpandedPaths,
+  iconForDbtTreeType,
 } from '../dbt-tree-utils';
 
 @Component({
@@ -29,7 +34,7 @@ import {
   host: {
     class: 'folder-panel-host',
   },
-  imports: [FormsModule, MatIconModule],
+  imports: [FormsModule, MatIconModule, MatTooltipModule],
   templateUrl: './folder-search-panel.component.html',
   styleUrl: './folder-search-panel.component.scss',
 })
@@ -45,6 +50,8 @@ export class FolderSearchPanelComponent {
 
   readonly tree = input.required<DbtTreeNode[]>();
   readonly selectedNodeId = input<string | null>(null);
+  readonly projectUuid = input<string | null>(null);
+  readonly lineageNodes = input<LineageNode[]>([]);
   readonly title = input('Project');
   readonly searchPlaceholder = input('Search models…');
   readonly emptyMessage = input('No models match your search');
@@ -62,6 +69,10 @@ export class FolderSearchPanelComponent {
   protected readonly resizing = signal(false);
   protected readonly searchQuery = signal('');
   protected readonly expandedPaths = signal<Set<string>>(new Set());
+  protected readonly treeViewMode = signal<'folder' | 'schema'>('folder');
+
+  /** Last selection id for which we auto-expanded ancestor folders. */
+  private lastRevealedSelectedId: string | null = null;
 
   private isDragging = false;
   private startX = 0;
@@ -71,8 +82,23 @@ export class FolderSearchPanelComponent {
 
   protected readonly collapsedWidth = FolderSearchPanelComponent.COLLAPSED_WIDTH;
 
+  private readonly schemaByLineageNodeId = computed(() => {
+    const map = new Map<string, string>();
+    for (const node of this.lineageNodes()) {
+      map.set(node.id, node.schema ?? '');
+    }
+    return map;
+  });
+
+  private readonly activeTree = computed(() => {
+    if (this.treeViewMode() === 'schema') {
+      return buildSchemaGroupedTree(this.tree(), this.schemaByLineageNodeId());
+    }
+    return this.tree();
+  });
+
   protected readonly filteredTree = computed(() =>
-    filterTreeNodes(this.tree(), this.searchQuery()),
+    filterTreeNodes(this.activeTree(), this.searchQuery()),
   );
 
   protected readonly visibleItems = computed(() =>
@@ -85,6 +111,7 @@ export class FolderSearchPanelComponent {
 
   constructor() {
     this.collapsed.set(this.readCollapsedState());
+    this.treeViewMode.set(this.readTreeViewMode());
     if (isPlatformBrowser(this.platformId)) {
       this.panelWidth.set(this.readSavedWidth());
     }
@@ -94,10 +121,22 @@ export class FolderSearchPanelComponent {
     });
 
     effect(() => {
-      const tree = this.tree();
-      if (tree.length > 0) {
-        this.expandedPaths.set(getDefaultExpandedPaths(tree));
+      const projectUuid = this.projectUuid();
+      if (projectUuid) {
+        this.treeViewMode.set(this.readTreeViewMode());
       }
+    });
+
+    effect(() => {
+      const tree = this.activeTree();
+      const projectUuid = this.projectUuid();
+      if (tree.length === 0) {
+        return;
+      }
+      // Re-read when project changes.
+      projectUuid;
+      const saved = this.readExpandedPaths();
+      this.expandedPaths.set(saved ?? getDefaultExpandedPaths(tree));
     });
 
     effect(() => {
@@ -109,22 +148,38 @@ export class FolderSearchPanelComponent {
 
     effect(() => {
       const selectedId = this.selectedNodeId();
-      const tree = this.tree();
-      if (!selectedId || tree.length === 0) {
+      if (!selectedId) {
+        this.lastRevealedSelectedId = null;
         return;
       }
 
+      // Only auto-reveal on selection change — not when the user collapses a folder
+      // (which would otherwise re-trigger via expandedPaths) or on unrelated CD cycles.
+      if (selectedId === this.lastRevealedSelectedId) {
+        return;
+      }
+
+      const tree = this.activeTree();
+      if (tree.length === 0) {
+        return;
+      }
+
+      this.lastRevealedSelectedId = selectedId;
+
       const folderPaths = findAncestorFolderPaths(tree, selectedId);
       if (folderPaths.length > 0) {
-        const current = this.expandedPaths();
-        const hasMissingPath = folderPaths.some((path) => !current.has(path));
-        if (hasMissingPath) {
-          const next = new Set(current);
-          for (const path of folderPaths) {
-            next.add(path);
+        untracked(() => {
+          const current = this.expandedPaths();
+          const hasMissingPath = folderPaths.some((path) => !current.has(path));
+          if (hasMissingPath) {
+            const next = new Set(current);
+            for (const path of folderPaths) {
+              next.add(path);
+            }
+            this.expandedPaths.set(next);
+            this.persistExpandedPaths(next);
           }
-          this.expandedPaths.set(next);
-        }
+        });
       }
 
       queueMicrotask(() => {
@@ -135,6 +190,18 @@ export class FolderSearchPanelComponent {
         });
       });
     });
+  }
+
+  protected setTreeViewMode(mode: 'folder' | 'schema'): void {
+    if (this.treeViewMode() === mode) {
+      return;
+    }
+    this.treeViewMode.set(mode);
+    this.persistTreeViewMode(mode);
+    // Reset expand set for the new tree shape (prefer saved for this mode if present).
+    const saved = this.readExpandedPaths();
+    this.expandedPaths.set(saved ?? getDefaultExpandedPaths(this.activeTree()));
+    this.persistExpandedPaths(this.expandedPaths());
   }
 
   protected onSearchInput(value: string): void {
@@ -225,6 +292,68 @@ export class FolderSearchPanelComponent {
       next.add(path);
     }
     this.expandedPaths.set(next);
+    this.persistExpandedPaths(next);
+  }
+
+  private viewModeStorageKey(): string | null {
+    const projectUuid = this.projectUuid();
+    if (!projectUuid || !isPlatformBrowser(this.platformId)) {
+      return null;
+    }
+    return `${this.collapsedStorageKey()}:tree-view:${projectUuid}`;
+  }
+
+  private expandedStorageKey(): string | null {
+    const projectUuid = this.projectUuid();
+    if (!projectUuid || !isPlatformBrowser(this.platformId)) {
+      return null;
+    }
+    return `${this.collapsedStorageKey()}:expanded:${projectUuid}`;
+  }
+
+  private readTreeViewMode(): 'folder' | 'schema' {
+    const key = this.viewModeStorageKey();
+    if (!key) {
+      return 'folder';
+    }
+    const raw = localStorage.getItem(key);
+    return raw === 'schema' ? 'schema' : 'folder';
+  }
+
+  private persistTreeViewMode(mode: 'folder' | 'schema'): void {
+    const key = this.viewModeStorageKey();
+    if (!key) {
+      return;
+    }
+    localStorage.setItem(key, mode);
+  }
+
+  private readExpandedPaths(): Set<string> | null {
+    const key = this.expandedStorageKey();
+    if (!key) {
+      return null;
+    }
+    const raw = localStorage.getItem(key);
+    if (!raw) {
+      return null;
+    }
+    try {
+      const parsed = JSON.parse(raw) as unknown;
+      if (!Array.isArray(parsed) || !parsed.every((p) => typeof p === 'string')) {
+        return null;
+      }
+      return new Set(parsed);
+    } catch {
+      return null;
+    }
+  }
+
+  private persistExpandedPaths(paths: Set<string>): void {
+    const key = this.expandedStorageKey();
+    if (!key) {
+      return;
+    }
+    localStorage.setItem(key, JSON.stringify([...paths]));
   }
 
   protected selectItem(item: DbtTreeNode, event: Event): void {
@@ -266,19 +395,14 @@ export class FolderSearchPanelComponent {
   }
 
   protected iconForType(type: DbtTreeNode['type']): string {
-    switch (type) {
-      case 'folder':
-        return 'folder';
-      case 'model':
-        return 'table_chart';
-      case 'seed':
-        return 'grass';
-      case 'source':
-        return 'input';
-      case 'sources_file':
-        return 'description';
-      default:
-        return 'insert_drive_file';
-    }
+    return iconForDbtTreeType(type);
+  }
+
+  protected leafCount(node: DbtTreeNode): number {
+    return countSelectableDescendants(node);
+  }
+
+  protected showLeafCount(node: DbtTreeNode): boolean {
+    return node.type === 'folder' || !!(node.children?.length);
   }
 }

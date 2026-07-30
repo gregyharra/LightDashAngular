@@ -293,6 +293,7 @@ def get_repo_status(project: Project) -> dict:
         "gitSubdirectory": project.git_subdirectory,
         "gitUsername": project.git_username,
         "dbtProjectPath": resolve_project_dbt_path(project),
+        "dbtTarget": project.dbt_target,
         "syncStatus": project.git_sync_status or GIT_SYNC_STATUS_NEVER,
         "lastSyncError": project.git_last_sync_error,
     }
@@ -336,15 +337,16 @@ def sync_project_repo(project: Project) -> dict:
     # Startup recovery is useless without a fresh manifest, so always parse
     # after a successful clone/pull regardless of AUTO_REGENERATE_MANIFEST
     # (that setting only controls stale-manifest checks on semantic reads).
+    # Prefer project scripts/generate_manifest.py, otherwise `dbt deps` + `dbt parse`.
     if project.dbt_project_path:
+        dbt_path = Path(project.dbt_project_path)
         try:
-            if regenerate_manifest(Path(project.dbt_project_path)):
+            if regenerate_manifest(dbt_path, target=project.dbt_target):
                 clear_dbt_artifacts_cache()
             else:
                 logger.warning(
-                    "dbt parse did not produce a manifest for project %s at %s",
-                    project.uuid,
-                    project.dbt_project_path,
+                    "Git sync completed but manifest.json could not be regenerated for %s",
+                    dbt_path,
                 )
         except Exception as exc:  # noqa: BLE001 - never let parse failures fail the sync
             logger.warning(

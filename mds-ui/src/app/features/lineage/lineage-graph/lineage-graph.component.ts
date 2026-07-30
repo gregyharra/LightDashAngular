@@ -25,21 +25,27 @@ import {
 } from '../../../core/models/lineage.model';
 import {
   LINEAGE_COLUMN_ROW_HEIGHT,
+  LINEAGE_NODE_FOOTER_HEIGHT,
   LINEAGE_NODE_HEADER_HEIGHT,
   buildColumnEdgePaths,
   columnRefKey,
+  ColumnRowLayout,
   computeColumnLineageHighlight,
+  getCollapsedNodeHeight,
   getColumnBodyContentHeight,
+  getColumnRowLayout,
   getExpandedNodeHeight,
   getMaxColumnScrollTop,
   getNodeIdsFromColumnKeys,
   LINEAGE_MAX_VISIBLE_COLUMNS,
   orderColumnsForDisplay,
 } from '../lineage-column-utils';
+import { columnTypeHint } from '../column-type-hint.utils';
 import {
   buildEdgePaths,
   getGraphBounds,
   layoutLineageNodes,
+  placeNeighborsAroundAnchor,
 } from '../lineage-layout';
 import {
   computeMaxHopDepth,
@@ -47,6 +53,16 @@ import {
   isEdgeInSubgraph,
   UNLIMITED_HOP_DEPTH,
 } from '../lineage-focus-utils';
+import {
+  emptyManualNeighborhood,
+  hasDirectNeighbors,
+  isNeighborhoodSideExpanded,
+  ManualNeighborhoodState,
+  NeighborhoodSide,
+  neighborhoodSideToggleGlyph,
+  toggleNeighborhoodSide,
+  unionHopAndManualIds,
+} from '../lineage-neighborhood-utils';
 import {
   inferColumnTransformation,
   transformationChipLabel,
@@ -95,6 +111,7 @@ function edgeAutoPanVelocity(pointerPos: number, edgeStart: number, edgeEnd: num
 }
 
 const REORGANIZE_TRANSITION_MS = 280;
+const LEGEND_COLLAPSED_STORAGE_KEY = 'lightdash-lineage-legend-collapsed';
 
 @Component({
   selector: 'app-lineage-graph',
@@ -135,10 +152,15 @@ export class LineageGraphComponent implements AfterViewInit {
   protected readonly draggingNodeId = signal<string | null>(null);
   protected readonly transformationChipMode = signal<TransformationChipMode>('compact');
   protected readonly transformationFilter = signal<ColumnTransformationType | null>(null);
+  protected readonly legendCollapsed = signal(this.readLegendCollapsed());
   /** Per-node scroll offset (px) for the capped column list. */
   protected readonly columnScrollTops = signal<Map<string, number>>(new Map());
   protected readonly nodeSearchQuery = signal('');
   protected readonly nodeSearchOpen = signal(false);
+  protected readonly manualNeighborhood = signal(emptyManualNeighborhood());
+  private lastFocusRootId: string | null = null;
+  /** Hop / mode / selection scope — when it changes, drop pinned positions for a fresh layout. */
+  private lastPositionScopeKey: string | null = null;
 
   private panStartX = 0;
   private panStartY = 0;
@@ -290,19 +312,27 @@ export class LineageGraphComponent implements AfterViewInit {
   );
 
   protected readonly displayNodes = computed(() => {
-    const related = this.relatedNodeIds();
-    if (!related || this.graphMode() === 'full') {
+    if (this.graphMode() === 'full') {
       return this.nodes();
     }
-    return this.nodes().filter((node) => related.has(node.id));
+    const related = this.relatedNodeIds();
+    const visibleIds = unionHopAndManualIds(related, this.manualNeighborhood());
+    if (!visibleIds) {
+      return this.nodes();
+    }
+    return this.nodes().filter((node) => visibleIds.has(node.id));
   });
 
   protected readonly displayEdges = computed(() => {
-    const related = this.relatedNodeIds();
-    if (!related || this.graphMode() === 'full') {
+    if (this.graphMode() === 'full') {
       return this.edges();
     }
-    return this.edges().filter((edge) => isEdgeInSubgraph(edge, related));
+    const related = this.relatedNodeIds();
+    const visibleIds = unionHopAndManualIds(related, this.manualNeighborhood());
+    if (!visibleIds) {
+      return this.edges();
+    }
+    return this.edges().filter((edge) => isEdgeInSubgraph(edge, visibleIds));
   });
 
   protected readonly transform = computed(
@@ -348,13 +378,37 @@ export class LineageGraphComponent implements AfterViewInit {
 
   constructor() {
     effect(() => {
-      this.displayNodes();
-      this.displayEdges();
-      this.viewMode();
-      this.graphMode();
-      this.hopDepth();
+      const scopeKey = [
+        this.graphMode(),
+        String(this.hopDepth()),
+        this.viewMode(),
+        this.selectedNodeId() ?? '',
+      ].join('|');
+      this.nodes();
+      this.edges();
+      this.relatedNodeIds();
+      // Do not read manualNeighborhood() or displayNodes() here — −/+ must not fit
+      // or clear hop-pinned positions.
+      if (
+        this.lastPositionScopeKey !== null &&
+        this.lastPositionScopeKey !== scopeKey
+      ) {
+        this.customPositions.set(new Map());
+      }
+      this.lastPositionScopeKey = scopeKey;
+
       if (!this.selectedColumn()) {
         this.scheduleFitToView();
+      }
+    });
+
+    effect(() => {
+      const focusRoot = this.selectedNodeId();
+      if (focusRoot !== this.lastFocusRootId) {
+        this.lastFocusRootId = focusRoot;
+        this.manualNeighborhood.set(emptyManualNeighborhood());
+        // Fresh focus window — drop hop-pinned / drag positions so auto-layout applies.
+        this.customPositions.set(new Map());
       }
     });
 
@@ -424,15 +478,33 @@ export class LineageGraphComponent implements AfterViewInit {
       case 'source':
         return 'Source';
       case 'staging':
-        return 'Staging';
+        return 'Bronze';
       case 'intermediate':
-        return 'Intermediate';
+        return 'Silver';
       case 'mart':
-        return 'Mart';
+        return 'Gold';
       case 'seed':
         return 'Seed';
       default:
         return type;
+    }
+  }
+
+  protected toggleLegendCollapsed(): void {
+    const next = !this.legendCollapsed();
+    this.legendCollapsed.set(next);
+    try {
+      sessionStorage.setItem(LEGEND_COLLAPSED_STORAGE_KEY, String(next));
+    } catch {
+      // Ignore storage failures (private mode / quota).
+    }
+  }
+
+  private readLegendCollapsed(): boolean {
+    try {
+      return sessionStorage.getItem(LEGEND_COLLAPSED_STORAGE_KEY) === 'true';
+    } catch {
+      return false;
     }
   }
 
@@ -443,8 +515,8 @@ export class LineageGraphComponent implements AfterViewInit {
    * is 10px/600 uppercase, so it uses a slightly wider per-char value.
    */
   protected typeBadgeWidth(type: string): number {
-    const label = this.typeLabel(type);
-    const minWidth = 40;
+    const label = this.typeIconGlyph(type);
+    const minWidth = 24;
     return Math.max(minWidth, Math.round(label.length * 6.5 + 16));
   }
 
@@ -575,6 +647,76 @@ export class LineageGraphComponent implements AfterViewInit {
     this.nodeSelected.emit(nodeId);
   }
 
+  protected toggleNeighborhood(nodeId: string, side: NeighborhoodSide, event: Event): void {
+    event.stopPropagation();
+    event.preventDefault();
+
+    const prevState = this.manualNeighborhood();
+    const expanding = !isNeighborhoodSideExpanded(prevState, nodeId, side);
+    const nextState = toggleNeighborhoodSide(prevState, nodeId, side, this.edges());
+    if (nextState === prevState) {
+      return;
+    }
+
+    if (expanding) {
+      this.pinExistingAndPlaceNewNeighbors(nodeId, side, nextState);
+    }
+
+    this.manualNeighborhood.set(nextState);
+    // Intentionally do not call scheduleFitToView / scheduleCenterOnNode /
+    // graphModeChange / hopDepthChange — hop +/− only toggles visibility.
+  }
+
+  /**
+   * Keep current nodes where they are and park newly revealed neighbors beside
+   * the clicked card (upstream left, downstream right). Avoids a full re-layout
+   * scramble when displayNodes grows.
+   */
+  private pinExistingAndPlaceNewNeighbors(
+    nodeId: string,
+    side: NeighborhoodSide,
+    nextState: ManualNeighborhoodState,
+  ): void {
+    const visibleBefore = new Set(this.displayNodes().map((node) => node.id));
+    const currentPositions = this.positions();
+    const custom = new Map(this.customPositions());
+
+    for (const id of visibleBefore) {
+      const pos = currentPositions.get(id);
+      if (pos) {
+        custom.set(id, { x: pos.x, y: pos.y });
+      }
+    }
+
+    const expansion = nextState.expansions.find(
+      (entry) => entry.fromNodeId === nodeId && entry.side === side,
+    );
+    const anchor = currentPositions.get(nodeId);
+    if (expansion && anchor) {
+      const placements = placeNeighborsAroundAnchor(anchor, expansion.neighborIds, side, {
+        nodeHeight: getCollapsedNodeHeight(),
+        alreadyPlacedIds: visibleBefore,
+      });
+      for (const [id, pos] of placements) {
+        custom.set(id, pos);
+      }
+    }
+
+    this.customPositions.set(custom);
+  }
+
+  protected isNeighborhoodExpanded(nodeId: string, side: NeighborhoodSide): boolean {
+    return isNeighborhoodSideExpanded(this.manualNeighborhood(), nodeId, side);
+  }
+
+  protected neighborhoodToggleGlyph(nodeId: string, side: NeighborhoodSide): '+' | '−' {
+    return neighborhoodSideToggleGlyph(this.manualNeighborhood(), nodeId, side);
+  }
+
+  protected canToggleNeighborhood(nodeId: string, side: NeighborhoodSide): boolean {
+    return hasDirectNeighbors(nodeId, side, this.edges());
+  }
+
   protected selectColumn(nodeId: string, columnName: string, event: Event): void {
     event.stopPropagation();
 
@@ -627,7 +769,7 @@ export class LineageGraphComponent implements AfterViewInit {
     // Drag from the whole node header (grip + title). Expand / columns stay click-only.
     if (
       !target.closest('.lineage-graph__node-header') ||
-      target.closest('.lineage-graph__expand-btn') ||
+      target.closest('.lineage-graph__chevron-btn') ||
       target.closest('.lineage-graph__column-row')
     ) {
       return;
@@ -660,7 +802,7 @@ export class LineageGraphComponent implements AfterViewInit {
     // onCanvasPointerUp. This is a fallback when capture is unavailable.
     if (this.dragNodeId !== nodeId) {
       if (
-        target.closest('.lineage-graph__expand-btn') ||
+        target.closest('.lineage-graph__chevron-btn') ||
         target.closest('.lineage-graph__column-row')
       ) {
         return;
@@ -677,7 +819,7 @@ export class LineageGraphComponent implements AfterViewInit {
 
     if (
       wasDrag ||
-      target.closest('.lineage-graph__expand-btn') ||
+      target.closest('.lineage-graph__chevron-btn') ||
       target.closest('.lineage-graph__column-row')
     ) {
       return;
@@ -1095,8 +1237,34 @@ export class LineageGraphComponent implements AfterViewInit {
     return Math.max(0, nodeWidth - 32);
   }
 
-  protected nodeMetaLabel(node: LineageNode): string {
-    return `${node.schema} · ${node.columnCount} cols`;
+  protected columnCountLabel(node: LineageNode): string {
+    const n = node.columnCount ?? node.columns?.length ?? 0;
+    return `${n} column${n === 1 ? '' : 's'}`;
+  }
+
+  protected typeHintForColumn(column: LineageColumn): '#' | 'Aa' | null {
+    return columnTypeHint(column.type);
+  }
+
+  protected footerHeight(): number {
+    return LINEAGE_NODE_FOOTER_HEIGHT;
+  }
+
+  protected typeIconGlyph(type: string): string {
+    switch (type) {
+      case 'source':
+        return 'Src';
+      case 'seed':
+        return 'Seed';
+      case 'staging':
+        return 'S';
+      case 'intermediate':
+        return 'I';
+      case 'mart':
+        return 'M';
+      default:
+        return '?';
+    }
   }
 
   protected columnTransformation(node: LineageNode, column: LineageColumn): ColumnTransformationType {
@@ -1131,16 +1299,19 @@ export class LineageGraphComponent implements AfterViewInit {
     return transformationCssVar(type, 'text');
   }
 
-  protected columnTypeX(nodeWidth: number, transformType: ColumnTransformationType): number {
-    return nodeWidth - 10 - transformationChipWidth(transformType, this.transformationChipMode()) - 6;
-  }
-
-  protected transformChipX(nodeWidth: number, transformType: ColumnTransformationType): number {
-    return nodeWidth - 8 - transformationChipWidth(transformType, this.transformationChipMode());
-  }
-
-  protected transformChipW(type: ColumnTransformationType): number {
-    return transformationChipWidth(type, this.transformationChipMode());
+  protected columnRowLayout(
+    nodeWidth: number,
+    column: LineageColumn,
+    transformType: ColumnTransformationType | null,
+  ): ColumnRowLayout {
+    return getColumnRowLayout({
+      nodeWidth,
+      hasTypeHint: this.typeHintForColumn(column) !== null,
+      columnType: column.type,
+      chipWidth: transformType
+        ? transformationChipWidth(transformType, this.transformationChipMode())
+        : 0,
+    });
   }
 
   protected transformChipH(): number {

@@ -197,6 +197,22 @@
                   target/manifest.json (run dbt compile).
                 </mat-hint>
               </mat-form-field>
+
+              <mat-form-field appearance="outline" class="project-create__field">
+                <mat-label>dbt profile target</mat-label>
+                <input
+                  matInput
+                  name="dbtTarget"
+                  [(ngModel)]="dbtTarget"
+                  placeholder="dev"
+                  autocomplete="off"
+                  [disabled]="submitting()"
+                />
+                <mat-hint>
+                  Optional profiles.yml target used for <code>dbt parse</code> after Git sync
+                  (e.g. <code>dev</code> or <code>parse</code>).
+                </mat-hint>
+              </mat-form-field>
             </div>
 
             @if (error()) {

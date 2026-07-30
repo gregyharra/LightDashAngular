@@ -55,6 +55,7 @@ class Project(Base):
     git_provider: Mapped[str | None] = mapped_column(String(50), nullable=True)
     git_subdirectory: Mapped[str | None] = mapped_column(String(1024), nullable=True)
     git_username: Mapped[str | None] = mapped_column(String(255), nullable=True)
+    dbt_target: Mapped[str | None] = mapped_column(String(255), nullable=True)
     encrypted_git_token: Mapped[str | None] = mapped_column(Text, nullable=True)
     git_last_sync_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
     git_last_commit_sha: Mapped[str | None] = mapped_column(String(64), nullable=True)

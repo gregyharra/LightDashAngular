@@ -13,12 +13,15 @@ RUN apt-get update \
     && apt-get install -y --no-install-recommends \
         libpq5 \
         curl \
+        git \
+        ca-certificates \
     && rm -rf /var/lib/apt/lists/*
 
 COPY pyproject.toml README.md ./
 COPY src ./src
 
 # dbt-core + trino adapter (see [project.optional-dependencies].dbt)
+# Used after Git sync to run `dbt deps` / `dbt parse` and produce target/manifest.json.
 RUN pip install ".[dbt]"
 
 RUN useradd --create-home --uid 10001 --shell /usr/sbin/nologin appuser \

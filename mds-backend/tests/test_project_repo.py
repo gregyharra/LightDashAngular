@@ -393,20 +393,23 @@ def test_create_project_stores_git_username(client: TestClient) -> None:
             "gitProvider": "bitbucket",
             "gitUsername": "bb-cloud-user",
             "gitToken": "ATAT_token",
+            "dbtTarget": "dev",
         },
     )
     assert response.status_code == 200
     created = response.json()["results"]
     assert created["gitProvider"] == "bitbucket"
     assert created["gitUsername"] == "bb-cloud-user"
+    assert created["dbtTarget"] == "dev"
     assert created["hasGitToken"] is True
 
     update = client.patch(
         f"/api/v1/projects/{created['projectUuid']}",
-        json={"gitUsername": "renamed-user"},
+        json={"gitUsername": "renamed-user", "dbtTarget": "parse"},
     )
     assert update.status_code == 200
     assert update.json()["results"]["gitUsername"] == "renamed-user"
+    assert update.json()["results"]["dbtTarget"] == "parse"
 
 
 def test_manual_sync_failure_persists_error_status(

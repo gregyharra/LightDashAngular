@@ -6,9 +6,12 @@ import {
   LineageViewMode,
 } from '../../core/models/lineage.model';
 import {
+  getCollapsedNodeHeight,
   getExpandedNodeHeight,
+  LINEAGE_NODE_HEADER_HEIGHT,
   LINEAGE_NODE_WIDTH,
 } from './lineage-column-utils';
+import { NeighborhoodSide } from './lineage-neighborhood-utils';
 
 /** Minimum layer index by node type (sources/seeds left, marts right). */
 const TYPE_MIN_LAYER: Record<LineageNodeType, number> = {
@@ -24,6 +27,9 @@ const LAYER_GAP_X = 120;
 const PADDING_X = 64;
 const PADDING_Y = 48;
 const BARYCENTER_ITERATIONS = 4;
+
+/** Horizontal gap between a node and neighbors placed by hop +/−. */
+export const NEIGHBOR_PLACE_GAP_X = LINEAGE_NODE_WIDTH + LAYER_GAP_X;
 
 export function layoutLineageNodes(
   nodes: LineageNode[],
@@ -41,13 +47,27 @@ export function layoutLineageNodes(
   return assignPositions(layerGroups, viewMode, expandedNodeIds);
 }
 
-/** Longest-path layering with type hints for disconnected nodes. */
+/** Longest-path layering: edge direction wins; type hints only for isolated nodes. */
 function computeNodeLayers(nodes: LineageNode[], edges: LineageEdge[]): Map<string, number> {
   const nodeIds = new Set(nodes.map((node) => node.id));
   const layers = new Map<string, number>();
+  const connected = new Set<string>();
+
+  for (const edge of edges) {
+    if (!nodeIds.has(edge.source) || !nodeIds.has(edge.target)) {
+      continue;
+    }
+    connected.add(edge.source);
+    connected.add(edge.target);
+  }
 
   for (const node of nodes) {
-    layers.set(node.id, TYPE_MIN_LAYER[node.type] ?? 1);
+    // Connected nodes start at 0 and are ranked purely by dependency edges
+    // (upstream left → downstream right). Isolated nodes keep medallion columns.
+    layers.set(
+      node.id,
+      connected.has(node.id) ? 0 : (TYPE_MIN_LAYER[node.type] ?? 1),
+    );
   }
 
   for (let pass = 0; pass < nodes.length; pass++) {
@@ -213,7 +233,7 @@ function nodeHeight(
   if (expanded) {
     return getExpandedNodeHeight(node);
   }
-  return 72;
+  return getCollapsedNodeHeight();
 }
 
 function getMaxStackHeight(
@@ -293,14 +313,50 @@ export function buildEdgePaths(
       }
 
       const startX = source.x + source.width;
-      const startY = source.y + Math.min(36, source.height / 2);
+      const startY = source.y + Math.min(LINEAGE_NODE_HEADER_HEIGHT / 2, source.height / 2);
       const endX = target.x;
-      const endY = target.y + Math.min(36, target.height / 2);
-      const controlOffset = Math.max(40, (endX - startX) * 0.45);
+      const endY = target.y + Math.min(LINEAGE_NODE_HEADER_HEIGHT / 2, target.height / 2);
+      // Keep curves readable even when a hop-placed neighbor sits left of its consumer.
+      const span = endX - startX;
+      const controlOffset = Math.max(40, Math.abs(span) * 0.45);
 
       const path = `M ${startX} ${startY} C ${startX + controlOffset} ${startY}, ${endX - controlOffset} ${endY}, ${endX} ${endY}`;
 
       return { edge, path };
     })
     .filter((item): item is LineageEdgePath => item !== null);
+}
+
+/**
+ * Place newly revealed hop neighbors beside an anchor without moving existing nodes.
+ * Upstream → left of anchor; downstream → right. Stacked vertically and centered on the anchor.
+ */
+export function placeNeighborsAroundAnchor(
+  anchor: LineageNodePosition,
+  neighborIds: readonly string[],
+  side: NeighborhoodSide,
+  options?: {
+    nodeHeight?: number;
+    alreadyPlacedIds?: ReadonlySet<string>;
+  },
+): Map<string, { x: number; y: number }> {
+  const nodeHeight = options?.nodeHeight ?? getCollapsedNodeHeight();
+  const skip = options?.alreadyPlacedIds ?? new Set<string>();
+  const toPlace = [...neighborIds].filter((id) => !skip.has(id)).sort((a, b) => a.localeCompare(b));
+  const result = new Map<string, { x: number; y: number }>();
+  if (toPlace.length === 0) {
+    return result;
+  }
+
+  const x =
+    side === 'upstream' ? anchor.x - NEIGHBOR_PLACE_GAP_X : anchor.x + NEIGHBOR_PLACE_GAP_X;
+  const stackHeight =
+    toPlace.length * nodeHeight + Math.max(0, toPlace.length - 1) * NODE_GAP_Y;
+  let y = anchor.y + anchor.height / 2 - stackHeight / 2;
+
+  for (const id of toPlace) {
+    result.set(id, { x, y });
+    y += nodeHeight + NODE_GAP_Y;
+  }
+  return result;
 }
