@@ -8,7 +8,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatTableModule } from '@angular/material/table';
 import { DashboardDimensionFilter } from '../../../core/models/dashboard.model';
-import { DbtTreeNode } from '../../../core/models/lineage.model';
+import { DbtTreeNode, LineageNode } from '../../../core/models/lineage.model';
 import { ChartConfig, ChartKind } from '../../../core/models/chart.model';
 import { ActiveProjectService } from '../../../core/services/active-project.service';
 import { apiErrorMessage } from '../../../core/api/lightdash-api.service';
@@ -101,6 +101,7 @@ export class TablesWorkspacePageComponent {
   protected readonly projectUuid = signal<string | null>(null);
   protected readonly tableId = signal<string | null>(null);
   protected readonly dbtTree = signal<DbtTreeNode[]>([]);
+  protected readonly lineageNodes = signal<LineageNode[]>([]);
   protected readonly explores = signal<ExploreSummary[]>([]);
   protected readonly explore = signal<Explore | null>(null);
   protected readonly listLoading = signal(true);
@@ -364,6 +365,7 @@ export class TablesWorkspacePageComponent {
   ): void {
     this.listLoading.set(true);
     this.listError.set(null);
+    this.lineageNodes.set([]);
 
     forkJoin({
       tree: this.lineageService.getDbtTree(projectUuid),
@@ -383,6 +385,11 @@ export class TablesWorkspacePageComponent {
         this.listError.set(apiErrorMessage(err, 'Failed to load project tree.'));
         this.listLoading.set(false);
       },
+    });
+
+    this.lineageService.getProjectLineage(projectUuid).subscribe({
+      next: (lineage) => this.lineageNodes.set(lineage.nodes),
+      error: () => this.lineageNodes.set([]),
     });
   }
 

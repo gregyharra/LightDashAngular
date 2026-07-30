@@ -133,3 +133,77 @@ export function getDefaultExpandedPaths(nodes: DbtTreeNode[]): Set<string> {
   visit(nodes);
   return paths;
 }
+
+export function countSelectableDescendants(node: DbtTreeNode): number {
+  let count = 0;
+  const visit = (items: DbtTreeNode[]): void => {
+    for (const item of items) {
+      if (item.lineageNodeId) {
+        count += 1;
+      }
+      if (item.children?.length) {
+        visit(item.children);
+      }
+    }
+  };
+  visit(node.children ?? []);
+  return count;
+}
+
+export function iconForDbtTreeType(type: DbtTreeNode['type']): string {
+  switch (type) {
+    case 'folder':
+      return 'folder';
+    case 'model':
+      return 'table_chart';
+    case 'seed':
+      return 'eco';
+    case 'source':
+      return 'storage';
+    case 'sources_file':
+      return 'description';
+    default:
+      return 'insert_drive_file';
+  }
+}
+
+export const UNSPECIFIED_SCHEMA_LABEL = 'Unspecified';
+
+export function buildSchemaGroupedTree(
+  pathTree: DbtTreeNode[],
+  schemaByLineageNodeId: ReadonlyMap<string, string>,
+): DbtTreeNode[] {
+  const leaves = collectSelectableNodes(pathTree);
+  const groups = new Map<string, DbtTreeNode[]>();
+
+  for (const leaf of leaves) {
+    const lineageId = leaf.lineageNodeId!;
+    const raw = schemaByLineageNodeId.get(lineageId)?.trim() ?? '';
+    const label = raw.length > 0 ? raw : UNSPECIFIED_SCHEMA_LABEL;
+    const bucket = groups.get(label) ?? [];
+    bucket.push({
+      ...leaf,
+      // Keep leaf identity for selection; path stays the dbt path for tooltips/filter.
+    });
+    groups.set(label, bucket);
+  }
+
+  const labels = [...groups.keys()].sort((a, b) => {
+    if (a === UNSPECIFIED_SCHEMA_LABEL) return 1;
+    if (b === UNSPECIFIED_SCHEMA_LABEL) return -1;
+    return a.localeCompare(b);
+  });
+
+  return labels.map((label) => {
+    const children = (groups.get(label) ?? []).sort((a, b) =>
+      a.name.localeCompare(b.name),
+    );
+    return {
+      id: `schema:${label}`,
+      name: label,
+      path: `schema:${label}`,
+      type: 'folder' as const,
+      children,
+    };
+  });
+}

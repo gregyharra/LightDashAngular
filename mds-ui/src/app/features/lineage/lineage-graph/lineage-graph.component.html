@@ -311,12 +311,12 @@
                   pointer-events="none"
                 />
                 <text class="lineage-graph__node-badge-text" x="26" y="24" pointer-events="none">
-                  {{ typeLabel(node.type) }}
+                  {{ typeIconGlyph(node.type) }}
                 </text>
 
-                @if (viewMode() === 'models' && node.columns?.length) {
+                @if (nodeHasExpandButton(node)) {
                   <g
-                    class="lineage-graph__expand-btn"
+                    class="lineage-graph__chevron-btn"
                     [attr.transform]="'translate(' + (pos.width - 28) + ', 10)'"
                     (click)="toggleNodeExpand(node.id, $event)"
                     (pointerdown)="$event.stopPropagation()"
@@ -327,17 +327,23 @@
                   >
                     <title>{{ isNodeExpanded(node.id) ? 'Collapse columns' : 'Expand columns' }}</title>
                     <rect width="18" height="18" rx="4" fill="rgba(255,255,255,0.85)" stroke="var(--ld-gray-4)" />
-                    <text x="9" y="13" text-anchor="middle" class="lineage-graph__expand-icon">
-                      {{ isNodeExpanded(node.id) ? '−' : '+' }}
-                    </text>
+                    <foreignObject x="0" y="0" width="18" height="18">
+                      <div
+                        xmlns="http://www.w3.org/1999/xhtml"
+                        class="lineage-graph__chevron-icon"
+                        aria-hidden="true"
+                      >
+                        <mat-icon>{{ isNodeExpanded(node.id) ? 'expand_more' : 'chevron_right' }}</mat-icon>
+                      </div>
+                    </foreignObject>
                   </g>
                 }
 
                 <foreignObject
                   x="20"
-                  y="33"
+                  y="30"
                   [attr.width]="nodeHeaderTextWidth(pos.width, nodeHasExpandButton(node))"
-                  height="18"
+                  height="16"
                   pointer-events="none"
                 >
                   <div
@@ -350,17 +356,17 @@
                 </foreignObject>
                 <foreignObject
                   x="20"
-                  y="49"
+                  y="45"
                   [attr.width]="nodeMetaTextWidth(pos.width)"
-                  height="14"
+                  height="11"
                   pointer-events="none"
                 >
                   <div
                     xmlns="http://www.w3.org/1999/xhtml"
                     class="lineage-graph__node-meta"
-                    [attr.title]="nodeMetaLabel(node)"
+                    [attr.title]="columnCountLabel(node)"
                   >
-                    {{ nodeMetaLabel(node) }}
+                    {{ columnCountLabel(node) }}
                   </div>
                 </foreignObject>
               </g>
@@ -432,7 +438,12 @@
                             rx="4"
                           />
                           <circle class="lineage-graph__column-dot" cx="18" [attr.cy]="columnRowHeight() / 2" r="3" />
-                          <text class="lineage-graph__column-name" x="28" [attr.y]="columnRowHeight() / 2 + 4">{{ col.name }}</text>
+                          @if (typeHintForColumn(col); as hint) {
+                            <text class="lineage-graph__column-type-hint" x="28" [attr.y]="columnRowHeight() / 2 + 4">{{ hint }}</text>
+                            <text class="lineage-graph__column-name" x="48" [attr.y]="columnRowHeight() / 2 + 4">{{ col.name }}</text>
+                          } @else {
+                            <text class="lineage-graph__column-name" x="28" [attr.y]="columnRowHeight() / 2 + 4">{{ col.name }}</text>
+                          }
                           @if (columnTransformation(node, col); as transformType) {
                             <g class="lineage-graph__column-transform">
                               <rect
@@ -474,7 +485,7 @@
                     <text
                       class="lineage-graph__column-scroll-hint"
                       [attr.x]="pos.width / 2"
-                      [attr.y]="pos.height - 2"
+                      [attr.y]="pos.height - footerHeight() - 2"
                       text-anchor="middle"
                     >
                       scroll for {{ overflowColumnCount(node) }} more
@@ -482,6 +493,51 @@
                   }
                 </g>
               }
+
+              <g
+                class="lineage-graph__node-footer"
+                [attr.transform]="'translate(0, ' + (pos.height - footerHeight()) + ')'"
+              >
+                <line
+                  class="lineage-graph__node-divider"
+                  x1="8"
+                  [attr.x2]="pos.width - 8"
+                  y1="0"
+                  y2="0"
+                />
+                <g
+                  class="lineage-graph__hop-btn"
+                  [class.lineage-graph__hop-btn--disabled]="!canToggleNeighborhood(node.id, 'upstream')"
+                  [class.lineage-graph__hop-btn--active]="isNeighborhoodExpanded(node.id, 'upstream')"
+                  transform="translate(12, 4)"
+                  (click)="canToggleNeighborhood(node.id, 'upstream') && toggleNeighborhood(node.id, 'upstream', $event)"
+                  (pointerdown)="$event.stopPropagation()"
+                  (pointerup)="$event.stopPropagation()"
+                  role="button"
+                  [attr.aria-disabled]="!canToggleNeighborhood(node.id, 'upstream')"
+                  [attr.aria-label]="'Toggle upstream neighbors for ' + node.name"
+                >
+                  <title>Toggle upstream neighbors</title>
+                  <rect width="22" height="20" rx="4" />
+                  <text x="11" y="14" text-anchor="middle">{{ neighborhoodToggleGlyph(node.id, 'upstream') }}</text>
+                </g>
+                <g
+                  class="lineage-graph__hop-btn"
+                  [class.lineage-graph__hop-btn--disabled]="!canToggleNeighborhood(node.id, 'downstream')"
+                  [class.lineage-graph__hop-btn--active]="isNeighborhoodExpanded(node.id, 'downstream')"
+                  [attr.transform]="'translate(' + (pos.width - 34) + ', 4)'"
+                  (click)="canToggleNeighborhood(node.id, 'downstream') && toggleNeighborhood(node.id, 'downstream', $event)"
+                  (pointerdown)="$event.stopPropagation()"
+                  (pointerup)="$event.stopPropagation()"
+                  role="button"
+                  [attr.aria-disabled]="!canToggleNeighborhood(node.id, 'downstream')"
+                  [attr.aria-label]="'Toggle downstream neighbors for ' + node.name"
+                >
+                  <title>Toggle downstream neighbors</title>
+                  <rect width="22" height="20" rx="4" />
+                  <text x="11" y="14" text-anchor="middle">{{ neighborhoodToggleGlyph(node.id, 'downstream') }}</text>
+                </g>
+              </g>
             </g>
           }
         }
@@ -527,27 +583,47 @@
     </div>
   </div>
 
-  <div class="lineage-graph__legend">
-    <div class="lineage-graph__legend-section">
-      <span class="lineage-graph__legend-heading">Models</span>
-      <div class="lineage-graph__legend-items">
-        <span class="lineage-graph__legend-item lineage-graph__legend-item--source">Source</span>
-        <span class="lineage-graph__legend-item lineage-graph__legend-item--seed">Seed</span>
-        <span class="lineage-graph__legend-item lineage-graph__legend-item--staging">Staging</span>
-        <span class="lineage-graph__legend-item lineage-graph__legend-item--intermediate">Intermediate</span>
-        <span class="lineage-graph__legend-item lineage-graph__legend-item--mart">Mart</span>
-        @if (viewMode() === 'columns' || hasColumnFocus()) {
-          <span class="lineage-graph__legend-item lineage-graph__legend-item--column-edge">Column lineage</span>
-        }
+  <div
+    class="lineage-graph__legend"
+    [class.lineage-graph__legend--collapsed]="legendCollapsed()"
+  >
+    <button
+      type="button"
+      class="lineage-graph__legend-toggle"
+      (click)="toggleLegendCollapsed()"
+      [attr.aria-expanded]="!legendCollapsed()"
+      [attr.aria-label]="legendCollapsed() ? 'Expand legend' : 'Collapse legend'"
+      [attr.title]="legendCollapsed() ? 'Expand legend' : 'Collapse legend'"
+    >
+      <span class="lineage-graph__legend-toggle-label">Legend</span>
+      <mat-icon class="lineage-graph__legend-toggle-icon" aria-hidden="true">
+        {{ legendCollapsed() ? 'expand_more' : 'expand_less' }}
+      </mat-icon>
+    </button>
+    @if (!legendCollapsed()) {
+      <div class="lineage-graph__legend-body">
+        <div class="lineage-graph__legend-section">
+          <span class="lineage-graph__legend-heading">Models</span>
+          <div class="lineage-graph__legend-items">
+            <span class="lineage-graph__legend-item lineage-graph__legend-item--source">Source</span>
+            <span class="lineage-graph__legend-item lineage-graph__legend-item--seed">Seed</span>
+            <span class="lineage-graph__legend-item lineage-graph__legend-item--staging">Bronze</span>
+            <span class="lineage-graph__legend-item lineage-graph__legend-item--intermediate">Silver</span>
+            <span class="lineage-graph__legend-item lineage-graph__legend-item--mart">Gold</span>
+            @if (viewMode() === 'columns' || hasColumnFocus()) {
+              <span class="lineage-graph__legend-item lineage-graph__legend-item--column-edge">Column lineage</span>
+            }
+          </div>
+        </div>
+        <div class="lineage-graph__legend-divider" aria-hidden="true"></div>
+        <app-transformation-legend
+          class="lineage-graph__legend-section lineage-graph__legend-section--transforms"
+          [chipMode]="transformationChipMode()"
+          [activeFilter]="transformationFilter()"
+          (chipModeChange)="setTransformationChipMode($event)"
+          (filterChange)="setTransformationFilter($event)"
+        />
       </div>
-    </div>
-    <div class="lineage-graph__legend-divider" aria-hidden="true"></div>
-    <app-transformation-legend
-      class="lineage-graph__legend-section lineage-graph__legend-section--transforms"
-      [chipMode]="transformationChipMode()"
-      [activeFilter]="transformationFilter()"
-      (chipModeChange)="setTransformationChipMode($event)"
-      (filterChange)="setTransformationFilter($event)"
-    />
+    }
   </div>
 </div>

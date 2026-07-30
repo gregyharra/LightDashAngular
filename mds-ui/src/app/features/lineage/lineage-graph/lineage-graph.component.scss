@@ -17,6 +17,11 @@
 }
 
 .lineage-graph__view-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  box-sizing: border-box;
   padding: 4px 12px;
   border: none;
   background: var(--ld-background);
@@ -24,6 +29,7 @@
   font-family: inherit;
   font-size: var(--ld-font-size-xs);
   font-weight: 500;
+  line-height: 1;
   cursor: pointer;
 
   &:hover {
@@ -318,7 +324,7 @@
   color: var(--ld-gray-9);
   font-size: 13px;
   font-weight: 600;
-  line-height: 18px;
+  line-height: 16px;
   pointer-events: none;
 }
 
@@ -329,8 +335,8 @@
   margin: 0;
   padding: 0;
   color: var(--ld-gray-6);
-  font-size: 11px;
-  line-height: 14px;
+  font-size: 10px;
+  line-height: 11px;
   pointer-events: none;
 }
 
@@ -340,7 +346,7 @@
   pointer-events: none;
 }
 
-.lineage-graph__expand-btn {
+.lineage-graph__chevron-btn {
   cursor: pointer;
 
   &:hover rect {
@@ -349,9 +355,68 @@
   }
 }
 
-.lineage-graph__expand-icon {
-  fill: var(--ld-gray-7);
-  font-size: 14px;
+.lineage-graph__chevron-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  color: var(--ld-gray-7);
+  pointer-events: none;
+
+  mat-icon {
+    width: 16px;
+    height: 16px;
+    font-size: 16px;
+    line-height: 16px;
+  }
+}
+
+.lineage-graph__node-footer {
+  pointer-events: none;
+}
+
+.lineage-graph__hop-btn {
+  cursor: pointer;
+  pointer-events: all;
+
+  rect {
+    fill: var(--ld-gray-0);
+    stroke: var(--ld-gray-4);
+    stroke-width: 1;
+  }
+
+  text {
+    fill: var(--ld-gray-7);
+    font-size: 12px;
+    font-weight: 600;
+    pointer-events: none;
+  }
+
+  &:hover:not(&--disabled) rect {
+    fill: #fff;
+    stroke: var(--ld-brand);
+  }
+
+  &--active rect {
+    stroke: var(--ld-brand);
+    stroke-width: 1.5;
+  }
+
+  &--active text {
+    fill: var(--ld-brand);
+  }
+
+  &--disabled {
+    cursor: default;
+    pointer-events: none;
+    opacity: 0.35;
+  }
+}
+
+.lineage-graph__column-type-hint {
+  fill: var(--ld-gray-5);
+  font-size: 9px;
   font-weight: 600;
   pointer-events: none;
 }
@@ -556,12 +621,64 @@
 
 .lineage-graph__legend {
   display: flex;
-  flex-wrap: wrap;
-  align-items: flex-start;
-  gap: var(--ld-spacing-md);
+  flex-direction: column;
+  align-items: stretch;
+  gap: var(--ld-spacing-xs);
+  min-width: 0;
   padding: var(--ld-spacing-xs) var(--ld-spacing-sm);
   border-top: 1px solid var(--ld-gray-2);
   background: var(--ld-gray-0);
+  overflow-x: clip;
+
+  &--collapsed {
+    flex-direction: row;
+    align-items: center;
+  }
+}
+
+.lineage-graph__legend-toggle {
+  display: inline-flex;
+  flex-shrink: 0;
+  align-items: center;
+  gap: 2px;
+  align-self: flex-start;
+  min-width: 0;
+  padding: 2px 6px 2px 8px;
+  border: 1px solid var(--ld-gray-3);
+  border-radius: var(--ld-radius-sm);
+  background: var(--ld-background);
+  color: var(--ld-gray-7);
+  font-family: inherit;
+  font-size: var(--ld-font-size-xs);
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  white-space: nowrap;
+  cursor: pointer;
+
+  &:hover {
+    background: var(--ld-gray-1);
+    border-color: var(--ld-gray-4);
+    color: var(--ld-gray-8);
+  }
+}
+
+.lineage-graph__legend-toggle-label {
+  line-height: 1;
+}
+
+.lineage-graph__legend-toggle-icon {
+  width: 18px;
+  height: 18px;
+  font-size: 18px;
+  line-height: 18px;
+}
+
+.lineage-graph__legend-body {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  gap: var(--ld-spacing-md);
+  min-width: 0;
 }
 
 .lineage-graph__legend-section {

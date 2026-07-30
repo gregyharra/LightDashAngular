@@ -5,7 +5,9 @@ import {
 } from '../../core/models/lineage.model';
 
 /** Compact node header + one row per column when expanded in column view. */
-export const LINEAGE_NODE_HEADER_HEIGHT = 72;
+export const LINEAGE_NODE_HEADER_HEIGHT = 56;
+/** −/+ neighborhood hop strip, always present below the header/body. */
+export const LINEAGE_NODE_FOOTER_HEIGHT = 28;
 export const LINEAGE_COLUMN_ROW_HEIGHT = 24;
 export const LINEAGE_NODE_WIDTH = 220;
 /** Max column rows shown at once inside an expanded node (body scrolls past this). */
@@ -26,12 +28,20 @@ export function getColumnBodyHeight(columnCount: number): number {
   return content === 0 ? 0 : content + LINEAGE_COLUMN_BODY_PADDING;
 }
 
+export function getCollapsedNodeHeight(): number {
+  return LINEAGE_NODE_HEADER_HEIGHT + LINEAGE_NODE_FOOTER_HEIGHT;
+}
+
 export function getExpandedNodeHeight(node: LineageNode): number {
   const columnCount = node.columns?.length ?? 0;
   if (columnCount === 0) {
-    return LINEAGE_NODE_HEADER_HEIGHT;
+    return getCollapsedNodeHeight();
   }
-  return LINEAGE_NODE_HEADER_HEIGHT + getColumnBodyHeight(columnCount);
+  return (
+    LINEAGE_NODE_HEADER_HEIGHT +
+    getColumnBodyHeight(columnCount) +
+    LINEAGE_NODE_FOOTER_HEIGHT
+  );
 }
 
 export function getMaxColumnScrollTop(columnCount: number): number {
