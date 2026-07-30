@@ -166,3 +166,44 @@ export function iconForDbtTreeType(type: DbtTreeNode['type']): string {
       return 'insert_drive_file';
   }
 }
+
+export const UNSPECIFIED_SCHEMA_LABEL = 'Unspecified';
+
+export function buildSchemaGroupedTree(
+  pathTree: DbtTreeNode[],
+  schemaByLineageNodeId: ReadonlyMap<string, string>,
+): DbtTreeNode[] {
+  const leaves = collectSelectableNodes(pathTree);
+  const groups = new Map<string, DbtTreeNode[]>();
+
+  for (const leaf of leaves) {
+    const lineageId = leaf.lineageNodeId!;
+    const raw = schemaByLineageNodeId.get(lineageId)?.trim() ?? '';
+    const label = raw.length > 0 ? raw : UNSPECIFIED_SCHEMA_LABEL;
+    const bucket = groups.get(label) ?? [];
+    bucket.push({
+      ...leaf,
+      // Keep leaf identity for selection; path stays the dbt path for tooltips/filter.
+    });
+    groups.set(label, bucket);
+  }
+
+  const labels = [...groups.keys()].sort((a, b) => {
+    if (a === UNSPECIFIED_SCHEMA_LABEL) return 1;
+    if (b === UNSPECIFIED_SCHEMA_LABEL) return -1;
+    return a.localeCompare(b);
+  });
+
+  return labels.map((label) => {
+    const children = (groups.get(label) ?? []).sort((a, b) =>
+      a.name.localeCompare(b.name),
+    );
+    return {
+      id: `schema:${label}`,
+      name: label,
+      path: `schema:${label}`,
+      type: 'folder' as const,
+      children,
+    };
+  });
+}
