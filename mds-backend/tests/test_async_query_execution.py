@@ -142,6 +142,86 @@ def test_schedule_metric_query_completes_async(monkeypatch):
     assert store.get_query(q.query_uuid).rows
 
 
+def test_schedule_metric_query_trino_error(monkeypatch):
+    store.clear_queries()
+    q = store.create_query(
+        metric_query=_metric(),
+        compiled_sql="SELECT 1",
+        fields={},
+        warnings=[],
+        status="pending",
+    )
+
+    def fake_execute(snapshot, sql, field_ids, limit=None):
+        return ([], "trino boom", [])
+
+    monkeypatch.setattr(
+        "mds.services.query.executor.execute_trino_query_snapshot",
+        fake_execute,
+    )
+
+    snap = TrinoConnectionSnapshot("h", 8080, "c", "s", "u", None, False)
+    executor.schedule_metric_query(
+        q.query_uuid,
+        snap,
+        "SELECT 1",
+        ["orders_status"],
+        10,
+        [],
+    )
+
+    deadline = time.time() + 2
+    while time.time() < deadline:
+        if store.get_query(q.query_uuid).status == "ready":
+            break
+        time.sleep(0.01)
+    ready = store.get_query(q.query_uuid)
+    assert ready.status == "ready"
+    assert ready.rows == []
+    assert any(
+        w.code == "WAREHOUSE_EXECUTION_FAILED" and "trino boom" in w.message
+        for w in ready.warnings
+    )
+
+
+def test_schedule_metric_query_unexpected_exception(monkeypatch):
+    store.clear_queries()
+    q = store.create_query(
+        metric_query=_metric(),
+        compiled_sql="SELECT 1",
+        fields={},
+        warnings=[],
+        status="pending",
+    )
+
+    def fake_execute(snapshot, sql, field_ids, limit=None):
+        raise RuntimeError("crash")
+
+    monkeypatch.setattr(
+        "mds.services.query.executor.execute_trino_query_snapshot",
+        fake_execute,
+    )
+
+    snap = TrinoConnectionSnapshot("h", 8080, "c", "s", "u", None, False)
+    executor.schedule_metric_query(
+        q.query_uuid,
+        snap,
+        "SELECT 1",
+        ["orders_status"],
+        10,
+        [],
+    )
+
+    deadline = time.time() + 2
+    while time.time() < deadline:
+        if store.get_query(q.query_uuid).status == "error":
+            break
+        time.sleep(0.01)
+    err = store.get_query(q.query_uuid)
+    assert err.status == "error"
+    assert "crash" in err.error
+
+
 def test_schedule_sql_query_completes_async(monkeypatch):
     store.clear_queries()
     q = store.create_query(
