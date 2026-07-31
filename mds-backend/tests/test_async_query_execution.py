@@ -435,6 +435,72 @@ def test_sql_results_stream_returns_409_until_query_is_ready():
         raise AssertionError("Expected HTTPException for a pending query")
 
 
+def test_poll_returns_executing_without_rows():
+    from mds.routers import query
+
+    store.clear_queries()
+    stored = store.create_query(
+        metric_query=_metric(),
+        compiled_sql="SELECT 1",
+        fields={},
+        warnings=[],
+        status="executing",
+    )
+
+    response = query.poll_query("project", stored.query_uuid, object())
+
+    assert response["status"] == "ok"
+    results = response["results"]
+    assert results == {"queryUuid": stored.query_uuid, "status": "executing"}
+    assert "rows" not in results
+
+
+def test_poll_returns_pending_without_rows():
+    from mds.routers import query
+
+    store.clear_queries()
+    stored = store.create_query(
+        metric_query=None,
+        compiled_sql="SELECT 1",
+        fields={},
+        warnings=[],
+        status="pending",
+        query_kind="sql",
+        sql_text="SELECT 1",
+    )
+
+    response = query.poll_query("project", stored.query_uuid, object())
+
+    assert response["status"] == "ok"
+    results = response["results"]
+    assert results == {"queryUuid": stored.query_uuid, "status": "pending"}
+    assert "rows" not in results
+
+
+def test_poll_returns_error_with_message():
+    from mds.routers import query
+
+    store.clear_queries()
+    stored = store.create_query(
+        metric_query=_metric(),
+        compiled_sql="SELECT 1",
+        fields={},
+        warnings=[],
+        status="error",
+        error="boom",
+    )
+
+    response = query.poll_query("project", stored.query_uuid, object())
+
+    assert response["status"] == "ok"
+    results = response["results"]
+    assert results == {
+        "queryUuid": stored.query_uuid,
+        "status": "error",
+        "error": "boom",
+    }
+
+
 def test_poll_ready_sql_query_includes_columns():
     from mds.routers import query
 

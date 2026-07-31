@@ -189,7 +189,10 @@ def poll_query(project_uuid: str, query_uuid: str, db: Session = Depends(get_db)
         )
 
     if stored.status != "ready":
-        return ok({"queryUuid": query_uuid, "status": stored.status})
+        payload = {"queryUuid": query_uuid, "status": stored.status}
+        if stored.status in {"error", "expired"}:
+            payload["error"] = stored.error
+        return ok(payload)
 
     empty_warning = next(
         (warning for warning in stored.warnings if warning.code == "TIME_TRAVEL_EMPTY"),
