@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import json
 import time
 
 from mds.schemas.query import MetricQuery, MetricQueryRequest, QueryWarning
@@ -255,6 +256,90 @@ def test_schedule_sql_query_completes_async(monkeypatch):
     assert ready.status == "ready"
     assert ready.rows == [{"status": "open"}]
     assert ready.columns == [{"reference": "status", "type": "string"}]
+
+
+def test_sql_ready_rows_are_plain_dicts(monkeypatch):
+    store.clear_queries()
+    q = store.create_query(
+        metric_query=None,
+        compiled_sql=None,
+        fields={},
+        warnings=[],
+        status="pending",
+        query_kind="sql",
+        sql_text="SELECT 1 AS n",
+    )
+
+    monkeypatch.setattr(
+        "mds.services.query.executor.execute_trino_sql_raw",
+        lambda _snapshot, _sql, limit=None: ([{"n": 1}], None, ["n"]),
+    )
+
+    executor.schedule_sql_query(
+        q.query_uuid,
+        TrinoConnectionSnapshot("h", 8080, "c", "s", "u", None, False),
+        "SELECT 1 AS n",
+        10,
+    )
+    deadline = time.time() + 2
+    while time.time() < deadline and store.get_query(q.query_uuid).status != "ready":
+        time.sleep(0.01)
+
+    ready = store.get_query(q.query_uuid)
+    assert ready.status == "ready"
+    assert ready.rows == [{"n": 1}]
+    assert ready.columns[0]["reference"] == "n"
+
+
+def test_sql_results_stream_formats_ready_rows_as_ndjson():
+    from mds.routers import query
+
+    store.clear_queries()
+    q = store.create_query(
+        metric_query=None,
+        compiled_sql="SELECT 1",
+        fields={},
+        warnings=[],
+        rows=[{"n": 1}, {"n": 2}],
+        query_kind="sql",
+        sql_text="SELECT 1",
+    )
+
+    response = query.query_results_stream("project", q.query_uuid, object())
+
+    assert response.media_type == "application/x-ndjson"
+    assert [json.loads(line) for line in response.body.splitlines()] == [
+        {"n": 1},
+        {"n": 2},
+    ]
+
+
+def test_sql_post_returns_async_query_envelope(monkeypatch):
+    from types import SimpleNamespace
+
+    from mds.routers import query
+    from mds.schemas.query import SqlQueryRequest
+
+    store.clear_queries()
+    monkeypatch.setattr(query, "_load_project", lambda *_args: object())
+    monkeypatch.setattr(
+        query, "get_connection_for_project", lambda *_args: SimpleNamespace(type="other")
+    )
+
+    response = query.execute_sql_query(
+        "project",
+        SqlQueryRequest(sql="SELECT 1", invalidateCache=True),
+        object(),
+    )
+
+    result = response["results"]
+    assert result["columns"] == []
+    assert result["cacheMetadata"] == {"cacheHit": False}
+    assert result["parameterReferences"] == []
+    assert result["usedParametersValues"] == {}
+    assert result["resolvedTimezone"] == "UTC"
+    assert result["warnings"][0]["code"] == "NO_WAREHOUSE"
+    assert store.get_query(result["queryUuid"]).status == "ready"
 
 
 def test_metric_post_schedules_trino_without_running_it_synchronously(monkeypatch):
