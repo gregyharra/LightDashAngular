@@ -8,10 +8,11 @@ from mds.db.session import get_db
 from mds.schemas.query import MetricQueryRequest, QueryWarning
 from mds.services.dbt.parse import build_explore_from_lineage_node, find_lineage_node
 from mds.services.query.compile import build_metric_query_sql
+from mds.services.query.executor import schedule_metric_query
 from mds.services.query.store import create_query, get_query
 from mds.services.query.time_travel import validate_time_travel_for_explore
 from mds.services.warehouse.connection import get_connection_for_project
-from mds.services.warehouse.trino_client import execute_trino_query
+from mds.services.warehouse.trino_client import snapshot_from_warehouse
 
 router = APIRouter(tags=["query"])
 
@@ -72,33 +73,26 @@ def execute_metric_query(
         )
 
     fields = _build_fields(explore, metric_query)
-    rows: list[dict] = []
-    if compiled_sql:
-        warehouse = get_connection_for_project(db, _project)
-        if warehouse and warehouse.type == "trino":
-            field_ids = list(metric_query.dimensions) + list(metric_query.metrics)
-            rows, execution_error = execute_trino_query(
-                warehouse,
-                compiled_sql,
-                field_ids,
-                limit=metric_query.limit,
-            )
-            if execution_error:
-                warnings.append(
-                    QueryWarning(
-                        code="WAREHOUSE_EXECUTION_FAILED",
-                        message=execution_error,
-                        severity="error",
-                    )
-                )
-
+    warehouse = get_connection_for_project(db, _project) if compiled_sql else None
+    can_run = bool(compiled_sql and warehouse and warehouse.type == "trino")
     stored = create_query(
         metric_query=metric_query,
         compiled_sql=compiled_sql,
         fields=fields,
         warnings=warnings,
-        rows=rows,
+        rows=[],
+        status="pending" if can_run else "ready",
     )
+    if can_run:
+        field_ids = list(metric_query.dimensions) + list(metric_query.metrics)
+        schedule_metric_query(
+            stored.query_uuid,
+            snapshot_from_warehouse(warehouse),
+            compiled_sql,
+            field_ids,
+            metric_query.limit,
+            warnings,
+        )
 
     return ok(
         {
@@ -137,7 +131,8 @@ def poll_query(project_uuid: str, query_uuid: str, db: Session = Depends(get_db)
         None,
     )
     if (
-        stored.metric_query.time_travel
+        stored.metric_query
+        and stored.metric_query.time_travel
         and stored.metric_query.time_travel.as_of_timestamp
         and not stored.rows
         and empty_warning is None

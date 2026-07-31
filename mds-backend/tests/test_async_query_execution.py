@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import time
 
-from mds.schemas.query import MetricQuery, QueryWarning
+from mds.schemas.query import MetricQuery, MetricQueryRequest, QueryWarning
 from mds.services.query import executor, store
 from mds.services.warehouse.trino_client import TrinoConnectionSnapshot
 
@@ -255,3 +255,57 @@ def test_schedule_sql_query_completes_async(monkeypatch):
     assert ready.status == "ready"
     assert ready.rows == [{"status": "open"}]
     assert ready.columns == [{"reference": "status", "type": "string"}]
+
+
+def test_metric_post_schedules_trino_without_running_it_synchronously(monkeypatch):
+    from types import SimpleNamespace
+
+    from mds.routers import query
+
+    store.clear_queries()
+    scheduled: dict[str, object] = {}
+    explore = {
+        "tables": {
+            "orders": {
+                "name": "orders",
+                "dimensions": {"status": {"name": "status"}},
+                "metrics": {"count": {"name": "count"}},
+            }
+        }
+    }
+    warehouse = SimpleNamespace(type="trino")
+
+    def sync_trino(*_args, **_kwargs):
+        raise AssertionError("sync Trino execution must not run in POST")
+
+    def schedule(*args):
+        scheduled["args"] = args
+
+    monkeypatch.setattr(query, "_load_lineage_context", lambda *_args: (object(), {}))
+    monkeypatch.setattr(query, "find_lineage_node", lambda *_args: object())
+    monkeypatch.setattr(query, "build_explore_from_lineage_node", lambda *_args: explore)
+    monkeypatch.setattr(query, "build_metric_query_sql", lambda *_args: ("SELECT 1", []))
+    monkeypatch.setattr(
+        query, "validate_time_travel_for_explore", lambda *_args: []
+    )
+    monkeypatch.setattr(query, "get_connection_for_project", lambda *_args: warehouse)
+    monkeypatch.setattr(query, "execute_trino_query", sync_trino, raising=False)
+    monkeypatch.setattr(query, "snapshot_from_warehouse", lambda value: value, raising=False)
+    monkeypatch.setattr(query, "schedule_metric_query", schedule, raising=False)
+
+    response = query.execute_metric_query(
+        "project",
+        MetricQueryRequest(query=_metric()),
+        object(),
+    )
+
+    query_uuid = response["results"]["queryUuid"]
+    assert store.get_query(query_uuid).status == "pending"
+    assert scheduled["args"] == (
+        query_uuid,
+        warehouse,
+        "SELECT 1",
+        ["orders_status", "orders_count"],
+        10,
+        [],
+    )
