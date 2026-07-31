@@ -53,3 +53,44 @@ def test_set_query_error():
     err = store.get_query(q.query_uuid)
     assert err.status == "error"
     assert err.error == "boom"
+
+
+def test_execute_trino_query_snapshot_returns_columns(monkeypatch):
+    from mds.services.warehouse import trino_client
+
+    class FakeCursor:
+        description = [("orders_status",)]
+
+        def execute(self, sql: str) -> None:
+            self.sql = sql
+
+        def fetchall(self) -> list[tuple[str]]:
+            return [("open",)]
+
+        def close(self) -> None:
+            return None
+
+    class FakeClient:
+        def cursor(self) -> FakeCursor:
+            return FakeCursor()
+
+        def close(self) -> None:
+            return None
+
+    monkeypatch.setattr("trino.dbapi.connect", lambda **_kwargs: FakeClient())
+
+    snap = trino_client.TrinoConnectionSnapshot(
+        host="h",
+        port=8080,
+        catalog="c",
+        schema_name="s",
+        user="u",
+        password=None,
+        ssl=False,
+    )
+    rows, err, columns = trino_client.execute_trino_query_snapshot(
+        snap, "SELECT status FROM orders", ["orders_status"], limit=10
+    )
+    assert err is None
+    assert columns == ["orders_status"]
+    assert rows[0]["orders_status"]["value"]["raw"] == "open"
