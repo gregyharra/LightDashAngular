@@ -258,6 +258,40 @@ def test_schedule_sql_query_completes_async(monkeypatch):
     assert ready.columns == [{"reference": "status", "type": "string"}]
 
 
+def test_schedule_sql_query_trino_error(monkeypatch):
+    store.clear_queries()
+    q = store.create_query(
+        metric_query=None,
+        compiled_sql=None,
+        fields={},
+        warnings=[],
+        status="pending",
+        query_kind="sql",
+        sql_text="SELECT 1",
+    )
+
+    def fake_sql_raw(snapshot, sql, limit=None):
+        return ([], "boom", [])
+
+    monkeypatch.setattr(
+        "mds.services.query.executor.execute_trino_sql_raw",
+        fake_sql_raw,
+    )
+
+    snap = TrinoConnectionSnapshot("h", 8080, "c", "s", "u", None, False)
+    executor.schedule_sql_query(q.query_uuid, snap, "SELECT 1", 10)
+
+    deadline = time.time() + 2
+    while time.time() < deadline:
+        if store.get_query(q.query_uuid).status == "error":
+            break
+        time.sleep(0.01)
+    err = store.get_query(q.query_uuid)
+    assert err.status == "error"
+    assert err.error == "boom"
+    assert err.rows == []
+
+
 def test_sql_ready_rows_are_plain_dicts(monkeypatch):
     store.clear_queries()
     q = store.create_query(
@@ -338,8 +372,10 @@ def test_sql_post_returns_async_query_envelope(monkeypatch):
     assert result["parameterReferences"] == []
     assert result["usedParametersValues"] == {}
     assert result["resolvedTimezone"] == "UTC"
-    assert result["warnings"][0]["code"] == "NO_WAREHOUSE"
-    assert store.get_query(result["queryUuid"]).status == "ready"
+    assert result["warnings"] == []
+    stored = store.get_query(result["queryUuid"])
+    assert stored.status == "error"
+    assert stored.error == "No Trino warehouse configured."
 
 
 def test_metric_post_schedules_trino_without_running_it_synchronously(monkeypatch):

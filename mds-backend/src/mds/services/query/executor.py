@@ -84,18 +84,7 @@ def _run_sql(
             snapshot, sql, limit=limit
         )
         if execution_error:
-            store.set_query_ready(
-                query_uuid,
-                rows=[],
-                warnings=[
-                    QueryWarning(
-                        code="WAREHOUSE_EXECUTION_FAILED",
-                        message=execution_error,
-                        severity="error",
-                    )
-                ],
-                columns=[],
-            )
+            store.set_query_error(query_uuid, execution_error)
             return
         col_meta = [{"reference": c, "type": "string"} for c in columns]
         store.set_query_ready(

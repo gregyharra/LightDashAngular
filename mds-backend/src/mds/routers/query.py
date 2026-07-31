@@ -133,14 +133,9 @@ def execute_sql_query(
             metric_query=None,
             compiled_sql=body.sql,
             fields={},
-            warnings=[
-                QueryWarning(
-                    code="NO_WAREHOUSE",
-                    message="No Trino warehouse configured.",
-                    severity="error",
-                )
-            ],
-            status="ready",
+            warnings=[],
+            status="error",
+            error="No Trino warehouse configured.",
             query_kind="sql",
             sql_text=body.sql,
         )
