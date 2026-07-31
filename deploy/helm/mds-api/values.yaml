@@ -34,11 +34,15 @@ env:
   ENVIRONMENT: production
   CORS_ORIGINS: "https://mds.example.com"
   SEED_DEMO_DATA: "false"
+  # Regenerate manifest.json from project sources when stale on semantic API
+  # reads. Git sync itself always re-parses regardless of this flag.
   AUTO_REGENERATE_MANIFEST: "true"
   # Optional extras:
   # DBT_PROJECT_PATH: /app/mds-transform
   # PROJECTS_DATA_DIR: /app/.data/projects
   # LOG_LEVEL: INFO
+  # STARTUP_RESYNC_GIT_PROJECTS: "true"   # escape hatch: set "false" to skip blocking startup resync
+  # STARTUP_RESYNC_TIMEOUT_SECONDS: "300" # total time budget for the startup resync loop
 
 # Secret handling. Prefer existingSecret in real environments.
 secrets:
@@ -58,18 +62,34 @@ secretEnvKeys:
   - DATABASE_URL
   - ENCRYPTION_KEY
 
+# ENVIRONMENT=production triggers blocking Git resync for every project with a
+# git_repo_url before the API accepts traffic. The startupProbe below gives the
+# pod up to ~6 minutes (initialDelaySeconds + periodSeconds * failureThreshold)
+# to finish resync before Kubernetes considers it unhealthy; liveness/readiness
+# only start being evaluated once the startup probe succeeds. Raise
+# failureThreshold further if you have many large repositories, or set
+# STARTUP_RESYNC_TIMEOUT_SECONDS / STARTUP_RESYNC_GIT_PROJECTS=false as an
+# escape hatch to bound or disable the blocking resync itself.
+startupProbe:
+  httpGet:
+    path: /api/v1/health?skipMigrationCheck=true
+    port: http
+  initialDelaySeconds: 10
+  periodSeconds: 10
+  failureThreshold: 36
+
 livenessProbe:
   httpGet:
     path: /api/v1/health?skipMigrationCheck=true
     port: http
-  initialDelaySeconds: 15
+  initialDelaySeconds: 60
   periodSeconds: 30
 
 readinessProbe:
   httpGet:
     path: /api/v1/health?skipMigrationCheck=true
     port: http
-  initialDelaySeconds: 5
+  initialDelaySeconds: 30
   periodSeconds: 10
 
 # Optional PVC for PROJECTS_DATA_DIR (Git clones). Off by default.

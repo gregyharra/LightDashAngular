@@ -6,6 +6,8 @@ export type ProjectRepoSummary = {
   branch?: string | null;
   commitSha?: string | null;
   lastSyncAt?: string | null;
+  syncStatus?: 'ok' | 'syncing' | 'error' | 'never';
+  lastSyncError?: string | null;
 };
 
 export type ProjectSummary = {
@@ -39,6 +41,8 @@ export type ProjectRepoStatus = {
   defaultBranch: string;
   commitSha?: string | null;
   lastSyncAt?: string | null;
+  syncStatus?: 'ok' | 'syncing' | 'error' | 'never';
+  lastSyncError?: string | null;
   gitRepoUrl?: string | null;
   gitProvider?: GitProvider | null;
   gitSubdirectory?: string | null;

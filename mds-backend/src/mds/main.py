@@ -18,6 +18,7 @@ from mds.routers.query import router as query_router
 from mds.routers.saved import router as saved_router
 from mds.routers.semantic import router as semantic_router
 from mds.routers.warehouse import router as warehouse_router
+from mds.services.project.startup import resync_git_projects_on_startup
 
 configure_logging(settings)
 
@@ -32,6 +33,7 @@ async def lifespan(_app: FastAPI):
             seed_demo_data(db)
         finally:
             db.close()
+    resync_git_projects_on_startup()
     yield
 
 

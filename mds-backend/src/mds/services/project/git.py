@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import logging
+import re
 import shutil
 import subprocess
 from datetime import datetime, timezone
@@ -20,10 +21,43 @@ from mds.services.encryption import decrypt_secret
 logger = logging.getLogger(__name__)
 
 GIT_PROVIDERS = frozenset({"github", "gitlab", "bitbucket", "generic"})
+GIT_SYNC_STATUS_OK = "ok"
+GIT_SYNC_STATUS_SYNCING = "syncing"
+GIT_SYNC_STATUS_ERROR = "error"
+GIT_SYNC_STATUS_NEVER = "never"
+_MAX_SYNC_ERROR_LEN = 2000
+_HTTP_URL_USERINFO_RE = re.compile(r"(?i)\b(https?://)[^/\s@]+@")
 
 
 class GitRepoError(Exception):
     pass
+
+
+def truncate_sync_error(message: str, limit: int = _MAX_SYNC_ERROR_LEN) -> str:
+    text = (message or "").strip()
+    if len(text) <= limit:
+        return text
+    return text[: limit - 3] + "..."
+
+
+def redact_git_credentials(message: str) -> str:
+    """Redact HTTP(S) URL userinfo before exposing git command failures."""
+    return _HTTP_URL_USERINFO_RE.sub(r"\1***@", message or "")
+
+
+def mark_project_syncing(project: Project) -> None:
+    project.git_sync_status = GIT_SYNC_STATUS_SYNCING
+    project.git_last_sync_error = None
+
+
+def mark_project_sync_ok(project: Project) -> None:
+    project.git_sync_status = GIT_SYNC_STATUS_OK
+    project.git_last_sync_error = None
+
+
+def mark_project_sync_error(project: Project, error: str | BaseException) -> None:
+    project.git_sync_status = GIT_SYNC_STATUS_ERROR
+    project.git_last_sync_error = truncate_sync_error(redact_git_credentials(str(error)))
 
 
 def detect_git_provider(url: str) -> str:
@@ -211,10 +245,12 @@ def _run_git(args: list[str], *, timeout: int = 120) -> subprocess.CompletedProc
     except FileNotFoundError as exc:
         raise GitRepoError("git executable not found; install Git to sync repositories") from exc
     except subprocess.TimeoutExpired as exc:
-        raise GitRepoError(f"git command timed out: {' '.join(args)}") from exc
+        message = f"git command timed out: {' '.join(args)}"
+        raise GitRepoError(redact_git_credentials(message)) from exc
     except subprocess.CalledProcessError as exc:
         detail = (exc.stderr or exc.stdout or "").strip()
-        raise GitRepoError(detail or f"git command failed: {' '.join(args)}") from exc
+        message = detail or f"git command failed: {' '.join(args)}"
+        raise GitRepoError(redact_git_credentials(message)) from exc
 
 
 def _current_commit(clone_dir: Path) -> str | None:
@@ -258,6 +294,8 @@ def get_repo_status(project: Project) -> dict:
         "gitUsername": project.git_username,
         "dbtProjectPath": resolve_project_dbt_path(project),
         "dbtTarget": project.dbt_target,
+        "syncStatus": project.git_sync_status or GIT_SYNC_STATUS_NEVER,
+        "lastSyncError": project.git_last_sync_error,
     }
 
 
@@ -296,18 +334,28 @@ def sync_project_repo(project: Project) -> dict:
     project.git_last_commit_sha = _current_commit(clone_dir)
     project.git_last_sync_at = datetime.now(timezone.utc)
 
-    # Always rebuild manifest after sync so lineage/explores use the freshly pulled sources.
+    # Startup recovery is useless without a fresh manifest, so always parse
+    # after a successful clone/pull regardless of AUTO_REGENERATE_MANIFEST
+    # (that setting only controls stale-manifest checks on semantic reads).
     # Prefer project scripts/generate_manifest.py, otherwise `dbt deps` + `dbt parse`.
     if project.dbt_project_path:
         dbt_path = Path(project.dbt_project_path)
-        if regenerate_manifest(dbt_path, target=project.dbt_target):
-            clear_dbt_artifacts_cache()
-        else:
+        try:
+            if regenerate_manifest(dbt_path, target=project.dbt_target):
+                clear_dbt_artifacts_cache()
+            else:
+                logger.warning(
+                    "Git sync completed but manifest.json could not be regenerated for %s",
+                    dbt_path,
+                )
+        except Exception as exc:  # noqa: BLE001 - never let parse failures fail the sync
             logger.warning(
-                "Git sync completed but manifest.json could not be regenerated for %s",
-                dbt_path,
+                "Manifest regeneration failed for project %s after git sync: %s",
+                project.uuid,
+                redact_git_credentials(str(exc)),
             )
 
+    mark_project_sync_ok(project)
     return get_repo_status(project)
 
 
@@ -338,6 +386,8 @@ def desync_project_repo(project: Project) -> dict:
 
     project.git_last_sync_at = None
     project.git_last_commit_sha = None
+    project.git_sync_status = GIT_SYNC_STATUS_NEVER
+    project.git_last_sync_error = None
 
     return get_repo_status(project)
 

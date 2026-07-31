@@ -49,6 +49,8 @@ def project_payload(project: Project, warehouse: Warehouse | None = None) -> dic
             "branch": repo_status["branch"],
             "commitSha": repo_status["commitSha"],
             "lastSyncAt": repo_status["lastSyncAt"],
+            "syncStatus": repo_status["syncStatus"],
+            "lastSyncError": repo_status["lastSyncError"],
         },
     }
 

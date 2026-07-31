@@ -20,9 +20,9 @@ RUN apt-get update \
 COPY pyproject.toml README.md ./
 COPY src ./src
 
-# dbt-core + trino adapter: used after Git sync to run `dbt deps` / `dbt parse`
-# and produce target/manifest.json without requiring a local generate_manifest.py.
-RUN pip install . "dbt-core>=1.8,<1.10" "dbt-trino>=1.8,<1.10"
+# dbt-core + trino adapter (see [project.optional-dependencies].dbt)
+# Used after Git sync to run `dbt deps` / `dbt parse` and produce target/manifest.json.
+RUN pip install ".[dbt]"
 
 RUN useradd --create-home --uid 10001 --shell /usr/sbin/nologin appuser \
     && mkdir -p /app/.data/projects \
@@ -32,7 +32,7 @@ USER appuser
 
 EXPOSE 8080
 
-HEALTHCHECK --interval=30s --timeout=5s --start-period=20s --retries=3 \
+HEALTHCHECK --interval=30s --timeout=5s --start-period=90s --retries=3 \
     CMD curl -fsS "http://127.0.0.1:8080/api/v1/health?skipMigrationCheck=true" || exit 1
 
 CMD ["uvicorn", "mds.main:app", "--host", "0.0.0.0", "--port", "8080"]

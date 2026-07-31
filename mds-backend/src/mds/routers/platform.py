@@ -1,3 +1,4 @@
+import logging
 import uuid as uuid_lib
 
 from fastapi import APIRouter, Depends, HTTPException
@@ -12,8 +13,12 @@ from mds.services.project.git import (
     GitRepoError,
     desync_project_repo,
     get_repo_status,
+    mark_project_sync_error,
+    mark_project_syncing,
     sync_project_repo,
 )
+
+logger = logging.getLogger(__name__)
 from mds.services.project.helpers import (
     apply_git_fields_on_create,
     apply_git_fields_on_update,
@@ -222,14 +227,41 @@ def get_project_repo(project_uuid: str, db: Session = Depends(get_db)):
 @router.post("/projects/{project_uuid}/sync")
 def sync_project_repository(project_uuid: str, db: Session = Depends(get_db)):
     project = _get_project_or_404(db, project_uuid)
+    mark_project_syncing(project)
+    db.commit()
     try:
         status = sync_project_repo(project)
     except GitRepoError as exc:
+        _persist_sync_error(db, project, exc)
         raise HTTPException(status_code=400, detail=str(exc)) from exc
+    except Exception as exc:
+        logger.exception(
+            "Unexpected error syncing project %s", project_uuid
+        )
+        _persist_sync_error(db, project, exc)
+        raise HTTPException(status_code=500, detail="Failed to sync project repository") from exc
 
     db.commit()
     db.refresh(project)
     return ok(status)
+
+
+def _persist_sync_error(db: Session, project: Project, exc: BaseException) -> None:
+    """Roll back any partial state and record the sync failure. Never leaves
+    the project stuck at git_sync_status=syncing."""
+    try:
+        db.rollback()
+    except Exception:
+        logger.exception("Failed to roll back session after sync failure for %s", project.uuid)
+
+    try:
+        mark_project_sync_error(project, exc)
+        db.commit()
+    except Exception:
+        logger.exception(
+            "Failed to persist sync error status for project %s", project.uuid
+        )
+        db.rollback()
 
 
 @router.post("/projects/{project_uuid}/desync")

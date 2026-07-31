@@ -2,6 +2,7 @@ import os
 import subprocess
 import uuid as uuid_lib
 from pathlib import Path
+from unittest.mock import patch
 
 import pytest
 from fastapi.testclient import TestClient
@@ -10,6 +11,30 @@ from mds.db.models import Project
 from mds.db.session import SessionLocal
 from mds.main import app
 from mds.services.encryption import decrypt_secret
+from mds.services.project.git import GitRepoError
+
+
+def test_mark_project_sync_error_redacts_credentials_before_truncating() -> None:
+    from mds.services.project.git import _MAX_SYNC_ERROR_LEN, mark_project_sync_error
+
+    token = "super-secret-token"
+    project = Project(
+        uuid=uuid_lib.uuid4(),
+        name="Credential redaction test",
+        warehouse_type="trino",
+    )
+
+    mark_project_sync_error(
+        project,
+        f"git command failed: https://oauth2:{token}@gitlab.example/repo.git "
+        + ("x" * _MAX_SYNC_ERROR_LEN),
+    )
+
+    assert project.git_sync_status == "error"
+    assert project.git_last_sync_error is not None
+    assert token not in project.git_last_sync_error
+    assert "https://***@gitlab.example/repo.git" in project.git_last_sync_error
+    assert len(project.git_last_sync_error) == _MAX_SYNC_ERROR_LEN
 
 
 @pytest.fixture(scope="module")
@@ -160,6 +185,17 @@ def test_sync_local_git_repo(
     assert synced["lastSyncAt"]
     assert synced["dbtProjectPath"]
     assert Path(synced["dbtProjectPath"]).is_dir()
+    assert synced["syncStatus"] == "ok"
+    assert synced.get("lastSyncError") in (None, "")
+
+    db = SessionLocal()
+    try:
+        project = db.get(Project, uuid_lib.UUID(project_uuid))
+        assert project is not None
+        assert project.git_sync_status == "ok"
+        assert project.git_last_sync_error is None
+    finally:
+        db.close()
 
     get_project = client.get(f"/api/v1/projects/{project_uuid}")
     assert get_project.json()["results"]["repo"]["cloned"] is True
@@ -204,6 +240,7 @@ def test_desync_local_git_repo(
     assert desynced["lastSyncAt"] is None
     assert desynced["commitSha"] is None
     assert not clone_path.exists()
+    assert desynced["syncStatus"] == "never"
 
     db = SessionLocal()
     try:
@@ -373,6 +410,173 @@ def test_create_project_stores_git_username(client: TestClient) -> None:
     assert update.status_code == 200
     assert update.json()["results"]["gitUsername"] == "renamed-user"
     assert update.json()["results"]["dbtTarget"] == "parse"
+
+
+def test_manual_sync_failure_persists_error_status(
+    client: TestClient,
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    projects_dir = tmp_path / "projects-data"
+    monkeypatch.setenv("PROJECTS_DATA_DIR", str(projects_dir))
+
+    from mds.config import settings
+
+    monkeypatch.setattr(settings, "projects_data_dir", str(projects_dir))
+
+    create = client.post(
+        "/api/v1/projects",
+        json={
+            "name": "Failing sync project",
+            "gitRepoUrl": "https://example.com/nonexistent.git",
+            "gitDefaultBranch": "main",
+            "gitProvider": "generic",
+        },
+    )
+    project_uuid = create.json()["results"]["projectUuid"]
+
+    with patch(
+        "mds.routers.platform.sync_project_repo",
+        side_effect=GitRepoError("remote host unreachable"),
+    ):
+        sync = client.post(f"/api/v1/projects/{project_uuid}/sync")
+
+    assert sync.status_code == 400
+
+    db = SessionLocal()
+    try:
+        project = db.get(Project, uuid_lib.UUID(project_uuid))
+        assert project is not None
+        assert project.git_sync_status == "error"
+        assert project.git_last_sync_error == "remote host unreachable"
+    finally:
+        db.close()
+
+
+def test_manual_sync_unexpected_error_returns_500_and_persists_error(
+    client: TestClient,
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    projects_dir = tmp_path / "projects-data"
+    monkeypatch.setenv("PROJECTS_DATA_DIR", str(projects_dir))
+
+    from mds.config import settings
+
+    monkeypatch.setattr(settings, "projects_data_dir", str(projects_dir))
+
+    create = client.post(
+        "/api/v1/projects",
+        json={
+            "name": "Unexpected error project",
+            "gitRepoUrl": "https://example.com/whatever.git",
+            "gitDefaultBranch": "main",
+            "gitProvider": "generic",
+        },
+    )
+    project_uuid = create.json()["results"]["projectUuid"]
+
+    with patch(
+        "mds.routers.platform.sync_project_repo",
+        side_effect=RuntimeError("disk full"),
+    ):
+        sync = client.post(f"/api/v1/projects/{project_uuid}/sync")
+
+    assert sync.status_code == 500
+
+    db = SessionLocal()
+    try:
+        project = db.get(Project, uuid_lib.UUID(project_uuid))
+        assert project is not None
+        assert project.git_sync_status == "error"
+        assert project.git_last_sync_error == "disk full"
+    finally:
+        db.close()
+
+
+def test_manual_sync_success_clears_previous_error(
+    client: TestClient,
+    bare_repo: str,
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    projects_dir = tmp_path / "projects-data"
+    monkeypatch.setenv("PROJECTS_DATA_DIR", str(projects_dir))
+
+    from mds.config import settings
+
+    monkeypatch.setattr(settings, "projects_data_dir", str(projects_dir))
+
+    create = client.post(
+        "/api/v1/projects",
+        json={
+            "name": "Recovering project",
+            "gitRepoUrl": bare_repo,
+            "gitDefaultBranch": "main",
+            "gitProvider": "generic",
+        },
+    )
+    project_uuid = create.json()["results"]["projectUuid"]
+
+    db = SessionLocal()
+    try:
+        project = db.get(Project, uuid_lib.UUID(project_uuid))
+        assert project is not None
+        project.git_sync_status = "error"
+        project.git_last_sync_error = "previous failure"
+        db.commit()
+    finally:
+        db.close()
+
+    sync = client.post(f"/api/v1/projects/{project_uuid}/sync")
+    assert sync.status_code == 200
+    synced = sync.json()["results"]
+    assert synced["syncStatus"] == "ok"
+    assert synced.get("lastSyncError") in (None, "")
+
+    db = SessionLocal()
+    try:
+        project = db.get(Project, uuid_lib.UUID(project_uuid))
+        assert project is not None
+        assert project.git_sync_status == "ok"
+        assert project.git_last_sync_error is None
+    finally:
+        db.close()
+
+
+def test_sync_always_regenerates_manifest_even_when_auto_regenerate_disabled(
+    client: TestClient,
+    bare_repo: str,
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    projects_dir = tmp_path / "projects-data"
+    monkeypatch.setenv("PROJECTS_DATA_DIR", str(projects_dir))
+
+    from mds.config import settings
+
+    monkeypatch.setattr(settings, "projects_data_dir", str(projects_dir))
+    monkeypatch.setattr(settings, "auto_regenerate_manifest", False)
+
+    create = client.post(
+        "/api/v1/projects",
+        json={
+            "name": "Always parse project",
+            "gitRepoUrl": bare_repo,
+            "gitDefaultBranch": "main",
+            "gitProvider": "generic",
+        },
+    )
+    project_uuid = create.json()["results"]["projectUuid"]
+
+    with patch(
+        "mds.services.project.git.regenerate_manifest", return_value=True
+    ) as regenerate_manifest:
+        sync = client.post(f"/api/v1/projects/{project_uuid}/sync")
+
+    assert sync.status_code == 200
+    assert regenerate_manifest.called
+    assert sync.json()["results"]["syncStatus"] == "ok"
 
 
 def test_create_project_invalid_git_provider(client: TestClient) -> None:
