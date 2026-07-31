@@ -1,7 +1,10 @@
 from __future__ import annotations
 
+import time
+
 from mds.schemas.query import MetricQuery, QueryWarning
-from mds.services.query import store
+from mds.services.query import executor, store
+from mds.services.warehouse.trino_client import TrinoConnectionSnapshot
 
 
 def _metric() -> MetricQuery:
@@ -94,3 +97,81 @@ def test_execute_trino_query_snapshot_returns_columns(monkeypatch):
     assert err is None
     assert columns == ["orders_status"]
     assert rows[0]["orders_status"]["value"]["raw"] == "open"
+
+
+def test_schedule_metric_query_completes_async(monkeypatch):
+    store.clear_queries()
+    q = store.create_query(
+        metric_query=_metric(),
+        compiled_sql="SELECT 1",
+        fields={},
+        warnings=[],
+        status="pending",
+    )
+
+    def fake_execute(snapshot, sql, field_ids, limit=None):
+        time.sleep(0.05)
+        return (
+            [{"orders_status": {"value": {"raw": "x", "formatted": "x"}}}],
+            None,
+            ["orders_status"],
+        )
+
+    monkeypatch.setattr(
+        "mds.services.query.executor.execute_trino_query_snapshot",
+        fake_execute,
+    )
+
+    snap = TrinoConnectionSnapshot("h", 8080, "c", "s", "u", None, False)
+    executor.schedule_metric_query(
+        q.query_uuid,
+        snap,
+        "SELECT 1",
+        ["orders_status"],
+        10,
+        [],
+    )
+
+    assert store.get_query(q.query_uuid).status in {"pending", "executing"}
+    deadline = time.time() + 2
+    while time.time() < deadline:
+        if store.get_query(q.query_uuid).status == "ready":
+            break
+        time.sleep(0.01)
+    assert store.get_query(q.query_uuid).status == "ready"
+    assert store.get_query(q.query_uuid).rows
+
+
+def test_schedule_sql_query_completes_async(monkeypatch):
+    store.clear_queries()
+    q = store.create_query(
+        metric_query=None,
+        compiled_sql=None,
+        fields={},
+        warnings=[],
+        status="pending",
+        query_kind="sql",
+        sql_text="SELECT status FROM orders",
+    )
+
+    def fake_sql_raw(snapshot, sql, limit=None):
+        time.sleep(0.05)
+        return ([{"status": "open"}], None, ["status"])
+
+    monkeypatch.setattr(
+        "mds.services.query.executor.execute_trino_sql_raw",
+        fake_sql_raw,
+    )
+
+    snap = TrinoConnectionSnapshot("h", 8080, "c", "s", "u", None, False)
+    executor.schedule_sql_query(q.query_uuid, snap, "SELECT status FROM orders", 10)
+
+    deadline = time.time() + 2
+    while time.time() < deadline:
+        if store.get_query(q.query_uuid).status == "ready":
+            break
+        time.sleep(0.01)
+    ready = store.get_query(q.query_uuid)
+    assert ready.status == "ready"
+    assert ready.rows == [{"status": "open"}]
+    assert ready.columns == [{"reference": "status", "type": "string"}]
