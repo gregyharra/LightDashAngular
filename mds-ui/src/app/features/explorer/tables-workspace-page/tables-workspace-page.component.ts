@@ -168,30 +168,42 @@ export class TablesWorkspacePageComponent {
       return [];
     }
 
-    return Object.values(explore.tables).map((table) => ({
-      table,
-      dimensions: Object.values(table.dimensions)
-        .filter((dim) => !dim.hidden)
-        .map((dim) => ({
-          fieldId: getFieldId(table.name, dim.name),
-          label: dim.label,
-          type: dim.type,
-        })),
-      metrics: Object.values(table.metrics)
-        .filter((metric) => !metric.hidden)
-        .map((metric) => ({
-          fieldId: getFieldId(table.name, metric.name),
-          label: metric.label,
-        }))
-        .concat(
-          this.additionalMetrics()
-            .filter((metric) => metric.tableName === table.name)
-            .map((metric) => ({
-              fieldId: getFieldId(metric.tableName, metric.name),
-              label: metric.label,
-            })),
-        ),
-    }));
+    return Object.values(explore.tables).map((table) => {
+      const exploreMetricFieldIds = new Set(
+        Object.values(table.metrics)
+          .filter((metric) => !metric.hidden)
+          .map((metric) => getFieldId(table.name, metric.name)),
+      );
+
+      return {
+        table,
+        dimensions: Object.values(table.dimensions)
+          .filter((dim) => !dim.hidden)
+          .map((dim) => ({
+            fieldId: getFieldId(table.name, dim.name),
+            label: dim.label,
+            type: dim.type,
+          })),
+        metrics: Object.values(table.metrics)
+          .filter((metric) => !metric.hidden)
+          .map((metric) => ({
+            fieldId: getFieldId(table.name, metric.name),
+            label: metric.label,
+          }))
+          .concat(
+            this.additionalMetrics()
+              .filter((metric) => metric.tableName === table.name)
+              .map((metric) => ({
+                fieldId: getFieldId(metric.tableName, metric.name),
+                label: metric.label,
+              }))
+              .filter(
+                (customMetric) =>
+                  !exploreMetricFieldIds.has(customMetric.fieldId),
+              ),
+          ),
+      };
+    });
   });
 
   protected readonly customMetricDimensions = computed(() =>
@@ -201,6 +213,10 @@ export class TablesWorkspacePageComponent {
         tableLabel: group.table.label,
       })),
     ),
+  );
+
+  protected readonly canCreateCustomMetric = computed(
+    () => this.customMetricDimensions().length > 0,
   );
 
   protected readonly filteredTableGroups = computed(() => {
@@ -870,6 +886,10 @@ export class TablesWorkspacePageComponent {
     const selected = this.selectedFieldList();
     const dimensions = selected.filter((id) => !this.isMetricField(id));
     const metrics = selected.filter((id) => this.isMetricField(id));
+    const selectedMetricIds = new Set(metrics);
+    const additionalMetrics = this.additionalMetrics().filter((metric) =>
+      selectedMetricIds.has(getFieldId(metric.tableName, metric.name)),
+    );
 
     return mergeTimeTravelIntoMetricQuery(
       mergeDashboardFiltersIntoMetricQuery(
@@ -881,7 +901,7 @@ export class TablesWorkspacePageComponent {
           sorts: [],
           limit: 500,
           tableCalculations: [],
-          additionalMetrics: this.additionalMetrics(),
+          additionalMetrics,
         },
         this.dimensionFilters(),
       ),

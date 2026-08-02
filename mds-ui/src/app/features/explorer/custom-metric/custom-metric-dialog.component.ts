@@ -14,7 +14,10 @@ import {
   FieldId,
   MetricAggregation,
 } from '../../../core/models/explore.model';
-import { buildAdditionalMetric } from './custom-metric.utils';
+import {
+  buildAdditionalMetric,
+  isValidCustomMetricName,
+} from './custom-metric.utils';
 
 export type CustomMetricDimensionOption = {
   fieldId: FieldId;
@@ -69,12 +72,20 @@ export class CustomMetricDialogComponent {
   protected aggregation: MetricAggregation = 'sum';
   protected dimensionFieldId = this.data.dimensions[0]?.fieldId ?? '';
 
+  protected isNameValid(): boolean {
+    return isValidCustomMetricName(this.name);
+  }
+
+  protected canSave(): boolean {
+    return (
+      this.isNameValid() &&
+      !!this.label.trim() &&
+      !!this.dimensionFieldId
+    );
+  }
+
   protected save(): void {
-    if (
-      !this.name.trim() ||
-      !this.label.trim() ||
-      !this.dimensionFieldId
-    ) {
+    if (!this.canSave()) {
       return;
     }
 

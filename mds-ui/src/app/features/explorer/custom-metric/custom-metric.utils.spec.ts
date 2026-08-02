@@ -1,4 +1,7 @@
-import { buildAdditionalMetric } from './custom-metric.utils';
+import {
+  buildAdditionalMetric,
+  isValidCustomMetricName,
+} from './custom-metric.utils';
 
 describe('buildAdditionalMetric', () => {
   it('builds an aggregation AST and table-prefixed field ID', () => {
@@ -41,5 +44,33 @@ describe('buildAdditionalMetric', () => {
         arg: { type: 'field', fieldId: 'customers_id' },
       },
     });
+  });
+});
+
+describe('isValidCustomMetricName', () => {
+  it('accepts valid identifiers', () => {
+    expect(isValidCustomMetricName('total_amount')).toBe(true);
+    expect(isValidCustomMetricName('_private')).toBe(true);
+    expect(isValidCustomMetricName('Metric2')).toBe(true);
+  });
+
+  it('rejects empty or whitespace-only names', () => {
+    expect(isValidCustomMetricName('')).toBe(false);
+    expect(isValidCustomMetricName('   ')).toBe(false);
+  });
+
+  it('rejects names starting with a digit', () => {
+    expect(isValidCustomMetricName('2total')).toBe(false);
+  });
+
+  it('rejects names with spaces or special characters', () => {
+    expect(isValidCustomMetricName('total amount')).toBe(false);
+    expect(isValidCustomMetricName('total-amount')).toBe(false);
+    expect(isValidCustomMetricName('total.amount')).toBe(false);
+  });
+
+  it('validates trimmed names', () => {
+    expect(isValidCustomMetricName(' total_amount ')).toBe(true);
+    expect(isValidCustomMetricName(' 2bad ')).toBe(false);
   });
 });

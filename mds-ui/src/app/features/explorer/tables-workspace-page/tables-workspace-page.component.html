@@ -105,7 +105,12 @@
                   class="tables-workspace__toolbar-btn"
                   type="button"
                   aria-label="Create custom metric"
-                  title="Create custom metric"
+                  [title]="
+                    canCreateCustomMetric()
+                      ? 'Create custom metric'
+                      : 'No dimensions available for custom metrics'
+                  "
+                  [disabled]="!canCreateCustomMetric()"
                   (click)="openCustomMetricDialog()"
                 >
                   <mat-icon>add</mat-icon>
