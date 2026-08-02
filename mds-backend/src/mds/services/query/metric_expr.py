@@ -1,14 +1,11 @@
 from __future__ import annotations
 
-import re
 from typing import Any
 
 from mds.schemas.query import AdditionalMetric, MetricExpr, MetricExprAgg
 
 MAX_AST_DEPTH = 8
 MAX_AST_NODES = 32
-
-_IDENTIFIER_PATTERN = re.compile(r"^[a-zA-Z_][a-zA-Z0-9_]*$")
 
 _AGG_SQL = {
     "sum": "SUM({})",
