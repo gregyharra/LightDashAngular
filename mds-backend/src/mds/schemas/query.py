@@ -111,12 +111,3 @@ class MetricQueryRequest(BaseModel):
         if self.metric_query is not None:
             return self.metric_query
         raise ValueError("Missing metric query payload")
-
-
-class SqlQueryRequest(BaseModel):
-    sql: str
-    limit: int | None = 500
-    parameters: dict[str, Any] | None = None
-    invalidate_cache: bool | None = Field(default=None, alias="invalidateCache")
-
-    model_config = {"populate_by_name": True}

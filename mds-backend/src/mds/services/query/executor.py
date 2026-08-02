@@ -8,7 +8,6 @@ from mds.services.query import store
 from mds.services.warehouse.trino_client import (
     TrinoConnectionSnapshot,
     execute_trino_query_snapshot,
-    execute_trino_sql_raw,
 )
 
 logger = logging.getLogger(__name__)
@@ -32,15 +31,6 @@ def schedule_metric_query(
         limit,
         list(base_warnings),
     )
-
-
-def schedule_sql_query(
-    query_uuid: str,
-    snapshot: TrinoConnectionSnapshot,
-    sql: str,
-    limit: int,
-) -> None:
-    _pool.submit(_run_sql, query_uuid, snapshot, sql, limit)
 
 
 def _run_metric(
@@ -69,27 +59,4 @@ def _run_metric(
         store.set_query_ready(query_uuid, rows=rows, warnings=warnings)
     except Exception as exc:  # noqa: BLE001 — surface to poll clients
         logger.exception("Metric query %s failed", query_uuid)
-        store.set_query_error(query_uuid, str(exc))
-
-
-def _run_sql(
-    query_uuid: str,
-    snapshot: TrinoConnectionSnapshot,
-    sql: str,
-    limit: int,
-) -> None:
-    store.set_query_executing(query_uuid)
-    try:
-        raw_rows, execution_error, columns = execute_trino_sql_raw(
-            snapshot, sql, limit=limit
-        )
-        if execution_error:
-            store.set_query_error(query_uuid, execution_error)
-            return
-        col_meta = [{"reference": c, "type": "string"} for c in columns]
-        store.set_query_ready(
-            query_uuid, rows=raw_rows, columns=col_meta, warnings=[]
-        )
-    except Exception as exc:  # noqa: BLE001
-        logger.exception("SQL query %s failed", query_uuid)
         store.set_query_error(query_uuid, str(exc))

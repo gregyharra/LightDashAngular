@@ -1,17 +1,14 @@
 from __future__ import annotations
 
-import json
-
 from fastapi import APIRouter, Depends, HTTPException
-from fastapi.responses import PlainTextResponse
 from sqlalchemy.orm import Session
 
 from mds.api.envelope import ok
 from mds.db.session import get_db
-from mds.schemas.query import MetricQueryRequest, QueryWarning, SqlQueryRequest
+from mds.schemas.query import MetricQueryRequest, QueryWarning
 from mds.services.dbt.parse import build_explore_from_lineage_node, find_lineage_node
 from mds.services.query.compile import build_metric_query_sql
-from mds.services.query.executor import schedule_metric_query, schedule_sql_query
+from mds.services.query.executor import schedule_metric_query
 from mds.services.query.store import create_query, get_query
 from mds.services.query.time_travel import validate_time_travel_for_explore
 from mds.services.warehouse.connection import get_connection_for_project
@@ -24,12 +21,6 @@ def _load_lineage_context(db: Session, project_uuid: str):
     from mds.routers.semantic import _load_lineage_context
 
     return _load_lineage_context(db, project_uuid)
-
-
-def _load_project(db: Session, project_uuid: str):
-    from mds.routers.semantic import _load_project as load_project
-
-    return load_project(db, project_uuid)
 
 
 def _build_fields(explore: dict, metric_query) -> dict:
@@ -121,57 +112,6 @@ def execute_metric_query(
     )
 
 
-@router.post("/projects/{project_uuid}/query/sql")
-def execute_sql_query(
-    project_uuid: str,
-    body: SqlQueryRequest,
-    db: Session = Depends(get_db),
-):
-    project = _load_project(db, project_uuid)
-    warehouse = get_connection_for_project(db, project)
-    limit = body.limit or 500
-
-    if not warehouse or warehouse.type != "trino":
-        stored = create_query(
-            metric_query=None,
-            compiled_sql=body.sql,
-            fields={},
-            warnings=[],
-            status="error",
-            error="No Trino warehouse configured.",
-            query_kind="sql",
-            sql_text=body.sql,
-        )
-    else:
-        stored = create_query(
-            metric_query=None,
-            compiled_sql=body.sql,
-            fields={},
-            warnings=[],
-            status="pending",
-            query_kind="sql",
-            sql_text=body.sql,
-        )
-        schedule_sql_query(
-            stored.query_uuid,
-            snapshot_from_warehouse(warehouse),
-            body.sql,
-            limit,
-        )
-
-    return ok(
-        {
-            "queryUuid": stored.query_uuid,
-            "columns": stored.columns,
-            "cacheMetadata": {"cacheHit": False},
-            "parameterReferences": [],
-            "usedParametersValues": {},
-            "resolvedTimezone": "UTC",
-            "warnings": [warning.model_dump() for warning in stored.warnings],
-        }
-    )
-
-
 @router.get("/projects/{project_uuid}/query/{query_uuid}")
 def poll_query(project_uuid: str, query_uuid: str, db: Session = Depends(get_db)):
     _ = (project_uuid, db)
@@ -234,26 +174,4 @@ def poll_query(project_uuid: str, query_uuid: str, db: Session = Depends(get_db)
         "warnings": [warning.model_dump() for warning in stored.warnings],
         "compiledSql": stored.compiled_sql,
     }
-    if stored.query_kind == "sql":
-        payload["columns"] = stored.columns
     return ok(payload)
-
-
-@router.get("/projects/{project_uuid}/query/{query_uuid}/results")
-def query_results_stream(
-    project_uuid: str,
-    query_uuid: str,
-    db: Session = Depends(get_db),
-):
-    _ = (project_uuid, db)
-    stored = get_query(query_uuid)
-    if not stored:
-        raise HTTPException(status_code=404, detail="Query not found")
-    if stored.status != "ready":
-        raise HTTPException(status_code=409, detail=f"Query status is {stored.status}")
-
-    lines = [json.dumps(row, default=str) for row in stored.rows]
-    return PlainTextResponse(
-        "\n".join(lines) + ("\n" if lines else ""),
-        media_type="application/x-ndjson",
-    )
