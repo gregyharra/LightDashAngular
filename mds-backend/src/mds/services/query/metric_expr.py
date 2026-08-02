@@ -38,6 +38,7 @@ def validate_metric_expr(
     *,
     depth: int = 0,
     node_count: list[int] | None = None,
+    forbid_agg: bool = False,
 ) -> None:
     if node_count is None:
         node_count = [0]
@@ -58,17 +59,43 @@ def validate_metric_expr(
         return
 
     if expr.type == "agg":
-        validate_metric_expr(explore, expr.arg, depth=depth + 1, node_count=node_count)
+        if forbid_agg:
+            raise ValueError("Nested aggregation is not allowed")
+        validate_metric_expr(
+            explore,
+            expr.arg,
+            depth=depth + 1,
+            node_count=node_count,
+            forbid_agg=True,
+        )
         return
 
     if expr.type == "binary":
-        validate_metric_expr(explore, expr.left, depth=depth + 1, node_count=node_count)
-        validate_metric_expr(explore, expr.right, depth=depth + 1, node_count=node_count)
+        validate_metric_expr(
+            explore,
+            expr.left,
+            depth=depth + 1,
+            node_count=node_count,
+            forbid_agg=forbid_agg,
+        )
+        validate_metric_expr(
+            explore,
+            expr.right,
+            depth=depth + 1,
+            node_count=node_count,
+            forbid_agg=forbid_agg,
+        )
         return
 
     if expr.type == "call":
         for arg in expr.args:
-            validate_metric_expr(explore, arg, depth=depth + 1, node_count=node_count)
+            validate_metric_expr(
+                explore,
+                arg,
+                depth=depth + 1,
+                node_count=node_count,
+                forbid_agg=forbid_agg,
+            )
         return
 
 

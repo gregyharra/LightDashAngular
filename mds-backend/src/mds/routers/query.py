@@ -66,7 +66,10 @@ def execute_metric_query(
         raise HTTPException(status_code=404, detail=f"Explore not found: {explore_name}")
 
     explore = build_explore_from_lineage_node(node)
-    compiled_sql, compile_warnings = build_metric_query_sql(explore, metric_query)
+    try:
+        compiled_sql, compile_warnings = build_metric_query_sql(explore, metric_query)
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
     warnings: list[QueryWarning] = [
         *validate_time_travel_for_explore(explore, metric_query.time_travel),
         *compile_warnings,

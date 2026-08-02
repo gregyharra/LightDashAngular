@@ -8,6 +8,7 @@ from mds.services.query.filters import (
     get_active_dimension_filters,
     get_filter_required_tables,
 )
+from mds.services.query.metric_expr import compile_additional_metric
 from mds.services.query.time_travel import resolve_sql_table_with_time_travel
 
 
@@ -119,23 +120,37 @@ def build_metric_query_sql(
     group_by_parts: list[str] = []
     required_tables: set[str] = set()
 
+    additional_metric_sql: dict[str, str] = {}
+    additional_metric_tables: dict[str, str] = {}
+    for additional_metric in metric_query.additional_metrics:
+        field_id, sql_expr = compile_additional_metric(explore, additional_metric)
+        additional_metric_sql[field_id] = sql_expr
+        additional_metric_tables[field_id] = additional_metric.table_name
+
     for field_id in dimensions:
         resolved = _find_field(explore, field_id)
         if not resolved:
-            continue
+            raise ValueError(f"Unknown dimension field: {field_id}")
         table_name, field = resolved
+        if field.get("fieldType") == "metric":
+            raise ValueError(f"Unknown dimension field: {field_id}")
         required_tables.add(table_name)
         expression = _resolve_table_sql(field["sql"], table_name)
         select_parts.append(f"{expression} AS {field_id}")
         group_by_parts.append(expression)
 
     for field_id in metrics:
+        if field_id in additional_metric_sql:
+            required_tables.add(additional_metric_tables[field_id])
+            select_parts.append(f"{additional_metric_sql[field_id]} AS {field_id}")
+            continue
+
         resolved = _find_field(explore, field_id)
         if not resolved:
-            continue
+            raise ValueError(f"Unknown metric field: {field_id}")
         table_name, field = resolved
         if field.get("fieldType") != "metric":
-            continue
+            raise ValueError(f"Unknown metric field: {field_id}")
         required_tables.add(table_name)
         expression = _build_metric_expression(field, table_name)
         select_parts.append(f"{expression} AS {field_id}")

@@ -113,6 +113,25 @@ def test_reject_exceeds_max_node_count():
         compile_additional_metric(EXPLORE, metric)
 
 
+def test_reject_nested_agg():
+    metric = AdditionalMetric(
+        name="nested",
+        label="Nested",
+        table_name="orders",
+        expr={
+            "type": "agg",
+            "op": "sum",
+            "arg": {
+                "type": "agg",
+                "op": "count",
+                "arg": {"type": "field", "fieldId": "orders_amount"},
+            },
+        },
+    )
+    with pytest.raises(ValueError, match="Nested aggregation"):
+        compile_additional_metric(EXPLORE, metric)
+
+
 def test_compile_sum_binary_add():
     metric = AdditionalMetric(
         name="total_add",
