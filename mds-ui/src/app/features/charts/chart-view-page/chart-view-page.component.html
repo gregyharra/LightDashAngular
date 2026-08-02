@@ -120,10 +120,28 @@
         </div>
 
         @if (viewMode() === 'sql') {
-          <app-sql-runner-panel
-            [projectUuid]="projectUuid()!"
-            [initialSql]="sampleSql"
-          />
+          <section class="chart-view__sql" aria-label="Compiled SQL">
+            <div class="chart-view__sql-heading">
+              <div>
+                <h2>Compiled SQL</h2>
+                <p>This is the read-only SQL generated for the current chart query.</p>
+              </div>
+            </div>
+
+            @if (compiledSql(); as sql) {
+              <app-sql-highlight [sql]="sql" ariaLabel="Compiled SQL" />
+            } @else if (queryLoading()) {
+              <div class="chart-view__sql-status">
+                <mat-spinner diameter="24" />
+                <span>Compiling query…</span>
+              </div>
+            } @else {
+              <div class="chart-view__sql-status">
+                <mat-icon>code</mat-icon>
+                <span>Run a chart query to view its compiled SQL.</span>
+              </div>
+            }
+          </section>
         } @else {
         <div class="chart-view__workspace">
           <aside class="chart-view__config">

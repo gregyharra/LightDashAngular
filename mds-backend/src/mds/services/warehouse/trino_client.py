@@ -68,13 +68,6 @@ def _rows_to_result_rows(
     return results
 
 
-def _raw_rows_to_plain_dicts(
-    columns: list[str],
-    raw_rows: list[tuple[Any, ...]],
-) -> list[dict[str, Any]]:
-    return [dict(zip(columns, raw_row, strict=True)) for raw_row in raw_rows]
-
-
 def _snapshot_label(snapshot: TrinoConnectionSnapshot) -> str:
     return f"{snapshot.host} ({snapshot.catalog}.{snapshot.schema_name})"
 
@@ -192,17 +185,6 @@ def execute_trino_query_snapshot(
     if err is not None:
         return [], err, columns
     return _rows_to_result_rows(columns, raw_rows, field_ids), None, columns
-
-
-def execute_trino_sql_raw(
-    snapshot: TrinoConnectionSnapshot,
-    sql: str,
-    limit: int | None = None,
-) -> tuple[list[dict[str, Any]], str | None, list[str]]:
-    raw_rows, err, columns = _execute_trino_snapshot_raw(snapshot, sql, limit=limit)
-    if err is not None:
-        return [], err, columns
-    return _raw_rows_to_plain_dicts(columns, raw_rows), None, columns
 
 
 def execute_trino_query(

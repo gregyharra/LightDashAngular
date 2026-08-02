@@ -25,8 +25,7 @@ import { ChartService } from '../chart.service';
 import { ExplorerService } from '../../explorer/explorer.service';
 import { ChartVisualizationComponent } from '../chart-visualization/chart-visualization.component';
 import { ResizableSidebarDirective } from '../../../layout/resizable-sidebar/resizable-sidebar.directive';
-import { SqlRunnerPanelComponent } from '../../sql-runner/sql-runner-panel/sql-runner-panel.component';
-import { defaultSampleSql } from '../../../core/mock/fixtures/sql-runner.fixture';
+import { SqlHighlightComponent } from '../../../shared/sql-highlight/sql-highlight.component';
 import { TablesChartConfigPanelComponent } from '../../explorer/tables-chart-config-panel/tables-chart-config-panel.component';
 
 type ChartViewMode = 'chart' | 'sql';
@@ -49,7 +48,7 @@ type TableFieldGroup = {
     ChartVisualizationComponent,
     TablesChartConfigPanelComponent,
     ResizableSidebarDirective,
-    SqlRunnerPanelComponent,
+    SqlHighlightComponent,
   ],
   templateUrl: './chart-view-page.component.html',
   styleUrl: './chart-view-page.component.scss',
@@ -83,7 +82,9 @@ export class ChartViewPageComponent {
   protected readonly saveSuccess = signal(false);
 
   protected readonly viewMode = signal<ChartViewMode>('chart');
-  protected readonly sampleSql = defaultSampleSql;
+  protected readonly compiledSql = computed(
+    () => this.queryResults()?.compiledSql?.trim() || null,
+  );
 
   protected readonly tableGroups = computed<TableFieldGroup[]>(() => {
     const explore = this.explore();
