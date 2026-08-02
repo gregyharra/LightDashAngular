@@ -8,7 +8,13 @@ import {
   DashboardDimensionFilter,
   DateZoomGranularity,
 } from '../../../core/models/dashboard.model';
-import { FieldId, MetricQuery, QueryResults, TimeTravelConfig } from '../../../core/models/explore.model';
+import {
+  Explore,
+  FieldId,
+  MetricQuery,
+  QueryResults,
+  TimeTravelConfig,
+} from '../../../core/models/explore.model';
 import { ChartService } from '../../charts/chart.service';
 import { ChartVisualizationComponent } from '../../charts/chart-visualization/chart-visualization.component';
 import { ExplorerService } from '../../explorer/explorer.service';
@@ -87,14 +93,18 @@ export class DashboardChartTileComponent {
               getBigNumberComparison(savedChartUuid),
             );
 
-            const metricQuery = this.applyDashboardContext(
-              chart.metricQuery,
-              dashboardFilters,
-              dateZoomGranularity,
-              timeTravel,
+            return this.explorerService.getExplore(projectUuid, chart.tableName).pipe(
+              switchMap((explore) => {
+                const metricQuery = this.applyDashboardContext(
+                  chart.metricQuery,
+                  dashboardFilters,
+                  dateZoomGranularity,
+                  timeTravel,
+                  explore,
+                );
+                return this.explorerService.runQuery(projectUuid, metricQuery);
+              }),
             );
-
-            return this.explorerService.runQuery(projectUuid, metricQuery);
           }),
           catchError((err) => {
             this.error.set(apiErrorMessage(err, 'Failed to load chart.'));
@@ -120,11 +130,13 @@ export class DashboardChartTileComponent {
     dashboardFilters: DashboardDimensionFilter[],
     _dateZoomGranularity: DateZoomGranularity,
     timeTravel: TimeTravelConfig | null,
+    explore: Explore,
   ): MetricQuery {
     return applyDashboardContextToMetricQuery(
       metricQuery,
       dashboardFilters,
       timeTravel,
+      explore,
     );
   }
 }

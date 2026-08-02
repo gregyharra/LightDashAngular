@@ -23,10 +23,10 @@ export type CustomMetricDimensionOption = {
   fieldId: FieldId;
   label: string;
   tableLabel: string;
+  tableName: string;
 };
 
 export type CustomMetricDialogData = {
-  tableName: string;
   dimensions: CustomMetricDimensionOption[];
 };
 
@@ -89,11 +89,18 @@ export class CustomMetricDialogComponent {
       return;
     }
 
+    const dimension = this.data.dimensions.find(
+      (option) => option.fieldId === this.dimensionFieldId,
+    );
+    if (!dimension) {
+      return;
+    }
+
     this.dialogRef.close(
       buildAdditionalMetric({
         name: this.name,
         label: this.label,
-        tableName: this.data.tableName,
+        tableName: dimension.tableName,
         aggregation: this.aggregation,
         dimensionFieldId: this.dimensionFieldId,
       }),

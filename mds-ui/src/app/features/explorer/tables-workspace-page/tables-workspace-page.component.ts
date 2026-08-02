@@ -211,6 +211,7 @@ export class TablesWorkspacePageComponent {
       group.dimensions.map((dimension) => ({
         ...dimension,
         tableLabel: group.table.label,
+        tableName: group.table.name,
       })),
     ),
   );
@@ -800,7 +801,6 @@ export class TablesWorkspacePageComponent {
       CustomMetricDialogResult
     >(CustomMetricDialogComponent, {
       data: {
-        tableName: explore.baseTable,
         dimensions,
       },
       width: '34rem',

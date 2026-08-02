@@ -90,7 +90,7 @@ def test_additional_metric_appears_in_select():
     assert warnings == []
 
 
-def test_invalid_filter_propagates_from_compile():
+def test_unknown_filter_field_is_skipped_by_compile():
     explore = _orders_explore()
     metric_query = MetricQuery(
         exploreName="orders",
@@ -107,8 +107,12 @@ def test_invalid_filter_propagates_from_compile():
             ]
         },
     )
-    with pytest.raises(ValueError, match="Unknown filter field"):
-        build_metric_query_sql(explore, metric_query)
+    sql, warnings = build_metric_query_sql(explore, metric_query)
+
+    assert sql is not None
+    assert "orders.nope" not in sql
+    assert "WHERE" not in sql
+    assert warnings == []
 
 
 def test_execute_metric_query_returns_400_on_validation_error(monkeypatch):

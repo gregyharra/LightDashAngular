@@ -4,7 +4,12 @@ import {
   DashboardFilterSettings,
   DateZoomGranularity,
 } from '../../core/models/dashboard.model';
-import { MetricQuery, TimeTravelConfig } from '../../core/models/explore.model';
+import {
+  Explore,
+  MetricQuery,
+  TimeTravelConfig,
+  getFieldId,
+} from '../../core/models/explore.model';
 import { mergeTimeTravelIntoMetricQuery } from '../explorer/time-travel.utils';
 
 const OPERATOR_LABELS: Record<DashboardFilterOperator, string> = {
@@ -83,9 +88,10 @@ export function applyDashboardContextToMetricQuery(
   metricQuery: MetricQuery,
   filters: DashboardDimensionFilter[],
   timeTravel?: TimeTravelConfig | null,
+  explore?: Explore,
 ): MetricQuery {
   return mergeTimeTravelIntoMetricQuery(
-    mergeDashboardFiltersIntoMetricQuery(metricQuery, filters),
+    mergeDashboardFiltersIntoMetricQuery(metricQuery, filters, explore),
     timeTravel,
   );
 }
@@ -93,13 +99,24 @@ export function applyDashboardContextToMetricQuery(
 export function mergeDashboardFiltersIntoMetricQuery(
   metricQuery: MetricQuery,
   filters: DashboardDimensionFilter[],
+  explore?: Explore,
 ): MetricQuery {
+  const availableDimensionIds = explore
+    ? new Set(
+        Object.values(explore.tables).flatMap((table) =>
+          Object.values(table.dimensions).map((dimension) =>
+            getFieldId(table.name, dimension.name),
+          ),
+        ),
+      )
+    : undefined;
   const activeFilters = filters.filter(
     (filter) =>
       !filter.disabled &&
       (filter.values.length > 0 ||
         filter.operator === 'isNull' ||
-        filter.operator === 'notNull'),
+        filter.operator === 'notNull') &&
+      (!availableDimensionIds || availableDimensionIds.has(filter.target.fieldId)),
   );
 
   if (activeFilters.length === 0) {

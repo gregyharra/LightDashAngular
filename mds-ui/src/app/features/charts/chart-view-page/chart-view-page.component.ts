@@ -14,6 +14,7 @@ import {
   SavedChart,
 } from '../../../core/models/chart.model';
 import {
+  AdditionalMetric,
   CompiledTable,
   Explore,
   FieldId,
@@ -74,6 +75,7 @@ export class ChartViewPageComponent {
   );
   protected readonly selectedDimensions = signal<Set<FieldId>>(new Set());
   protected readonly selectedMetrics = signal<Set<FieldId>>(new Set());
+  protected readonly additionalMetrics = signal<AdditionalMetric[]>([]);
   protected readonly queryLoading = signal(false);
   protected readonly queryError = signal<string | null>(null);
   protected readonly queryResults = signal<QueryResults | null>(null);
@@ -222,6 +224,7 @@ export class ChartViewPageComponent {
   private applyMetricQuery(metricQuery: MetricQuery): void {
     this.selectedDimensions.set(new Set(metricQuery.dimensions));
     this.selectedMetrics.set(new Set(metricQuery.metrics));
+    this.additionalMetrics.set(metricQuery.additionalMetrics);
     this.syncChartAxisFields();
   }
 
@@ -274,6 +277,13 @@ export class ChartViewPageComponent {
           return metric.label;
         }
       }
+    }
+
+    const additionalMetric = this.additionalMetrics().find(
+      (metric) => getFieldId(metric.tableName, metric.name) === fieldId,
+    );
+    if (additionalMetric) {
+      return additionalMetric.label;
     }
 
     return fieldId;
@@ -347,7 +357,7 @@ export class ChartViewPageComponent {
           sorts: [],
           limit: this.chartDisplayConfig().rowLimit,
           tableCalculations: [],
-          additionalMetrics: [],
+          additionalMetrics: this.additionalMetrics(),
         },
         chartConfig: {
           type: this.chartKind(),
@@ -426,7 +436,7 @@ export class ChartViewPageComponent {
         sorts: [],
         limit: this.chartDisplayConfig().rowLimit,
         tableCalculations: [],
-        additionalMetrics: [],
+        additionalMetrics: this.additionalMetrics(),
       })
       .subscribe({
         next: (results) => {

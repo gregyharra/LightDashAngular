@@ -80,6 +80,51 @@ def test_reject_unknown_field():
         compile_additional_metric(EXPLORE, metric)
 
 
+def test_reject_field_id_collision_with_explore_metric():
+    explore = {
+        **EXPLORE,
+        "tables": {
+            "orders": {
+                **EXPLORE["tables"]["orders"],
+                "metrics": {
+                    "total_amount": {
+                        "name": "total_amount",
+                        "fieldType": "metric",
+                        "type": "sum",
+                        "sql": "${TABLE}.amount",
+                    }
+                },
+            }
+        },
+    }
+    metric = AdditionalMetric(
+        name="total_amount",
+        label="Total amount",
+        table_name="orders",
+        expr={"type": "agg", "op": "sum", "arg": _FIELD},
+    )
+
+    with pytest.raises(ValueError, match="collides"):
+        compile_additional_metric(explore, metric)
+
+
+@pytest.mark.parametrize("value", [float("nan"), float("inf")])
+def test_reject_non_finite_metric_literal(value):
+    metric = AdditionalMetric(
+        name="non_finite",
+        label="Non-finite",
+        table_name="orders",
+        expr={
+            "type": "agg",
+            "op": "sum",
+            "arg": {"type": "literal", "valueType": "number", "value": value},
+        },
+    )
+
+    with pytest.raises(ValueError, match="finite"):
+        compile_additional_metric(EXPLORE, metric)
+
+
 def test_reject_non_agg_root():
     metric = AdditionalMetric(
         name="bad",

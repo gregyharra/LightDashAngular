@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from math import isfinite
 from typing import Any
 
 from mds.schemas.query import AdditionalMetric, MetricExpr, MetricExprAgg
@@ -56,6 +57,8 @@ def validate_metric_expr(
         return
 
     if expr.type == "literal":
+        if isinstance(expr.value, float) and not isfinite(expr.value):
+            raise ValueError("Metric literal must be finite")
         return
 
     if expr.type == "agg":
@@ -138,5 +141,9 @@ def compile_additional_metric(
     validate_metric_expr(explore, metric.expr)
 
     field_id = f"{metric.table_name}_{metric.name}"
+    for table in (explore.get("tables") or {}).values():
+        for existing_metric in (table.get("metrics") or {}).values():
+            if f"{table['name']}_{existing_metric['name']}" == field_id:
+                raise ValueError(f"Custom metric field id collides with explore metric: {field_id}")
     sql = _compile_expr(explore, metric.expr)
     return field_id, sql

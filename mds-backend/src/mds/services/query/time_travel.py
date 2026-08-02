@@ -10,13 +10,16 @@ def _effective_temporal_type(temporal_type: str | None) -> str:
     return temporal_type or "iceberg"
 
 
-def _format_trino_timestamp(iso_timestamp: str) -> str:
+def _parse_iso_timestamp(iso_timestamp: str) -> datetime:
     normalized = iso_timestamp.replace("Z", "+00:00")
     try:
-        parsed = datetime.fromisoformat(normalized)
-    except ValueError:
-        return iso_timestamp.replace("T", " ").replace("Z", "")
+        return datetime.fromisoformat(normalized)
+    except ValueError as exc:
+        raise ValueError("Invalid ISO-8601 time travel timestamp") from exc
 
+
+def _format_trino_timestamp(iso_timestamp: str) -> str:
+    parsed = _parse_iso_timestamp(iso_timestamp)
     return parsed.strftime("%Y-%m-%d %H:%M:%S")
 
 
@@ -49,8 +52,7 @@ def get_date_anchor(time_travel: TimeTravelConfig | None) -> str:
     if time_travel is None or not time_travel.as_of_timestamp:
         return "CURRENT_DATE"
 
-    date_part = time_travel.as_of_timestamp.split("T", 1)[0]
-    return f"DATE '{date_part}'"
+    return f"DATE '{_parse_iso_timestamp(time_travel.as_of_timestamp).date().isoformat()}'"
 
 
 def build_time_travel_active_warning(time_travel: TimeTravelConfig) -> QueryWarning:
@@ -71,6 +73,7 @@ def validate_time_travel_for_explore(
     if time_travel is None or not time_travel.as_of_timestamp:
         return []
 
+    _parse_iso_timestamp(time_travel.as_of_timestamp)
     warnings = [build_time_travel_active_warning(time_travel)]
     base_table_name = explore.get("baseTable")
     tables = explore.get("tables") or {}

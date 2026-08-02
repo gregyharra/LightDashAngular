@@ -36,6 +36,17 @@ def _build_fields(explore: dict, metric_query) -> dict:
             field_id = f"{table_name}_{metric['name']}"
             if field_id in selected:
                 fields[field_id] = {**metric, "fieldId": field_id}
+    for metric in metric_query.additional_metrics:
+        field_id = f"{metric.table_name}_{metric.name}"
+        if field_id in selected:
+            fields[field_id] = {
+                "name": metric.name,
+                "label": metric.label,
+                "table": metric.table_name,
+                "fieldType": "metric",
+                "type": "number",
+                "fieldId": field_id,
+            }
     return fields
 
 
@@ -59,10 +70,14 @@ def execute_metric_query(
     explore = build_explore_from_lineage_node(node)
     try:
         compiled_sql, compile_warnings = build_metric_query_sql(explore, metric_query)
+        time_travel_warnings = validate_time_travel_for_explore(
+            explore,
+            metric_query.time_travel,
+        )
     except ValueError as exc:
         raise HTTPException(status_code=400, detail=str(exc)) from exc
     warnings: list[QueryWarning] = [
-        *validate_time_travel_for_explore(explore, metric_query.time_travel),
+        *time_travel_warnings,
         *compile_warnings,
     ]
 

@@ -1,6 +1,9 @@
 import pytest
 
-from mds.services.query.filters import build_filter_sql_condition
+from mds.services.query.filters import (
+    build_filter_sql_condition,
+    build_filters_where_clause,
+)
 
 EXPLORE = {
     "baseTable": "orders",
@@ -45,13 +48,38 @@ def test_like_escapes_percent_and_underscore():
     assert "DROP" not in cond
 
 
-def test_unknown_field_raises():
-    with pytest.raises(ValueError, match="Unknown filter field"):
+def test_unknown_field_is_skipped():
+    assert (
         build_filter_sql_condition(
             EXPLORE,
             {"target": {"fieldId": "orders_nope"}, "operator": "equals", "values": ["x"]},
             None,
         )
+        is None
+    )
+
+
+def test_unknown_field_raises_in_strict_mode():
+    with pytest.raises(ValueError, match="Unknown filter field"):
+        build_filter_sql_condition(
+            EXPLORE,
+            {"target": {"fieldId": "orders_nope"}, "operator": "equals", "values": ["x"]},
+            None,
+            strict=True,
+        )
+
+
+def test_where_clause_skips_unknown_field_and_keeps_resolved_filter():
+    where_clause = build_filters_where_clause(
+        EXPLORE,
+        [
+            {"target": {"fieldId": "orders_nope"}, "operator": "equals", "values": ["x"]},
+            {"target": {"fieldId": "orders_status"}, "operator": "equals", "values": ["paid"]},
+        ],
+        None,
+    )
+
+    assert where_clause == "orders.status = 'paid'"
 
 
 def test_number_rejects_non_numeric_string():
@@ -62,6 +90,20 @@ def test_number_rejects_non_numeric_string():
                 "target": {"fieldId": "orders_amount"},
                 "operator": "equals",
                 "values": ["1; select 1"],
+            },
+            None,
+        )
+
+
+@pytest.mark.parametrize("value", [float("nan"), float("inf"), "-Infinity", "NaN"])
+def test_number_rejects_non_finite_values(value):
+    with pytest.raises(ValueError, match="finite"):
+        build_filter_sql_condition(
+            EXPLORE,
+            {
+                "target": {"fieldId": "orders_amount"},
+                "operator": "equals",
+                "values": [value],
             },
             None,
         )

@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from decimal import Decimal, InvalidOperation
+from math import isfinite
 from typing import Any
 
 from mds.schemas.query import TimeTravelConfig
@@ -55,12 +56,16 @@ def _format_sql_literal(value: Any, field_type: str) -> str:
         if isinstance(value, int):
             return str(value)
         if isinstance(value, float):
+            if not isfinite(value):
+                raise ValueError("Filter value must be finite")
             return str(value)
         if isinstance(value, str):
             try:
                 parsed = Decimal(value.strip())
             except InvalidOperation as exc:
                 raise ValueError("Filter value must be numeric") from exc
+            if not parsed.is_finite():
+                raise ValueError("Filter value must be finite")
             normalized = format(parsed, "f")
             if "." in normalized:
                 normalized = normalized.rstrip("0").rstrip(".")
@@ -134,7 +139,7 @@ def build_filter_sql_condition(
     filter_item: dict[str, Any],
     time_travel: TimeTravelConfig | None,
     *,
-    strict: bool = True,
+    strict: bool = False,
 ) -> str | None:
     target = filter_item.get("target") or {}
     field_id = target.get("fieldId")
@@ -253,7 +258,7 @@ def build_filters_where_clause(
     filters: list[dict[str, Any]],
     time_travel: TimeTravelConfig | None,
     *,
-    strict: bool = True,
+    strict: bool = False,
 ) -> str | None:
     conditions: list[str] = []
     for filter_item in filters:
