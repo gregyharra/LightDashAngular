@@ -103,6 +103,38 @@ export type Explore = {
 
 export type MetricQueryFilter = Record<string, unknown>;
 
+export type MetricAggregation =
+  | 'sum'
+  | 'count'
+  | 'count_distinct'
+  | 'avg'
+  | 'min'
+  | 'max';
+
+export type MetricExpr =
+  | { type: 'field'; fieldId: FieldId }
+  | { type: 'literal'; valueType: 'number'; value: number }
+  | { type: 'agg'; op: MetricAggregation; arg: MetricExpr }
+  | {
+      type: 'binary';
+      op: '+' | '-' | '*' | '/';
+      left: MetricExpr;
+      right: MetricExpr;
+    }
+  | {
+      type: 'call';
+      fn: 'coalesce' | 'nullif' | 'abs' | 'round';
+      args: MetricExpr[];
+    };
+
+export type AdditionalMetric = {
+  name: string;
+  label: string;
+  tableName: string;
+  baseDimensionName?: string;
+  expr: MetricExpr;
+};
+
 export type MetricQuery = {
   exploreName: string;
   dimensions: FieldId[];
@@ -111,7 +143,7 @@ export type MetricQuery = {
   sorts: { fieldId: FieldId; descending: boolean }[];
   limit: number;
   tableCalculations: unknown[];
-  additionalMetrics: unknown[];
+  additionalMetrics: AdditionalMetric[];
   timezone?: string;
   /** When set, queries read table snapshots as of this timestamp. */
   timeTravel?: TimeTravelConfig;

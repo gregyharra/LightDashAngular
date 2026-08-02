@@ -14,6 +14,7 @@ import { ActiveProjectService } from '../../../core/services/active-project.serv
 import { apiErrorMessage } from '../../../core/api/lightdash-api.service';
 import { queryErrorWarning } from '../../../core/api/api-error.service';
 import {
+  AdditionalMetric,
   CompiledTable,
   Explore,
   ExploreSummary,
@@ -58,6 +59,11 @@ import {
   SaveChartDialogComponent,
   SaveChartDialogResult,
 } from '../../charts/save-chart-dialog/save-chart-dialog.component';
+import {
+  CustomMetricDialogComponent,
+  CustomMetricDialogData,
+  CustomMetricDialogResult,
+} from '../custom-metric/custom-metric-dialog.component';
 
 type TableFieldGroup = {
   table: CompiledTable;
@@ -111,6 +117,7 @@ export class TablesWorkspacePageComponent {
 
   protected readonly fieldSearch = signal('');
   protected readonly selectedFields = signal<Set<FieldId>>(new Set());
+  protected readonly additionalMetrics = signal<AdditionalMetric[]>([]);
   protected readonly queryLoading = signal(false);
   protected readonly queryError = signal<string | null>(null);
   protected readonly queryResults = signal<QueryResults | null>(null);
@@ -175,9 +182,26 @@ export class TablesWorkspacePageComponent {
         .map((metric) => ({
           fieldId: getFieldId(table.name, metric.name),
           label: metric.label,
-        })),
+        }))
+        .concat(
+          this.additionalMetrics()
+            .filter((metric) => metric.tableName === table.name)
+            .map((metric) => ({
+              fieldId: getFieldId(metric.tableName, metric.name),
+              label: metric.label,
+            })),
+        ),
     }));
   });
+
+  protected readonly customMetricDimensions = computed(() =>
+    this.tableGroups().flatMap((group) =>
+      group.dimensions.map((dimension) => ({
+        ...dimension,
+        tableLabel: group.table.label,
+      })),
+    ),
+  );
 
   protected readonly filteredTableGroups = computed(() => {
     const query = this.fieldSearch().trim().toLowerCase();
@@ -475,6 +499,7 @@ export class TablesWorkspacePageComponent {
 
   private resetQueryState(): void {
     this.selectedFields.set(new Set());
+    this.additionalMetrics.set([]);
     this.queryResults.set(null);
     this.queryError.set(null);
     this.hasRunQuery.set(false);
@@ -643,6 +668,14 @@ export class TablesWorkspacePageComponent {
   }
 
   protected isMetricField(fieldId: FieldId): boolean {
+    if (
+      this.additionalMetrics().some(
+        (metric) => getFieldId(metric.tableName, metric.name) === fieldId,
+      )
+    ) {
+      return true;
+    }
+
     const explore = this.explore();
     if (!explore) {
       return false;
@@ -659,6 +692,13 @@ export class TablesWorkspacePageComponent {
   }
 
   protected getFieldLabel(fieldId: FieldId): string {
+    const additionalMetric = this.additionalMetrics().find(
+      (metric) => getFieldId(metric.tableName, metric.name) === fieldId,
+    );
+    if (additionalMetric) {
+      return additionalMetric.label;
+    }
+
     const explore = this.explore();
     if (!explore) {
       return fieldId;
@@ -681,7 +721,7 @@ export class TablesWorkspacePageComponent {
   }
 
   protected getColumnLabel(fieldId: FieldId): string {
-    return this.columnLabels()[fieldId] || fieldId;
+    return this.columnLabels()[fieldId] || this.getFieldLabel(fieldId);
   }
 
   protected readonly getFieldLabelFn = (fieldId: FieldId): string =>
@@ -729,6 +769,45 @@ export class TablesWorkspacePageComponent {
           this.queryLoading.set(false);
         },
       });
+  }
+
+  protected openCustomMetricDialog(): void {
+    const explore = this.explore();
+    const dimensions = this.customMetricDimensions();
+    if (!explore || dimensions.length === 0) {
+      return;
+    }
+
+    const dialogRef = this.dialog.open<
+      CustomMetricDialogComponent,
+      CustomMetricDialogData,
+      CustomMetricDialogResult
+    >(CustomMetricDialogComponent, {
+      data: {
+        tableName: explore.baseTable,
+        dimensions,
+      },
+      width: '34rem',
+      maxWidth: '90vw',
+      panelClass: 'custom-metric-dialog-panel',
+    });
+
+    dialogRef.afterClosed().subscribe((metric) => {
+      if (!metric) {
+        return;
+      }
+
+      const fieldId = getFieldId(metric.tableName, metric.name);
+      this.additionalMetrics.update((metrics) => [
+        ...metrics.filter(
+          (existing) =>
+            getFieldId(existing.tableName, existing.name) !== fieldId,
+        ),
+        metric,
+      ]);
+      this.selectedFields.update((selected) => new Set([...selected, fieldId]));
+      this.syncChartAxisFields();
+    });
   }
 
   protected openSaveChartDialog(): void {
@@ -802,7 +881,7 @@ export class TablesWorkspacePageComponent {
           sorts: [],
           limit: 500,
           tableCalculations: [],
-          additionalMetrics: [],
+          additionalMetrics: this.additionalMetrics(),
         },
         this.dimensionFilters(),
       ),

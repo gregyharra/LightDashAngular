@@ -1,0 +1,33 @@
+:host {
+  display: block;
+  max-width: 100%;
+}
+
+.custom-metric-dialog__content {
+  display: block;
+  flex: 0 1 auto;
+  min-width: min(28rem, 82vw);
+  min-height: 0;
+  max-height: min(80vh, 900px);
+  overflow-x: hidden;
+  overflow-y: auto;
+  padding-top: 0.25rem;
+
+  @supports (-moz-appearance: none) {
+    flex: none;
+    max-height: none;
+    overflow: visible;
+  }
+}
+
+.custom-metric-dialog__hint {
+  color: var(--ld-gray-7);
+  font-size: 0.875rem;
+  margin: 0 0 1rem;
+}
+
+.custom-metric-dialog__field {
+  display: block;
+  width: 100%;
+  margin-bottom: 0.5rem;
+}

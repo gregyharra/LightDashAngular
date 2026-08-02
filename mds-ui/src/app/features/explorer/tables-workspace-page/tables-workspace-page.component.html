@@ -101,6 +101,17 @@
                   (valueChange)="onTimeTravelChange($event)"
                 />
                 <button
+                  mat-stroked-button
+                  class="tables-workspace__toolbar-btn"
+                  type="button"
+                  aria-label="Create custom metric"
+                  title="Create custom metric"
+                  (click)="openCustomMetricDialog()"
+                >
+                  <mat-icon>add</mat-icon>
+                  <span class="tables-workspace__toolbar-btn-label">Custom metric</span>
+                </button>
+                <button
                   mat-flat-button
                   class="tables-workspace__run-btn"
                   type="button"
