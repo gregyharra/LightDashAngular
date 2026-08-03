@@ -51,13 +51,6 @@
   flex-direction: column;
   gap: var(--ld-spacing-md);
   min-width: 0;
-
-  &--config-open {
-    display: grid;
-    grid-template-columns: minmax(240px, 280px) minmax(0, 1fr);
-    align-items: start;
-    min-width: 0;
-  }
 }
 
 .tables-workspace__loading {
@@ -98,12 +91,14 @@
   margin-left: auto;
 }
 
-.tables-workspace__toolbar-btn,
-.tables-workspace__run-btn {
+.tables-workspace__toolbar-btn {
   height: 32px;
   min-width: 32px;
   flex-shrink: 0;
+  padding: 0 12px;
   font-size: var(--ld-font-size-sm);
+  border-color: var(--ld-gray-3) !important;
+  color: var(--ld-gray-7) !important;
 
   .mdc-button__label {
     display: inline-flex;
@@ -122,23 +117,8 @@
   }
 }
 
-.tables-workspace__toolbar-btn {
-  padding: 0 12px;
-  border-color: var(--ld-gray-3) !important;
-  color: var(--ld-gray-7) !important;
-}
-
 .tables-workspace__toolbar-btn-label {
   white-space: nowrap;
-}
-
-.tables-workspace__run-btn {
-  padding: 0 14px;
-  background-color: var(--ld-brand) !important;
-  color: #fff !important;
-  font-weight: 500;
-
-  &[disabled] { opacity: 0.5; }
 }
 
 /* Collapse labels to icons before text would wrap or squeeze the toolbar. */
@@ -152,8 +132,7 @@
     display: none;
   }
 
-  .tables-workspace__toolbar-btn,
-  .tables-workspace__run-btn {
+  .tables-workspace__toolbar-btn {
     width: 32px;
     min-width: 32px;
     padding: 0;
@@ -300,18 +279,6 @@
   background-color: #fff5f5;
   color: #c92a2a;
   font-size: var(--ld-font-size-sm);
-}
-
-.tables-workspace__chart-config {
-  position: relative;
-  z-index: 1;
-  min-width: 0;
-  max-height: min(520px, 55vh);
-  overflow: auto;
-  padding: var(--ld-spacing-sm);
-  border: 1px solid var(--ld-gray-2);
-  border-radius: var(--ld-radius-md);
-  background: var(--ld-gray-0);
 }
 
 .tables-workspace__chart-viz {

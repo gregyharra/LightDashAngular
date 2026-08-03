@@ -8,11 +8,20 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { ActiveProjectService } from '../../../core/services/active-project.service';
 import { apiErrorMessage } from '../../../core/api/lightdash-api.service';
 import {
+  ChartConfig,
   ChartDisplayConfig,
   ChartKind,
-  DEFAULT_CHART_DISPLAY_CONFIG,
   SavedChart,
+  defaultConfigForType,
+  normalizeChartConfig,
 } from '../../../core/models/chart.model';
+import {
+  applyChartKindChange,
+  applyChartPanelPatch,
+  chartKindFromConfig,
+  ChartConfigCache,
+  toChartPanelView,
+} from '../../../core/models/chart-config.utils';
 import {
   AdditionalMetric,
   CompiledTable,
@@ -24,10 +33,16 @@ import {
 } from '../../../core/models/explore.model';
 import { ChartService } from '../chart.service';
 import { ExplorerService } from '../../explorer/explorer.service';
+import {
+  clampQueryLimit,
+  resolveMaxQueryLimit,
+} from '../../explorer/query-limit.utils';
 import { ChartVisualizationComponent } from '../chart-visualization/chart-visualization.component';
 import { ResizableSidebarDirective } from '../../../layout/resizable-sidebar/resizable-sidebar.directive';
+import { AppStateService } from '../../../core/services/app-state.service';
 import { SqlHighlightComponent } from '../../../shared/sql-highlight/sql-highlight.component';
 import { TablesChartConfigPanelComponent } from '../../explorer/tables-chart-config-panel/tables-chart-config-panel.component';
+import { TablesChartDisplayConfig } from '../../explorer/tables-chart-config-panel/tables-chart-config.constants';
 
 type ChartViewMode = 'chart' | 'sql';
 
@@ -58,6 +73,7 @@ export class ChartViewPageComponent {
   private readonly chartService = inject(ChartService);
   private readonly explorerService = inject(ExplorerService);
   private readonly route = inject(ActivatedRoute);
+  private readonly appState = inject(AppStateService);
   protected readonly activeProjectService = inject(ActiveProjectService);
 
   protected readonly projectUuid = signal<string | null>(null);
@@ -67,11 +83,18 @@ export class ChartViewPageComponent {
   protected readonly loading = signal(true);
   protected readonly error = signal<string | null>(null);
 
-  protected readonly chartKind = signal<ChartKind>('vertical_bar');
-  protected readonly chartXField = signal<FieldId | null>(null);
-  protected readonly chartYFields = signal<FieldId[]>([]);
-  protected readonly chartDisplayConfig = signal<ChartDisplayConfig>(
-    DEFAULT_CHART_DISPLAY_CONFIG,
+  protected readonly chartConfig = signal<ChartConfig>(
+    defaultConfigForType('cartesian'),
+  );
+  protected readonly cachedChartConfigs = signal<ChartConfigCache>({});
+  protected readonly panelView = computed(() =>
+    toChartPanelView(this.chartConfig()),
+  );
+  protected readonly chartKind = computed(() => this.panelView().chartKind);
+  protected readonly chartXField = computed(() => this.panelView().xField);
+  protected readonly chartYFields = computed(() => this.panelView().yFields);
+  protected readonly chartDisplayConfig = computed(
+    () => this.panelView().displayConfig as TablesChartDisplayConfig,
   );
   protected readonly selectedDimensions = signal<Set<FieldId>>(new Set());
   protected readonly selectedMetrics = signal<Set<FieldId>>(new Set());
@@ -82,6 +105,10 @@ export class ChartViewPageComponent {
   protected readonly saveLoading = signal(false);
   protected readonly saveError = signal<string | null>(null);
   protected readonly saveSuccess = signal(false);
+
+  protected readonly maxQueryLimit = computed(() =>
+    resolveMaxQueryLimit(this.appState.health()?.query?.maxLimit),
+  );
 
   protected readonly viewMode = signal<ChartViewMode>('chart');
   protected readonly compiledSql = computed(
@@ -187,26 +214,55 @@ export class ChartViewPageComponent {
   }
 
   private applySavedChartConfig(chart: SavedChart): void {
-    const { chartConfig } = chart;
-    this.chartKind.set(chartConfig.type);
+    const normalized = normalizeChartConfig(chart.chartConfig);
+    let next = normalized;
 
-    const xField =
-      chartConfig.xField ?? chart.metricQuery.dimensions[0] ?? null;
-    const yFields =
-      chartConfig.yFields ??
-      (chartConfig.yField
-        ? [chartConfig.yField]
-        : chart.metricQuery.metrics[0]
-          ? [chart.metricQuery.metrics[0]]
-          : []);
+    if (next.type === 'cartesian') {
+      next = applyChartPanelPatch(next, {
+        xField:
+          next.config.layout.xField ??
+          chart.metricQuery.dimensions[0] ??
+          null,
+        yFields:
+          next.config.layout.yFields?.length
+            ? next.config.layout.yFields
+            : chart.metricQuery.metrics[0]
+              ? [chart.metricQuery.metrics[0]]
+              : [],
+        rowLimit: clampQueryLimit(
+          next.config.rowLimit ?? chart.metricQuery.limit,
+          this.maxQueryLimit(),
+        ),
+      });
+    } else if (next.type === 'pie') {
+      next = applyChartPanelPatch(next, {
+        xField: next.config.xField ?? chart.metricQuery.dimensions[0] ?? null,
+        yFields: next.config.yField
+          ? [next.config.yField]
+          : chart.metricQuery.metrics[0]
+            ? [chart.metricQuery.metrics[0]]
+            : [],
+        rowLimit: clampQueryLimit(
+          next.config.rowLimit ?? chart.metricQuery.limit,
+          this.maxQueryLimit(),
+        ),
+      });
+    } else if (next.type === 'big_number') {
+      next = applyChartPanelPatch(next, {
+        yFields: next.config.selectedField
+          ? [next.config.selectedField]
+          : chart.metricQuery.metrics[0]
+            ? [chart.metricQuery.metrics[0]]
+            : [],
+        rowLimit: clampQueryLimit(
+          next.config.rowLimit ?? chart.metricQuery.limit,
+          this.maxQueryLimit(),
+        ),
+      });
+    }
 
-    this.chartXField.set(xField);
-    this.chartYFields.set(yFields);
-    this.chartDisplayConfig.set({
-      ...DEFAULT_CHART_DISPLAY_CONFIG,
-      ...chartConfig.displayConfig,
-      flipAxes: chartConfig.type === 'horizontal_bar',
-    });
+    this.chartConfig.set(next);
+    this.cachedChartConfigs.set({});
   }
 
   private loadExplore(projectUuid: string, tableName: string): void {
@@ -291,12 +347,13 @@ export class ChartViewPageComponent {
 
   protected setChartKind(kind: ChartKind): void {
     const previousKind = this.chartKind();
-    this.chartKind.set(kind);
-    if (kind === 'horizontal_bar') {
-      this.chartDisplayConfig.update((config) => ({ ...config, flipAxes: true }));
-    } else if (kind === 'vertical_bar') {
-      this.chartDisplayConfig.update((config) => ({ ...config, flipAxes: false }));
-    }
+    const result = applyChartKindChange(
+      this.chartConfig(),
+      this.cachedChartConfigs(),
+      kind,
+    );
+    this.chartConfig.set(result.chartConfig);
+    this.cachedChartConfigs.set(result.cache);
 
     if (kind === 'big_number') {
       this.ensureBigNumberMetric();
@@ -306,22 +363,25 @@ export class ChartViewPageComponent {
   }
 
   protected setChartXField(fieldId: FieldId): void {
-    this.chartXField.set(fieldId);
+    this.chartConfig.set(
+      applyChartPanelPatch(this.chartConfig(), { xField: fieldId }),
+    );
   }
 
   protected setChartYFields(fieldIds: FieldId[]): void {
-    this.chartYFields.set(fieldIds);
+    this.chartConfig.set(
+      applyChartPanelPatch(this.chartConfig(), { yFields: fieldIds }),
+    );
   }
 
   protected setChartDisplayConfig(config: ChartDisplayConfig): void {
     const prevLimit = this.chartDisplayConfig().rowLimit;
-    this.chartDisplayConfig.set(config);
-    if (config.flipAxes && this.chartKind() === 'vertical_bar') {
-      this.chartKind.set('horizontal_bar');
-    } else if (!config.flipAxes && this.chartKind() === 'horizontal_bar') {
-      this.chartKind.set('vertical_bar');
-    }
-    if (config.rowLimit !== prevLimit) {
+    const next = {
+      ...config,
+      rowLimit: clampQueryLimit(config.rowLimit, this.maxQueryLimit()),
+    };
+    this.chartConfig.set(applyChartPanelPatch(this.chartConfig(), next));
+    if (next.rowLimit !== prevLimit) {
       this.runQuery();
     }
   }
@@ -340,14 +400,13 @@ export class ChartViewPageComponent {
       return;
     }
 
-    const yFields = this.chartYFields();
     this.saveLoading.set(true);
     this.saveError.set(null);
     this.saveSuccess.set(false);
 
     this.chartService
       .update(projectUuid, chartUuid, {
-        chartKind: this.chartKind(),
+        chartKind: chartKindFromConfig(this.chartConfig()),
         tableName: explore.name,
         metricQuery: {
           exploreName: explore.name,
@@ -355,17 +414,14 @@ export class ChartViewPageComponent {
           metrics: this.selectedMetricList(),
           filters: {},
           sorts: [],
-          limit: this.chartDisplayConfig().rowLimit,
+          limit: clampQueryLimit(
+            this.chartDisplayConfig().rowLimit,
+            this.maxQueryLimit(),
+          ),
           tableCalculations: [],
           additionalMetrics: this.additionalMetrics(),
         },
-        chartConfig: {
-          type: this.chartKind(),
-          xField: this.chartXField() ?? undefined,
-          yField: yFields[0] ?? undefined,
-          yFields,
-          displayConfig: this.chartDisplayConfig(),
-        },
+        chartConfig: this.chartConfig(),
       })
       .subscribe({
         next: (updated) => {
@@ -386,31 +442,43 @@ export class ChartViewPageComponent {
     const currentX = this.chartXField();
     const currentY = this.chartYFields();
     const kind = this.chartKind();
+    const patch: {
+      xField?: FieldId | null;
+      yFields?: FieldId[];
+    } = {};
 
     if (kind !== 'big_number') {
       if (!currentX || !dimensions.includes(currentX)) {
-        this.chartXField.set(dimensions[0] ?? null);
+        patch.xField = dimensions[0] ?? null;
       }
     }
 
     const validY = currentY.filter((fieldId) => metrics.includes(fieldId));
     if (validY.length === 0) {
-      this.chartYFields.set(metrics[0] ? [metrics[0]] : []);
+      patch.yFields = metrics[0] ? [metrics[0]] : [];
     } else if (kind === 'big_number') {
-      this.chartYFields.set([validY[0]]);
+      patch.yFields = [validY[0]];
     } else {
-      this.chartYFields.set(validY);
+      patch.yFields = validY;
+    }
+
+    if (patch.xField !== undefined || patch.yFields !== undefined) {
+      this.chartConfig.set(applyChartPanelPatch(this.chartConfig(), patch));
     }
   }
 
   private ensureBigNumberMetric(): void {
     const metrics = this.selectedMetricList();
-    const currentY = this.chartYFields().filter((fieldId) => metrics.includes(fieldId));
-    if (currentY.length === 0) {
-      this.chartYFields.set(metrics[0] ? [metrics[0]] : []);
-    } else {
-      this.chartYFields.set([currentY[0]]);
-    }
+    const currentY = this.chartYFields().filter((fieldId) =>
+      metrics.includes(fieldId),
+    );
+    const yFields =
+      currentY.length === 0
+        ? metrics[0]
+          ? [metrics[0]]
+          : []
+        : [currentY[0]];
+    this.chartConfig.set(applyChartPanelPatch(this.chartConfig(), { yFields }));
   }
 
   protected runQuery(): void {
@@ -434,7 +502,10 @@ export class ChartViewPageComponent {
         metrics,
         filters: {},
         sorts: [],
-        limit: this.chartDisplayConfig().rowLimit,
+        limit: clampQueryLimit(
+          this.chartDisplayConfig().rowLimit,
+          this.maxQueryLimit(),
+        ),
         tableCalculations: [],
         additionalMetrics: this.additionalMetrics(),
       })

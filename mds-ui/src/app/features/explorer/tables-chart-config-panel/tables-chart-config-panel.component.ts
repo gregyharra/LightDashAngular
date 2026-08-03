@@ -3,16 +3,20 @@ import { Component, computed, input, output } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCheckboxModule } from '@angular/material/checkbox';
-import { MatExpansionModule } from '@angular/material/expansion';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
 import { MatMenuModule } from '@angular/material/menu';
 import { MatSelectModule } from '@angular/material/select';
 import { MatSlideToggleModule } from '@angular/material/slide-toggle';
+import { MatTabsModule } from '@angular/material/tabs';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { ChartKind } from '../../../core/models/chart.model';
 import { FieldId } from '../../../core/models/explore.model';
+import {
+  clampQueryLimit,
+  resolveMaxQueryLimit,
+} from '../query-limit.utils';
 import {
   CARTESIAN_CONFIG_SECTIONS,
   ChartLegendPlacement,
@@ -30,13 +34,13 @@ import {
     FormsModule,
     MatButtonModule,
     MatCheckboxModule,
-    MatExpansionModule,
     MatFormFieldModule,
     MatIconModule,
     MatInputModule,
     MatMenuModule,
     MatSelectModule,
     MatSlideToggleModule,
+    MatTabsModule,
     MatTooltipModule,
   ],
   templateUrl: './tables-chart-config-panel.component.html',
@@ -53,6 +57,7 @@ export class TablesChartConfigPanelComponent {
   readonly selectedDimensions = input<FieldId[]>([]);
   readonly selectedMetrics = input<FieldId[]>([]);
   readonly displayConfig = input<TablesChartDisplayConfig>(DEFAULT_CHART_DISPLAY_CONFIG);
+  readonly maxRowLimit = input<number | null | undefined>(undefined);
   readonly hasQueryResults = input(false);
   readonly getFieldLabel = input.required<(fieldId: FieldId) => string>();
 
@@ -60,6 +65,10 @@ export class TablesChartConfigPanelComponent {
   readonly chartXFieldChange = output<FieldId>();
   readonly chartYFieldsChange = output<FieldId[]>();
   readonly displayConfigChange = output<TablesChartDisplayConfig>();
+
+  protected readonly resolvedMaxRowLimit = computed(() =>
+    resolveMaxQueryLimit(this.maxRowLimit()),
+  );
 
   protected readonly selectedChartType = computed(() => {
     const kind = this.chartKind();
@@ -137,6 +146,20 @@ export class TablesChartConfigPanelComponent {
       ...this.displayConfig(),
       ...patch,
     });
+  }
+
+  protected setRowLimit(value: number | string | null): void {
+    this.patchDisplayConfig({
+      rowLimit: clampQueryLimit(value, this.maxRowLimit()),
+    });
+  }
+
+  protected onRowLimitKeydown(event: KeyboardEvent): void {
+    if (event.key === 'Enter') {
+      event.preventDefault();
+      const target = event.target as HTMLInputElement;
+      this.setRowLimit(target.value);
+    }
   }
 
   protected patchMargins(

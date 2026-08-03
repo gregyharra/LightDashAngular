@@ -153,6 +153,7 @@
                 [selectedDimensions]="selectedDimensionList()"
                 [selectedMetrics]="selectedMetricList()"
                 [displayConfig]="chartDisplayConfig()"
+                [maxRowLimit]="maxQueryLimit()"
                 [hasQueryResults]="!!queryResults()"
                 [getFieldLabel]="getFieldLabelFn"
                 (chartKindChange)="setChartKind($event)"
@@ -225,11 +226,8 @@
               </div>
             } @else if (canRenderChart()) {
               <app-chart-visualization
-                [chartKind]="chartKind()"
+                [chartConfig]="chartConfig()"
                 [queryResults]="queryResults()"
-                [xField]="chartXField()"
-                [yField]="chartYFields()[0]"
-                [displayConfig]="chartDisplayConfig()"
               />
             } @else {
               <div class="chart-view__viz-empty">

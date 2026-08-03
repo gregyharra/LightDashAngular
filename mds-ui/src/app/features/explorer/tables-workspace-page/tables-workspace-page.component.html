@@ -76,10 +76,31 @@
             [isExploreableNode]="isExploreableNode()"
             [selectedFieldIds]="selectedFields()"
             [canCreateCustomMetric]="canCreateCustomMetric()"
+            [chartConfigOpen]="chartConfigOpen()"
             (fieldSearchChange)="onFieldSearch($event)"
             (fieldToggled)="toggleField($event)"
             (customMetricAdd)="openCustomMetricDialog()"
-          />
+            (chartConfigClose)="closeChartConfig()"
+          >
+            @if (explore()) {
+              <app-tables-chart-config-panel
+                tablesChartConfig
+                [chartKind]="chartKind()"
+                [chartXField]="chartXField()"
+                [chartYFields]="chartYFields()"
+                [selectedDimensions]="selectedDimensionList()"
+                [selectedMetrics]="selectedMetricList()"
+                [displayConfig]="chartDisplayConfig()"
+                [maxRowLimit]="maxQueryLimit()"
+                [hasQueryResults]="hasRunQuery() && !!queryResults()"
+                [getFieldLabel]="getFieldLabelFn"
+                (chartKindChange)="setChartKind($event)"
+                (chartXFieldChange)="setChartXField($event)"
+                (chartYFieldsChange)="setChartYFields($event)"
+                (displayConfigChange)="setChartDisplayConfig($event)"
+              />
+            }
+          </app-tables-fields-panel>
         }
 
         <main class="tables-workspace__main">
@@ -102,22 +123,14 @@
                   [value]="timeTravel()"
                   (valueChange)="onTimeTravelChange($event)"
                 />
-                <button
-                  mat-flat-button
-                  class="tables-workspace__run-btn"
-                  type="button"
-                  aria-label="Run query (500)"
-                  matTooltip="Run query (500)"
-                  [disabled]="selectedFieldList().length === 0 || queryLoading()"
-                  (click)="runQuery()"
-                >
-                  @if (queryLoading()) {
-                    <mat-spinner diameter="18" />
-                  } @else {
-                    <mat-icon>play_arrow</mat-icon>
-                  }
-                  <span class="tables-workspace__toolbar-btn-label">Run query ( 500 )</span>
-                </button>
+                <app-run-query-button
+                  [limit]="queryRowLimit()"
+                  [maxLimit]="maxQueryLimit()"
+                  [disabled]="selectedFieldList().length === 0"
+                  [loading]="queryLoading()"
+                  (run)="runQuery()"
+                  (limitChange)="setQueryRowLimit($event)"
+                />
                 <button
                   mat-stroked-button
                   class="tables-workspace__toolbar-btn"
@@ -227,29 +240,7 @@
                     <mat-spinner diameter="32" />
                   </div>
                 } @else {
-                  <div
-                    class="tables-workspace__chart-workspace"
-                    [class.tables-workspace__chart-workspace--config-open]="chartConfigOpen()"
-                  >
-                    @if (chartConfigOpen()) {
-                      <div class="tables-workspace__chart-config">
-                        <app-tables-chart-config-panel
-                          [chartKind]="chartKind()"
-                          [chartXField]="chartXField()"
-                          [chartYFields]="chartYFields()"
-                          [selectedDimensions]="selectedDimensionList()"
-                          [selectedMetrics]="selectedMetricList()"
-                          [displayConfig]="chartDisplayConfig()"
-                          [hasQueryResults]="hasRunQuery() && !!queryResults()"
-                          [getFieldLabel]="getFieldLabelFn"
-                          (chartKindChange)="setChartKind($event)"
-                          (chartXFieldChange)="setChartXField($event)"
-                          (chartYFieldsChange)="setChartYFields($event)"
-                          (displayConfigChange)="setChartDisplayConfig($event)"
-                        />
-                      </div>
-                    }
-
+                  <div class="tables-workspace__chart-workspace">
                     <div class="tables-workspace__chart-viz">
                       @if (queryLoading()) {
                         <div class="tables-workspace__chart-viz-state">
@@ -289,11 +280,8 @@
                         </div>
                       } @else {
                         <app-chart-visualization
-                          [chartKind]="chartKind()"
+                          [chartConfig]="chartConfig()"
                           [queryResults]="queryResults()!"
-                          [xField]="chartXField()"
-                          [yField]="chartYFields()[0]"
-                          [displayConfig]="chartDisplayConfig()"
                         />
                       }
                     </div>

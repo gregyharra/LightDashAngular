@@ -10,7 +10,18 @@ import { MatTableModule } from '@angular/material/table';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { DashboardDimensionFilter } from '../../../core/models/dashboard.model';
 import { DbtTreeNode, LineageNode } from '../../../core/models/lineage.model';
-import { ChartConfig, ChartKind } from '../../../core/models/chart.model';
+import {
+  ChartConfig,
+  ChartKind,
+  defaultConfigForType,
+} from '../../../core/models/chart.model';
+import {
+  applyChartKindChange,
+  applyChartPanelPatch,
+  chartKindFromConfig,
+  ChartConfigCache,
+  toChartPanelView,
+} from '../../../core/models/chart-config.utils';
 import { ActiveProjectService } from '../../../core/services/active-project.service';
 import { apiErrorMessage } from '../../../core/api/lightdash-api.service';
 import { queryErrorWarning } from '../../../core/api/api-error.service';
@@ -33,10 +44,7 @@ import { ResizableSidebarDirective } from '../../../layout/resizable-sidebar/res
 import { TablesFieldsPanelComponent } from '../tables-fields-panel/tables-fields-panel.component';
 import { ChartVisualizationComponent } from '../../charts/chart-visualization/chart-visualization.component';
 import { TablesChartConfigPanelComponent } from '../tables-chart-config-panel/tables-chart-config-panel.component';
-import {
-  DEFAULT_CHART_DISPLAY_CONFIG,
-  TablesChartDisplayConfig,
-} from '../tables-chart-config-panel/tables-chart-config.constants';
+import { TablesChartDisplayConfig } from '../tables-chart-config-panel/tables-chart-config.constants';
 import {
   findExploreByName,
   findExploreForLineageNode,
@@ -54,8 +62,14 @@ import { getFilterableDimensions } from '../tables-filters-panel/tables-filters.
 import { TablesFiltersPanelComponent } from '../tables-filters-panel/tables-filters-panel.component';
 import { TimeTravelControlComponent } from '../../../shared/time-travel-control/time-travel-control.component';
 import { QueryWarningsBannerComponent } from '../../../shared/query-warnings-banner/query-warnings-banner.component';
+import { RunQueryButtonComponent } from '../../../shared/run-query-button/run-query-button.component';
 import { SqlHighlightComponent } from '../../../shared/sql-highlight/sql-highlight.component';
+import { AppStateService } from '../../../core/services/app-state.service';
 import { ChartService } from '../../charts/chart.service';
+import {
+  clampQueryLimit,
+  resolveMaxQueryLimit,
+} from '../query-limit.utils';
 import {
   SaveChartDialogComponent,
   SaveChartDialogResult,
@@ -89,6 +103,7 @@ type TableFieldGroup = {
     TablesFiltersPanelComponent,
     TimeTravelControlComponent,
     QueryWarningsBannerComponent,
+    RunQueryButtonComponent,
     SqlHighlightComponent,
     ResizableSidebarDirective,
   ],
@@ -104,6 +119,7 @@ export class TablesWorkspacePageComponent {
   private readonly dialog = inject(MatDialog);
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
+  private readonly appState = inject(AppStateService);
   protected readonly activeProjectService = inject(ActiveProjectService);
 
   protected readonly projectUuid = signal<string | null>(null);
@@ -124,17 +140,32 @@ export class TablesWorkspacePageComponent {
   protected readonly queryError = signal<string | null>(null);
   protected readonly queryResults = signal<QueryResults | null>(null);
   protected readonly hasRunQuery = signal(false);
-  protected readonly chartKind = signal<ChartKind>('vertical_bar');
-  protected readonly chartXField = signal<FieldId | null>(null);
-  protected readonly chartYFields = signal<FieldId[]>([]);
-  protected readonly chartDisplayConfig = signal<TablesChartDisplayConfig>(
-    DEFAULT_CHART_DISPLAY_CONFIG,
+  protected readonly chartConfig = signal<ChartConfig>(
+    defaultConfigForType('cartesian'),
+  );
+  protected readonly cachedChartConfigs = signal<ChartConfigCache>({});
+  protected readonly panelView = computed(() =>
+    toChartPanelView(this.chartConfig()),
+  );
+  protected readonly chartKind = computed(() => this.panelView().chartKind);
+  protected readonly chartXField = computed(() => this.panelView().xField);
+  protected readonly chartYFields = computed(() => this.panelView().yFields);
+  protected readonly chartDisplayConfig = computed(
+    () => this.panelView().displayConfig as TablesChartDisplayConfig,
   );
   protected readonly chartConfigOpen = signal(false);
   protected readonly dimensionFilters = signal<DashboardDimensionFilter[]>([]);
   protected readonly timeTravel = signal<TimeTravelConfig | null>(null);
   protected readonly queryWarnings = signal<QueryWarning[]>([]);
   protected readonly saveChartLoading = signal(false);
+
+  protected readonly maxQueryLimit = computed(() =>
+    resolveMaxQueryLimit(this.appState.health()?.query?.maxLimit),
+  );
+
+  protected readonly queryRowLimit = computed(() =>
+    clampQueryLimit(this.chartDisplayConfig().rowLimit, this.maxQueryLimit()),
+  );
 
   protected readonly selectedTreeNode = computed(() => {
     const nodeId = this.tableId();
@@ -354,7 +385,7 @@ export class TablesWorkspacePageComponent {
       explore,
       dimensions,
       metrics,
-      500,
+      this.queryRowLimit(),
       this.dimensionFilters(),
       this.timeTravel(),
     );
@@ -523,10 +554,8 @@ export class TablesWorkspacePageComponent {
     this.queryError.set(null);
     this.hasRunQuery.set(false);
     this.fieldSearch.set('');
-    this.chartKind.set('vertical_bar');
-    this.chartXField.set(null);
-    this.chartYFields.set([]);
-    this.chartDisplayConfig.set(DEFAULT_CHART_DISPLAY_CONFIG);
+    this.chartConfig.set(defaultConfigForType('cartesian'));
+    this.cachedChartConfigs.set({});
     this.chartConfigOpen.set(false);
     this.dimensionFilters.set([]);
     this.timeTravel.set(null);
@@ -617,12 +646,13 @@ export class TablesWorkspacePageComponent {
 
   protected setChartKind(kind: ChartKind): void {
     const previousKind = this.chartKind();
-    this.chartKind.set(kind);
-    if (kind === 'horizontal_bar') {
-      this.chartDisplayConfig.update((config) => ({ ...config, flipAxes: true }));
-    } else if (kind === 'vertical_bar') {
-      this.chartDisplayConfig.update((config) => ({ ...config, flipAxes: false }));
-    }
+    const result = applyChartKindChange(
+      this.chartConfig(),
+      this.cachedChartConfigs(),
+      kind,
+    );
+    this.chartConfig.set(result.chartConfig);
+    this.cachedChartConfigs.set(result.cache);
 
     if (kind === 'big_number') {
       this.ensureBigNumberMetric();
@@ -632,25 +662,40 @@ export class TablesWorkspacePageComponent {
   }
 
   protected setChartXField(fieldId: FieldId): void {
-    this.chartXField.set(fieldId);
+    this.chartConfig.set(
+      applyChartPanelPatch(this.chartConfig(), { xField: fieldId }),
+    );
   }
 
   protected setChartYFields(fieldIds: FieldId[]): void {
-    this.chartYFields.set(fieldIds);
+    this.chartConfig.set(
+      applyChartPanelPatch(this.chartConfig(), { yFields: fieldIds }),
+    );
   }
 
   protected setChartDisplayConfig(config: TablesChartDisplayConfig): void {
-    this.chartDisplayConfig.set(config);
-    if (config.flipAxes && this.chartKind() === 'vertical_bar') {
-      this.chartKind.set('horizontal_bar');
-    } else if (!config.flipAxes && this.chartKind() === 'horizontal_bar') {
-      this.chartKind.set('vertical_bar');
-    }
+    const next = {
+      ...config,
+      rowLimit: clampQueryLimit(config.rowLimit, this.maxQueryLimit()),
+    };
+    this.chartConfig.set(applyChartPanelPatch(this.chartConfig(), next));
+  }
+
+  protected setQueryRowLimit(limit: number): void {
+    this.chartConfig.set(
+      applyChartPanelPatch(this.chartConfig(), {
+        rowLimit: clampQueryLimit(limit, this.maxQueryLimit()),
+      }),
+    );
   }
 
   protected toggleChartConfig(event: Event): void {
     event.stopPropagation();
     this.chartConfigOpen.update((open) => !open);
+  }
+
+  protected closeChartConfig(): void {
+    this.chartConfigOpen.set(false);
   }
 
   private syncChartAxisFields(): void {
@@ -659,31 +704,43 @@ export class TablesWorkspacePageComponent {
     const currentX = this.chartXField();
     const currentY = this.chartYFields();
     const kind = this.chartKind();
+    const patch: {
+      xField?: FieldId | null;
+      yFields?: FieldId[];
+    } = {};
 
     if (kind !== 'big_number') {
       if (!currentX || !dimensions.includes(currentX)) {
-        this.chartXField.set(dimensions[0] ?? null);
+        patch.xField = dimensions[0] ?? null;
       }
     }
 
     const validY = currentY.filter((fieldId) => metrics.includes(fieldId));
     if (validY.length === 0) {
-      this.chartYFields.set(metrics[0] ? [metrics[0]] : []);
+      patch.yFields = metrics[0] ? [metrics[0]] : [];
     } else if (kind === 'big_number') {
-      this.chartYFields.set([validY[0]]);
+      patch.yFields = [validY[0]];
     } else {
-      this.chartYFields.set(validY);
+      patch.yFields = validY;
+    }
+
+    if (patch.xField !== undefined || patch.yFields !== undefined) {
+      this.chartConfig.set(applyChartPanelPatch(this.chartConfig(), patch));
     }
   }
 
   private ensureBigNumberMetric(): void {
     const metrics = this.selectedMetricList();
-    const currentY = this.chartYFields().filter((fieldId) => metrics.includes(fieldId));
-    if (currentY.length === 0) {
-      this.chartYFields.set(metrics[0] ? [metrics[0]] : []);
-    } else {
-      this.chartYFields.set([currentY[0]]);
-    }
+    const currentY = this.chartYFields().filter((fieldId) =>
+      metrics.includes(fieldId),
+    );
+    const yFields =
+      currentY.length === 0
+        ? metrics[0]
+          ? [metrics[0]]
+          : []
+        : [currentY[0]];
+    this.chartConfig.set(applyChartPanelPatch(this.chartConfig(), { yFields }));
   }
 
   protected isMetricField(fieldId: FieldId): boolean {
@@ -860,9 +917,9 @@ export class TablesWorkspacePageComponent {
           name: result.name,
           spaceUuid: result.spaceUuid,
           tableName: explore.name,
-          chartKind: this.chartKind(),
+          chartKind: chartKindFromConfig(this.chartConfig()),
           metricQuery: this.buildCurrentMetricQuery(this.resolveTimeTravelForQuery()),
-          chartConfig: this.buildCurrentChartConfig(),
+          chartConfig: this.chartConfig(),
         })
         .subscribe({
           next: (chart) => {
@@ -901,7 +958,7 @@ export class TablesWorkspacePageComponent {
           metrics,
           filters: {},
           sorts: [],
-          limit: 500,
+          limit: this.queryRowLimit(),
           tableCalculations: [],
           additionalMetrics,
         },
@@ -909,17 +966,5 @@ export class TablesWorkspacePageComponent {
       ),
       timeTravel,
     );
-  }
-
-  private buildCurrentChartConfig(): ChartConfig {
-    const yFields = this.chartYFields();
-
-    return {
-      type: this.chartKind(),
-      xField: this.chartXField() ?? undefined,
-      yField: yFields[0] ?? undefined,
-      yFields,
-      displayConfig: this.chartDisplayConfig(),
-    };
   }
 }

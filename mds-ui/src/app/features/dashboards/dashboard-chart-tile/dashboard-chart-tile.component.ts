@@ -3,7 +3,13 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { EMPTY, catchError, switchMap } from 'rxjs';
 import { apiErrorMessage } from '../../../core/api/lightdash-api.service';
-import { ChartKind, ChartDisplayConfig, BigNumberComparison, DEFAULT_CHART_DISPLAY_CONFIG } from '../../../core/models/chart.model';
+import {
+  BigNumberComparison,
+  ChartConfig,
+  defaultConfigForType,
+  normalizeChartConfig,
+} from '../../../core/models/chart.model';
+import { applyChartPanelPatch } from '../../../core/models/chart-config.utils';
 import {
   DashboardDimensionFilter,
   DateZoomGranularity,
@@ -18,14 +24,20 @@ import {
 import { ChartService } from '../../charts/chart.service';
 import { ChartVisualizationComponent } from '../../charts/chart-visualization/chart-visualization.component';
 import { ExplorerService } from '../../explorer/explorer.service';
+import { applyDashboardContextToMetricQuery } from '../dashboard-filters';
 import {
-  applyDashboardContextToMetricQuery,
-} from '../dashboard-filters';
-import { MOCK_CHART_4_UUID, MOCK_CHART_5_UUID, MOCK_CHART_6_UUID } from '../../../core/mock/fixtures/ids.fixture';
+  MOCK_CHART_4_UUID,
+  MOCK_CHART_5_UUID,
+  MOCK_CHART_6_UUID,
+} from '../../../core/mock/fixtures/ids.fixture';
 
 @Component({
   selector: 'app-dashboard-chart-tile',
-  imports: [MatIconModule, MatProgressSpinnerModule, ChartVisualizationComponent],
+  imports: [
+    MatIconModule,
+    MatProgressSpinnerModule,
+    ChartVisualizationComponent,
+  ],
   templateUrl: './dashboard-chart-tile.component.html',
   styleUrl: './dashboard-chart-tile.component.scss',
 })
@@ -42,12 +54,13 @@ export class DashboardChartTileComponent {
 
   protected readonly loading = signal(false);
   protected readonly error = signal<string | null>(null);
-  protected readonly chartKind = signal<ChartKind>('vertical_bar');
+  protected readonly chartConfig = signal<ChartConfig>(
+    defaultConfigForType('cartesian'),
+  );
   protected readonly queryResults = signal<QueryResults | null>(null);
-  protected readonly xField = signal<FieldId | null>(null);
-  protected readonly yField = signal<FieldId | null>(null);
-  protected readonly displayConfig = signal<ChartDisplayConfig>(DEFAULT_CHART_DISPLAY_CONFIG);
-  protected readonly bigNumberComparison = signal<BigNumberComparison | null>(null);
+  protected readonly bigNumberComparison = signal<BigNumberComparison | null>(
+    null,
+  );
 
   constructor() {
     effect((onCleanup) => {
@@ -73,38 +86,68 @@ export class DashboardChartTileComponent {
         .get(projectUuid, savedChartUuid)
         .pipe(
           switchMap((chart) => {
-            this.chartKind.set(chart.chartConfig.type);
-            this.xField.set(
-              chart.chartConfig.xField ?? chart.metricQuery.dimensions[0] ?? null,
-            );
-            this.yField.set(
-              chart.chartConfig.yField ?? chart.metricQuery.metrics[0] ?? null,
-            );
-            this.displayConfig.set({
-              ...DEFAULT_CHART_DISPLAY_CONFIG,
-              showLegend: false,
-              showValueLabels: true,
-              showXAxis: chart.chartConfig.type !== 'big_number',
-              showYAxis: chart.chartConfig.type !== 'big_number',
-              margins: { top: 16, right: 12, bottom: 8, left: 8 },
-              ...chart.chartConfig.displayConfig,
-            });
+            let config = normalizeChartConfig(chart.chartConfig);
+            if (config.type === 'cartesian') {
+              config = applyChartPanelPatch(config, {
+                showLegend: false,
+                showValueLabels: true,
+                margins: { top: 16, right: 12, bottom: 8, left: 8 },
+                xField:
+                  config.config.layout.xField ??
+                  chart.metricQuery.dimensions[0] ??
+                  null,
+                yFields:
+                  config.config.layout.yFields?.length
+                    ? config.config.layout.yFields
+                    : chart.metricQuery.metrics[0]
+                      ? [chart.metricQuery.metrics[0]]
+                      : [],
+              });
+            } else if (config.type === 'pie') {
+              config = applyChartPanelPatch(config, {
+                showLegend: false,
+                margins: { top: 16, right: 12, bottom: 8, left: 8 },
+                xField:
+                  config.config.xField ??
+                  chart.metricQuery.dimensions[0] ??
+                  null,
+                yFields: config.config.yField
+                  ? [config.config.yField]
+                  : chart.metricQuery.metrics[0]
+                    ? [chart.metricQuery.metrics[0]]
+                    : [],
+              });
+            } else if (config.type === 'big_number') {
+              config = applyChartPanelPatch(config, {
+                yFields: config.config.selectedField
+                  ? [config.config.selectedField]
+                  : chart.metricQuery.metrics[0]
+                    ? [chart.metricQuery.metrics[0]]
+                    : [],
+              });
+            }
+            this.chartConfig.set(config);
             this.bigNumberComparison.set(
               getBigNumberComparison(savedChartUuid),
             );
 
-            return this.explorerService.getExplore(projectUuid, chart.tableName).pipe(
-              switchMap((explore) => {
-                const metricQuery = this.applyDashboardContext(
-                  chart.metricQuery,
-                  dashboardFilters,
-                  dateZoomGranularity,
-                  timeTravel,
-                  explore,
-                );
-                return this.explorerService.runQuery(projectUuid, metricQuery);
-              }),
-            );
+            return this.explorerService
+              .getExplore(projectUuid, chart.tableName)
+              .pipe(
+                switchMap((explore) => {
+                  const metricQuery = this.applyDashboardContext(
+                    chart.metricQuery,
+                    dashboardFilters,
+                    dateZoomGranularity,
+                    timeTravel,
+                    explore,
+                  );
+                  return this.explorerService.runQuery(
+                    projectUuid,
+                    metricQuery,
+                  );
+                }),
+              );
           }),
           catchError((err) => {
             this.error.set(apiErrorMessage(err, 'Failed to load chart.'));
@@ -114,8 +157,17 @@ export class DashboardChartTileComponent {
         )
         .subscribe({
           next: (results) => {
+            const cfg = this.chartConfig();
+            const yField =
+              cfg.type === 'big_number'
+                ? (cfg.config.selectedField ?? null)
+                : cfg.type === 'cartesian'
+                  ? (cfg.config.layout.yFields?.[0] ?? null)
+                  : cfg.type === 'pie'
+                    ? (cfg.config.yField ?? null)
+                    : null;
             this.queryResults.set(
-              applyDemoKpiOverrides(savedChartUuid, results, this.yField()),
+              applyDemoKpiOverrides(savedChartUuid, results, yField),
             );
             this.loading.set(false);
           },
@@ -152,7 +204,9 @@ const BIG_NUMBER_COMPARISONS: Record<string, BigNumberComparison> = {
   },
 };
 
-function getBigNumberComparison(savedChartUuid: string): BigNumberComparison | null {
+function getBigNumberComparison(
+  savedChartUuid: string,
+): BigNumberComparison | null {
   return BIG_NUMBER_COMPARISONS[savedChartUuid] ?? null;
 }
 

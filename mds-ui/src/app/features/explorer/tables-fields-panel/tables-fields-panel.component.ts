@@ -4,15 +4,17 @@ import {
   DestroyRef,
   PLATFORM_ID,
   Renderer2,
+  effect,
   inject,
   input,
   output,
   signal,
 } from '@angular/core';
 import { RouterLink } from '@angular/router';
+import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
-import { Explore, FieldId } from '../../../core/models/explore.model';
+import { FieldId } from '../../../core/models/explore.model';
 
 export type TablesFieldGroup = {
   table: { name: string; label: string };
@@ -32,7 +34,7 @@ const COLLAPSED_WIDTH = 44;
   host: {
     class: 'tables-fields-panel-host',
   },
-  imports: [RouterLink, MatIconModule, MatProgressSpinnerModule],
+  imports: [RouterLink, MatButtonModule, MatIconModule, MatProgressSpinnerModule],
   templateUrl: './tables-fields-panel.component.html',
   styleUrl: './tables-fields-panel.component.scss',
 })
@@ -53,10 +55,12 @@ export class TablesFieldsPanelComponent {
   readonly selectedFieldIds = input<ReadonlySet<FieldId>>(new Set());
   readonly resizable = input(true);
   readonly canCreateCustomMetric = input(false);
+  readonly chartConfigOpen = input(false);
 
   readonly fieldSearchChange = output<string>();
   readonly fieldToggled = output<FieldId>();
   readonly customMetricAdd = output<void>();
+  readonly chartConfigClose = output<void>();
 
   protected readonly collapsed = signal(false);
   protected readonly panelWidth = signal(DEFAULT_WIDTH);
@@ -75,9 +79,22 @@ export class TablesFieldsPanelComponent {
       this.panelWidth.set(this.readSavedWidth());
     }
 
+    effect(() => {
+      if (this.chartConfigOpen() && this.collapsed()) {
+        this.collapsed.set(false);
+        if (isPlatformBrowser(this.platformId)) {
+          localStorage.setItem(COLLAPSED_STORAGE_KEY, 'false');
+        }
+      }
+    });
+
     this.destroyRef.onDestroy(() => {
       this.stopResize();
     });
+  }
+
+  protected onChartConfigClose(): void {
+    this.chartConfigClose.emit();
   }
 
   protected onFieldSearch(value: string): void {
