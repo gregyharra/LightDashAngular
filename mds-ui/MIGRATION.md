@@ -41,16 +41,16 @@ Recommendation: option 1 for parity, option 2 long-term for API typing.
 
 ### Phase 0 — Foundation (current)
 - [x] Angular + Material scaffold
-- [x] `LightdashApiService`, health bootstrap, auth guard skeleton
+- [x] `LightdashApiService`, health bootstrap, auth guards
 - [ ] Wire `@lightdash/common`
-- [ ] Login / register / password flows
-- [ ] CASL ability provider
+- [x] Login / setup / password reset (local sessions; no register/invite/email yet)
+- [ ] CASL ability provider (design only — see `docs/superpowers/specs/`)
 
 ### Phase 1 — Auth & shell (~2 weeks)
-- `/login`, `/register`, `/recover-password`, `/reset-password/:code`
-- `/invite/:inviteCode`, `/verify-email`, `/join-organization`
-- App shell: navbar, project switcher, user menu
-- `/projects`, `/createProject/:method?`
+- [x] `/login`, `/setup`, `/reset-password` (+ Settings shell `/settings/*`)
+- `/register`, `/recover-password` email, `/invite/:inviteCode`, `/verify-email`, `/join-organization` (not in scope yet)
+- [x] App shell: navbar, project switcher, user menu
+- [x] `/projects` browse home; project create/edit under settings
 
 ### Phase 2 — Project core (~4–6 weeks)
 - `/projects/:projectUuid/home`
