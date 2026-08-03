@@ -19,6 +19,7 @@ def clean_settings_env(monkeypatch: pytest.MonkeyPatch) -> None:
         "ENVIRONMENT",
         "LOG_LEVEL",
         "LOG_SQL_QUERIES",
+        "ASK_AI_ENABLED",
     ):
         monkeypatch.delenv(key, raising=False)
 
@@ -37,6 +38,7 @@ def test_settings_defaults_without_env_file(clean_settings_env: None) -> None:
     assert settings.log_level is None
     assert settings.effective_log_level == "DEBUG"
     assert settings.log_sql_queries is False
+    assert settings.ask_ai_enabled is False
     assert settings.effective_encryption_key == DEV_ENCRYPTION_KEY
     assert settings.cors_origin_list == ["http://localhost:4200"]
 
@@ -66,6 +68,7 @@ def test_settings_reads_env_overrides(clean_settings_env: None, monkeypatch: pyt
     monkeypatch.setenv("DBT_PROJECT_PATH", "/tmp/dbt")
     monkeypatch.setenv("DBT_ARTIFACTS_PATH", "/tmp/dbt/target")
     monkeypatch.setenv("ENCRYPTION_KEY", "test-key")
+    monkeypatch.setenv("ASK_AI_ENABLED", "true")
 
     settings = Settings(_env_file="nonexistent.env")
 
@@ -76,6 +79,7 @@ def test_settings_reads_env_overrides(clean_settings_env: None, monkeypatch: pyt
     assert settings.dbt_artifacts_path == "/tmp/dbt/target"
     assert settings.encryption_key == "test-key"
     assert settings.effective_encryption_key == "test-key"
+    assert settings.ask_ai_enabled is True
 
 
 def test_required_fields_without_defaults_would_fail(clean_settings_env: None) -> None:

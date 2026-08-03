@@ -38,6 +38,7 @@ env:
   # reads. Git sync itself always re-parses regardless of this flag.
   AUTO_REGENERATE_MANIFEST: "true"
   # Optional extras:
+  # ASK_AI_ENABLED: "true"              # opt-in product flag for Ask AI (default off)
   # DBT_PROJECT_PATH: /app/mds-transform
   # PROJECTS_DATA_DIR: /app/.data/projects
   # LOG_LEVEL: INFO

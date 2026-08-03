@@ -95,6 +95,13 @@ class Settings(BaseSettings):
             "Also logged at DEBUG when the mds logger level is DEBUG."
         ),
     )
+    ask_ai_enabled: bool = Field(
+        default=False,
+        description=(
+            "When true, expose Ask AI in the product UI and accept /ai/chat requests. "
+            "Defaults to off; set ASK_AI_ENABLED=true to opt in."
+        ),
+    )
     openai_api_key: Optional[str] = Field(
         default=None,
         description="Optional OpenAI API key for the AI assistant. Heuristic mode works without it.",
