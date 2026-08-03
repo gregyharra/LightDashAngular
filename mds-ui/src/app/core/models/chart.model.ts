@@ -322,15 +322,16 @@ function migrateLegacyBigNumber(legacy: LegacyChartConfig): ChartConfig {
 
 function isLegacyChartConfig(raw: Record<string, unknown>): raw is LegacyChartConfig {
   const type = raw['type'];
+  if (typeof type !== 'string' || isNormalizedChartConfig(raw)) {
+    return false;
+  }
   return (
-    typeof type === 'string' &&
-    !ACTIVE_CHART_TYPES.has(type as ChartType) &&
-    (type === 'vertical_bar' ||
-      type === 'horizontal_bar' ||
-      type === 'line' ||
-      type === 'pie' ||
-      type === 'table' ||
-      type === 'big_number')
+    type === 'vertical_bar' ||
+    type === 'horizontal_bar' ||
+    type === 'line' ||
+    type === 'pie' ||
+    type === 'table' ||
+    type === 'big_number'
   );
 }
 

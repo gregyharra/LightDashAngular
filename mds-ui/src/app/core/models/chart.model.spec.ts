@@ -59,4 +59,65 @@ describe('normalizeChartConfig', () => {
     const result = normalizeChartConfig({ type: 'sankey', config: {} });
     expect(result.type).toBe('table');
   });
+
+  it('migrates legacy pie chart', () => {
+    const result = normalizeChartConfig({
+      type: 'pie',
+      xField: 'orders_status',
+      yField: 'orders_total_revenue',
+      displayConfig: { showLegend: false, rowLimit: 100 },
+    });
+    expect(result.type).toBe('pie');
+    if (result.type === 'pie') {
+      expect(result.config.xField).toBe('orders_status');
+      expect(result.config.yField).toBe('orders_total_revenue');
+      expect(result.config.showLegend).toBe(false);
+      expect(result.config.rowLimit).toBe(100);
+    }
+  });
+
+  it('migrates legacy table chart', () => {
+    const result = normalizeChartConfig({
+      type: 'table',
+      displayConfig: {
+        showTableNames: false,
+        showColumnTotals: true,
+        rowLimit: 200,
+      },
+    });
+    expect(result.type).toBe('table');
+    if (result.type === 'table') {
+      expect(result.config.showTableNames).toBe(false);
+      expect(result.config.showColumnTotals).toBe(true);
+      expect(result.config.rowLimit).toBe(200);
+    }
+  });
+
+  it('migrates legacy big_number chart', () => {
+    const result = normalizeChartConfig({
+      type: 'big_number',
+      yField: 'orders_total_revenue',
+      displayConfig: { rowLimit: 50 },
+    });
+    expect(result.type).toBe('big_number');
+    if (result.type === 'big_number') {
+      expect(result.config.selectedField).toBe('orders_total_revenue');
+      expect(result.config.rowLimit).toBe(50);
+    }
+  });
+
+  it('passes through already-normalized pie', () => {
+    const input = {
+      type: 'pie' as const,
+      config: {
+        xField: 'a',
+        yField: 'b',
+        showLegend: true,
+        legendPlacement: 'chart' as const,
+        rowLimit: 500,
+        margins: { top: 8, right: 8, bottom: 8, left: 8 },
+      },
+    };
+    expect(normalizeChartConfig(input)).toEqual(input);
+  });
 });
