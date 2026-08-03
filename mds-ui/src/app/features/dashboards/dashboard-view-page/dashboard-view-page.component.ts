@@ -48,12 +48,21 @@ import {
   getFilterableDimensions,
 } from '../../explorer/tables-filters-panel/tables-filters.utils';
 import { createUuid } from '../../../core/utils/uuid';
-
+import { SavedChartBasic } from '../../../core/models/chart.model';
+import { ChartService } from '../../charts/chart.service';
+import { mockSqlCharts, MockSqlChartBasic } from '../../../core/mock/fixtures/sql-charts.fixture';
+import { applyTileLayoutChange } from '../dashboard-grid-layout';
 import {
   DASHBOARD_GRID_COLS,
   DASHBOARD_GRID_GAP_PX,
   DASHBOARD_GRID_ROW_HEIGHT_PX,
+  DashboardTilePosition,
 } from '../dashboard-grid.constants';
+import {
+  DashboardTileSettingsDialogComponent,
+  DashboardTileSettingsDialogResult,
+} from '../dashboard-tile-settings-dialog/dashboard-tile-settings-dialog.component';
+import { DashboardTileGridInteractionDirective } from '../dashboard-tile-grid-interaction.directive';
 
 @Component({
   selector: 'app-dashboard-view-page',
@@ -72,12 +81,14 @@ import {
     DashboardMarkdownComponent,
     ResizableSidebarDirective,
     TimeTravelControlComponent,
+    DashboardTileGridInteractionDirective,
   ],
   templateUrl: './dashboard-view-page.component.html',
   styleUrl: './dashboard-view-page.component.scss',
 })
 export class DashboardViewPageComponent {
   private readonly dashboardService = inject(DashboardService);
+  private readonly chartService = inject(ChartService);
   private readonly explorerService = inject(ExplorerService);
   private readonly route = inject(ActivatedRoute);
   private readonly sanitizer = inject(DomSanitizer);
@@ -96,6 +107,9 @@ export class DashboardViewPageComponent {
   protected readonly error = signal<string | null>(null);
   protected readonly saveError = signal<string | null>(null);
   protected readonly activeTabUuid = signal<string | null>(null);
+  protected readonly selectedTileUuid = signal<string | null>(null);
+  protected readonly charts = signal<SavedChartBasic[]>([]);
+  protected readonly sqlCharts = signal<MockSqlChartBasic[]>(mockSqlCharts);
   // Session-only — never written into draft.config, excluded from dirty detection.
   protected readonly dateZoomGranularity = signal<DateZoomGranularity>('Month');
   protected readonly timeTravel = signal<TimeTravelConfig | null>(null);
@@ -182,6 +196,7 @@ export class DashboardViewPageComponent {
       this.dashboardUuid.set(dashboardUuid);
       this.activeProjectService.setActiveProject(projectUuid);
       this.loadDashboard(projectUuid, dashboardUuid);
+      this.loadCharts(projectUuid);
       this.loadFilterableDimensions(projectUuid);
     });
   }
@@ -316,6 +331,7 @@ export class DashboardViewPageComponent {
 
   protected setActiveTab(tabUuid: string): void {
     this.activeTabUuid.set(tabUuid);
+    this.selectedTileUuid.set(null);
   }
 
   protected startNameEdit(): void {
@@ -528,6 +544,247 @@ export class DashboardViewPageComponent {
       year: 'numeric',
       month: 'short',
       day: 'numeric',
+    });
+  }
+
+
+  private loadCharts(projectUuid: string): void {
+    this.chartService.list(projectUuid).subscribe({
+      next: (charts) => this.charts.set(charts),
+      error: () => this.charts.set([]),
+    });
+  }
+
+  protected addHeadingTile(): void {
+    this.addTile({
+      type: DashboardTileTypes.HEADING,
+      w: 36,
+      h: 2,
+      properties: {
+        text: 'New heading',
+        showDivider: true,
+      },
+    });
+  }
+
+  protected addMarkdownTile(): void {
+    this.addTile({
+      type: DashboardTileTypes.MARKDOWN,
+      w: 18,
+      h: 6,
+      properties: {
+        title: 'Notes',
+        content: 'Add your markdown content here.',
+      },
+    });
+  }
+
+  protected addLoomTile(): void {
+    this.addTile({
+      type: DashboardTileTypes.LOOM,
+      w: 18,
+      h: 9,
+      properties: {
+        title: 'Loom video',
+        url: 'https://www.loom.com/share/example',
+      },
+    });
+  }
+
+  protected addSqlChartTile(savedSqlUuid: string): void {
+    const chart = this.sqlCharts().find((item) => item.uuid === savedSqlUuid);
+    if (!chart) {
+      return;
+    }
+
+    this.addTile({
+      type: DashboardTileTypes.SQL_CHART,
+      w: 18,
+      h: 9,
+      properties: {
+        title: chart.name,
+        savedSqlUuid: chart.uuid,
+        chartName: chart.name,
+      },
+    });
+  }
+
+  protected addChartTile(chartUuid: string): void {
+    const chart = this.charts().find((item) => item.uuid === chartUuid);
+    if (!chart) {
+      return;
+    }
+
+    this.addTile({
+      type: DashboardTileTypes.SAVED_CHART,
+      w: 18,
+      h: 9,
+      properties: {
+        title: chart.name,
+        savedChartUuid: chart.uuid,
+        chartName: chart.name,
+        lastVersionChartKind: chart.chartKind,
+      },
+    });
+  }
+
+  private addTile(
+    config: Pick<DashboardTile, 'type' | 'w' | 'h' | 'properties'>,
+  ): void {
+    const current = this.draft();
+    const tab = this.activeTab();
+    if (!current || !tab) {
+      return;
+    }
+
+    const tabTiles = current.tiles.filter((tile) => tile.tabUuid === tab.uuid);
+    const nextY = tabTiles.reduce((max, tile) => Math.max(max, tile.y + tile.h), 0);
+
+    const tile: DashboardTile = {
+      uuid: createUuid(),
+      type: config.type,
+      x: 0,
+      y: nextY,
+      w: config.w,
+      h: config.h,
+      tabUuid: tab.uuid,
+      properties: config.properties,
+    } as DashboardTile;
+
+    this.draft.set({
+      ...current,
+      tiles: [...current.tiles, tile],
+    });
+    this.selectedTileUuid.set(tile.uuid);
+  }
+
+  protected removeTile(tileUuid: string): void {
+    const current = this.draft();
+    if (!current) {
+      return;
+    }
+
+    this.draft.set({
+      ...current,
+      tiles: current.tiles.filter((tile) => tile.uuid !== tileUuid),
+    });
+
+    if (this.selectedTileUuid() === tileUuid) {
+      this.selectedTileUuid.set(null);
+    }
+  }
+
+  protected selectTile(tileUuid: string): void {
+    this.selectedTileUuid.set(tileUuid);
+  }
+
+  protected openTileSettings(tile: DashboardTile): void {
+    this.selectTile(tile.uuid);
+
+    const dialogRef = this.dialog.open<
+      DashboardTileSettingsDialogComponent,
+      { tile: DashboardTile; tabs?: DashboardTab[] },
+      DashboardTileSettingsDialogResult
+    >(DashboardTileSettingsDialogComponent, {
+      data: { tile, tabs: this.draft()?.tabs },
+      width: '480px',
+    });
+
+    dialogRef.afterClosed().subscribe((result) => {
+      if (!result?.tile) {
+        return;
+      }
+
+      this.applyTileUpdate(result.tile, result.moveToTabUuid);
+    });
+  }
+
+  private applyTileUpdate(updatedTile: DashboardTile, moveToTabUuid?: string): void {
+    const current = this.draft();
+    if (!current) {
+      return;
+    }
+
+    let nextTile = updatedTile;
+    if (moveToTabUuid && moveToTabUuid !== updatedTile.tabUuid) {
+      const tabTiles = current.tiles.filter((tile) => tile.tabUuid === moveToTabUuid);
+      const nextY = tabTiles.reduce((max, tile) => Math.max(max, tile.y + tile.h), 0);
+      nextTile = {
+        ...updatedTile,
+        tabUuid: moveToTabUuid,
+        x: 0,
+        y: nextY,
+      };
+    }
+
+    this.draft.set({
+      ...current,
+      tiles: current.tiles.map((tile) =>
+        tile.uuid === nextTile.uuid ? nextTile : tile,
+      ),
+    });
+  }
+
+  protected updateTilePosition(
+    tileUuid: string,
+    position: Partial<DashboardTilePosition>,
+  ): void {
+    const current = this.draft();
+    if (!current) {
+      return;
+    }
+
+    const targetTile = current.tiles.find((tile) => tile.uuid === tileUuid);
+    if (!targetTile) {
+      return;
+    }
+
+    const tabUuid = targetTile.tabUuid;
+    const tabTileIds = new Set(
+      current.tiles
+        .filter((tile) => tile.tabUuid === tabUuid)
+        .map((tile) => tile.uuid),
+    );
+
+    const layoutItems = current.tiles
+      .filter((tile) => tabTileIds.has(tile.uuid))
+      .map((tile) => ({
+        id: tile.uuid,
+        x: tile.x,
+        y: tile.y,
+        w: tile.w,
+        h: tile.h,
+      }));
+
+    const updatedLayout = applyTileLayoutChange(
+      layoutItems,
+      tileUuid,
+      position,
+    );
+    const positionById = new Map(
+      updatedLayout.map((item) => [item.id, item]),
+    );
+
+    this.draft.set({
+      ...current,
+      tiles: current.tiles.map((tile) => {
+        if (!tabTileIds.has(tile.uuid)) {
+          return tile;
+        }
+
+        const next = positionById.get(tile.uuid);
+        if (!next) {
+          return tile;
+        }
+
+        return {
+          ...tile,
+          x: next.x,
+          y: next.y,
+          w: next.w,
+          h: next.h,
+        };
+      }),
     });
   }
 

@@ -21,6 +21,8 @@ const DRAG_THRESHOLD_PX = 4;
 @Directive({
   selector: '[appDashboardTileGridInteraction]',
   host: {
+    '[class.dashboard-view__tile-wrap--dragging]': 'isDragging()',
+    '[class.dashboard-view__tile-wrap--resizing]': 'isResizing()',
     '[class.dashboard-edit__tile-wrap--dragging]': 'isDragging()',
     '[class.dashboard-edit__tile-wrap--resizing]': 'isResizing()',
   },
@@ -52,9 +54,14 @@ export class DashboardTileGridInteractionDirective {
 
     const target = event.target as HTMLElement | null;
     const nonDraggable = target?.closest('.non-draggable');
-    const resizeHandle = target?.closest('.dashboard-edit__tile-resize-handle');
+    const resizeHandle = target?.closest(
+      '.dashboard-view__tile-resize-handle, .dashboard-edit__tile-resize-handle',
+    );
+    const dragHandle = target?.closest(
+      '.dashboard-view__tile-drag-handle, .dashboard-edit__tile-drag-handle',
+    );
 
-    if (nonDraggable && !resizeHandle) {
+    if (nonDraggable && !resizeHandle && !dragHandle) {
       return;
     }
 

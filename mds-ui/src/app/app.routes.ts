@@ -147,10 +147,8 @@ export const routes: Routes = [
       },
       {
         path: 'projects/:projectUuid/dashboards/:dashboardUuid/edit',
-        loadComponent: () =>
-          import(
-            './features/dashboards/dashboard-edit-page/dashboard-edit-page.component'
-          ).then((m) => m.DashboardEditPageComponent),
+        redirectTo: (route) =>
+          `/projects/${route.params['projectUuid']}/dashboards/${route.params['dashboardUuid']}`,
       },
       {
         path: 'projects/:projectUuid/dashboards/:dashboardUuid',

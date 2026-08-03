@@ -3,6 +3,8 @@ import { ActivatedRoute, convertToParamMap } from '@angular/router';
 import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 import { BehaviorSubject, of, throwError } from 'rxjs';
 import { Dashboard } from '../../../core/models/dashboard.model';
+import { ChartService } from '../../charts/chart.service';
+import { ExplorerService } from '../../explorer/explorer.service';
 import { DashboardService } from '../dashboard.service';
 import { DashboardViewPageComponent } from './dashboard-view-page.component';
 
@@ -63,6 +65,19 @@ describe('DashboardViewPageComponent', () => {
       imports: [DashboardViewPageComponent, NoopAnimationsModule],
       providers: [
         { provide: DashboardService, useValue: dashboardServiceSpy },
+        {
+          provide: ChartService,
+          useValue: jasmine.createSpyObj<ChartService>('ChartService', {
+            list: of([]),
+          }),
+        },
+        {
+          provide: ExplorerService,
+          useValue: {
+            listExplores: () => of([]),
+            getExplore: () => of({}),
+          },
+        },
         {
           provide: ActivatedRoute,
           useValue: { paramMap: paramMap$.asObservable() },

@@ -21,7 +21,7 @@ function tilesCollide(a: TilePosition, b: TilePosition): boolean {
 
 async function readTilePositions(page: Page): Promise<TilePosition[]> {
   return page.evaluate(() => {
-    return [...document.querySelectorAll('.dashboard-edit__tile-wrap')].map((element) => {
+    return [...document.querySelectorAll('.dashboard-view__tile-wrap')].map((element) => {
       const style = getComputedStyle(element);
       return {
         x: Number.parseInt(style.getPropertyValue('--tile-x'), 10),
@@ -53,10 +53,10 @@ async function dragTileHandle(
   await page.evaluate(
     ({ index, deltaX, deltaY }) => {
       const handles = [
-        ...document.querySelectorAll<HTMLElement>('.dashboard-edit__tile-drag-handle'),
+        ...document.querySelectorAll<HTMLElement>('.dashboard-view__tile-drag-handle'),
       ];
       const handle = handles[index];
-      const wrap = handle?.closest<HTMLElement>('.dashboard-edit__tile-wrap');
+      const wrap = handle?.closest<HTMLElement>('.dashboard-view__tile-wrap');
       if (!handle || !wrap) {
         throw new Error('Tile drag handle not found');
       }
@@ -103,10 +103,8 @@ test('dragging a tile over another rearranges without overlap and persists on sa
   page,
 }) => {
   await page.goto(
-    `/projects/${PROJECT_UUID}/dashboards/${DASHBOARD_UUID}/edit`,
+    `/projects/${PROJECT_UUID}/dashboards/${DASHBOARD_UUID}`,
   );
-
-  await expect(page.getByRole('button', { name: 'Save' })).toBeVisible();
 
   const before = await readTilePositions(page);
   expect(before.length).toBeGreaterThan(1);
@@ -118,28 +116,14 @@ test('dragging a tile over another rearranges without overlap and persists on sa
   expect(layoutHasOverlaps(afterDrag)).toBe(false);
   expect(afterDrag).not.toEqual(before);
 
+  await expect(page.getByRole('button', { name: 'Save' })).toBeVisible();
   await page.getByRole('button', { name: 'Save' }).click();
+  await page.getByRole('dialog').getByRole('button', { name: 'Save' }).click();
 
-  await expect(page).toHaveURL(
-    new RegExp(`/projects/${PROJECT_UUID}/dashboards/${DASHBOARD_UUID}$`),
-  );
-  await expect(page.locator('.dashboard-view__grid .dashboard-tile')).toHaveCount(
-    afterDrag.length,
-  );
+  await expect(page.getByRole('button', { name: 'Save' })).toHaveCount(0);
+  await expect(page.locator('.dashboard-view__tile-wrap')).toHaveCount(afterDrag.length);
 
-  const afterSave = await page.evaluate(() => {
-    return [...document.querySelectorAll('.dashboard-view__grid .dashboard-tile')].map(
-      (element) => {
-      const style = getComputedStyle(element);
-      return {
-        x: Number.parseInt(style.getPropertyValue('--tile-x'), 10),
-        y: Number.parseInt(style.getPropertyValue('--tile-y'), 10),
-        w: Number.parseInt(style.getPropertyValue('--tile-w'), 10),
-        h: Number.parseInt(style.getPropertyValue('--tile-h'), 10),
-      };
-    },
-    );
-  });
+  const afterSave = await readTilePositions(page);
 
   expect(afterSave.length).toBe(afterDrag.length);
   expect(layoutHasOverlaps(afterSave)).toBe(false);
