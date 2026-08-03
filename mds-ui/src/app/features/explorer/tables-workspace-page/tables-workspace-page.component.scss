@@ -102,12 +102,14 @@
 .tables-workspace__run-btn {
   height: 32px;
   min-width: 32px;
+  flex-shrink: 0;
   font-size: var(--ld-font-size-sm);
 
   .mdc-button__label {
     display: inline-flex;
     align-items: center;
     gap: 4px;
+    white-space: nowrap;
   }
 
   mat-icon,
@@ -116,6 +118,7 @@
     height: 16px;
     font-size: 16px;
     margin: 0;
+    flex-shrink: 0;
   }
 }
 
@@ -123,6 +126,10 @@
   padding: 0 12px;
   border-color: var(--ld-gray-3) !important;
   color: var(--ld-gray-7) !important;
+}
+
+.tables-workspace__toolbar-btn-label {
+  white-space: nowrap;
 }
 
 .tables-workspace__run-btn {
@@ -134,7 +141,8 @@
   &[disabled] { opacity: 0.5; }
 }
 
-@container tables-workspace-main (max-width: 560px) {
+/* Collapse labels to icons before text would wrap or squeeze the toolbar. */
+@container tables-workspace-main (max-width: 900px) {
   .tables-workspace__toolbar {
     gap: var(--ld-spacing-xs);
     padding-inline: var(--ld-spacing-sm);

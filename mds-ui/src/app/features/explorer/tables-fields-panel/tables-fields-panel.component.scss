@@ -242,6 +242,7 @@
   display: inline-flex;
   align-items: center;
   gap: 2px;
+  flex-shrink: 0;
   padding: 0;
   border: none;
   background: transparent;
@@ -250,6 +251,7 @@
   font-size: 11px;
   font-weight: 500;
   text-transform: none;
+  white-space: nowrap;
   cursor: default;
   opacity: 0.6;
 
@@ -257,6 +259,16 @@
     width: 14px;
     height: 14px;
     font-size: 14px;
+  }
+
+  &:not(:disabled) {
+    cursor: pointer;
+    opacity: 1;
+    color: var(--ld-gray-7);
+
+    &:hover {
+      color: var(--ld-blue-6);
+    }
   }
 }
 
