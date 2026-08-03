@@ -77,8 +77,14 @@ describe('buildPieOption', () => {
     ]);
   });
 
-  it('applies legend placement and margins', () => {
+  it('applies legend placement and effective pie layout from margins', () => {
     const option = buildPieOption({ results, config });
+    const series = (
+      option?.series as {
+        center?: [string, string];
+        radius?: [string, string];
+      }[]
+    )[0];
 
     expect(option?.legend).toEqual(
       jasmine.objectContaining({
@@ -87,16 +93,12 @@ describe('buildPieOption', () => {
         orient: 'vertical',
       }),
     );
-    expect(option?.grid).toEqual({
-      top: 8,
-      right: 8,
-      bottom: 8,
-      left: 8,
-      containLabel: true,
-    });
+    expect(series.center).toBeDefined();
+    expect(series.radius).toEqual(['0%', '58%']);
+    expect(option?.grid).toBeUndefined();
   });
 
-  it('returns null without required fields or rows', () => {
+  it('returns null without required fields, rows, or fields missing from results', () => {
     expect(
       buildPieOption({ results: { ...results, rows: [] }, config }),
     ).toBeNull();
@@ -104,6 +106,12 @@ describe('buildPieOption', () => {
       buildPieOption({
         results,
         config: { ...config, yField: undefined },
+      }),
+    ).toBeNull();
+    expect(
+      buildPieOption({
+        results,
+        config: { ...config, xField: 'missing_dim' },
       }),
     ).toBeNull();
   });

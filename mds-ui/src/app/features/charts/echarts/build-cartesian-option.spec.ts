@@ -101,7 +101,7 @@ describe('buildCartesianOption', () => {
     expect((option?.series as { data?: number[] }[])[0].data).toEqual([12, 30]);
   });
 
-  it('builds one line series per y field with the line default color', () => {
+  it('builds one line series per y field with distinct colors', () => {
     const comparisonField = {
       fieldId: 'orders_average',
       fieldType: 'metric' as const,
@@ -142,10 +142,11 @@ describe('buildCartesianOption', () => {
     expect(series.length).toBe(2);
     expect(series[0].type).toBe('line');
     expect(series[0].itemStyle?.color).toBe('#e67700');
+    expect(series[1].itemStyle?.color).not.toBe(series[0].itemStyle?.color);
     expect(series[0].areaStyle).toBeUndefined();
   });
 
-  it('flips axes, applies percent stacking, labels, margins, and legend placement', () => {
+  it('flips axes and keeps dimension/metric titles on the correct physical axes', () => {
     const option = buildCartesianOption({
       results,
       config: {
@@ -172,23 +173,27 @@ describe('buildCartesianOption', () => {
     expect((option?.xAxis as { type?: string; max?: number }).type).toBe(
       'value',
     );
-    expect((option?.xAxis as { max?: number }).max).toBe(100);
+    expect((option?.xAxis as { max?: number; name?: string }).max).toBe(100);
+    expect((option?.xAxis as { name?: string }).name).toBe('Order total');
     expect((option?.yAxis as { type?: string; data?: string[] }).type).toBe(
       'category',
     );
+    expect((option?.yAxis as { name?: string }).name).toBe('Order status');
     expect((option?.yAxis as { data?: string[] }).data).toEqual([
       'New',
       'Shipped',
     ]);
     expect(series.stack).toBe('stack');
     expect(series.label?.show).toBeTrue();
-    expect(option?.grid).toEqual({
-      top: 10,
-      right: 20,
-      bottom: 30,
-      left: 40,
-      containLabel: true,
-    });
+    expect(option?.grid).toEqual(
+      jasmine.objectContaining({
+        top: 10,
+        right: 20,
+        bottom: 30,
+        left: 96,
+        containLabel: true,
+      }),
+    );
     expect(option?.legend).toEqual(
       jasmine.objectContaining({
         show: true,
@@ -198,7 +203,7 @@ describe('buildCartesianOption', () => {
     );
   });
 
-  it('returns null without required fields or rows', () => {
+  it('returns null without required fields, rows, or fields missing from results', () => {
     expect(
       buildCartesianOption({
         results: { ...results, rows: [] },
@@ -212,6 +217,16 @@ describe('buildCartesianOption', () => {
         config: {
           ...config,
           layout: { ...config.layout, xField: undefined },
+        },
+        chartKind: 'vertical_bar',
+      }),
+    ).toBeNull();
+    expect(
+      buildCartesianOption({
+        results,
+        config: {
+          ...config,
+          layout: { ...config.layout, xField: 'missing_dim' },
         },
         chartKind: 'vertical_bar',
       }),

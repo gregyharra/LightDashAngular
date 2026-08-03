@@ -6,7 +6,7 @@ import {
 } from '../../../core/models/chart.model';
 import { FieldId, QueryResults } from '../../../core/models/explore.model';
 
-const SERIES_COLORS = ['#7262ff', '#e67700', '#12b886'];
+const SERIES_COLORS = ['#7262ff', '#e67700', '#12b886', '#5c7cfa', '#fab005'];
 
 const DEFAULT_COLOR_BY_KIND: Record<BuildCartesianArgs['chartKind'], string> = {
   vertical_bar: '#7262ff',
@@ -48,6 +48,40 @@ function buildLegend(
   return { show, left: 'center', top: 'top', orient: 'horizontal' };
 }
 
+function seriesColorAt(
+  index: number,
+  primary: string,
+  palette: string[],
+): string {
+  if (index === 0) {
+    return primary;
+  }
+
+  const others = palette.filter((color) => color !== primary);
+  const pool = others.length > 0 ? others : palette;
+  return pool[(index - 1) % pool.length];
+}
+
+function legendAwareMargins(
+  margins: CartesianChartConfigBody['margins'],
+  showLegend: boolean,
+  placement: ChartLegendPlacement,
+): CartesianChartConfigBody['margins'] {
+  if (!showLegend) {
+    return { ...margins };
+  }
+
+  if (placement === 'outside-left') {
+    return { ...margins, left: Math.max(margins.left, 96) };
+  }
+
+  if (placement === 'outside-right') {
+    return { ...margins, right: Math.max(margins.right, 96) };
+  }
+
+  return { ...margins, top: Math.max(margins.top, 40) };
+}
+
 export function buildCartesianOption({
   results,
   config,
@@ -59,21 +93,23 @@ export function buildCartesianOption({
     return null;
   }
 
+  if (
+    !results.fields[xField] ||
+    yFields.some((fieldId) => !results.fields[fieldId])
+  ) {
+    return null;
+  }
+
   const horizontal = config.layout.flipAxes || chartKind === 'horizontal_bar';
   const stacked =
     config.layout.stackMode === 'stack' ||
     config.layout.stackMode === 'percent';
   const labels = results.rows.map((row) => row[xField]?.value.formatted ?? '');
   const seriesType = chartKind === 'line' ? 'line' : 'bar';
-  const defaultColor = DEFAULT_COLOR_BY_KIND[chartKind];
+  const primaryColor = config.seriesColor ?? DEFAULT_COLOR_BY_KIND[chartKind];
 
   const series: SeriesOption[] = yFields.map((fieldId, index) => {
-    const color =
-      index === 0 && config.seriesColor
-        ? config.seriesColor
-        : index === 0
-          ? defaultColor
-          : SERIES_COLORS[index % SERIES_COLORS.length];
+    const color = seriesColorAt(index, primaryColor, SERIES_COLORS);
     const base = {
       name: fieldLabel(results, fieldId),
       type: seriesType,
@@ -96,18 +132,21 @@ export function buildCartesianOption({
 
   const dimensionLabel = fieldLabel(results, xField);
   const metricLabel = fieldLabel(results, yFields[0]);
-  const xAxisName = dashboardMode
-    ? undefined
-    : config.layout.xAxisLabel || (horizontal ? metricLabel : dimensionLabel);
-  const yAxisName = dashboardMode
-    ? undefined
-    : config.layout.yAxisLabel || (horizontal ? dimensionLabel : metricLabel);
+  const dimensionTitle = config.layout.xAxisLabel || dimensionLabel;
+  const metricTitle = config.layout.yAxisLabel || metricLabel;
+  const categoryAxisName = dashboardMode ? undefined : dimensionTitle;
+  const valueAxisName = dashboardMode ? undefined : metricTitle;
   const valueAxisMax = config.layout.stackMode === 'percent' ? 100 : undefined;
+  const gridMargins = legendAwareMargins(
+    config.margins,
+    config.showLegend,
+    config.legendPlacement,
+  );
 
   return {
     color: SERIES_COLORS,
     grid: {
-      ...config.margins,
+      ...gridMargins,
       containLabel: true,
     },
     legend: buildLegend(config.showLegend, config.legendPlacement),
@@ -115,14 +154,14 @@ export function buildCartesianOption({
     xAxis: horizontal
       ? {
           type: 'value',
-          name: xAxisName,
+          name: valueAxisName,
           show: config.layout.showXAxis,
           max: valueAxisMax,
           splitLine: { show: config.layout.showGridX },
         }
       : {
           type: 'category',
-          name: xAxisName,
+          name: categoryAxisName,
           show: config.layout.showXAxis,
           data: labels,
           splitLine: { show: config.layout.showGridX },
@@ -131,14 +170,14 @@ export function buildCartesianOption({
     yAxis: horizontal
       ? {
           type: 'category',
-          name: yAxisName,
+          name: categoryAxisName,
           show: config.layout.showYAxis,
           data: labels,
           splitLine: { show: config.layout.showGridY },
         }
       : {
           type: 'value',
-          name: yAxisName,
+          name: valueAxisName,
           show: config.layout.showYAxis,
           max: valueAxisMax,
           splitLine: { show: config.layout.showGridY },
