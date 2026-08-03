@@ -52,15 +52,14 @@
             <span class="charts-list__breadcrumb-current">All charts</span>
           </nav>
 
-          <button
+          <a
             mat-flat-button
             class="charts-list__create-btn"
-            type="button"
-            (click)="openCreatePage()"
+            [routerLink]="['/projects', projectUuid(), 'charts', 'new']"
           >
             <mat-icon>add</mat-icon>
             Create chart
-          </button>
+          </a>
         </header>
 
         <h1 class="charts-list__title">Charts</h1>
@@ -75,15 +74,14 @@
           <div class="charts-list__empty">
             <mat-icon>bar_chart</mat-icon>
             <p>No charts yet.</p>
-            <button
+            <a
               mat-flat-button
               class="charts-list__create-btn"
-              type="button"
-              (click)="openCreatePage()"
+              [routerLink]="['/projects', projectUuid(), 'charts', 'new']"
             >
               <mat-icon>add</mat-icon>
               Create chart
-            </button>
+            </a>
           </div>
         } @else {
           <app-content-list-filter-chips
@@ -168,7 +166,7 @@
                     class="charts-list__row"
                     tabindex="0"
                     role="link"
-                    (click)="openChart(chart.uuid)"
+                    [routerLink]="['/projects', projectUuid(), 'charts', chart.uuid]"
                     (keydown.enter)="openChart(chart.uuid)"
                   >
                     <td>
