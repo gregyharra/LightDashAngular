@@ -1,4 +1,4 @@
-import { Component, HostListener, computed, inject, OnInit, signal } from '@angular/core';
+import { Component, computed, inject, OnInit } from '@angular/core';
 import { RouterLink, RouterOutlet } from '@angular/router';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
@@ -9,6 +9,7 @@ import { ProjectsService } from '../../features/projects/projects.service';
 import { AiAssistantPanelComponent } from '../../features/ai/ai-assistant-panel/ai-assistant-panel.component';
 import { AiAssistantUiService } from '../../features/ai/ai-assistant-ui.service';
 import { NavbarProjectSwitcherComponent } from '../navbar/navbar-project-switcher.component';
+import { NavbarSearchComponent } from '../navbar/navbar-search.component';
 import { NavbarUserMenuComponent } from '../navbar/navbar-user-menu.component';
 
 @Component({
@@ -21,6 +22,7 @@ import { NavbarUserMenuComponent } from '../navbar/navbar-user-menu.component';
     MatMenuModule,
     NavbarUserMenuComponent,
     NavbarProjectSwitcherComponent,
+    NavbarSearchComponent,
     AiAssistantPanelComponent,
   ],
   templateUrl: './app-shell.component.html',
@@ -28,7 +30,6 @@ import { NavbarUserMenuComponent } from '../navbar/navbar-user-menu.component';
 })
 export class AppShellComponent implements OnInit {
   protected readonly activeProjectService = inject(ActiveProjectService);
-  protected readonly searchExpanded = signal(false);
   private readonly projectsService = inject(ProjectsService);
   private readonly aiUi = inject(AiAssistantUiService);
   private readonly appState = inject(AppStateService);
@@ -37,32 +38,11 @@ export class AppShellComponent implements OnInit {
     () => this.appState.health()?.askAiEnabled === true,
   );
 
-  protected searchPlaceholder(projectName: string): string {
-    if (typeof window !== 'undefined' && window.matchMedia('(max-width: 720px)').matches) {
-      return 'Search';
-    }
-
-    return `Search ${projectName}`;
-  }
-
-  protected toggleSearchExpanded(): void {
-    this.searchExpanded.update((expanded) => !expanded);
-  }
-
-  protected closeSearchExpanded(): void {
-    this.searchExpanded.set(false);
-  }
-
   protected openAiAssistant(): void {
     if (!this.askAiEnabled()) {
       return;
     }
     this.aiUi.openPanel();
-  }
-
-  @HostListener('document:keydown.escape')
-  protected onEscapeKey(): void {
-    this.closeSearchExpanded();
   }
 
   ngOnInit(): void {

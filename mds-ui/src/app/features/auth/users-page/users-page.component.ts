@@ -13,7 +13,20 @@ import { MatInputModule } from '@angular/material/input';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatSelectModule } from '@angular/material/select';
 import { MatTableModule } from '@angular/material/table';
-import { AuthService, CreateUserPayload, ManagedUser } from '../../../core/services/auth.service';
+import { apiErrorMessage } from '../../../core/api/lightdash-api.service';
+import {
+  AuthService,
+  CreateUserPayload,
+  ManagedUser,
+  UpdateUserPayload,
+} from '../../../core/services/auth.service';
+
+type UserFormValue = {
+  email: string;
+  firstName: string;
+  lastName: string;
+  role: 'admin' | 'member';
+};
 
 @Component({
   selector: 'app-create-user-dialog',
@@ -86,6 +99,80 @@ export class CreateUserDialogComponent {
     firstName: ['', Validators.required],
     lastName: ['', Validators.required],
     role: this.fb.nonNullable.control<'admin' | 'member'>('member'),
+  });
+
+  protected save(): void {
+    if (this.form.invalid) {
+      return;
+    }
+    this.dialogRef.close(this.form.getRawValue());
+  }
+}
+
+@Component({
+  selector: 'app-edit-user-dialog',
+  imports: [
+    ReactiveFormsModule,
+    MatButtonModule,
+    MatDialogModule,
+    MatFormFieldModule,
+    MatInputModule,
+    MatSelectModule,
+  ],
+  template: `
+    <h2 mat-dialog-title>Edit user</h2>
+    <mat-dialog-content>
+      <form class="dialog-form" [formGroup]="form">
+        <mat-form-field appearance="outline">
+          <mat-label>Email</mat-label>
+          <input matInput type="email" formControlName="email" />
+        </mat-form-field>
+        <mat-form-field appearance="outline">
+          <mat-label>First name</mat-label>
+          <input matInput formControlName="firstName" />
+        </mat-form-field>
+        <mat-form-field appearance="outline">
+          <mat-label>Last name</mat-label>
+          <input matInput formControlName="lastName" />
+        </mat-form-field>
+        <mat-form-field appearance="outline">
+          <mat-label>Role</mat-label>
+          <mat-select formControlName="role">
+            <mat-option value="member">Member</mat-option>
+            <mat-option value="admin">Admin</mat-option>
+          </mat-select>
+        </mat-form-field>
+      </form>
+    </mat-dialog-content>
+    <mat-dialog-actions align="end">
+      <button mat-button type="button" mat-dialog-close>Cancel</button>
+      <button mat-flat-button color="primary" type="button" (click)="save()" [disabled]="form.invalid">
+        Save
+      </button>
+    </mat-dialog-actions>
+  `,
+  styles: `
+    .dialog-form {
+      display: flex;
+      flex-direction: column;
+      gap: 0.25rem;
+      min-width: min(100%, 22rem);
+      padding-top: 0.25rem;
+    }
+  `,
+})
+export class EditUserDialogComponent {
+  private readonly fb = inject(FormBuilder);
+  private readonly dialogRef = inject(MatDialogRef<EditUserDialogComponent, UserFormValue>);
+  private readonly data = inject<ManagedUser>(MAT_DIALOG_DATA);
+
+  protected readonly form = this.fb.nonNullable.group({
+    email: [this.data.email, [Validators.required, Validators.email]],
+    firstName: [this.data.firstName, Validators.required],
+    lastName: [this.data.lastName, Validators.required],
+    role: this.fb.nonNullable.control<'admin' | 'member'>(
+      this.data.role === 'admin' ? 'admin' : 'member',
+    ),
   });
 
   protected save(): void {
@@ -211,13 +298,16 @@ export class UsersPageComponent implements OnInit {
       },
       error: (err: unknown) => {
         this.loading.set(false);
-        this.error.set(this.messageFromError(err));
+        this.error.set(apiErrorMessage(err, 'Failed to load users'));
       },
     });
   }
 
   protected openCreate(): void {
-    const ref = this.dialog.open(CreateUserDialogComponent, { width: '28rem' });
+    const ref = this.dialog.open(CreateUserDialogComponent, {
+      width: '28rem',
+      panelClass: 'user-form-dialog-panel',
+    });
     ref.afterClosed().subscribe((value: CreateUserPayload | undefined) => {
       if (!value) {
         return;
@@ -232,7 +322,33 @@ export class UsersPageComponent implements OnInit {
             temporaryPassword: created.temporaryPassword ?? '',
           });
         },
-        error: (err: unknown) => this.error.set(this.messageFromError(err)),
+        error: (err: unknown) => this.error.set(apiErrorMessage(err, 'Failed to create user')),
+      });
+    });
+  }
+
+  protected openEdit(user: ManagedUser): void {
+    const ref = this.dialog.open(EditUserDialogComponent, {
+      width: '28rem',
+      panelClass: 'user-form-dialog-panel',
+      data: user,
+    });
+    ref.afterClosed().subscribe((value: UserFormValue | undefined) => {
+      if (!value) {
+        return;
+      }
+      const patch: UpdateUserPayload = {
+        email: value.email,
+        firstName: value.firstName,
+        lastName: value.lastName,
+        role: value.role,
+      };
+      this.auth.updateUser(user.userUuid, patch).subscribe({
+        next: () => {
+          this.error.set(null);
+          this.reload();
+        },
+        error: (err: unknown) => this.error.set(apiErrorMessage(err, 'Failed to update user')),
       });
     });
   }
@@ -255,7 +371,7 @@ export class UsersPageComponent implements OnInit {
           temporaryPassword: updated.temporaryPassword ?? '',
         });
       },
-      error: (err: unknown) => this.error.set(this.messageFromError(err)),
+      error: (err: unknown) => this.error.set(apiErrorMessage(err, 'Failed to reset password')),
     });
   }
 
@@ -265,7 +381,7 @@ export class UsersPageComponent implements OnInit {
     }
     this.auth.deactivateUser(user.userUuid).subscribe({
       next: () => this.reload(),
-      error: (err: unknown) => this.error.set(this.messageFromError(err)),
+      error: (err: unknown) => this.error.set(apiErrorMessage(err, 'Failed to deactivate user')),
     });
   }
 
@@ -283,17 +399,5 @@ export class UsersPageComponent implements OnInit {
       disableClose: true,
       data,
     });
-  }
-
-  private messageFromError(err: unknown): string {
-    if (
-      typeof err === 'object' &&
-      err &&
-      'error' in err &&
-      typeof (err as { error?: { message?: string } }).error?.message === 'string'
-    ) {
-      return (err as { error: { message: string } }).error.message;
-    }
-    return 'Request failed';
   }
 }

@@ -264,6 +264,19 @@ def update_user(
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
 
+    if body.email is not None:
+        email = _normalize_email(body.email)
+        if not email or "@" not in email:
+            raise HTTPException(status_code=400, detail="Valid email is required")
+        existing = (
+            db.query(User)
+            .filter(User.email == email, User.uuid != user.uuid)
+            .one_or_none()
+        )
+        if existing:
+            raise HTTPException(status_code=409, detail="A user with this email already exists")
+        user.email = email
+
     if body.first_name is not None:
         name = body.first_name.strip()
         if not name:

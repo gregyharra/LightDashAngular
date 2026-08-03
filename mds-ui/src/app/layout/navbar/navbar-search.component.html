@@ -1,0 +1,120 @@
+@if (activeProjectService.activeProject(); as project) {
+  <div
+    class="navbar-search"
+    [class.navbar-search--expanded]="searchExpanded()"
+  >
+    <button
+      type="button"
+      class="navbar-search__mobile-toggle"
+      (click)="toggleSearchExpanded()"
+      [attr.aria-expanded]="searchExpanded()"
+      aria-label="Search project"
+    >
+      <mat-icon>search</mat-icon>
+    </button>
+
+    <div class="navbar-search__field">
+      <mat-icon class="navbar-search__icon">search</mat-icon>
+      <input
+        #searchInput
+        type="search"
+        class="navbar-search__input"
+        [ngModel]="query()"
+        (ngModelChange)="onQueryInput($event)"
+        (focus)="onFocus()"
+        (keydown)="onKeydown($event)"
+        [placeholder]="searchPlaceholder(project.name)"
+        aria-label="Search project"
+        autocomplete="off"
+        role="combobox"
+        [attr.aria-expanded]="open()"
+        aria-autocomplete="list"
+        [attr.aria-controls]="open() ? 'navbar-search-results' : null"
+        [attr.aria-activedescendant]="
+          open() && activeIndex() >= 0 ? 'navbar-search-option-' + activeIndex() : null
+        "
+      />
+      @if (loading()) {
+        <mat-spinner class="navbar-search__spinner" diameter="14"></mat-spinner>
+      }
+    </div>
+
+    @if (searchExpanded()) {
+      <button
+        type="button"
+        class="navbar-search__close"
+        (click)="closeSearchExpanded()"
+        aria-label="Close search"
+      >
+        <mat-icon>close</mat-icon>
+      </button>
+    }
+  </div>
+
+  @if (searchExpanded()) {
+    <button
+      type="button"
+      class="navbar-search__backdrop"
+      (click)="closeSearchExpanded()"
+      aria-label="Close search"
+    ></button>
+  }
+
+  @if (open()) {
+    <div
+      #resultsPanel
+      id="navbar-search-results"
+      class="navbar-search__panel"
+      role="listbox"
+      [ngStyle]="panelStyle()"
+    >
+      @if (loading() && flatResults().length === 0) {
+        <div class="navbar-search__status">Searching…</div>
+      } @else if (showEmpty()) {
+        <div class="navbar-search__status">No matches</div>
+      } @else {
+        @for (group of groups(); track group.kind) {
+          <div class="navbar-search__group-label">{{ group.label }}</div>
+          @for (result of group.results; track result.id) {
+            <button
+              type="button"
+              class="navbar-search__item"
+              role="option"
+              [id]="'navbar-search-option-' + flatIndexOf(result)"
+              [class.navbar-search__item--active]="isActive(result)"
+              [attr.aria-selected]="isActive(result)"
+              (mouseenter)="setActiveFromPointer(result)"
+              (mousedown)="$event.preventDefault()"
+              (click)="selectResult(result)"
+            >
+              <mat-icon class="navbar-search__item-icon">{{ result.icon }}</mat-icon>
+              <span class="navbar-search__item-text">
+                <span class="navbar-search__item-title">{{ result.title }}</span>
+                @if (result.chips.length > 0) {
+                  <span class="navbar-search__chips">
+                    @for (chip of result.chips; track chip.label + (chip.transformationType ?? '')) {
+                      @if (chip.transformationType; as transformType) {
+                        <app-transformation-chip
+                          [type]="transformType"
+                          mode="full"
+                          size="sm"
+                        />
+                      } @else {
+                        <span class="navbar-search__chip" [attr.title]="chip.label">{{
+                          chip.label
+                        }}</span>
+                      }
+                    }
+                  </span>
+                }
+                @if (result.subtitle) {
+                  <span class="navbar-search__item-subtitle">{{ result.subtitle }}</span>
+                }
+              </span>
+            </button>
+          }
+        }
+      }
+    </div>
+  }
+}

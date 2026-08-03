@@ -27,17 +27,30 @@
 }
 
 .users__loading,
-.users__error {
+.users__error,
+.users__empty {
   padding: 2rem 0;
 }
 
 .users__error {
   color: #b3261e;
+  padding-bottom: 1rem;
+}
+
+.users {
+  min-width: 0;
+  overflow-x: clip;
+}
+
+.users__table-wrap {
+  width: 100%;
+  min-width: 0;
+  overflow-x: auto;
 }
 
 .users__table {
   width: 100%;
-  overflow-x: auto;
+  min-width: 40rem;
 }
 
 .users__actions-cell {

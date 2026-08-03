@@ -36,6 +36,16 @@ export type CreateUserPayload = {
   password?: string;
 };
 
+export type UpdateUserPayload = {
+  email?: string;
+  firstName?: string;
+  lastName?: string;
+  role?: 'admin' | 'member';
+  isActive?: boolean;
+  password?: string;
+  resetPassword?: boolean;
+};
+
 @Injectable({ providedIn: 'root' })
 export class AuthService {
   private readonly api = inject(LightdashApiService);
@@ -80,17 +90,7 @@ export class AuthService {
     return this.api.post<ManagedUser>('/users', payload);
   }
 
-  updateUser(
-    userUuid: string,
-    patch: Partial<{
-      firstName: string;
-      lastName: string;
-      role: 'admin' | 'member';
-      isActive: boolean;
-      password: string;
-      resetPassword: boolean;
-    }>,
-  ): Observable<ManagedUser> {
+  updateUser(userUuid: string, patch: UpdateUserPayload): Observable<ManagedUser> {
     return this.api.patch<ManagedUser>(`/users/${userUuid}`, patch);
   }
 

@@ -110,50 +110,8 @@
       }
     </div>
 
-    @if (activeProjectService.activeProject(); as project) {
-      <div
-        class="shell__search"
-        [class.shell__search--expanded]="searchExpanded()"
-      >
-        <button
-          type="button"
-          class="shell__search-mobile-toggle"
-          (click)="toggleSearchExpanded()"
-          [attr.aria-expanded]="searchExpanded()"
-          aria-label="Search project"
-        >
-          <mat-icon>search</mat-icon>
-        </button>
-        <div class="shell__search-field">
-          <mat-icon class="shell__search-icon">search</mat-icon>
-          <input
-            type="search"
-            class="shell__search-input"
-            [placeholder]="searchPlaceholder(project.name)"
-            aria-label="Search project"
-            disabled
-          />
-          <span class="shell__search-shortcut">⌘+K</span>
-        </div>
-        @if (searchExpanded()) {
-          <button
-            type="button"
-            class="shell__search-close"
-            (click)="closeSearchExpanded()"
-            aria-label="Close search"
-          >
-            <mat-icon>close</mat-icon>
-          </button>
-        }
-      </div>
-      @if (searchExpanded()) {
-        <button
-          type="button"
-          class="shell__search-backdrop"
-          (click)="closeSearchExpanded()"
-          aria-label="Close search"
-        ></button>
-      }
+    @if (activeProjectService.activeProject()) {
+      <app-navbar-search />
     } @else {
       <div class="shell__navbar-spacer"></div>
     }

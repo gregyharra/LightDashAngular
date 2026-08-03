@@ -192,6 +192,72 @@ def test_cannot_deactivate_last_admin():
         assert delete.status_code == 400
 
 
+def test_admin_can_update_user_profile_and_email():
+    with TestClient(app) as client:
+        client.post(
+            "/api/v1/setup",
+            json={
+                "email": "admin@example.com",
+                "firstName": "Ada",
+                "lastName": "Admin",
+                "password": "admin-password-1",
+            },
+        )
+        created = client.post(
+            "/api/v1/users",
+            json={
+                "email": "member@example.com",
+                "firstName": "Moe",
+                "lastName": "Member",
+                "role": "member",
+            },
+        )
+        assert created.status_code == 200, created.text
+        member_uuid = created.json()["results"]["userUuid"]
+
+        updated = client.patch(
+            f"/api/v1/users/{member_uuid}",
+            json={
+                "email": "  New.Member@Example.com ",
+                "firstName": "Moira",
+                "lastName": "Membersmith",
+                "role": "admin",
+            },
+        )
+        assert updated.status_code == 200, updated.text
+        body = updated.json()["results"]
+        assert body["email"] == "new.member@example.com"
+        assert body["firstName"] == "Moira"
+        assert body["lastName"] == "Membersmith"
+        assert body["role"] == "admin"
+
+        conflict = client.patch(
+            f"/api/v1/users/{member_uuid}",
+            json={"email": "admin@example.com"},
+        )
+        assert conflict.status_code == 409
+
+
+def test_cannot_demote_last_admin():
+    with TestClient(app) as client:
+        setup = client.post(
+            "/api/v1/setup",
+            json={
+                "email": "admin@example.com",
+                "firstName": "Ada",
+                "lastName": "Admin",
+                "password": "admin-password-1",
+            },
+        )
+        admin_uuid = setup.json()["results"]["userUuid"]
+        demote = client.patch(
+            f"/api/v1/users/{admin_uuid}",
+            json={"role": "member"},
+        )
+        assert demote.status_code == 400
+        assert "last active admin" in demote.json()["error"]["message"].lower()
+
+
 def test_admin_create_user_generates_temporary_password():
     with TestClient(app) as client:
         client.post(
