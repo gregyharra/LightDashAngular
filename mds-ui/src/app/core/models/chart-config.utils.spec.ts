@@ -1,7 +1,9 @@
 import {
   applyChartKindChange,
+  applyChartPanelPatch,
   chartKindFromConfig,
   chartTypeFromKind,
+  getValidChartConfig,
   toChartPanelView,
 } from './chart-config.utils';
 import { normalizeChartConfig } from './chart.model';
@@ -52,5 +54,29 @@ describe('chart-config.utils', () => {
     expect(view.xField).toBe('a');
     expect(view.yFields).toEqual(['b']);
     expect(view.displayConfig.showLegend).toBe(false);
+  });
+
+  it('applyChartPanelPatch keeps line kind when full displayConfig includes flipAxes', () => {
+    const line = normalizeChartConfig({
+      type: 'line',
+      xField: 'a',
+      yField: 'b',
+      displayConfig: { showLegend: true, flipAxes: false },
+    });
+    const view = toChartPanelView(line);
+    const patched = applyChartPanelPatch(line, view.displayConfig);
+    expect(chartKindFromConfig(patched)).toBe('line');
+    expect(patched.type).toBe('cartesian');
+    if (patched.type === 'cartesian') {
+      expect(patched.config.layout.cartesianKind).toBe('line');
+    }
+  });
+
+  it('getValidChartConfig rejects mismatched cache entry', () => {
+    const pie = normalizeChartConfig({ type: 'pie', xField: 'a', yField: 'b' });
+    const defaultTable = getValidChartConfig('table');
+    const restored = getValidChartConfig('table', { table: pie });
+    expect(restored.type).toBe('table');
+    expect(restored).toEqual(defaultTable);
   });
 });

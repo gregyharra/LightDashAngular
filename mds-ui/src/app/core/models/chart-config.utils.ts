@@ -135,7 +135,7 @@ export function getValidChartConfig(
   }
 
   const cached = cache[type];
-  if (cached) {
+  if (cached?.type === type) {
     return cloneChartConfig(cached);
   }
 
@@ -269,7 +269,8 @@ export function applyChartPanelPatch(
       }
       if (flipAxes !== undefined) {
         layout.flipAxes = flipAxes;
-        if (layout.cartesianKind) {
+        const kind = layout.cartesianKind ?? cartesianKindFromLayout(layout);
+        if (kind === 'vertical_bar' || kind === 'horizontal_bar') {
           layout.cartesianKind = flipAxes ? 'horizontal_bar' : 'vertical_bar';
         }
       }
