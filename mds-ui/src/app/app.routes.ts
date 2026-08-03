@@ -6,6 +6,7 @@ import {
   resetPasswordGuard,
   setupGuard,
 } from './core/guards/auth.guard';
+import { canDeactivateGuard } from './core/guards/can-deactivate.guard';
 import { AppShellComponent } from './layout/app-shell/app-shell.component';
 
 export const routes: Routes = [
@@ -153,6 +154,7 @@ export const routes: Routes = [
       },
       {
         path: 'projects/:projectUuid/dashboards/:dashboardUuid',
+        canDeactivate: [canDeactivateGuard],
         loadComponent: () =>
           import(
             './features/dashboards/dashboard-view-page/dashboard-view-page.component'

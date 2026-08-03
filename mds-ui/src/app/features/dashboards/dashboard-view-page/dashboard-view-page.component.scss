@@ -16,6 +16,10 @@
   background-color: #fff5f5;
   color: #c92a2a;
   font-size: var(--ld-font-size-sm);
+
+  &--inline {
+    margin-top: var(--ld-spacing-sm);
+  }
 }
 
 .dashboard-view {
@@ -99,7 +103,8 @@
   }
 }
 
-.dashboard-view__edit-btn {
+.dashboard-view__edit-btn,
+.dashboard-view__save-btn {
   height: 32px !important;
   padding: 0 14px !important;
   background-color: var(--ld-gray-9) !important;
@@ -114,9 +119,18 @@
     margin-right: 4px;
   }
 
-  &:hover {
+  &:hover:not([disabled]) {
     background-color: var(--ld-gray-8) !important;
   }
+
+  &[disabled] {
+    opacity: 0.6;
+  }
+}
+
+.dashboard-view__save-btn mat-spinner {
+  display: inline-flex;
+  margin-right: 4px;
 }
 
 .dashboard-view__icon-action {

@@ -53,18 +53,19 @@
   </div>
 } @else {
   @if (dashboard(); as dash) {
+  @if (draft(); as state) {
   <div class="dashboard-view" #dashboardRoot>
     <header class="dashboard-view__header page-header">
       <div class="dashboard-view__header-inner page__container page__container--wide page-header--compact-padding">
         <div class="dashboard-view__title-row page-header__title-row">
           <div class="dashboard-view__title-block page-header__title-block">
             <div class="dashboard-view__title-line">
-              <h1 class="dashboard-view__title">{{ dash.name }}</h1>
-              @if (dash.description) {
+              <h1 class="dashboard-view__title">{{ state.name }}</h1>
+              @if (state.description) {
                 <button
                   type="button"
                   class="dashboard-view__info-btn"
-                  [matTooltip]="dash.description"
+                  [matTooltip]="state.description"
                   aria-label="Dashboard description"
                 >
                   <mat-icon>info_outline</mat-icon>
@@ -83,20 +84,39 @@
           </div>
 
           <div class="dashboard-view__actions page-header__actions">
-            <a
-              mat-flat-button
-              class="dashboard-view__edit-btn page-header__action-btn--labeled"
-              [routerLink]="[
-                '/projects',
-                projectUuid(),
-                'dashboards',
-                dashboardUuid(),
-                'edit',
-              ]"
-            >
-              <mat-icon>edit</mat-icon>
-              <span class="page-header__action-label">Edit</span>
-            </a>
+            @if (isDirty()) {
+              <button
+                type="button"
+                mat-flat-button
+                class="dashboard-view__save-btn page-header__action-btn--labeled"
+                (click)="openSaveConfirm()"
+                [disabled]="!canSave()"
+              >
+                @if (saving()) {
+                  <mat-spinner diameter="18" />
+                } @else {
+                  <mat-icon>save</mat-icon>
+                }
+                @if (!saving()) {
+                  <span class="page-header__action-label">Save</span>
+                }
+              </button>
+            } @else {
+              <a
+                mat-flat-button
+                class="dashboard-view__edit-btn page-header__action-btn--labeled"
+                [routerLink]="[
+                  '/projects',
+                  projectUuid(),
+                  'dashboards',
+                  dashboardUuid(),
+                  'edit',
+                ]"
+              >
+                <mat-icon>edit</mat-icon>
+                <span class="page-header__action-label">Edit</span>
+              </a>
+            }
 
             <button
               type="button"
@@ -193,12 +213,16 @@
             }
           </div>
         }
+
+        @if (saveError()) {
+          <div class="dashboard-view__error dashboard-view__error--inline">{{ saveError() }}</div>
+        }
       </div>
     </header>
 
     <app-dashboard-filters-bar
-      [filters]="dashboardFilters()"
-      [config]="dash.config"
+      [filters]="filters()"
+      [config]="state.config"
       [dateZoomGranularity]="dateZoomGranularity()"
       [timeTravel]="timeTravel()"
       (filtersChange)="onFiltersChange($event)"
@@ -254,7 +278,7 @@
                     <app-dashboard-chart-tile
                       [projectUuid]="projectUuid()!"
                       [savedChartUuid]="tile.properties.savedChartUuid"
-                      [dashboardFilters]="dashboardFilters()"
+                      [dashboardFilters]="filters()"
                       [dateZoomGranularity]="dateZoomGranularity()"
                       [timeTravel]="timeTravel()"
                       [refreshToken]="refreshToken()"
@@ -318,6 +342,7 @@
       </button>
     }
   </div>
+  }
   }
 }
   </div>
