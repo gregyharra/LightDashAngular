@@ -35,6 +35,10 @@ export class DashboardFiltersBarComponent {
   readonly timeTravel = input<TimeTravelConfig | null>(null);
   readonly isEditMode = input(false);
   readonly filterableDimensions = input<FilterableDimension[]>([]);
+  // Date zoom / time travel can be hosted in the page header instead (view page);
+  // default to current behavior (shown here) for existing consumers (edit page).
+  readonly showDateZoom = input(true);
+  readonly showTimeTravel = input(true);
 
   readonly filtersChange = output<DashboardDimensionFilter[]>();
   readonly dateZoomChange = output<DateZoomGranularity>();
@@ -49,9 +53,9 @@ export class DashboardFiltersBarComponent {
     );
   });
 
-  protected readonly showDateZoom = computed(() => {
+  protected readonly canShowDateZoom = computed(() => {
     const config = this.config();
-    return config?.isDateZoomDisabled !== true;
+    return this.showDateZoom() && config?.isDateZoomDisabled !== true;
   });
 
   protected readonly canAddFilter = computed(() => {

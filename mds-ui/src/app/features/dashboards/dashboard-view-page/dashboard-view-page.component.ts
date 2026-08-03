@@ -1,4 +1,5 @@
 import { NgStyle } from '@angular/common';
+import { CdkDragDrop, DragDropModule, moveItemInArray } from '@angular/cdk/drag-drop';
 import {
   Component,
   ElementRef,
@@ -9,6 +10,7 @@ import {
   viewChild,
 } from '@angular/core';
 import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
+import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { MatButtonModule } from '@angular/material/button';
 import { MatDialog } from '@angular/material/dialog';
@@ -21,6 +23,7 @@ import { apiErrorMessage } from '../../../core/api/lightdash-api.service';
 import {
   Dashboard,
   DashboardDimensionFilter,
+  DashboardTab,
   DashboardTile,
   DashboardTileTypes,
   DateZoomGranularity,
@@ -30,6 +33,8 @@ import { DashboardService } from '../dashboard.service';
 import { DashboardChartTileComponent } from '../dashboard-chart-tile/dashboard-chart-tile.component';
 import { DashboardFiltersBarComponent } from '../dashboard-filters-bar/dashboard-filters-bar.component';
 import { DashboardMarkdownComponent } from '../dashboard-markdown/dashboard-markdown.component';
+import { formatDateZoomLabel } from '../dashboard-filters';
+import { TimeTravelControlComponent } from '../../../shared/time-travel-control/time-travel-control.component';
 import { getLoomEmbedUrl } from '../dashboard-loom.utils';
 import { ResizableSidebarDirective } from '../../../layout/resizable-sidebar/resizable-sidebar.directive';
 import { DashboardDraftState, isDashboardDraftDirty } from '../dashboard-draft.utils';
@@ -37,6 +42,12 @@ import {
   DashboardSaveConfirmDialogComponent,
   DashboardSaveConfirmDialogData,
 } from '../dashboard-save-confirm-dialog/dashboard-save-confirm-dialog.component';
+import { ExplorerService } from '../../explorer/explorer.service';
+import {
+  FilterableDimension,
+  getFilterableDimensions,
+} from '../../explorer/tables-filters-panel/tables-filters.utils';
+import { createUuid } from '../../../core/utils/uuid';
 
 import {
   DASHBOARD_GRID_COLS,
@@ -48,6 +59,8 @@ import {
   selector: 'app-dashboard-view-page',
   imports: [
     NgStyle,
+    DragDropModule,
+    FormsModule,
     RouterLink,
     MatButtonModule,
     MatIconModule,
@@ -58,12 +71,14 @@ import {
     DashboardFiltersBarComponent,
     DashboardMarkdownComponent,
     ResizableSidebarDirective,
+    TimeTravelControlComponent,
   ],
   templateUrl: './dashboard-view-page.component.html',
   styleUrl: './dashboard-view-page.component.scss',
 })
 export class DashboardViewPageComponent {
   private readonly dashboardService = inject(DashboardService);
+  private readonly explorerService = inject(ExplorerService);
   private readonly route = inject(ActivatedRoute);
   private readonly sanitizer = inject(DomSanitizer);
   private readonly dialog = inject(MatDialog);
@@ -89,6 +104,9 @@ export class DashboardViewPageComponent {
   protected readonly isFavorite = signal(false);
   protected readonly isFullscreen = signal(false);
   protected readonly showScrollTop = signal(false);
+  protected readonly filterableDimensions = signal<FilterableDimension[]>([]);
+  protected readonly nameEditDraft = signal('');
+  protected readonly tabRenameDraft = signal('');
 
   protected readonly gridRowHeight = DASHBOARD_GRID_ROW_HEIGHT_PX;
   protected readonly gridGap = DASHBOARD_GRID_GAP_PX;
@@ -131,15 +149,25 @@ export class DashboardViewPageComponent {
     return state.tiles.filter((tile) => tile.tabUuid === tab.uuid);
   });
 
-  protected readonly visibleTabs = computed(() =>
-    (this.draft()?.tabs ?? [])
-      .filter((tab) => !tab.hidden)
-      .sort((left, right) => left.order - right.order),
+  // All tabs (including hidden), sorted — the always-edit tabs row shows
+  // hidden tabs dimmed so they can be re-shown, matching the former edit page.
+  protected readonly sortedTabs = computed(() =>
+    [...(this.draft()?.tabs ?? [])].sort((left, right) => left.order - right.order),
   );
 
   protected readonly filters = computed(() => this.draft()?.filters ?? []);
 
+  protected readonly dateZoomOptions = computed((): DateZoomGranularity[] => {
+    const config = this.draft()?.config;
+    return config?.dateZoomGranularities ?? ['Day', 'Week', 'Month', 'Quarter', 'Year'];
+  });
+
+  protected readonly showDateZoomControl = computed(
+    () => this.draft()?.config?.isDateZoomDisabled !== true,
+  );
+
   protected readonly DashboardTileTypes = DashboardTileTypes;
+  protected readonly formatDateZoom = formatDateZoomLabel;
 
   constructor() {
     this.route.paramMap.subscribe((params) => {
@@ -154,6 +182,7 @@ export class DashboardViewPageComponent {
       this.dashboardUuid.set(dashboardUuid);
       this.activeProjectService.setActiveProject(projectUuid);
       this.loadDashboard(projectUuid, dashboardUuid);
+      this.loadFilterableDimensions(projectUuid);
     });
   }
 
@@ -208,6 +237,55 @@ export class DashboardViewPageComponent {
     });
   }
 
+  private loadFilterableDimensions(projectUuid: string): void {
+    this.explorerService.listExplores(projectUuid).subscribe({
+      next: (explores) => {
+        const requests = explores.map((explore) =>
+          this.explorerService.getExplore(projectUuid, explore.name),
+        );
+
+        if (requests.length === 0) {
+          this.filterableDimensions.set([]);
+          return;
+        }
+
+        let completed = 0;
+        const dimensionsByFieldId = new Map<string, FilterableDimension>();
+
+        for (const request of requests) {
+          request.subscribe({
+            next: (explore) => {
+              for (const dimension of getFilterableDimensions(explore)) {
+                dimensionsByFieldId.set(dimension.fieldId, dimension);
+              }
+            },
+            complete: () => {
+              completed += 1;
+              if (completed === requests.length) {
+                this.filterableDimensions.set(
+                  [...dimensionsByFieldId.values()].sort((left, right) =>
+                    left.label.localeCompare(right.label),
+                  ),
+                );
+              }
+            },
+            error: () => {
+              completed += 1;
+              if (completed === requests.length) {
+                this.filterableDimensions.set(
+                  [...dimensionsByFieldId.values()].sort((left, right) =>
+                    left.label.localeCompare(right.label),
+                  ),
+                );
+              }
+            },
+          });
+        }
+      },
+      error: () => this.filterableDimensions.set([]),
+    });
+  }
+
   private initDraft(dashboard: Dashboard): void {
     const state = this.toDraftState(dashboard);
     this.baseline.set(this.cloneDraftState(state));
@@ -238,6 +316,146 @@ export class DashboardViewPageComponent {
 
   protected setActiveTab(tabUuid: string): void {
     this.activeTabUuid.set(tabUuid);
+  }
+
+  protected startNameEdit(): void {
+    this.nameEditDraft.set(this.draft()?.name ?? '');
+  }
+
+  protected commitNameEdit(): void {
+    const name = this.nameEditDraft().trim();
+    const current = this.draft();
+    if (!current || !name) {
+      return;
+    }
+
+    this.draft.set({ ...current, name });
+  }
+
+  protected addTab(): void {
+    const current = this.draft();
+    if (!current) {
+      return;
+    }
+
+    const tabUuid = createUuid();
+    const tab: DashboardTab = {
+      uuid: tabUuid,
+      name: `Tab ${current.tabs.length + 1}`,
+      order: current.tabs.length,
+    };
+
+    this.draft.set({
+      ...current,
+      tabs: [...current.tabs, tab],
+    });
+    this.activeTabUuid.set(tabUuid);
+  }
+
+  protected openTabRenameMenu(tab: DashboardTab): void {
+    this.tabRenameDraft.set(tab.name);
+  }
+
+  protected saveTabRename(tabUuid: string): void {
+    const name = this.tabRenameDraft().trim();
+    if (!name) {
+      return;
+    }
+
+    const current = this.draft();
+    if (!current) {
+      return;
+    }
+
+    this.draft.set({
+      ...current,
+      tabs: current.tabs.map((tab) =>
+        tab.uuid === tabUuid ? { ...tab, name } : tab,
+      ),
+    });
+  }
+
+  protected duplicateTab(tabUuid: string): void {
+    const current = this.draft();
+    const sourceTab = current?.tabs.find((tab) => tab.uuid === tabUuid);
+    if (!current || !sourceTab) {
+      return;
+    }
+
+    const newTabUuid = createUuid();
+    const newTab: DashboardTab = {
+      uuid: newTabUuid,
+      name: `${sourceTab.name} (copy)`,
+      order: current.tabs.length,
+      hidden: sourceTab.hidden,
+    };
+
+    const duplicatedTiles = current.tiles
+      .filter((tile) => tile.tabUuid === tabUuid)
+      .map((tile) => ({
+        ...tile,
+        uuid: createUuid(),
+        tabUuid: newTabUuid,
+        properties: { ...tile.properties },
+      })) as DashboardTile[];
+
+    this.draft.set({
+      ...current,
+      tabs: [...current.tabs, newTab],
+      tiles: [...current.tiles, ...duplicatedTiles],
+    });
+    this.activeTabUuid.set(newTabUuid);
+  }
+
+  protected toggleTabHidden(tabUuid: string): void {
+    const current = this.draft();
+    if (!current) {
+      return;
+    }
+
+    this.draft.set({
+      ...current,
+      tabs: current.tabs.map((tab) =>
+        tab.uuid === tabUuid ? { ...tab, hidden: !tab.hidden } : tab,
+      ),
+    });
+  }
+
+  protected deleteTab(tabUuid: string): void {
+    const current = this.draft();
+    if (!current || current.tabs.length <= 1) {
+      return;
+    }
+
+    const tabs = current.tabs
+      .filter((tab) => tab.uuid !== tabUuid)
+      .map((tab, index) => ({ ...tab, order: index }));
+    const tiles = current.tiles.filter((tile) => tile.tabUuid !== tabUuid);
+
+    this.draft.set({ ...current, tabs, tiles });
+
+    if (this.activeTabUuid() === tabUuid) {
+      this.activeTabUuid.set(tabs[0]?.uuid ?? null);
+    }
+  }
+
+  protected reorderTabs(event: CdkDragDrop<DashboardTab[]>): void {
+    if (event.previousIndex === event.currentIndex) {
+      return;
+    }
+
+    const current = this.draft();
+    if (!current) {
+      return;
+    }
+
+    const tabs = [...this.sortedTabs()];
+    moveItemInArray(tabs, event.previousIndex, event.currentIndex);
+
+    this.draft.set({
+      ...current,
+      tabs: tabs.map((tab, index) => ({ ...tab, order: index })),
+    });
   }
 
   protected onFiltersChange(filters: DashboardDimensionFilter[]): void {

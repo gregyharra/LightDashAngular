@@ -68,13 +68,15 @@
         </div>
 
         <div class="dashboard-filters-bar__controls">
-          <app-time-travel-control
-            [compact]="true"
-            [value]="timeTravel()"
-            (valueChange)="timeTravelChange.emit($event)"
-          />
+          @if (showTimeTravel()) {
+            <app-time-travel-control
+              [compact]="true"
+              [value]="timeTravel()"
+              (valueChange)="timeTravelChange.emit($event)"
+            />
+          }
 
-          @if (showDateZoom()) {
+          @if (canShowDateZoom()) {
             <button
               type="button"
               class="dashboard-filters-bar__pill dashboard-filters-bar__pill--date-zoom"

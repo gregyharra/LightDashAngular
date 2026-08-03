@@ -61,6 +61,35 @@
           <div class="dashboard-view__title-block page-header__title-block">
             <div class="dashboard-view__title-line">
               <h1 class="dashboard-view__title">{{ state.name }}</h1>
+              <button
+                type="button"
+                class="dashboard-view__name-edit-btn"
+                [matMenuTriggerFor]="nameMenu"
+                (click)="startNameEdit()"
+                aria-label="Rename dashboard"
+                matTooltip="Rename dashboard"
+              >
+                <mat-icon>edit</mat-icon>
+              </button>
+              <mat-menu #nameMenu="matMenu" class="dashboard-view__menu">
+                <div class="dashboard-view__rename-menu" (click)="$event.stopPropagation()">
+                  <label class="dashboard-view__rename-label" for="dashboard-name">
+                    Dashboard name
+                  </label>
+                  <input
+                    id="dashboard-name"
+                    class="dashboard-view__rename-input"
+                    [ngModel]="nameEditDraft()"
+                    (ngModelChange)="nameEditDraft.set($event)"
+                    placeholder="Dashboard name"
+                  />
+                  <div class="dashboard-view__rename-actions">
+                    <button mat-stroked-button type="button" (click)="commitNameEdit()">
+                      Rename
+                    </button>
+                  </div>
+                </div>
+              </mat-menu>
               @if (state.description) {
                 <button
                   type="button"
@@ -84,6 +113,51 @@
           </div>
 
           <div class="dashboard-view__actions page-header__actions">
+            @if (showDateZoomControl()) {
+              <button
+                type="button"
+                mat-stroked-button
+                class="dashboard-view__icon-action dashboard-view__date-zoom-btn page-header__action-btn--labeled"
+                [matMenuTriggerFor]="dateZoomMenu"
+                aria-label="Date zoom"
+              >
+                <mat-icon>calendar_month</mat-icon>
+                <span class="page-header__action-label">{{ formatDateZoom(dateZoomGranularity()) }}</span>
+                <mat-icon class="dashboard-view__chevron page-header__views-chevron">expand_more</mat-icon>
+              </button>
+
+              <mat-menu #dateZoomMenu="matMenu" class="dashboard-view__menu">
+                @for (granularity of dateZoomOptions(); track granularity) {
+                  <button
+                    mat-menu-item
+                    type="button"
+                    [class.dashboard-view__menu-item--active]="dateZoomGranularity() === granularity"
+                    (click)="onDateZoomChange(granularity)"
+                  >
+                    {{ formatDateZoom(granularity) }}
+                  </button>
+                }
+              </mat-menu>
+            }
+
+            <app-time-travel-control
+              [compact]="true"
+              [value]="timeTravel()"
+              (valueChange)="onTimeTravelChange($event)"
+            />
+
+            <button
+              type="button"
+              mat-stroked-button
+              class="dashboard-view__icon-action page-header__action-btn--labeled"
+              disabled
+              aria-label="Add tile"
+              matTooltip="Add tile — coming soon"
+            >
+              <mat-icon>add</mat-icon>
+              <span class="page-header__action-label">Add tile</span>
+            </button>
+
             @if (isDirty()) {
               <button
                 type="button"
@@ -101,21 +175,6 @@
                   <span class="page-header__action-label">Save</span>
                 }
               </button>
-            } @else {
-              <a
-                mat-flat-button
-                class="dashboard-view__edit-btn page-header__action-btn--labeled"
-                [routerLink]="[
-                  '/projects',
-                  projectUuid(),
-                  'dashboards',
-                  dashboardUuid(),
-                  'edit',
-                ]"
-              >
-                <mat-icon>edit</mat-icon>
-                <span class="page-header__action-label">Edit</span>
-              </a>
             }
 
             <button
@@ -197,22 +256,99 @@
           </div>
         </div>
 
-        @if (visibleTabs().length > 1) {
-          <div class="dashboard-view__tabs" role="tablist" aria-label="Dashboard tabs">
-            @for (tab of visibleTabs(); track tab.uuid) {
-              <button
-                type="button"
-                class="dashboard-view__tab"
-                role="tab"
-                [class.dashboard-view__tab--active]="activeTab()?.uuid === tab.uuid"
-                [attr.aria-selected]="activeTab()?.uuid === tab.uuid"
-                (click)="setActiveTab(tab.uuid)"
-              >
-                {{ tab.name }}
-              </button>
-            }
+        <div class="dashboard-view__tabs-row">
+          <button
+            type="button"
+            class="dashboard-view__tab-add"
+            (click)="addTab()"
+            aria-label="Add tab"
+            matTooltip="Add tab"
+          >
+            <mat-icon>add</mat-icon>
+          </button>
+
+          <div class="dashboard-view__tabs-scroll">
+            <div
+              class="dashboard-view__tabs"
+              cdkDropList
+              cdkDropListOrientation="horizontal"
+              (cdkDropListDropped)="reorderTabs($event)"
+              role="tablist"
+              aria-label="Dashboard tabs"
+            >
+              @for (tab of sortedTabs(); track tab.uuid) {
+                <div
+                  class="dashboard-view__tab-wrap"
+                  cdkDrag
+                  [class.dashboard-view__tab-wrap--active]="activeTab()?.uuid === tab.uuid"
+                  [class.dashboard-view__tab-wrap--hidden]="tab.hidden"
+                >
+                  <button
+                    type="button"
+                    class="dashboard-view__tab-drag non-draggable"
+                    cdkDragHandle
+                    aria-label="Reorder tab"
+                  >
+                    <mat-icon>drag_indicator</mat-icon>
+                  </button>
+                  <button
+                    type="button"
+                    class="dashboard-view__tab"
+                    role="tab"
+                    [class.dashboard-view__tab--active]="activeTab()?.uuid === tab.uuid"
+                    [attr.aria-selected]="activeTab()?.uuid === tab.uuid"
+                    (click)="setActiveTab(tab.uuid)"
+                  >
+                    {{ tab.name }}
+                  </button>
+                  <button
+                    type="button"
+                    class="dashboard-view__tab-edit non-draggable"
+                    aria-label="Edit tab"
+                    [matMenuTriggerFor]="tabMenu"
+                    (click)="openTabRenameMenu(tab)"
+                  >
+                    <mat-icon>edit</mat-icon>
+                  </button>
+                  <mat-menu #tabMenu="matMenu" class="dashboard-view__menu">
+                    <div class="dashboard-view__tab-menu non-draggable" (click)="$event.stopPropagation()">
+                      <label class="dashboard-view__tab-menu-label" for="tab-name-{{ tab.uuid }}">
+                        Tab name
+                      </label>
+                      <input
+                        id="tab-name-{{ tab.uuid }}"
+                        class="dashboard-view__tab-menu-input"
+                        [ngModel]="tabRenameDraft()"
+                        (ngModelChange)="tabRenameDraft.set($event)"
+                      />
+                      <div class="dashboard-view__tab-menu-actions">
+                        <button mat-stroked-button type="button" (click)="saveTabRename(tab.uuid)">
+                          Rename
+                        </button>
+                        <button mat-stroked-button type="button" (click)="duplicateTab(tab.uuid)">
+                          Duplicate
+                        </button>
+                        <button mat-stroked-button type="button" (click)="toggleTabHidden(tab.uuid)">
+                          {{ tab.hidden ? 'Show tab' : 'Hide tab' }}
+                        </button>
+                        @if (sortedTabs().length > 1) {
+                          <button
+                            mat-stroked-button
+                            type="button"
+                            class="dashboard-view__tab-delete-btn"
+                            (click)="deleteTab(tab.uuid)"
+                          >
+                            Delete tab
+                          </button>
+                        }
+                      </div>
+                    </div>
+                  </mat-menu>
+                </div>
+              }
+            </div>
           </div>
-        }
+        </div>
 
         @if (saveError()) {
           <div class="dashboard-view__error dashboard-view__error--inline">{{ saveError() }}</div>
@@ -225,6 +361,10 @@
       [config]="state.config"
       [dateZoomGranularity]="dateZoomGranularity()"
       [timeTravel]="timeTravel()"
+      [isEditMode]="true"
+      [filterableDimensions]="filterableDimensions()"
+      [showDateZoom]="false"
+      [showTimeTravel]="false"
       (filtersChange)="onFiltersChange($event)"
       (dateZoomChange)="onDateZoomChange($event)"
       (timeTravelChange)="onTimeTravelChange($event)"
