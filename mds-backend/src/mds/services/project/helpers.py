@@ -19,7 +19,11 @@ def format_dt(value) -> str:
     return value.isoformat().replace("+00:00", "Z")
 
 
-def project_payload(project: Project, warehouse: Warehouse | None = None) -> dict:
+def project_payload(
+    project: Project,
+    warehouse: Warehouse | None = None,
+    created_by_user_name: str | None = None,
+) -> dict:
     repo_status = get_repo_status(project)
     return {
         "projectUuid": str(project.uuid),
@@ -28,7 +32,7 @@ def project_payload(project: Project, warehouse: Warehouse | None = None) -> dic
         "createdByUserUuid": str(project.created_by_user_uuid)
         if project.created_by_user_uuid
         else None,
-        "createdByUserName": "Demo Analyst" if project.created_by_user_uuid else None,
+        "createdByUserName": created_by_user_name,
         "createdAt": format_dt(project.created_at),
         "upstreamProjectUuid": None,
         "warehouseType": project.warehouse_type,

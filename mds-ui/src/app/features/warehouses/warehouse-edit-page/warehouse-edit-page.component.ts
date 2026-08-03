@@ -1,19 +1,11 @@
 import { Component, inject, signal } from '@angular/core';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { MatIconModule } from '@angular/material/icon';
-import { ResizableSidebarDirective } from '../../../layout/resizable-sidebar/resizable-sidebar.directive';
-import { SettingsSidebarNavComponent } from '../../../layout/settings-sidebar-nav/settings-sidebar-nav.component';
 import { WarehouseFormComponent } from '../warehouse-form/warehouse-form.component';
 
 @Component({
   selector: 'app-warehouse-edit-page',
-  imports: [
-    RouterLink,
-    MatIconModule,
-    ResizableSidebarDirective,
-    SettingsSidebarNavComponent,
-    WarehouseFormComponent,
-  ],
+  imports: [RouterLink, MatIconModule, WarehouseFormComponent],
   templateUrl: './warehouse-edit-page.component.html',
   styleUrl: './warehouse-edit-page.component.scss',
 })
@@ -33,10 +25,10 @@ export class WarehouseEditPageComponent {
   }
 
   protected onSaved(): void {
-    void this.router.navigate(['/warehouses']);
+    void this.router.navigate(['/settings/warehouses']);
   }
 
   protected onCancelled(): void {
-    void this.router.navigate(['/warehouses']);
+    void this.router.navigate(['/settings/warehouses']);
   }
 }

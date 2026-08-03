@@ -5,6 +5,7 @@ import { MAT_DIALOG_DEFAULT_OPTIONS } from '@angular/material/dialog';
 import { provideRouter } from '@angular/router';
 
 import { routes } from './app.routes';
+import { authInterceptor } from './core/interceptors/auth.interceptor';
 import { mockApiInterceptor } from './core/mock/mock-api.interceptor';
 import { AppStateService } from './core/services/app-state.service';
 
@@ -21,7 +22,7 @@ export const appConfig: ApplicationConfig = {
         autoFocus: 'first-tabbable',
       },
     },
-    provideHttpClient(withFetch(), withInterceptors([mockApiInterceptor])),
+    provideHttpClient(withFetch(), withInterceptors([mockApiInterceptor, authInterceptor])),
     provideAppInitializer(() => inject(AppStateService).bootstrap()),
   ],
 };

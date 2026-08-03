@@ -42,9 +42,40 @@
   font-size: 13px;
   font-weight: 600;
   color: var(--ld-gray-9);
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.user-menu__role {
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  padding: 0.1rem 0.4rem;
+  border-radius: 4px;
+  background: var(--ld-gray-2);
+  color: var(--ld-gray-7);
 }
 
 .user-menu__email {
   font-size: var(--ld-font-size-xs);
   color: var(--ld-gray-6);
+}
+
+.user-menu__section-header {
+  font-size: var(--ld-font-size-xs);
+  font-weight: 600;
+  color: var(--ld-gray-6);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  opacity: 1 !important;
+  cursor: default;
+  min-height: 28px !important;
+  padding-block: 6px;
+}
+
+.user-menu__item-label {
+  white-space: nowrap;
 }

@@ -5,8 +5,10 @@ from datetime import datetime, timezone
 from sqlalchemy.orm import Session
 
 from mds.db.models import Dashboard, Project, SavedChart, Space, User, Warehouse
+from mds.services.auth.passwords import hash_password
 
 MOCK_USER_UUID = uuid.UUID("b264d83a-9000-426a-85ec-3f9c20f368ce")
+DEMO_USER_PASSWORD = "demo-password"
 MOCK_PROJECT_UUID = uuid.UUID("a1b2c3d4-e5f6-7890-abcd-ef1234567890")
 MOCK_PROJECT_2_UUID = uuid.UUID("b2c3d4e5-f6a7-8901-bcde-f12345678901")
 MOCK_SPACE_UUID = uuid.UUID("c3d4e5f6-a7b8-9012-cdef-123456789012")
@@ -130,7 +132,14 @@ def slugify(name: str) -> str:
 
 
 def seed_demo_data(db: Session) -> None:
-    if db.get(User, MOCK_USER_UUID):
+    existing = db.get(User, MOCK_USER_UUID)
+    if existing is not None:
+        # Pre-auth DBs may have an empty password_hash after column migration;
+        # seed skips creating the user, so backfill demo credentials once.
+        if not existing.password_hash:
+            existing.password_hash = hash_password(DEMO_USER_PASSWORD)
+            existing.is_active = True
+            db.commit()
         return
 
     user = User(
@@ -139,7 +148,15 @@ def seed_demo_data(db: Session) -> None:
         first_name="Demo",
         last_name="Analyst",
         role="admin",
+        password_hash=hash_password(DEMO_USER_PASSWORD),
+        is_active=True,
     )
+    # Users may have been wiped in tests while projects remain — recreate user only.
+    if db.get(Project, MOCK_PROJECT_UUID):
+        db.add(user)
+        db.commit()
+        return
+
     project1 = Project(
         uuid=MOCK_PROJECT_UUID,
         name="Jaffle Shop",

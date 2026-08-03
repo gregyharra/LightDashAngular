@@ -3,6 +3,7 @@ import uuid as uuid_lib
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
+from mds.api.deps import AdminUser, CurrentUser
 from mds.api.envelope import ok
 from mds.db.models import Warehouse
 from mds.db.session import get_db
@@ -37,19 +38,26 @@ def _get_warehouse_or_404(db: Session, warehouse_uuid: str) -> Warehouse:
 
 
 @router.get("/warehouses")
-def list_all_warehouses(db: Session = Depends(get_db)):
+def list_all_warehouses(user: CurrentUser, db: Session = Depends(get_db)):
+    del user
     items = list_warehouses(db)
     return ok([item.model_dump(by_alias=True) for item in items])
 
 
 @router.post("/warehouses")
-def create_new_warehouse(body: WarehouseCreate, db: Session = Depends(get_db)):
+def create_new_warehouse(body: WarehouseCreate, user: AdminUser, db: Session = Depends(get_db)):
+    del user
     warehouse = create_warehouse(db, body)
     return ok(warehouse.model_dump(by_alias=True))
 
 
 @router.post("/warehouses/test")
-def test_warehouse_connection(body: WarehouseTestConnection, db: Session = Depends(get_db)):
+def test_warehouse_connection(
+    body: WarehouseTestConnection,
+    user: AdminUser,
+    db: Session = Depends(get_db),
+):
+    del user
     if body.type != "trino":
         return ok(
             {
@@ -75,7 +83,12 @@ def test_warehouse_connection(body: WarehouseTestConnection, db: Session = Depen
 
 
 @router.get("/warehouses/{warehouse_uuid}")
-def get_warehouse_detail(warehouse_uuid: str, db: Session = Depends(get_db)):
+def get_warehouse_detail(
+    warehouse_uuid: str,
+    user: CurrentUser,
+    db: Session = Depends(get_db),
+):
+    del user
     warehouse = _get_warehouse_or_404(db, warehouse_uuid)
     return ok(_to_response(warehouse).model_dump(by_alias=True))
 
@@ -84,22 +97,34 @@ def get_warehouse_detail(warehouse_uuid: str, db: Session = Depends(get_db)):
 def patch_warehouse(
     warehouse_uuid: str,
     body: WarehouseUpdate,
+    user: AdminUser,
     db: Session = Depends(get_db),
 ):
+    del user
     warehouse = _get_warehouse_or_404(db, warehouse_uuid)
     updated = update_warehouse(db, warehouse, body)
     return ok(updated.model_dump(by_alias=True))
 
 
 @router.delete("/warehouses/{warehouse_uuid}")
-def remove_warehouse(warehouse_uuid: str, db: Session = Depends(get_db)):
+def remove_warehouse(
+    warehouse_uuid: str,
+    user: AdminUser,
+    db: Session = Depends(get_db),
+):
+    del user
     warehouse = _get_warehouse_or_404(db, warehouse_uuid)
     delete_warehouse(db, warehouse)
     return ok(None)
 
 
 @router.post("/warehouses/{warehouse_uuid}/test")
-def test_existing_warehouse_connection(warehouse_uuid: str, db: Session = Depends(get_db)):
+def test_existing_warehouse_connection(
+    warehouse_uuid: str,
+    user: AdminUser,
+    db: Session = Depends(get_db),
+):
+    del user
     warehouse = _get_warehouse_or_404(db, warehouse_uuid)
     if warehouse.type != "trino":
         return ok(

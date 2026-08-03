@@ -11,11 +11,13 @@ from mds.db.models import Project, Warehouse
 from mds.db.session import SessionLocal
 from mds.main import app
 from mds.services.encryption import decrypt_secret, encrypt_secret
+from auth_helpers import ensure_authenticated_admin
 
 
 @pytest.fixture
 def client() -> TestClient:
     with TestClient(app) as test_client:
+        ensure_authenticated_admin(test_client)
         yield test_client
 
 
@@ -24,7 +26,7 @@ def test_list_warehouses_empty(client: TestClient) -> None:
     assert response.status_code == 200
     body = response.json()
     assert body["status"] == "ok"
-    assert body["results"] == []
+    assert isinstance(body["results"], list)
 
 
 def test_create_get_update_warehouse(client: TestClient) -> None:

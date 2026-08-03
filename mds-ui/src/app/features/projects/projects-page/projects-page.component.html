@@ -1,110 +1,112 @@
-<div class="page-layout">
-  <aside class="page-layout__sidebar" appResizableSidebar>
-    <div class="page-sidebar">
-      <header class="page-sidebar__header">
-        <p class="page-sidebar__breadcrumb">Settings</p>
-      </header>
-
-      <app-settings-sidebar-nav active="projects" />
+@if (managementMode()) {
+  <section class="projects">
+    <ng-container [ngTemplateOutlet]="projectsContent" />
+  </section>
+} @else {
+  <div class="page-layout">
+    <div class="page-layout__content">
+      <section class="projects">
+        <ng-container [ngTemplateOutlet]="projectsContent" />
+      </section>
     </div>
-  </aside>
+  </div>
+}
 
-  <div class="page-layout__content">
-    <section class="projects">
-      <div class="page__container">
-        <header class="projects__header">
-          <div>
-            <h1 class="projects__title">Projects</h1>
-            <p class="projects__subtitle">
-              Select a project to explore metrics, charts, and dashboards.
-            </p>
-          </div>
-          <button
-            mat-flat-button
-            class="projects__create-btn"
-            type="button"
-            (click)="createProject()"
+<ng-template #projectsContent>
+  <div class="page__container">
+    <header class="projects__header">
+      <div class="projects__title-block">
+        <h1 class="projects__title">Projects</h1>
+        <p class="projects__subtitle">{{ subtitle() }}</p>
+      </div>
+      @if (managementMode() && appState.isAdmin()) {
+        <button
+          mat-flat-button
+          class="projects__create-btn"
+          type="button"
+          (click)="createProject()"
+        >
+          <mat-icon>add</mat-icon>
+          Create new
+        </button>
+      }
+    </header>
+
+    @if (loading()) {
+      <div class="projects__loading">
+        <mat-spinner diameter="32" />
+      </div>
+    } @else if (error()) {
+      <div class="projects__error">{{ error() }}</div>
+    } @else if (projects().length === 0) {
+      <div class="projects__empty">
+        <mat-icon>folder_open</mat-icon>
+        <p>No projects available.</p>
+      </div>
+    } @else {
+      <div class="projects__grid">
+        @for (project of projects(); track project.projectUuid) {
+          <article
+            class="project-card"
+            [class.project-card--active]="
+              project.projectUuid === activeProjectService.activeProjectUuid()
+            "
+            (click)="openCard(project.projectUuid)"
+            (keydown.enter)="openCard(project.projectUuid)"
+            tabindex="0"
+            role="button"
+            [attr.aria-pressed]="
+              project.projectUuid === activeProjectService.activeProjectUuid()
+            "
           >
-            <mat-icon>add</mat-icon>
-            Create new
-          </button>
-        </header>
+            <div class="project-card__header">
+              <div class="project-card__header-main">
+                <h2 class="project-card__name">{{ project.name }}</h2>
+                @if (project.projectUuid === activeProjectService.activeProjectUuid()) {
+                  <span class="project-card__badge">Current</span>
+                }
+              </div>
+              @if (managementMode() && appState.isAdmin()) {
+                <button
+                  mat-icon-button
+                  type="button"
+                  class="project-card__settings-btn"
+                  aria-label="Edit project settings"
+                  title="Edit project settings"
+                  (click)="openProjectEdit(project.projectUuid, $event)"
+                >
+                  <mat-icon>settings</mat-icon>
+                </button>
+              }
+            </div>
 
-        @if (loading()) {
-          <div class="projects__loading">
-            <mat-spinner diameter="32" />
-          </div>
-        } @else if (error()) {
-          <div class="projects__error">{{ error() }}</div>
-        } @else if (projects().length === 0) {
-          <div class="projects__empty">
-            <mat-icon>folder_open</mat-icon>
-            <p>No projects available.</p>
-          </div>
-        } @else {
-          <div class="projects__grid">
-            @for (project of projects(); track project.projectUuid) {
-              <article
-                class="project-card"
-                [class.project-card--active]="
-                  project.projectUuid === activeProjectService.activeProjectUuid()
-                "
-                (click)="openProject(project.projectUuid)"
-                (keydown.enter)="openProject(project.projectUuid)"
-                tabindex="0"
-                role="button"
-                [attr.aria-pressed]="
-                  project.projectUuid === activeProjectService.activeProjectUuid()
-                "
-              >
-                <div class="project-card__header">
-                  <div class="project-card__header-main">
-                    <h2 class="project-card__name">{{ project.name }}</h2>
-                    @if (project.projectUuid === activeProjectService.activeProjectUuid()) {
-                      <span class="project-card__badge">Current</span>
-                    }
-                  </div>
-                  <button
-                    mat-icon-button
-                    type="button"
-                    class="project-card__settings-btn"
-                    aria-label="Edit project settings"
-                    title="Edit project settings"
-                    (click)="openProjectEdit($event, project.projectUuid)"
-                  >
-                    <mat-icon>settings</mat-icon>
-                  </button>
-                </div>
+            <div class="project-card__meta">
+              @if (project.warehouseType) {
+                <span class="project-card__chip">
+                  <mat-icon>storage</mat-icon>
+                  {{ warehouseLabel(project.warehouseType) }}
+                </span>
+              }
+              @if (project.createdByUserName) {
+                <span class="project-card__chip">
+                  <mat-icon>person</mat-icon>
+                  {{ project.createdByUserName }}
+                </span>
+              }
+            </div>
 
-                <div class="project-card__meta">
-                  @if (project.warehouseType) {
-                    <span class="project-card__chip">
-                      <mat-icon>storage</mat-icon>
-                      {{ warehouseLabel(project.warehouseType) }}
-                    </span>
-                  }
-                  @if (project.createdByUserName) {
-                    <span class="project-card__chip">
-                      <mat-icon>person</mat-icon>
-                      {{ project.createdByUserName }}
-                    </span>
-                  }
-                </div>
-
-                <div class="project-card__footer">
-                  <span class="project-card__date">
-                    Created {{ formatDate(project.createdAt) }}
-                  </span>
-                  <span class="project-card__action">
-                    Open
-                    <mat-icon>arrow_forward</mat-icon>
-                  </span>
-                </div>
-              </article>
-            }
-          </div>
+            <div class="project-card__footer">
+              <span class="project-card__date">
+                Created {{ formatDate(project.createdAt) }}
+              </span>
+              <span class="project-card__action">
+                Open
+                <mat-icon>arrow_forward</mat-icon>
+              </span>
+            </div>
+          </article>
         }
       </div>
-    </section>
+    }
   </div>
-</div>
+</ng-template>

@@ -19,6 +19,7 @@ export type ApiResponse<T> = ApiSuccess<T> | ApiError;
 export type HealthResults = {
   version: string;
   isAuthenticated: boolean;
+  isSetupComplete?: boolean;
   healthy?: boolean;
   /** Product flag from the API; Ask AI is shown only when true. */
   askAiEnabled?: boolean;
@@ -35,4 +36,7 @@ export type UserProfile = {
   firstName: string;
   lastName: string;
   role: string;
+  isActive?: boolean;
+  mustChangePassword?: boolean;
+  abilityRules?: Array<{ action: string; subject: string }>;
 };

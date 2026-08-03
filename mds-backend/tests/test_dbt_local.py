@@ -9,6 +9,7 @@ from mds.config import settings
 from mds.db.seed import MOCK_PROJECT_UUID
 from mds.main import app
 from mds.services.dbt.loader import clear_dbt_artifacts_cache
+from auth_helpers import ensure_authenticated_admin
 
 FIXTURES_DIR = Path(__file__).parent / "fixtures" / "dbt"
 os.environ.setdefault("DATABASE_URL", "sqlite+pysqlite:///:memory:")
@@ -31,6 +32,7 @@ def _configure_local_dbt_path() -> None:
 def client() -> TestClient:
     clear_dbt_artifacts_cache()
     with TestClient(app) as test_client:
+        ensure_authenticated_admin(test_client)
         yield test_client
 
 

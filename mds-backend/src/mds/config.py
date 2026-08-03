@@ -3,9 +3,11 @@ from __future__ import annotations
 import logging
 from pathlib import Path
 from typing import Literal, Optional
+from urllib.parse import urlsplit, urlunsplit
 
-from pydantic import Field, field_validator
+from pydantic import AliasChoices, Field, field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
+from sqlalchemy.engine.url import make_url
 
 logger = logging.getLogger(__name__)
 
@@ -15,6 +17,39 @@ _ENV_FILE = BACKEND_ROOT / ".env"
 
 # Fixed Fernet key for local development only. Do not use in production.
 DEV_ENCRYPTION_KEY = "fmXlTUNDZHLuwZ76WG33hC-hMtmClZscvGSHBDgqtj0="
+
+
+def resolve_database_url(url: str) -> str:
+    """Make relative SQLite file paths absolute under ``BACKEND_ROOT``.
+
+    Relative ``sqlite`` / ``sqlite+pysqlite`` URLs otherwise resolve against the
+    process cwd, so the CLI and API can silently use different database files.
+    """
+    if not url.startswith("sqlite"):
+        return url
+    parsed = make_url(url)
+    database = parsed.database
+    if not database or database == ":memory:":
+        return url
+    db_path = Path(database)
+    if db_path.is_absolute():
+        return url
+    absolute = (BACKEND_ROOT / db_path).resolve()
+    return str(parsed.set(database=str(absolute)))
+
+
+def redact_database_url(url: str) -> str:
+    """Return a log-safe DATABASE_URL (password redacted)."""
+    if url.startswith("sqlite"):
+        return resolve_database_url(url)
+    parts = urlsplit(url)
+    if "@" not in parts.netloc:
+        return url
+    userinfo, hostinfo = parts.netloc.rsplit("@", 1)
+    if ":" in userinfo:
+        username = userinfo.split(":", 1)[0]
+        userinfo = f"{username}:***"
+    return urlunsplit((parts.scheme, f"{userinfo}@{hostinfo}", parts.path, parts.query, parts.fragment))
 
 
 class Settings(BaseSettings):
@@ -114,13 +149,48 @@ class Settings(BaseSettings):
         default="gpt-4o-mini",
         description="Chat model id for the AI assistant when OPENAI_API_KEY is set.",
     )
+    session_secret: str = Field(
+        default="mds-dev-session-secret-change-me",
+        description="Secret used for signing session cookies. Override in production.",
+    )
+    session_ttl_hours: int = Field(
+        default=168,
+        description="Session lifetime in hours (default 7 days).",
+    )
+    session_cookie_secure: bool = Field(
+        default=False,
+        description="When true, set the Secure flag on the session cookie (production HTTPS).",
+    )
+    app_origin: Optional[str] = Field(
+        default=None,
+        validation_alias=AliasChoices("APP_ORIGIN", "PUBLIC_APP_URL"),
+        description=(
+            "Public Angular app origin used in password-reset URLs "
+            "(defaults to the first CORS origin, then http://localhost:4200)."
+        ),
+    )
 
-    @field_validator("dbt_artifacts_path", "encryption_key", "openai_api_key", mode="before")
+    @field_validator(
+        "dbt_artifacts_path",
+        "encryption_key",
+        "openai_api_key",
+        "app_origin",
+        mode="before",
+    )
     @classmethod
     def _empty_str_to_none(cls, value: object) -> object:
         if value == "":
             return None
         return value
+
+    @field_validator("database_url", mode="after")
+    @classmethod
+    def _resolve_relative_sqlite_url(cls, value: str) -> str:
+        return resolve_database_url(value)
+
+    @property
+    def database_url_for_display(self) -> str:
+        return redact_database_url(self.database_url)
 
     @property
     def effective_log_level(self) -> str:
@@ -131,6 +201,15 @@ class Settings(BaseSettings):
     @property
     def cors_origin_list(self) -> list[str]:
         return [origin.strip() for origin in self.cors_origins.split(",") if origin.strip()]
+
+    @property
+    def public_app_url(self) -> str:
+        if self.app_origin:
+            return self.app_origin.rstrip("/")
+        origins = self.cors_origin_list
+        if origins:
+            return origins[0].rstrip("/")
+        return "http://localhost:4200"
 
     @property
     def effective_encryption_key(self) -> str:

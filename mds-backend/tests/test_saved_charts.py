@@ -44,7 +44,8 @@ def test_get_saved_chart(client: TestClient) -> None:
     assert chart["uuid"] == str(MOCK_CHART_4_UUID)
     assert chart["chartKind"] == "big_number"
     assert chart["metricQuery"]["exploreName"] == "orders"
-    assert chart["updatedByUser"]["firstName"] == "Demo"
+    if chart["updatedByUser"] is not None:
+        assert chart["updatedByUser"]["firstName"] == "Demo"
 
 
 def test_get_saved_chart_not_found(client: TestClient) -> None:

@@ -1,26 +1,14 @@
-<div class="page-layout">
-  <aside class="page-layout__sidebar" appResizableSidebar>
-    <div class="page-sidebar">
-      <header class="page-sidebar__header">
-        <p class="page-sidebar__breadcrumb">Settings</p>
-      </header>
-
-      <app-settings-sidebar-nav active="projects" />
-    </div>
-  </aside>
-
-  <div class="page-layout__content">
-    <section class="project-create">
-      <div class="page__container">
-        <header class="project-create__header">
-          <nav class="project-create__breadcrumbs" aria-label="Breadcrumb">
-            <a routerLink="/projects" class="project-create__breadcrumb-link">Home</a>
-            <mat-icon>chevron_right</mat-icon>
-            <a routerLink="/projects" class="project-create__breadcrumb-link">Projects</a>
-            <mat-icon>chevron_right</mat-icon>
-            <span class="project-create__breadcrumb-current">Create project</span>
-          </nav>
-        </header>
+<section class="project-create">
+  <div class="page__container">
+    <header class="project-create__header">
+      <nav class="project-create__breadcrumbs" aria-label="Breadcrumb">
+        <a routerLink="/projects" class="project-create__breadcrumb-link">Home</a>
+        <mat-icon>chevron_right</mat-icon>
+        <a routerLink="/settings/projects" class="project-create__breadcrumb-link">Projects</a>
+        <mat-icon>chevron_right</mat-icon>
+        <span class="project-create__breadcrumb-current">Create project</span>
+      </nav>
+    </header>
 
         <h1 class="project-create__title">Create project</h1>
         <p class="project-create__subtitle">
@@ -243,7 +231,5 @@
             </div>
           </form>
         }
-      </div>
-    </section>
   </div>
-</div>
+</section>

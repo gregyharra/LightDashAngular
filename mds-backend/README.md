@@ -43,6 +43,20 @@ python -m mds.scripts.seed_demo
 
 Alternatively, set `SEED_DEMO_DATA=true` in `.env` to seed automatically on startup.
 
+### Reset a user password
+
+The CLI and API must share the same `DATABASE_URL` (from `mds-backend/.env`). Do not start uvicorn with a different `DATABASE_URL=` override unless you export the same value for CLI commands.
+
+```bash
+cd mds-backend
+source .venv/bin/activate
+python -m mds.scripts.reset_password --email demo@lightdash.com
+```
+
+The command prints a **reset URL** (open it to choose a new password) and a temporary password. Prefer the reset URL; signing in with the temporary password redirects to the same set-new-password page.
+
+Set `APP_ORIGIN` / `PUBLIC_APP_URL` if the Angular app is not on the first `CORS_ORIGINS` value (default `http://localhost:4200`).
+
 ## Implemented endpoints (Phase B0 + B1 + local dbt)
 
 | Method | Path | Notes |

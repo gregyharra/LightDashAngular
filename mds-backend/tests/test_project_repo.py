@@ -37,9 +37,13 @@ def test_mark_project_sync_error_redacts_credentials_before_truncating() -> None
     assert len(project.git_last_sync_error) == _MAX_SYNC_ERROR_LEN
 
 
+from auth_helpers import ensure_authenticated_admin
+
+
 @pytest.fixture(scope="module")
 def client() -> TestClient:
     with TestClient(app) as test_client:
+        ensure_authenticated_admin(test_client)
         yield test_client
 
 

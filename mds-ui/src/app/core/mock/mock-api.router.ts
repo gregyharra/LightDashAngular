@@ -642,6 +642,56 @@ const warehousesTest = (request: MockRequest) =>
 const routes: MockRoute[] = [
   { pattern: /^\/health$/, handler: () => mockHealth },
 
+  { pattern: /^\/setup$/, method: 'POST', handler: () => mockUser },
+  { pattern: /^\/login$/, method: 'POST', handler: () => mockUser },
+  { pattern: /^\/logout$/, method: 'POST', handler: () => null },
+  { pattern: /^\/logout$/, handler: () => null },
+  {
+    pattern: /^\/users$/,
+    method: 'GET',
+    handler: () => [
+      {
+        userUuid: mockUser.userUuid,
+        email: mockUser.email,
+        firstName: mockUser.firstName,
+        lastName: mockUser.lastName,
+        role: mockUser.role,
+        isActive: true,
+        createdAt: mockUser.createdAt,
+      },
+    ],
+  },
+  {
+    pattern: /^\/users$/,
+    method: 'POST',
+    handler: (request) => {
+      const body = (request.body ?? {}) as Record<string, string>;
+      return {
+        userUuid: 'mock-created-user',
+        email: body['email'] ?? 'new@example.com',
+        firstName: body['firstName'] ?? 'New',
+        lastName: body['lastName'] ?? 'User',
+        role: body['role'] ?? 'member',
+        isActive: true,
+        createdAt: new Date().toISOString(),
+      };
+    },
+  },
+  {
+    pattern: /^\/users\/[^/]+$/,
+    method: 'PATCH',
+    handler: () => ({
+      userUuid: mockUser.userUuid,
+      email: mockUser.email,
+      firstName: mockUser.firstName,
+      lastName: mockUser.lastName,
+      role: mockUser.role,
+      isActive: true,
+      createdAt: mockUser.createdAt,
+    }),
+  },
+  { pattern: /^\/users\/[^/]+$/, method: 'DELETE', handler: () => null },
+
   { pattern: /^\/user$/, handler: () => mockUser },
   { pattern: /^\/user\/account$/, handler: () => mockAccount },
   { pattern: /^\/user\/me$/, method: 'GET', handler: () => mockUser },
@@ -650,10 +700,10 @@ const routes: MockRoute[] = [
   { pattern: /^\/user\/me\/complete$/, handler: () => mockUser },
   { pattern: /^\/user\/me\/allowedOrganizations$/, handler: () => [] },
   { pattern: /^\/user\/me\/personal-access-tokens/, handler: () => [] },
+  { pattern: /^\/user\/password\/reset$/, method: 'POST', handler: () => mockUser },
   { pattern: /^\/user\/password/, handler: () => null },
   { pattern: /^\/user\/identity$/, handler: () => [] },
   { pattern: /^\/user\/warehouseCredentials/, handler: () => [] },
-  { pattern: /^\/logout$/, handler: () => null },
 
   { pattern: /^\/org\/onboardingStatus$/, handler: () => mockOnboardingStatus },
   { pattern: /^\/org\/users/, handler: () => ({ users: [], pagination: { page: 1, pageSize: 50, totalPageCount: 0, totalResults: 0 } }) },

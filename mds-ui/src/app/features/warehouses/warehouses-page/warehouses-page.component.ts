@@ -9,18 +9,10 @@ import {
 } from '../../../core/models/warehouse.model';
 import { ApiErrorService } from '../../../core/api/api-error.service';
 import { WarehouseService } from '../../projects/warehouse.service';
-import { ResizableSidebarDirective } from '../../../layout/resizable-sidebar/resizable-sidebar.directive';
-import { SettingsSidebarNavComponent } from '../../../layout/settings-sidebar-nav/settings-sidebar-nav.component';
 
 @Component({
   selector: 'app-warehouses-page',
-  imports: [
-    MatButtonModule,
-    MatIconModule,
-    MatProgressSpinnerModule,
-    ResizableSidebarDirective,
-    SettingsSidebarNavComponent,
-  ],
+  imports: [MatButtonModule, MatIconModule, MatProgressSpinnerModule],
   templateUrl: './warehouses-page.component.html',
   styleUrl: './warehouses-page.component.scss',
 })
@@ -70,11 +62,11 @@ export class WarehousesPageComponent {
   }
 
   protected openCreate(): void {
-    void this.router.navigate(['/warehouses', 'create']);
+    void this.router.navigate(['/settings/warehouses', 'create']);
   }
 
   protected openEdit(warehouseUuid: string): void {
-    void this.router.navigate(['/warehouses', warehouseUuid, 'edit']);
+    void this.router.navigate(['/settings/warehouses', warehouseUuid, 'edit']);
   }
 
   protected deleteWarehouse(event: Event, warehouseUuid: string): void {

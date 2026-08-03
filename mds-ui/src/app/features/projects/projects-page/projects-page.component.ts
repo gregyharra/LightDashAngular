@@ -1,14 +1,16 @@
-import { Component, inject, signal } from '@angular/core';
-import { Router } from '@angular/router';
+import { NgTemplateOutlet } from '@angular/common';
+import { Component, computed, inject, signal } from '@angular/core';
+import { toSignal } from '@angular/core/rxjs-interop';
+import { ActivatedRoute, Router } from '@angular/router';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { map } from 'rxjs';
 import { ActiveProjectService } from '../../../core/services/active-project.service';
+import { AppStateService } from '../../../core/services/app-state.service';
 import { ApiErrorService } from '../../../core/api/api-error.service';
 import { ProjectSummary } from '../../../core/models/project.model';
 import { ProjectsService } from '../projects.service';
-import { ResizableSidebarDirective } from '../../../layout/resizable-sidebar/resizable-sidebar.directive';
-import { SettingsSidebarNavComponent } from '../../../layout/settings-sidebar-nav/settings-sidebar-nav.component';
 
 const WAREHOUSE_LABELS: Record<string, string> = {
   postgres: 'PostgreSQL',
@@ -21,7 +23,7 @@ const WAREHOUSE_LABELS: Record<string, string> = {
 
 @Component({
   selector: 'app-projects-page',
-  imports: [MatButtonModule, MatIconModule, MatProgressSpinnerModule, ResizableSidebarDirective, SettingsSidebarNavComponent],
+  imports: [NgTemplateOutlet, MatButtonModule, MatIconModule, MatProgressSpinnerModule],
   templateUrl: './projects-page.component.html',
   styleUrl: './projects-page.component.scss',
 })
@@ -29,7 +31,20 @@ export class ProjectsPageComponent {
   private readonly projectsService = inject(ProjectsService);
   private readonly apiErrorService = inject(ApiErrorService);
   private readonly router = inject(Router);
+  private readonly route = inject(ActivatedRoute);
   protected readonly activeProjectService = inject(ActiveProjectService);
+  protected readonly appState = inject(AppStateService);
+
+  protected readonly managementMode = toSignal(
+    this.route.data.pipe(map((data) => !!data['management'])),
+    { initialValue: !!this.route.snapshot.data['management'] },
+  );
+
+  protected readonly subtitle = computed(() =>
+    this.managementMode()
+      ? 'Create projects and manage their settings.'
+      : 'Select a project to explore metrics, charts, and dashboards.',
+  );
 
   protected readonly projects = signal<ProjectSummary[]>([]);
   protected readonly loading = signal(true);
@@ -61,18 +76,26 @@ export class ProjectsPageComponent {
     });
   }
 
+  protected openCard(projectUuid: string): void {
+    if (this.managementMode()) {
+      this.openProjectEdit(projectUuid);
+      return;
+    }
+    this.openProject(projectUuid);
+  }
+
   protected openProject(projectUuid: string): void {
     this.activeProjectService.setActiveProject(projectUuid);
     void this.router.navigate(['/projects', projectUuid, 'dashboards']);
   }
 
-  protected openProjectEdit(event: Event, projectUuid: string): void {
-    event.stopPropagation();
+  protected openProjectEdit(projectUuid: string, event?: Event): void {
+    event?.stopPropagation();
     this.activeProjectService.setActiveProject(projectUuid);
-    void this.router.navigate(['/projects', projectUuid, 'edit']);
+    void this.router.navigate(['/settings/projects', projectUuid, 'edit']);
   }
 
   protected createProject(): void {
-    void this.router.navigate(['/projects', 'create']);
+    void this.router.navigate(['/settings/projects', 'create']);
   }
 }
