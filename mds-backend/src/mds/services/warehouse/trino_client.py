@@ -39,9 +39,40 @@ def snapshot_from_warehouse(warehouse: Warehouse) -> TrinoConnectionSnapshot:
     )
 
 
+def _bytes_to_text(value: bytes | bytearray | memoryview) -> str:
+    """Convert warehouse binary cells to a JSON-safe string.
+
+    FastAPI's jsonable_encoder calls ``bytes.decode()`` (UTF-8). Non-UTF-8
+    VARBINARY / opaque blobs then crash the poll endpoint with UnicodeDecodeError,
+    which the UI surfaces as an HTTP timeout while waiting for status=ready.
+    """
+    data = bytes(value)
+    try:
+        return data.decode("utf-8")
+    except UnicodeDecodeError:
+        return data.hex()
+
+
+def _json_safe_value(value: Any) -> Any:
+    """Recursively coerce Trino cell values into JSON-serializable forms."""
+    if isinstance(value, memoryview):
+        value = value.tobytes()
+    if isinstance(value, (bytes, bytearray)):
+        return _bytes_to_text(value)
+    if isinstance(value, dict):
+        return {str(key): _json_safe_value(item) for key, item in value.items()}
+    if isinstance(value, (list, tuple)):
+        return [_json_safe_value(item) for item in value]
+    return value
+
+
 def _format_value(value: Any) -> str:
     if value is None:
         return ""
+    if isinstance(value, memoryview):
+        value = value.tobytes()
+    if isinstance(value, (bytes, bytearray)):
+        return _bytes_to_text(value)
     if isinstance(value, bool):
         return "true" if value else "false"
     if isinstance(value, float):
@@ -61,8 +92,9 @@ def _rows_to_result_rows(
         row: dict[str, Any] = {}
         for field_id in field_ids:
             index = column_index.get(field_id)
-            raw = raw_row[index] if index is not None else None
-            row[field_id] = {"value": {"raw": raw, "formatted": _format_value(raw)}}
+            cell = raw_row[index] if index is not None else None
+            raw = _json_safe_value(cell)
+            row[field_id] = {"value": {"raw": raw, "formatted": _format_value(cell)}}
         results.append(row)
 
     return results

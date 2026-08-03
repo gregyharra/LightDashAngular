@@ -117,6 +117,65 @@ def test_execute_trino_query_snapshot_returns_columns(monkeypatch):
     assert rows[0]["orders_status"]["value"]["raw"] == "open"
 
 
+def test_rows_to_result_rows_coerces_non_utf8_bytes():
+    """VARBINARY / opaque bytes must not reach FastAPI's UTF-8 bytes decoder."""
+    from fastapi.encoders import jsonable_encoder
+
+    from mds.services.warehouse import trino_client
+
+    opaque = bytes([0xCA, 0xFE, 0xBA, 0xBE])
+    utf8 = "café".encode("utf-8")
+    rows = trino_client._rows_to_result_rows(
+        ["orders_blob", "orders_label", "orders_nested"],
+        [(opaque, utf8, {"ids": [opaque, memoryview(opaque)]})],
+        ["orders_blob", "orders_label", "orders_nested"],
+    )
+
+    blob = rows[0]["orders_blob"]["value"]
+    assert blob["raw"] == "cafebabe"
+    assert blob["formatted"] == "cafebabe"
+    assert rows[0]["orders_label"]["value"]["raw"] == "café"
+    assert rows[0]["orders_nested"]["value"]["raw"] == {
+        "ids": ["cafebabe", "cafebabe"]
+    }
+
+    # Regression: previously jsonable_encoder crashed with UnicodeDecodeError here.
+    encoded = jsonable_encoder(rows)
+    assert encoded[0]["orders_blob"]["value"]["raw"] == "cafebabe"
+
+
+def test_poll_ready_with_binary_origin_rows_is_json_serializable(client: TestClient):
+    from fastapi.encoders import jsonable_encoder
+
+    from mds.routers import query
+    from mds.services.warehouse import trino_client
+
+    store.clear_queries()
+    opaque = bytes([0xCA, 0xFE])
+    rows = trino_client._rows_to_result_rows(
+        ["orders_blob"],
+        [(opaque,)],
+        ["orders_blob"],
+    )
+    stored = store.create_query(
+        metric_query=_metric(),
+        compiled_sql="SELECT 1",
+        fields={},
+        warnings=[],
+        rows=rows,
+        status="ready",
+    )
+
+    response = query.poll_query("project", stored.query_uuid, object())
+    encoded = jsonable_encoder(response)
+    assert encoded["results"]["status"] == "ready"
+    assert encoded["results"]["rows"][0]["orders_blob"]["value"]["raw"] == "cafe"
+
+    http = client.get(f"/api/v2/projects/project/query/{stored.query_uuid}")
+    assert http.status_code == 200
+    assert http.json()["results"]["rows"][0]["orders_blob"]["value"]["raw"] == "cafe"
+
+
 def test_schedule_metric_query_completes_async(monkeypatch):
     store.clear_queries()
     q = store.create_query(
