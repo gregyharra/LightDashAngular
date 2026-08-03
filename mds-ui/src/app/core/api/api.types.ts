@@ -20,6 +20,8 @@ export type HealthResults = {
   version: string;
   isAuthenticated: boolean;
   healthy?: boolean;
+  /** Product flag from the API; Ask AI is shown only when true. */
+  askAiEnabled?: boolean;
   query?: {
     defaultLimit?: number;
     maxLimit?: number;

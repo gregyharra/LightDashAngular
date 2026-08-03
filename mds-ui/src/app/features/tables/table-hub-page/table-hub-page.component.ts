@@ -23,6 +23,8 @@ import {
   AddAttributeDialogResult,
 } from './add-attribute-dialog/add-attribute-dialog.component';
 import {
+  ColumnTransformationType,
+  LineageColumn,
   LineageGraphMode,
   LineageHopDepth,
   LineageViewMode,
@@ -30,9 +32,11 @@ import {
   DbtTreeNode,
   SelectedColumnRef,
 } from '../../../core/models/lineage.model';
+import { inferColumnTransformation } from '../../lineage/column-transformation.utils';
 import { FolderSearchPanelComponent } from '../../lineage/folder-search-panel/folder-search-panel.component';
 import { LineageGraphComponent } from '../../lineage/lineage-graph/lineage-graph.component';
 import { LineageService } from '../../lineage/lineage.service';
+import { TransformationChipComponent } from '../../lineage/transformation-chip/transformation-chip.component';
 import { ResizableSidebarDirective } from '../../../layout/resizable-sidebar/resizable-sidebar.directive';
 import { DictionaryService } from '../dictionary.service';
 import { SqlHighlightComponent } from '../../../shared/sql-highlight/sql-highlight.component';
@@ -111,6 +115,7 @@ const ENABLE_TABLE_HUB_TAG_EDITING = false;
     LineageGraphComponent,
     ResizableSidebarDirective,
     SqlHighlightComponent,
+    TransformationChipComponent,
   ],
   templateUrl: './table-hub-page.component.html',
   styleUrl: './table-hub-page.component.scss',
@@ -156,6 +161,29 @@ export class TableHubPageComponent {
     }
     return lineage.nodes.find((node) => node.id === id || node.name === id) ?? null;
   });
+
+  protected columnTransformation(
+    column: DictionaryColumn,
+  ): ColumnTransformationType | null {
+    const node = this.selectedNode();
+    const lineage = this.lineage();
+    if (!node || !lineage) {
+      return null;
+    }
+
+    const lineageColumn: LineageColumn =
+      node.columns?.find((col) => col.name === column.name) ?? {
+        name: column.name,
+        type: column.type,
+      };
+
+    return inferColumnTransformation(
+      node,
+      lineageColumn,
+      lineage.columnEdges ?? [],
+      lineage.nodes,
+    );
+  }
 
   protected readonly hasCompiledSql = computed(
     () => !!this.entry()?.compiledSql?.trim(),

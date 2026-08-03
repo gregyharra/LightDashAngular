@@ -261,6 +261,9 @@
                             (valueChange)="updateColumnFilter('type', $event)"
                           />
                         </th>
+                        <th scope="col" class="table-hub__transform-header">
+                          Transformation
+                        </th>
                         <th scope="col" class="table-hub__desc-header">
                           <app-content-list-column-header
                             label="Description"
@@ -297,7 +300,7 @@
                     <tbody>
                       @if (filteredColumns().length === 0) {
                         <tr>
-                          <td [attr.colspan]="3 + attributeDefs().length">
+                          <td [attr.colspan]="4 + attributeDefs().length">
                             <p class="table-hub__empty-filter">No columns match your filters.</p>
                           </td>
                         </tr>
@@ -306,6 +309,17 @@
                         <tr>
                           <td class="table-hub__mono">{{ column.name }}</td>
                           <td>{{ column.type }}</td>
+                          <td class="table-hub__transform-cell">
+                            @if (columnTransformation(column); as transformType) {
+                              <app-transformation-chip
+                                [type]="transformType"
+                                mode="full"
+                                size="md"
+                              />
+                            } @else {
+                              <span class="table-hub__transform-empty">—</span>
+                            }
+                          </td>
                           <td class="table-hub__desc-cell">
                             <input
                               class="table-hub__input table-hub__input--inline"

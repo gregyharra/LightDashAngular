@@ -14,6 +14,7 @@ import {
   SavedChart,
 } from '../../../core/models/chart.model';
 import {
+  AdditionalMetric,
   CompiledTable,
   Explore,
   FieldId,
@@ -25,8 +26,7 @@ import { ChartService } from '../chart.service';
 import { ExplorerService } from '../../explorer/explorer.service';
 import { ChartVisualizationComponent } from '../chart-visualization/chart-visualization.component';
 import { ResizableSidebarDirective } from '../../../layout/resizable-sidebar/resizable-sidebar.directive';
-import { SqlRunnerPanelComponent } from '../../sql-runner/sql-runner-panel/sql-runner-panel.component';
-import { defaultSampleSql } from '../../../core/mock/fixtures/sql-runner.fixture';
+import { SqlHighlightComponent } from '../../../shared/sql-highlight/sql-highlight.component';
 import { TablesChartConfigPanelComponent } from '../../explorer/tables-chart-config-panel/tables-chart-config-panel.component';
 
 type ChartViewMode = 'chart' | 'sql';
@@ -49,7 +49,7 @@ type TableFieldGroup = {
     ChartVisualizationComponent,
     TablesChartConfigPanelComponent,
     ResizableSidebarDirective,
-    SqlRunnerPanelComponent,
+    SqlHighlightComponent,
   ],
   templateUrl: './chart-view-page.component.html',
   styleUrl: './chart-view-page.component.scss',
@@ -75,6 +75,7 @@ export class ChartViewPageComponent {
   );
   protected readonly selectedDimensions = signal<Set<FieldId>>(new Set());
   protected readonly selectedMetrics = signal<Set<FieldId>>(new Set());
+  protected readonly additionalMetrics = signal<AdditionalMetric[]>([]);
   protected readonly queryLoading = signal(false);
   protected readonly queryError = signal<string | null>(null);
   protected readonly queryResults = signal<QueryResults | null>(null);
@@ -83,7 +84,9 @@ export class ChartViewPageComponent {
   protected readonly saveSuccess = signal(false);
 
   protected readonly viewMode = signal<ChartViewMode>('chart');
-  protected readonly sampleSql = defaultSampleSql;
+  protected readonly compiledSql = computed(
+    () => this.queryResults()?.compiledSql?.trim() || null,
+  );
 
   protected readonly tableGroups = computed<TableFieldGroup[]>(() => {
     const explore = this.explore();
@@ -221,6 +224,7 @@ export class ChartViewPageComponent {
   private applyMetricQuery(metricQuery: MetricQuery): void {
     this.selectedDimensions.set(new Set(metricQuery.dimensions));
     this.selectedMetrics.set(new Set(metricQuery.metrics));
+    this.additionalMetrics.set(metricQuery.additionalMetrics);
     this.syncChartAxisFields();
   }
 
@@ -273,6 +277,13 @@ export class ChartViewPageComponent {
           return metric.label;
         }
       }
+    }
+
+    const additionalMetric = this.additionalMetrics().find(
+      (metric) => getFieldId(metric.tableName, metric.name) === fieldId,
+    );
+    if (additionalMetric) {
+      return additionalMetric.label;
     }
 
     return fieldId;
@@ -346,7 +357,7 @@ export class ChartViewPageComponent {
           sorts: [],
           limit: this.chartDisplayConfig().rowLimit,
           tableCalculations: [],
-          additionalMetrics: [],
+          additionalMetrics: this.additionalMetrics(),
         },
         chartConfig: {
           type: this.chartKind(),
@@ -425,7 +436,7 @@ export class ChartViewPageComponent {
         sorts: [],
         limit: this.chartDisplayConfig().rowLimit,
         tableCalculations: [],
-        additionalMetrics: [],
+        additionalMetrics: this.additionalMetrics(),
       })
       .subscribe({
         next: (results) => {

@@ -75,8 +75,10 @@
             [hasExplore]="!!explore()"
             [isExploreableNode]="isExploreableNode()"
             [selectedFieldIds]="selectedFields()"
+            [canCreateCustomMetric]="canCreateCustomMetric()"
             (fieldSearchChange)="onFieldSearch($event)"
             (fieldToggled)="toggleField($event)"
+            (customMetricAdd)="openCustomMetricDialog()"
           />
         }
 
@@ -87,7 +89,7 @@
               class="tables-workspace__toolbar-btn"
               type="button"
               aria-label="Refresh dbt"
-              title="Refresh dbt"
+              matTooltip="Refresh dbt"
               disabled
             >
               <mat-icon>sync</mat-icon>
@@ -105,7 +107,7 @@
                   class="tables-workspace__run-btn"
                   type="button"
                   aria-label="Run query (500)"
-                  title="Run query (500)"
+                  matTooltip="Run query (500)"
                   [disabled]="selectedFieldList().length === 0 || queryLoading()"
                   (click)="runQuery()"
                 >
@@ -121,7 +123,7 @@
                   class="tables-workspace__toolbar-btn"
                   type="button"
                   aria-label="Save chart"
-                  title="Save chart"
+                  matTooltip="Save chart"
                   [disabled]="!canSaveChart()"
                   (click)="openSaveChartDialog()"
                 >
@@ -138,7 +140,7 @@
                 class="tables-workspace__icon-btn"
                 type="button"
                 aria-label="Search"
-                title="Search"
+                matTooltip="Search"
                 disabled
               >
                 <mat-icon>search</mat-icon>
@@ -148,7 +150,7 @@
                 class="tables-workspace__icon-btn"
                 type="button"
                 aria-label="Expand"
-                title="Expand"
+                matTooltip="Expand"
                 disabled
               >
                 <mat-icon>open_in_full</mat-icon>

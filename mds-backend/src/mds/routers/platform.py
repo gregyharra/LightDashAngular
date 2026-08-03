@@ -5,6 +5,7 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
 from mds.api.envelope import ok
+from mds.config import settings
 from mds.db.models import Project, Space, User, Warehouse
 from mds.db.seed import MOCK_USER_UUID
 from mds.db.session import get_db
@@ -58,6 +59,7 @@ def health(skip_migration_check: bool = True):
             "localDbtEnabled": True,
             "isAuthenticated": True,
             "requiresOrgRegistration": False,
+            "askAiEnabled": settings.ask_ai_enabled,
             "latest": {"version": "0.1.0-mds"},
             "query": {
                 "maxPageSize": 2500,

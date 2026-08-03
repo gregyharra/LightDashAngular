@@ -7,6 +7,7 @@ import { MatExpansionModule } from '@angular/material/expansion';
 import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatTableModule } from '@angular/material/table';
+import { MatTooltipModule } from '@angular/material/tooltip';
 import { DashboardDimensionFilter } from '../../../core/models/dashboard.model';
 import { DbtTreeNode, LineageNode } from '../../../core/models/lineage.model';
 import { ChartConfig, ChartKind } from '../../../core/models/chart.model';
@@ -14,6 +15,7 @@ import { ActiveProjectService } from '../../../core/services/active-project.serv
 import { apiErrorMessage } from '../../../core/api/lightdash-api.service';
 import { queryErrorWarning } from '../../../core/api/api-error.service';
 import {
+  AdditionalMetric,
   CompiledTable,
   Explore,
   ExploreSummary,
@@ -58,6 +60,11 @@ import {
   SaveChartDialogComponent,
   SaveChartDialogResult,
 } from '../../charts/save-chart-dialog/save-chart-dialog.component';
+import {
+  CustomMetricDialogComponent,
+  CustomMetricDialogData,
+  CustomMetricDialogResult,
+} from '../custom-metric/custom-metric-dialog.component';
 
 type TableFieldGroup = {
   table: CompiledTable;
@@ -74,6 +81,7 @@ type TableFieldGroup = {
     MatIconModule,
     MatProgressSpinnerModule,
     MatTableModule,
+    MatTooltipModule,
     FolderSearchPanelComponent,
     TablesFieldsPanelComponent,
     TablesChartConfigPanelComponent,
@@ -111,6 +119,7 @@ export class TablesWorkspacePageComponent {
 
   protected readonly fieldSearch = signal('');
   protected readonly selectedFields = signal<Set<FieldId>>(new Set());
+  protected readonly additionalMetrics = signal<AdditionalMetric[]>([]);
   protected readonly queryLoading = signal(false);
   protected readonly queryError = signal<string | null>(null);
   protected readonly queryResults = signal<QueryResults | null>(null);
@@ -161,23 +170,57 @@ export class TablesWorkspacePageComponent {
       return [];
     }
 
-    return Object.values(explore.tables).map((table) => ({
-      table,
-      dimensions: Object.values(table.dimensions)
-        .filter((dim) => !dim.hidden)
-        .map((dim) => ({
-          fieldId: getFieldId(table.name, dim.name),
-          label: dim.label,
-          type: dim.type,
-        })),
-      metrics: Object.values(table.metrics)
-        .filter((metric) => !metric.hidden)
-        .map((metric) => ({
-          fieldId: getFieldId(table.name, metric.name),
-          label: metric.label,
-        })),
-    }));
+    return Object.values(explore.tables).map((table) => {
+      const exploreMetricFieldIds = new Set(
+        Object.values(table.metrics)
+          .filter((metric) => !metric.hidden)
+          .map((metric) => getFieldId(table.name, metric.name)),
+      );
+
+      return {
+        table,
+        dimensions: Object.values(table.dimensions)
+          .filter((dim) => !dim.hidden)
+          .map((dim) => ({
+            fieldId: getFieldId(table.name, dim.name),
+            label: dim.label,
+            type: dim.type,
+          })),
+        metrics: Object.values(table.metrics)
+          .filter((metric) => !metric.hidden)
+          .map((metric) => ({
+            fieldId: getFieldId(table.name, metric.name),
+            label: metric.label,
+          }))
+          .concat(
+            this.additionalMetrics()
+              .filter((metric) => metric.tableName === table.name)
+              .map((metric) => ({
+                fieldId: getFieldId(metric.tableName, metric.name),
+                label: metric.label,
+              }))
+              .filter(
+                (customMetric) =>
+                  !exploreMetricFieldIds.has(customMetric.fieldId),
+              ),
+          ),
+      };
+    });
   });
+
+  protected readonly customMetricDimensions = computed(() =>
+    this.tableGroups().flatMap((group) =>
+      group.dimensions.map((dimension) => ({
+        ...dimension,
+        tableLabel: group.table.label,
+        tableName: group.table.name,
+      })),
+    ),
+  );
+
+  protected readonly canCreateCustomMetric = computed(
+    () => this.customMetricDimensions().length > 0,
+  );
 
   protected readonly filteredTableGroups = computed(() => {
     const query = this.fieldSearch().trim().toLowerCase();
@@ -475,6 +518,7 @@ export class TablesWorkspacePageComponent {
 
   private resetQueryState(): void {
     this.selectedFields.set(new Set());
+    this.additionalMetrics.set([]);
     this.queryResults.set(null);
     this.queryError.set(null);
     this.hasRunQuery.set(false);
@@ -643,6 +687,14 @@ export class TablesWorkspacePageComponent {
   }
 
   protected isMetricField(fieldId: FieldId): boolean {
+    if (
+      this.additionalMetrics().some(
+        (metric) => getFieldId(metric.tableName, metric.name) === fieldId,
+      )
+    ) {
+      return true;
+    }
+
     const explore = this.explore();
     if (!explore) {
       return false;
@@ -659,6 +711,13 @@ export class TablesWorkspacePageComponent {
   }
 
   protected getFieldLabel(fieldId: FieldId): string {
+    const additionalMetric = this.additionalMetrics().find(
+      (metric) => getFieldId(metric.tableName, metric.name) === fieldId,
+    );
+    if (additionalMetric) {
+      return additionalMetric.label;
+    }
+
     const explore = this.explore();
     if (!explore) {
       return fieldId;
@@ -681,7 +740,7 @@ export class TablesWorkspacePageComponent {
   }
 
   protected getColumnLabel(fieldId: FieldId): string {
-    return this.columnLabels()[fieldId] || fieldId;
+    return this.columnLabels()[fieldId] || this.getFieldLabel(fieldId);
   }
 
   protected readonly getFieldLabelFn = (fieldId: FieldId): string =>
@@ -729,6 +788,44 @@ export class TablesWorkspacePageComponent {
           this.queryLoading.set(false);
         },
       });
+  }
+
+  protected openCustomMetricDialog(): void {
+    const explore = this.explore();
+    const dimensions = this.customMetricDimensions();
+    if (!explore || dimensions.length === 0) {
+      return;
+    }
+
+    const dialogRef = this.dialog.open<
+      CustomMetricDialogComponent,
+      CustomMetricDialogData,
+      CustomMetricDialogResult
+    >(CustomMetricDialogComponent, {
+      data: {
+        dimensions,
+      },
+      width: '34rem',
+      maxWidth: '90vw',
+      panelClass: 'custom-metric-dialog-panel',
+    });
+
+    dialogRef.afterClosed().subscribe((metric) => {
+      if (!metric) {
+        return;
+      }
+
+      const fieldId = getFieldId(metric.tableName, metric.name);
+      this.additionalMetrics.update((metrics) => [
+        ...metrics.filter(
+          (existing) =>
+            getFieldId(existing.tableName, existing.name) !== fieldId,
+        ),
+        metric,
+      ]);
+      this.selectedFields.update((selected) => new Set([...selected, fieldId]));
+      this.syncChartAxisFields();
+    });
   }
 
   protected openSaveChartDialog(): void {
@@ -791,6 +888,10 @@ export class TablesWorkspacePageComponent {
     const selected = this.selectedFieldList();
     const dimensions = selected.filter((id) => !this.isMetricField(id));
     const metrics = selected.filter((id) => this.isMetricField(id));
+    const selectedMetricIds = new Set(metrics);
+    const additionalMetrics = this.additionalMetrics().filter((metric) =>
+      selectedMetricIds.has(getFieldId(metric.tableName, metric.name)),
+    );
 
     return mergeTimeTravelIntoMetricQuery(
       mergeDashboardFiltersIntoMetricQuery(
@@ -802,7 +903,7 @@ export class TablesWorkspacePageComponent {
           sorts: [],
           limit: 500,
           tableCalculations: [],
-          additionalMetrics: [],
+          additionalMetrics,
         },
         this.dimensionFilters(),
       ),

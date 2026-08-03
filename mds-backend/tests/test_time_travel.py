@@ -1,3 +1,5 @@
+import pytest
+
 from mds.schemas.query import MetricQuery, TimeTravelConfig
 from mds.services.query.compile import build_metric_query_sql
 from mds.services.query.time_travel import (
@@ -28,6 +30,15 @@ def test_resolve_sql_table_with_time_travel_unsupported():
     assert sql_ref == "raw.events"
     assert warning is not None
     assert warning.code == "TIME_TRAVEL_UNSUPPORTED"
+
+
+def test_rejects_time_travel_sql_injection():
+    with pytest.raises(ValueError, match="Invalid ISO-8601"):
+        resolve_sql_table_with_time_travel(
+            "marts.fct_orders",
+            TimeTravelConfig(asOfTimestamp="2024-01-15T12:00:00Z' OR 1=1 --"),
+            "iceberg",
+        )
 
 
 def test_get_date_anchor():

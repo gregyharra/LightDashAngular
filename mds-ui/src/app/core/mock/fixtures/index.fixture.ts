@@ -26,6 +26,7 @@ export const mockHealth = {
   localDbtEnabled: true,
   isAuthenticated: true,
   requiresOrgRegistration: false,
+  askAiEnabled: false,
   latest: { version: '0.0.0-mock' },
   rudder: { dataPlaneUrl: '', writeKey: '' },
   sentry: {

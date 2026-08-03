@@ -2,7 +2,7 @@ import {
   applyDashboardContextToMetricQuery,
   mergeDashboardFiltersIntoMetricQuery,
 } from './dashboard-filters';
-import { MetricQuery } from '../../core/models/explore.model';
+import { Explore, MetricQuery } from '../../core/models/explore.model';
 import { DashboardDimensionFilter } from '../../core/models/dashboard.model';
 
 const baseQuery: MetricQuery = {
@@ -25,6 +25,37 @@ const activeFilter: DashboardDimensionFilter = {
     tableName: 'orders',
   },
   values: ['completed'],
+};
+
+const tileExplore: Explore = {
+  name: 'orders',
+  label: 'Orders',
+  tags: [],
+  baseTable: 'orders',
+  joinedTables: [],
+  targetDatabase: 'default',
+  tables: {
+    orders: {
+      name: 'orders',
+      label: 'Orders',
+      database: 'default',
+      schema: 'public',
+      sqlTable: 'orders',
+      dimensions: {
+        status: {
+          fieldType: 'dimension',
+          type: 'string',
+          name: 'status',
+          label: 'Status',
+          table: 'orders',
+          tableLabel: 'Orders',
+          sql: '${TABLE}.status',
+          hidden: false,
+        },
+      },
+      metrics: {},
+    },
+  },
 };
 
 describe('dashboard-filters', () => {
@@ -82,6 +113,16 @@ describe('dashboard-filters', () => {
         settings: undefined,
       },
     ]);
+  });
+
+  it('drops dashboard filters that are absent from the tile explore', () => {
+    const merged = mergeDashboardFiltersIntoMetricQuery(
+      baseQuery,
+      [{ ...activeFilter, target: { fieldId: 'customers_country', tableName: 'customers' } }],
+      tileExplore,
+    );
+
+    expect(merged).toBe(baseQuery);
   });
 
   it('applies dashboard context with time travel', () => {

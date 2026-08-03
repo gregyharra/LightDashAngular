@@ -353,9 +353,18 @@
     min-width: 14rem;
   }
 
+  td.table-hub__transform-cell,
+  th.table-hub__transform-header {
+    vertical-align: middle;
+  }
+
   td.table-hub__attr-cell {
     min-width: 13rem;
   }
+}
+
+.table-hub__transform-empty {
+  color: var(--ld-gray-5, #adb5bd);
 }
 
 .table-hub__attr-header {

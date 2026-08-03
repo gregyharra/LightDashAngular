@@ -52,9 +52,11 @@ export class TablesFieldsPanelComponent {
   readonly isExploreableNode = input(true);
   readonly selectedFieldIds = input<ReadonlySet<FieldId>>(new Set());
   readonly resizable = input(true);
+  readonly canCreateCustomMetric = input(false);
 
   readonly fieldSearchChange = output<string>();
   readonly fieldToggled = output<FieldId>();
+  readonly customMetricAdd = output<void>();
 
   protected readonly collapsed = signal(false);
   protected readonly panelWidth = signal(DEFAULT_WIDTH);
@@ -150,6 +152,13 @@ export class TablesFieldsPanelComponent {
 
   protected toggleField(fieldId: FieldId): void {
     this.fieldToggled.emit(fieldId);
+  }
+
+  protected onCustomMetricAdd(): void {
+    if (!this.canCreateCustomMetric()) {
+      return;
+    }
+    this.customMetricAdd.emit();
   }
 
   private readCollapsedState(): boolean {

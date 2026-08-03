@@ -167,3 +167,18 @@ strong {
     overflow: visible;
   }
 }
+
+.custom-metric-dialog-panel .mat-mdc-dialog-content {
+  display: block;
+  min-height: 0;
+  max-height: min(80vh, 900px);
+  overflow-x: hidden;
+  overflow-y: auto;
+}
+
+@supports (-moz-appearance: none) {
+  .custom-metric-dialog-panel .mat-mdc-dialog-content {
+    max-height: none;
+    overflow: visible;
+  }
+}

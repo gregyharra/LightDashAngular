@@ -8,10 +8,11 @@ from mds.db.session import get_db
 from mds.schemas.query import MetricQueryRequest, QueryWarning
 from mds.services.dbt.parse import build_explore_from_lineage_node, find_lineage_node
 from mds.services.query.compile import build_metric_query_sql
+from mds.services.query.executor import schedule_metric_query
 from mds.services.query.store import create_query, get_query
 from mds.services.query.time_travel import validate_time_travel_for_explore
 from mds.services.warehouse.connection import get_connection_for_project
-from mds.services.warehouse.trino_client import execute_trino_query
+from mds.services.warehouse.trino_client import snapshot_from_warehouse
 
 router = APIRouter(tags=["query"])
 
@@ -35,6 +36,17 @@ def _build_fields(explore: dict, metric_query) -> dict:
             field_id = f"{table_name}_{metric['name']}"
             if field_id in selected:
                 fields[field_id] = {**metric, "fieldId": field_id}
+    for metric in metric_query.additional_metrics:
+        field_id = f"{metric.table_name}_{metric.name}"
+        if field_id in selected:
+            fields[field_id] = {
+                "name": metric.name,
+                "label": metric.label,
+                "table": metric.table_name,
+                "fieldType": "metric",
+                "type": "number",
+                "fieldId": field_id,
+            }
     return fields
 
 
@@ -56,9 +68,16 @@ def execute_metric_query(
         raise HTTPException(status_code=404, detail=f"Explore not found: {explore_name}")
 
     explore = build_explore_from_lineage_node(node)
-    compiled_sql, compile_warnings = build_metric_query_sql(explore, metric_query)
+    try:
+        compiled_sql, compile_warnings = build_metric_query_sql(explore, metric_query)
+        time_travel_warnings = validate_time_travel_for_explore(
+            explore,
+            metric_query.time_travel,
+        )
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
     warnings: list[QueryWarning] = [
-        *validate_time_travel_for_explore(explore, metric_query.time_travel),
+        *time_travel_warnings,
         *compile_warnings,
     ]
 
@@ -72,33 +91,26 @@ def execute_metric_query(
         )
 
     fields = _build_fields(explore, metric_query)
-    rows: list[dict] = []
-    if compiled_sql:
-        warehouse = get_connection_for_project(db, _project)
-        if warehouse and warehouse.type == "trino":
-            field_ids = list(metric_query.dimensions) + list(metric_query.metrics)
-            rows, execution_error = execute_trino_query(
-                warehouse,
-                compiled_sql,
-                field_ids,
-                limit=metric_query.limit,
-            )
-            if execution_error:
-                warnings.append(
-                    QueryWarning(
-                        code="WAREHOUSE_EXECUTION_FAILED",
-                        message=execution_error,
-                        severity="error",
-                    )
-                )
-
+    warehouse = get_connection_for_project(db, _project) if compiled_sql else None
+    can_run = bool(compiled_sql and warehouse and warehouse.type == "trino")
     stored = create_query(
         metric_query=metric_query,
         compiled_sql=compiled_sql,
         fields=fields,
         warnings=warnings,
-        rows=rows,
+        rows=[],
+        status="pending" if can_run else "ready",
     )
+    if can_run:
+        field_ids = list(metric_query.dimensions) + list(metric_query.metrics)
+        schedule_metric_query(
+            stored.query_uuid,
+            snapshot_from_warehouse(warehouse),
+            compiled_sql,
+            field_ids,
+            metric_query.limit,
+            warnings,
+        )
 
     return ok(
         {
@@ -130,14 +142,18 @@ def poll_query(project_uuid: str, query_uuid: str, db: Session = Depends(get_db)
         )
 
     if stored.status != "ready":
-        return ok({"queryUuid": query_uuid, "status": stored.status})
+        payload = {"queryUuid": query_uuid, "status": stored.status}
+        if stored.status in {"error", "expired"}:
+            payload["error"] = stored.error
+        return ok(payload)
 
     empty_warning = next(
         (warning for warning in stored.warnings if warning.code == "TIME_TRAVEL_EMPTY"),
         None,
     )
     if (
-        stored.metric_query.time_travel
+        stored.metric_query
+        and stored.metric_query.time_travel
         and stored.metric_query.time_travel.as_of_timestamp
         and not stored.rows
         and empty_warning is None
@@ -154,24 +170,23 @@ def poll_query(project_uuid: str, query_uuid: str, db: Session = Depends(get_db)
             )
         )
 
-    return ok(
-        {
-            "queryUuid": stored.query_uuid,
-            "status": "ready",
-            "rows": stored.rows,
-            "totalResults": len(stored.rows),
-            "page": 1,
-            "pageSize": len(stored.rows),
-            "totalPageCount": 1,
-            "metadata": {
-                "performance": {
-                    "initialQueryExecutionMs": None,
-                    "resultsPageExecutionMs": 0,
-                    "queueTimeMs": None,
-                }
-            },
-            "pivotDetails": None,
-            "warnings": [warning.model_dump() for warning in stored.warnings],
-            "compiledSql": stored.compiled_sql,
-        }
-    )
+    payload = {
+        "queryUuid": stored.query_uuid,
+        "status": "ready",
+        "rows": stored.rows,
+        "totalResults": len(stored.rows),
+        "page": 1,
+        "pageSize": len(stored.rows),
+        "totalPageCount": 1,
+        "metadata": {
+            "performance": {
+                "initialQueryExecutionMs": None,
+                "resultsPageExecutionMs": 0,
+                "queueTimeMs": None,
+            }
+        },
+        "pivotDetails": None,
+        "warnings": [warning.model_dump() for warning in stored.warnings],
+        "compiledSql": stored.compiled_sql,
+    }
+    return ok(payload)

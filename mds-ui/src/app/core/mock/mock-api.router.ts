@@ -27,14 +27,6 @@ import { getExploreDetail } from './fixtures/explore-detail.fixture';
 import { buildMockQueryResults, getMockQueryPollResult, registerMockQuery } from './fixtures/query-results.fixture';
 import { mockSavedChartDetails, createMockSavedChart, updateMockSavedChart, deleteMockSavedChart } from './fixtures/charts.fixture';
 import {
-  executeMockSqlQuery,
-  getMockSqlQueryPollResult,
-  getMockSqlQueryResultsStream,
-  getMockTableFields,
-  isSqlQueryUuid,
-  mockWarehouseTablesCatalog,
-} from './fixtures/sql-runner.fixture';
-import {
   createMockWarehouse,
   deleteMockWarehouse,
   getMockWarehouse,
@@ -506,32 +498,7 @@ const queryPoll = (request: MockRequest) => {
   const match = request.path.match(/^\/projects\/[^/]+\/query\/([^/]+)$/);
   const queryUuid = match?.[1] ?? '00000000-0000-0000-0000-000000000002';
 
-  if (isSqlQueryUuid(queryUuid)) {
-    return getMockSqlQueryPollResult(queryUuid);
-  }
-
   return getMockQueryPollResult(queryUuid);
-};
-
-const sqlQuery = (request: MockRequest) => {
-  const body = request.body as { sql?: string; limit?: number } | null;
-  return executeMockSqlQuery({
-    sql: body?.sql ?? '',
-    limit: body?.limit,
-  });
-};
-
-const sqlRunnerTables = () => mockWarehouseTablesCatalog;
-
-const sqlRunnerFields = (request: MockRequest) => {
-  const tableName = request.query.get('tableName');
-  return getMockTableFields(tableName);
-};
-
-const sqlQueryResultsStream = (request: MockRequest) => {
-  const match = request.path.match(/^\/projects\/[^/]+\/query\/([^/]+)\/results$/);
-  const queryUuid = match?.[1] ?? '';
-  return getMockSqlQueryResultsStream(queryUuid);
 };
 
 const fieldSearch = () => [];
@@ -738,10 +705,6 @@ const routes: MockRoute[] = [
   { pattern: /^\/projects\/[^/]+\/explores$/, handler: exploresList },
   { pattern: /^\/projects\/[^/]+\/explores\/[^/]+$/, handler: exploreDetail },
   { pattern: /^\/projects\/[^/]+\/query\/metric-query$/, method: 'POST', handler: metricQuery },
-  { pattern: /^\/projects\/[^/]+\/query\/sql$/, method: 'POST', handler: sqlQuery },
-  { pattern: /^\/projects\/[^/]+\/query\/[^/]+\/results$/, method: 'GET', handler: sqlQueryResultsStream },
-  { pattern: /^\/projects\/[^/]+\/sqlRunner\/tables$/, handler: sqlRunnerTables },
-  { pattern: /^\/projects\/[^/]+\/sqlRunner\/fields$/, handler: sqlRunnerFields },
   { pattern: /^\/projects\/[^/]+\/field\/[^/]+\/search$/, handler: fieldSearch },
   { pattern: /^\/projects\/[^/]+\/catalog/, handler: () => mockCatalog },
   { pattern: /^\/projects\/[^/]+\/content-verification$/, handler: () => [] },
