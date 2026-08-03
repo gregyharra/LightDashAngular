@@ -93,6 +93,8 @@ export const DEFAULT_CHART_DISPLAY_CONFIG: ChartDisplayConfig = {
 export type CartesianLayoutConfig = {
   xField?: FieldId;
   yFields?: FieldId[];
+  /** Distinguishes line vs bar kinds on the same cartesian family config. */
+  cartesianKind?: Extract<ChartKind, 'vertical_bar' | 'horizontal_bar' | 'line'>;
   flipAxes: boolean;
   stackMode: ChartStackMode;
   showGridX: boolean;
@@ -252,6 +254,12 @@ function migrateLegacyCartesian(legacy: LegacyChartConfig): ChartConfig {
     xField: legacy.xField,
     yFields,
   };
+  if (LEGACY_CARTESIAN_KINDS.has(legacy.type)) {
+    layout.cartesianKind = legacy.type as Extract<
+      ChartKind,
+      'vertical_bar' | 'horizontal_bar' | 'line'
+    >;
+  }
   if (legacy.type === 'horizontal_bar') {
     layout.flipAxes = true;
   } else if (legacy.type === 'vertical_bar') {
