@@ -30,6 +30,31 @@ describe('normalizeChartConfig', () => {
     }
   });
 
+  it('forces flipAxes true for horizontal_bar without displayConfig', () => {
+    const result = normalizeChartConfig({
+      type: 'horizontal_bar',
+      xField: 'a',
+      yFields: ['b'],
+    });
+    expect(result.type).toBe('cartesian');
+    if (result.type === 'cartesian') {
+      expect(result.config.layout.flipAxes).toBe(true);
+    }
+  });
+
+  it('forces flipAxes false for vertical_bar even when displayConfig says true', () => {
+    const result = normalizeChartConfig({
+      type: 'vertical_bar',
+      xField: 'a',
+      yFields: ['b'],
+      displayConfig: { flipAxes: true },
+    });
+    expect(result.type).toBe('cartesian');
+    if (result.type === 'cartesian') {
+      expect(result.config.layout.flipAxes).toBe(false);
+    }
+  });
+
   it('passes through already-normalized cartesian', () => {
     const input = {
       type: 'cartesian' as const,

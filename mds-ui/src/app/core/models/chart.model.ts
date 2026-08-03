@@ -252,7 +252,13 @@ function migrateLegacyCartesian(legacy: LegacyChartConfig): ChartConfig {
     xField: legacy.xField,
     yFields,
   };
-  if (display.flipAxes !== undefined) layout.flipAxes = display.flipAxes;
+  if (legacy.type === 'horizontal_bar') {
+    layout.flipAxes = true;
+  } else if (legacy.type === 'vertical_bar') {
+    layout.flipAxes = false;
+  } else if (display.flipAxes !== undefined) {
+    layout.flipAxes = display.flipAxes;
+  }
   if (display.stackMode !== undefined) layout.stackMode = display.stackMode;
   if (display.showGridX !== undefined) layout.showGridX = display.showGridX;
   if (display.showGridY !== undefined) layout.showGridY = display.showGridY;
