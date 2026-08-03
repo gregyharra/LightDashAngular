@@ -1,7 +1,7 @@
 # Chart visualization foundation (ECharts + typed configs)
 
 **Date:** 2026-08-03  
-**Status:** Draft — awaiting user review  
+**Status:** Accepted — implementation plan in `docs/superpowers/plans/2026-08-03-chart-viz-foundation.md`  
 **Scope:** First sub-project toward full Lightdash-like chart parity  
 **Related context:** Lightdash `packages/common` `ChartType`/`ChartKind`/`ChartConfig`; current MDS UI `ChartKind` + flat `ChartDisplayConfig` + Chart.js
 
