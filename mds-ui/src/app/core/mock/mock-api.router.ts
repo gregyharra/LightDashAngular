@@ -36,7 +36,12 @@ import {
   updateMockWarehouse,
 } from './fixtures/warehouse.fixture';
 import { MetricQuery } from '../models/explore.model';
-import { ChartConfig, ChartKind } from '../models/chart.model';
+import {
+  ChartConfig,
+  ChartKind,
+  normalizeChartConfig,
+} from '../models/chart.model';
+import { chartKindFromConfig } from '../models/chart-config.utils';
 import { WarehouseCreate, WarehouseTestConnection, WarehouseUpdate } from '../models/warehouse.model';
 import { MockRequest, MockRoute } from './mock-api.types';
 import { createUuid } from '../utils/uuid';
@@ -67,17 +72,17 @@ const savedChartCreate = (request: MockRequest) => {
         description?: string;
         spaceUuid?: string;
         tableName?: string;
-        chartKind?: string;
+        chartKind?: ChartKind;
         metricQuery?: MetricQuery;
-        chartConfig?: {
-          type?: string;
-          xField?: string;
-          yField?: string;
-          yFields?: string[];
-          displayConfig?: Record<string, unknown>;
-        };
+        chartConfig?: unknown;
       }
     | null;
+
+  const chartConfig = normalizeChartConfig(
+    body?.chartConfig ?? { type: body?.chartKind ?? 'vertical_bar' },
+  );
+  const chartKind =
+    body?.chartKind ?? chartKindFromConfig(chartConfig);
 
   return createMockSavedChart({
     name: body?.name?.trim() || 'Untitled chart',
@@ -85,13 +90,7 @@ const savedChartCreate = (request: MockRequest) => {
     projectUuid,
     spaceUuid: body?.spaceUuid,
     tableName: body?.tableName ?? 'orders',
-    chartKind: (body?.chartKind ?? body?.chartConfig?.type ?? 'vertical_bar') as
-      | 'vertical_bar'
-      | 'horizontal_bar'
-      | 'line'
-      | 'pie'
-      | 'table'
-      | 'big_number',
+    chartKind,
     metricQuery: body?.metricQuery ?? {
       exploreName: body?.tableName ?? 'orders',
       dimensions: [],
@@ -102,19 +101,7 @@ const savedChartCreate = (request: MockRequest) => {
       tableCalculations: [],
       additionalMetrics: [],
     },
-    chartConfig: {
-      type: (body?.chartConfig?.type ?? body?.chartKind ?? 'vertical_bar') as
-        | 'vertical_bar'
-        | 'horizontal_bar'
-        | 'line'
-        | 'pie'
-        | 'table'
-        | 'big_number',
-      xField: body?.chartConfig?.xField,
-      yField: body?.chartConfig?.yField,
-      yFields: body?.chartConfig?.yFields,
-      displayConfig: body?.chartConfig?.displayConfig,
-    },
+    chartConfig,
   });
 };
 
@@ -434,10 +421,10 @@ const aiChat = (request: MockRequest) => {
             tableCalculations: [],
             additionalMetrics: [],
           },
-          chartConfig: {
+          chartConfig: normalizeChartConfig({
             type: 'vertical_bar',
             yFields: [`${node.name}_row_count`],
-          },
+          }),
           sql: `select count(*) as row_count from ${node.schema}.${node.name} limit 500`,
         }
       : null;
@@ -680,15 +667,24 @@ const routes: MockRoute[] = [
   {
     pattern: /^\/users\/[^/]+$/,
     method: 'PATCH',
-    handler: () => ({
-      userUuid: mockUser.userUuid,
-      email: mockUser.email,
-      firstName: mockUser.firstName,
-      lastName: mockUser.lastName,
-      role: mockUser.role,
-      isActive: true,
-      createdAt: mockUser.createdAt,
-    }),
+    handler: (request) => {
+      const match = request.path.match(/^\/users\/([^/]+)$/);
+      const body = (request.body ?? {}) as Record<string, unknown>;
+      const result: Record<string, unknown> = {
+        userUuid: match?.[1] ?? mockUser.userUuid,
+        email: typeof body['email'] === 'string' ? body['email'] : mockUser.email,
+        firstName:
+          typeof body['firstName'] === 'string' ? body['firstName'] : mockUser.firstName,
+        lastName: typeof body['lastName'] === 'string' ? body['lastName'] : mockUser.lastName,
+        role: typeof body['role'] === 'string' ? body['role'] : mockUser.role,
+        isActive: typeof body['isActive'] === 'boolean' ? body['isActive'] : true,
+        createdAt: mockUser.createdAt,
+      };
+      if (body['resetPassword'] === true || typeof body['password'] === 'string') {
+        result['temporaryPassword'] = 'mock-temp-password';
+      }
+      return result;
+    },
   },
   { pattern: /^\/users\/[^/]+$/, method: 'DELETE', handler: () => null },
 

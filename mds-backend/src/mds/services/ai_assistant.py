@@ -140,14 +140,69 @@ def _propose_chart_from_node(node: dict[str, Any], intent: str) -> AiProposedCha
             "tableCalculations": [],
             "additionalMetrics": [],
         },
-        chartConfig={
-            "type": chart_kind,
-            "xField": dim_id,
-            "yField": metric_id,
-            "yFields": [metric_id],
-        },
+        chartConfig=_typed_chart_config(chart_kind, dim_id, metric_id),
         sql="\n".join(sql_parts),
     )
+
+
+def _typed_chart_config(
+    chart_kind: str,
+    dim_id: str | None,
+    metric_id: str,
+) -> dict[str, Any]:
+    if chart_kind == "pie":
+        return {
+            "type": "pie",
+            "config": {
+                "xField": dim_id,
+                "yField": metric_id,
+                "showLegend": True,
+                "legendPlacement": "chart",
+                "rowLimit": 500,
+                "margins": {"top": 8, "right": 8, "bottom": 8, "left": 8},
+            },
+        }
+    if chart_kind == "big_number":
+        return {
+            "type": "big_number",
+            "config": {
+                "selectedField": metric_id,
+                "rowLimit": 500,
+            },
+        }
+    if chart_kind == "table":
+        return {
+            "type": "table",
+            "config": {
+                "showTableNames": False,
+                "showColumnTotals": False,
+                "rowLimit": 500,
+            },
+        }
+    return {
+        "type": "cartesian",
+        "config": {
+            "layout": {
+                "xField": dim_id,
+                "yFields": [metric_id],
+                "cartesianKind": chart_kind
+                if chart_kind in {"vertical_bar", "horizontal_bar", "line"}
+                else "vertical_bar",
+                "flipAxes": chart_kind == "horizontal_bar",
+                "stackMode": "none",
+                "showGridX": True,
+                "showGridY": True,
+                "showXAxis": True,
+                "showYAxis": True,
+                "xAxisLabel": "",
+                "yAxisLabel": "",
+            },
+            "showLegend": True,
+            "legendPlacement": "chart",
+            "rowLimit": 500,
+            "margins": {"top": 8, "right": 8, "bottom": 8, "left": 8},
+        },
+    }
 
 
 def _heuristic_reply(

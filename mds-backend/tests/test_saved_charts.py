@@ -73,9 +73,15 @@ def test_create_saved_chart(client: TestClient) -> None:
                 "additionalMetrics": [],
             },
             "chartConfig": {
-                "type": "vertical_bar",
-                "xField": "orders_status",
-                "yField": "orders_order_count",
+                "type": "cartesian",
+                "config": {
+                    "layout": {
+                        "xField": "orders_status",
+                        "yFields": ["orders_order_count"],
+                        "cartesianKind": "vertical_bar",
+                        "flipAxes": False,
+                    }
+                },
             },
         },
     )
@@ -86,6 +92,7 @@ def test_create_saved_chart(client: TestClient) -> None:
     assert chart["name"] == "Orders by status"
     assert chart["chartKind"] == "vertical_bar"
     assert chart["metricQuery"]["exploreName"] == "orders"
+    assert chart["chartConfig"]["type"] == "cartesian"
 
 
 def test_update_saved_chart(client: TestClient) -> None:
@@ -105,7 +112,10 @@ def test_update_saved_chart(client: TestClient) -> None:
                 "tableCalculations": [],
                 "additionalMetrics": [],
             },
-            "chartConfig": {"type": "line"},
+            "chartConfig": {
+                "type": "cartesian",
+                "config": {"layout": {"cartesianKind": "line"}},
+            },
         },
     )
     assert create.status_code == 200
@@ -117,9 +127,15 @@ def test_update_saved_chart(client: TestClient) -> None:
             "name": "Renamed chart",
             "chartKind": "vertical_bar",
             "chartConfig": {
-                "type": "vertical_bar",
-                "xField": "orders_status",
-                "yField": "orders_order_count",
+                "type": "cartesian",
+                "config": {
+                    "layout": {
+                        "xField": "orders_status",
+                        "yFields": ["orders_order_count"],
+                        "cartesianKind": "vertical_bar",
+                        "flipAxes": False,
+                    }
+                },
             },
         },
     )
@@ -129,7 +145,7 @@ def test_update_saved_chart(client: TestClient) -> None:
     chart = body["results"]
     assert chart["name"] == "Renamed chart"
     assert chart["chartKind"] == "vertical_bar"
-    assert chart["chartConfig"]["type"] == "vertical_bar"
+    assert chart["chartConfig"]["type"] == "cartesian"
 
 
 def test_delete_saved_chart(client: TestClient) -> None:
@@ -149,7 +165,7 @@ def test_delete_saved_chart(client: TestClient) -> None:
                 "tableCalculations": [],
                 "additionalMetrics": [],
             },
-            "chartConfig": {"type": "table"},
+            "chartConfig": {"type": "table", "config": {}},
         },
     )
     assert create.status_code == 200

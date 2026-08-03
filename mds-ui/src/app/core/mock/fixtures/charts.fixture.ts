@@ -1,4 +1,10 @@
-import { SavedChart, SavedChartBasic, ChartConfig, ChartKind } from '../../models/chart.model';
+import {
+  SavedChart,
+  SavedChartBasic,
+  ChartConfig,
+  ChartKind,
+  normalizeChartConfig,
+} from '../../models/chart.model';
 import { MetricQuery } from '../../models/explore.model';
 import {
   MOCK_CHART_2_UUID,
@@ -56,6 +62,45 @@ const statusBreakdownQuery = {
   additionalMetrics: [],
 };
 
+const revenueByMonthConfig = normalizeChartConfig({
+  type: 'line',
+  xField: getFieldId('orders', 'order_date'),
+  yField: getFieldId('orders', 'total_revenue'),
+  displayConfig: {
+    seriesColor: '#e67700',
+    showValueLabels: true,
+    showLegend: false,
+  },
+});
+
+const ordersTrendConfig = normalizeChartConfig({
+  type: 'line',
+  xField: getFieldId('orders', 'order_date'),
+  yField: getFieldId('orders', 'order_count'),
+  displayConfig: {
+    seriesColor: '#12b886',
+    showValueLabels: true,
+    showLegend: false,
+  },
+});
+
+const statusBreakdownConfig = normalizeChartConfig({
+  type: 'pie',
+  xField: getFieldId('orders', 'status'),
+  yField: getFieldId('orders', 'total_revenue'),
+});
+
+const bigNumberOrderCountConfig = normalizeChartConfig({
+  type: 'big_number',
+  yField: getFieldId('orders', 'order_count'),
+});
+
+const bigNumberRevenueConfig = normalizeChartConfig({
+  type: 'big_number',
+  yField: getFieldId('orders', 'total_revenue'),
+});
+
+
 export const mockSavedChartDetails: Record<string, SavedChart> = {
   [MOCK_CHART_UUID]: {
     uuid: MOCK_CHART_UUID,
@@ -74,16 +119,7 @@ export const mockSavedChartDetails: Record<string, SavedChart> = {
     chartKind: 'line',
     tableName: 'orders',
     metricQuery: revenueByMonthQuery,
-    chartConfig: {
-      type: 'line',
-      xField: getFieldId('orders', 'order_date'),
-      yField: getFieldId('orders', 'total_revenue'),
-      displayConfig: {
-        seriesColor: '#e67700',
-        showValueLabels: true,
-        showLegend: false,
-      },
-    },
+    chartConfig: revenueByMonthConfig,
     updatedByUser: {
       userUuid: MOCK_USER_UUID,
       firstName: 'Demo',
@@ -107,16 +143,7 @@ export const mockSavedChartDetails: Record<string, SavedChart> = {
     chartKind: 'line',
     tableName: 'orders',
     metricQuery: ordersTrendQuery,
-    chartConfig: {
-      type: 'line',
-      xField: getFieldId('orders', 'order_date'),
-      yField: getFieldId('orders', 'order_count'),
-      displayConfig: {
-        seriesColor: '#12b886',
-        showValueLabels: true,
-        showLegend: false,
-      },
-    },
+    chartConfig: ordersTrendConfig,
     updatedByUser: {
       userUuid: MOCK_USER_UUID,
       firstName: 'Demo',
@@ -140,11 +167,7 @@ export const mockSavedChartDetails: Record<string, SavedChart> = {
     chartKind: 'pie',
     tableName: 'orders',
     metricQuery: statusBreakdownQuery,
-    chartConfig: {
-      type: 'pie',
-      xField: getFieldId('orders', 'status'),
-      yField: getFieldId('orders', 'total_revenue'),
-    },
+    chartConfig: statusBreakdownConfig,
     updatedByUser: {
       userUuid: MOCK_USER_UUID,
       firstName: 'Demo',
@@ -177,10 +200,7 @@ export const mockSavedChartDetails: Record<string, SavedChart> = {
       tableCalculations: [],
       additionalMetrics: [],
     },
-    chartConfig: {
-      type: 'big_number',
-      yField: getFieldId('orders', 'order_count'),
-    },
+    chartConfig: bigNumberOrderCountConfig,
     updatedByUser: {
       userUuid: MOCK_USER_UUID,
       firstName: 'Demo',
@@ -213,10 +233,7 @@ export const mockSavedChartDetails: Record<string, SavedChart> = {
       tableCalculations: [],
       additionalMetrics: [],
     },
-    chartConfig: {
-      type: 'big_number',
-      yField: getFieldId('orders', 'total_revenue'),
-    },
+    chartConfig: bigNumberRevenueConfig,
     updatedByUser: {
       userUuid: MOCK_USER_UUID,
       firstName: 'Demo',
@@ -249,10 +266,7 @@ export const mockSavedChartDetails: Record<string, SavedChart> = {
       tableCalculations: [],
       additionalMetrics: [],
     },
-    chartConfig: {
-      type: 'big_number',
-      yField: getFieldId('orders', 'total_revenue'),
-    },
+    chartConfig: bigNumberRevenueConfig,
     updatedByUser: {
       userUuid: MOCK_USER_UUID,
       firstName: 'Demo',
@@ -332,7 +346,7 @@ export function createMockSavedChart(input: CreateMockSavedChartInput): SavedCha
     chartKind: input.chartKind,
     tableName: input.tableName,
     metricQuery: input.metricQuery,
-    chartConfig: input.chartConfig,
+    chartConfig: normalizeChartConfig(input.chartConfig),
     updatedByUser: {
       userUuid: MOCK_USER_UUID,
       firstName: 'Demo',
@@ -394,7 +408,10 @@ export function updateMockSavedChart(
     tableName: input.tableName ?? existing.tableName,
     chartKind: input.chartKind ?? existing.chartKind,
     metricQuery: input.metricQuery ?? existing.metricQuery,
-    chartConfig: input.chartConfig ?? existing.chartConfig,
+    chartConfig:
+      input.chartConfig !== undefined
+        ? normalizeChartConfig(input.chartConfig)
+        : existing.chartConfig,
     updatedAt: new Date().toISOString(),
   };
 
