@@ -34,4 +34,5 @@ One saved-chart page that always shows builder-style **Filter / Chart / Results 
 - [x] Edit toggles sidebar; Configure swaps fields ↔ config
 - [x] Name/description draft + save
 - [x] Build verified (`ng build` development)
-- [ ] Later: fold create into same shell; sync metricQuery filters round-trip
+- [x] Later: fold create into same shell (see `2026-08-04-charts-new-unified-shell.md`)
+- [ ] Later: sync metricQuery filters round-trip

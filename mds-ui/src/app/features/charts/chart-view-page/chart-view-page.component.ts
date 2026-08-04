@@ -8,13 +8,11 @@ import {
   inject,
   signal,
 } from '@angular/core';
-import { FormsModule } from '@angular/forms';
-import { ActivatedRoute, RouterLink } from '@angular/router';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { MatButtonModule } from '@angular/material/button';
+import { MatDialog } from '@angular/material/dialog';
 import { MatExpansionModule } from '@angular/material/expansion';
-import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
-import { MatInputModule } from '@angular/material/input';
 import { MatPaginatorModule, PageEvent } from '@angular/material/paginator';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatTableModule } from '@angular/material/table';
@@ -49,6 +47,16 @@ import {
 } from '../../../core/models/explore.model';
 import { DbtTreeNode, LineageNode } from '../../../core/models/lineage.model';
 import { ChartService } from '../chart.service';
+import {
+  ChartDetailsDialogComponent,
+  ChartDetailsDialogData,
+  ChartDetailsDialogResult,
+} from '../chart-details-dialog/chart-details-dialog.component';
+import {
+  SaveChartDialogComponent,
+  SaveChartDialogData,
+  SaveChartDialogResult,
+} from '../save-chart-dialog/save-chart-dialog.component';
 import { ExplorerService } from '../../explorer/explorer.service';
 import { LineageService } from '../../lineage/lineage.service';
 import { FolderSearchPanelComponent } from '../../lineage/folder-search-panel/folder-search-panel.component';
@@ -76,7 +84,7 @@ import { TablesFiltersPanelComponent } from '../../explorer/tables-filters-panel
 import { getFilterableDimensions } from '../../explorer/tables-filters-panel/tables-filters.utils';
 import { buildMetricQuerySql } from '../../explorer/metric-query-sql.utils';
 import { mergeDashboardFiltersIntoMetricQuery } from '../../dashboards/dashboard-filters';
-import { forkJoin } from 'rxjs';
+import { combineLatest, forkJoin } from 'rxjs';
 
 type TableFieldGroup = {
   table: CompiledTable;
@@ -96,13 +104,10 @@ const RESULTS_DEFAULT_PAGE_SIZE = 25;
 @Component({
   selector: 'app-chart-view-page',
   imports: [
-    FormsModule,
     RouterLink,
     MatButtonModule,
     MatExpansionModule,
-    MatFormFieldModule,
     MatIconModule,
-    MatInputModule,
     MatPaginatorModule,
     MatProgressSpinnerModule,
     MatTableModule,
@@ -122,7 +127,9 @@ export class ChartViewPageComponent {
   private readonly explorerService = inject(ExplorerService);
   private readonly lineageService = inject(LineageService);
   private readonly route = inject(ActivatedRoute);
+  private readonly router = inject(Router);
   private readonly appState = inject(AppStateService);
+  private readonly dialog = inject(MatDialog);
   private readonly platformId = inject(PLATFORM_ID);
   private readonly renderer = inject(Renderer2);
   private readonly destroyRef = inject(DestroyRef);
@@ -161,6 +168,7 @@ export class ChartViewPageComponent {
   );
   protected readonly selectedDimensions = signal<Set<FieldId>>(new Set());
   protected readonly selectedMetrics = signal<Set<FieldId>>(new Set());
+  protected readonly fieldSearch = signal('');
   protected readonly additionalMetrics = signal<AdditionalMetric[]>([]);
   protected readonly dimensionFilters = signal<DashboardDimensionFilter[]>([]);
   protected readonly queryLoading = signal(false);
@@ -170,6 +178,7 @@ export class ChartViewPageComponent {
   protected readonly saveError = signal<string | null>(null);
   protected readonly saveSuccess = signal(false);
 
+  protected readonly isCreateMode = signal(false);
   protected readonly editMode = signal(false);
   protected readonly configureMode = signal(false);
   protected readonly draftName = signal('');
@@ -247,6 +256,29 @@ export class ChartViewPageComponent {
           label: metric.label,
         })),
     }));
+  });
+
+  protected readonly filteredTableGroups = computed(() => {
+    const query = this.fieldSearch().trim().toLowerCase();
+    const groups = this.tableGroups();
+
+    if (!query) {
+      return groups;
+    }
+
+    return groups
+      .map((group) => ({
+        ...group,
+        dimensions: group.dimensions.filter((field) =>
+          field.label.toLowerCase().includes(query),
+        ),
+        metrics: group.metrics.filter((field) =>
+          field.label.toLowerCase().includes(query),
+        ),
+      }))
+      .filter(
+        (group) => group.dimensions.length > 0 || group.metrics.length > 0,
+      );
   });
 
   protected readonly selectedDimensionList = computed(() =>
@@ -331,12 +363,13 @@ export class ChartViewPageComponent {
 
   protected readonly canSave = computed(
     () =>
-      !!this.chart() &&
+      (this.isCreateMode() || !!this.chart()) &&
       !!this.explore() &&
       this.editMode() &&
-      this.draftName().trim().length > 0 &&
+      (this.isCreateMode() || this.draftName().trim().length > 0) &&
       this.canRenderChart() &&
       !this.queryLoading() &&
+      !this.queryError() &&
       !this.saveLoading(),
   );
 
@@ -353,21 +386,34 @@ export class ChartViewPageComponent {
       this.stopConfigResize();
     });
 
-    this.route.paramMap.subscribe((params) => {
-      const projectUuid = params.get('projectUuid');
-      const chartUuid = params.get('chartUuid');
+    combineLatest([this.route.data, this.route.paramMap]).subscribe(
+      ([data, params]) => {
+        const createMode = !!data['createMode'];
+        this.isCreateMode.set(createMode);
 
-      if (!projectUuid || !chartUuid) {
-        return;
-      }
+        const projectUuid = params.get('projectUuid');
+        if (!projectUuid) {
+          return;
+        }
 
-      this.projectUuid.set(projectUuid);
-      this.chartUuid.set(chartUuid);
-      this.activeProjectService.setActiveProject(projectUuid);
-      this.editMode.set(false);
-      this.configureMode.set(false);
-      this.loadChart(projectUuid, chartUuid);
-    });
+        if (createMode) {
+          this.initCreateMode(projectUuid);
+          return;
+        }
+
+        const chartUuid = params.get('chartUuid');
+        if (!chartUuid) {
+          return;
+        }
+
+        this.projectUuid.set(projectUuid);
+        this.chartUuid.set(chartUuid);
+        this.activeProjectService.setActiveProject(projectUuid);
+        this.editMode.set(false);
+        this.configureMode.set(false);
+        this.loadChart(projectUuid, chartUuid);
+      },
+    );
   }
 
   protected enterEditMode(): void {
@@ -390,6 +436,22 @@ export class ChartViewPageComponent {
     this.saveError.set(null);
   }
 
+  protected onDoneClick(): void {
+    if (this.isCreateMode()) {
+      this.cancelCreate();
+      return;
+    }
+    this.exitEditMode();
+  }
+
+  protected cancelCreate(): void {
+    const projectUuid = this.projectUuid();
+    if (!projectUuid) {
+      return;
+    }
+    void this.router.navigate(['/projects', projectUuid, 'charts']);
+  }
+
   protected toggleConfigureMode(event?: Event): void {
     event?.stopPropagation();
     if (!this.editMode()) {
@@ -406,12 +468,32 @@ export class ChartViewPageComponent {
     this.configureMode.set(false);
   }
 
-  protected onDraftNameInput(value: string): void {
-    this.draftName.set(value);
-  }
+  protected openChartDetailsDialog(): void {
+    if (!this.editMode()) {
+      return;
+    }
 
-  protected onDraftDescriptionInput(value: string): void {
-    this.draftDescription.set(value);
+    const dialogRef = this.dialog.open<
+      ChartDetailsDialogComponent,
+      ChartDetailsDialogData,
+      ChartDetailsDialogResult
+    >(ChartDetailsDialogComponent, {
+      data: {
+        name: this.draftName(),
+        description: this.draftDescription(),
+      },
+      width: '28rem',
+      maxWidth: '90vw',
+      panelClass: 'chart-details-dialog-panel',
+    });
+
+    dialogRef.afterClosed().subscribe((result) => {
+      if (!result) {
+        return;
+      }
+      this.draftName.set(result.name);
+      this.draftDescription.set(result.description);
+    });
   }
 
   protected onDimensionFiltersChange(filters: DashboardDimensionFilter[]): void {
@@ -542,12 +624,42 @@ export class ChartViewPageComponent {
     return Math.min(CONFIG_MAX_WIDTH, Math.max(CONFIG_MIN_WIDTH, width));
   }
 
+  private initCreateMode(projectUuid: string): void {
+    this.projectUuid.set(projectUuid);
+    this.chartUuid.set(null);
+    this.chart.set(null);
+    this.explore.set(null);
+    this.editMode.set(true);
+    this.configureMode.set(false);
+    this.draftName.set('Untitled chart');
+    this.draftDescription.set('');
+    this.chartConfig.set(defaultConfigForType('cartesian'));
+    this.cachedChartConfigs.set({});
+    this.selectedDimensions.set(new Set());
+    this.selectedMetrics.set(new Set());
+    this.additionalMetrics.set([]);
+    this.fieldSearch.set('');
+    this.dimensionFilters.set([]);
+    this.queryResults.set(null);
+    this.queryError.set(null);
+    this.queryLoading.set(false);
+    this.loading.set(false);
+    this.error.set(null);
+    this.saveSuccess.set(false);
+    this.saveError.set(null);
+    this.resultsPageIndex.set(0);
+    this.selectedTableId.set(null);
+    this.activeProjectService.setActiveProject(projectUuid);
+    this.loadProjectTree(projectUuid, null);
+  }
+
   private loadChart(projectUuid: string, chartUuid: string): void {
     this.loading.set(true);
     this.error.set(null);
     this.queryResults.set(null);
     this.queryError.set(null);
     this.dimensionFilters.set([]);
+    this.fieldSearch.set('');
     this.saveSuccess.set(false);
     this.saveError.set(null);
     this.resultsPageIndex.set(0);
@@ -734,6 +846,7 @@ export class ChartViewPageComponent {
     this.selectedMetrics.set(new Set());
     this.additionalMetrics.set([]);
     this.dimensionFilters.set([]);
+    this.fieldSearch.set('');
     this.queryResults.set(null);
     this.queryError.set(null);
     this.resultsPageIndex.set(0);
@@ -783,6 +896,10 @@ export class ChartViewPageComponent {
 
   protected isMetricSelected(fieldId: FieldId): boolean {
     return this.selectedMetrics().has(fieldId);
+  }
+
+  protected onFieldSearch(value: string): void {
+    this.fieldSearch.set(value);
   }
 
   protected toggleDimension(fieldId: FieldId): void {
@@ -886,13 +1003,111 @@ export class ChartViewPageComponent {
   }
 
   protected saveChart(): void {
+    if (!this.canSave()) {
+      return;
+    }
+
+    if (this.isCreateMode()) {
+      this.openCreateSaveDialog();
+      return;
+    }
+
+    this.saveExistingChart();
+  }
+
+  private openCreateSaveDialog(): void {
+    const projectUuid = this.projectUuid();
+    const explore = this.explore();
+    if (!projectUuid || !explore) {
+      return;
+    }
+
+    const suggestedName =
+      this.draftName().trim() || explore.label || explore.name;
+
+    const dialogRef = this.dialog.open<
+      SaveChartDialogComponent,
+      SaveChartDialogData,
+      SaveChartDialogResult
+    >(SaveChartDialogComponent, {
+      data: {
+        projectUuid,
+        suggestedName,
+      },
+      width: '24rem',
+    });
+
+    dialogRef.afterClosed().subscribe((result) => {
+      if (!result) {
+        return;
+      }
+      this.createChart(projectUuid, explore, result.name, result.spaceUuid);
+    });
+  }
+
+  private createChart(
+    projectUuid: string,
+    explore: Explore,
+    name: string,
+    spaceUuid: string,
+  ): void {
+    this.saveLoading.set(true);
+    this.saveError.set(null);
+    this.saveSuccess.set(false);
+
+    const baseMetricQuery: MetricQuery = {
+      exploreName: explore.name,
+      dimensions: this.selectedDimensionList(),
+      metrics: this.selectedMetricList(),
+      filters: {},
+      sorts: [],
+      limit: clampQueryLimit(
+        this.chartDisplayConfig().rowLimit,
+        this.maxQueryLimit(),
+      ),
+      tableCalculations: [],
+      additionalMetrics: this.additionalMetrics(),
+    };
+
+    this.chartService
+      .create(projectUuid, {
+        name,
+        spaceUuid,
+        description: this.draftDescription().trim() || undefined,
+        tableName: explore.name,
+        chartKind: chartKindFromConfig(this.chartConfig()),
+        metricQuery: mergeDashboardFiltersIntoMetricQuery(
+          baseMetricQuery,
+          this.dimensionFilters(),
+          explore,
+        ),
+        chartConfig: this.chartConfig(),
+      })
+      .subscribe({
+        next: (created) => {
+          this.saveLoading.set(false);
+          void this.router.navigate([
+            '/projects',
+            projectUuid,
+            'charts',
+            created.uuid,
+          ]);
+        },
+        error: (err) => {
+          this.saveError.set(apiErrorMessage(err, 'Failed to save chart.'));
+          this.saveLoading.set(false);
+        },
+      });
+  }
+
+  private saveExistingChart(): void {
     const projectUuid = this.projectUuid();
     const chartUuid = this.chartUuid();
     const chart = this.chart();
     const explore = this.explore();
     const name = this.draftName().trim();
 
-    if (!projectUuid || !chartUuid || !chart || !explore || !this.canSave()) {
+    if (!projectUuid || !chartUuid || !chart || !explore) {
       return;
     }
 

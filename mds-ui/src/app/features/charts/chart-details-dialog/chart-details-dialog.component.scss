@@ -1,0 +1,15 @@
+.chart-details-dialog__content {
+  display: block;
+  min-width: min(20rem, 100%);
+  padding-top: 0.25rem;
+}
+
+.chart-details-dialog__field {
+  display: block;
+  width: 100%;
+  margin-bottom: 0.75rem;
+
+  &:last-child {
+    margin-bottom: 0;
+  }
+}

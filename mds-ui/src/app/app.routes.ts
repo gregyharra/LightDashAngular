@@ -160,10 +160,11 @@ export const routes: Routes = [
       },
       {
         path: 'projects/:projectUuid/charts/new',
+        data: { createMode: true },
         loadComponent: () =>
           import(
-            './features/explorer/tables-workspace-page/tables-workspace-page.component'
-          ).then((m) => m.TablesWorkspacePageComponent),
+            './features/charts/chart-view-page/chart-view-page.component'
+          ).then((m) => m.ChartViewPageComponent),
       },
       {
         path: 'projects/:projectUuid/charts/:chartUuid',
