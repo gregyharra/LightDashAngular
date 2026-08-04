@@ -687,7 +687,12 @@ export class DashboardViewPageComponent {
       DashboardTileSettingsDialogResult
     >(DashboardTileSettingsDialogComponent, {
       data: { tile, tabs: this.draft()?.tabs },
-      width: '480px',
+      width: tile.type === DashboardTileTypes.MARKDOWN ? '780px' : '480px',
+      maxWidth: '95vw',
+      panelClass:
+        tile.type === DashboardTileTypes.MARKDOWN
+          ? 'dashboard-markdown-tile-dialog-panel'
+          : undefined,
     });
 
     dialogRef.afterClosed().subscribe((result) => {

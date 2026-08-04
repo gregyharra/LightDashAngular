@@ -1,4 +1,4 @@
-import { Component, inject } from '@angular/core';
+import { Component, ElementRef, inject, viewChild } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import {
@@ -11,6 +11,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
 import { MatSlideToggleModule } from '@angular/material/slide-toggle';
+import { MatTooltipModule } from '@angular/material/tooltip';
 import {
   DashboardTab,
   DashboardTile,
@@ -39,6 +40,7 @@ export type DashboardTileSettingsDialogResult = {
     MatInputModule,
     MatSelectModule,
     MatSlideToggleModule,
+    MatTooltipModule,
   ],
   templateUrl: './dashboard-tile-settings-dialog.component.html',
   styleUrl: './dashboard-tile-settings-dialog.component.scss',
@@ -51,6 +53,8 @@ export class DashboardTileSettingsDialogComponent {
     >,
   );
   readonly data = inject<DashboardTileSettingsDialogData>(MAT_DIALOG_DATA);
+  private readonly markdownContent =
+    viewChild<ElementRef<HTMLTextAreaElement>>('markdownContent');
 
   protected tile: DashboardTile = structuredClone(this.data.tile);
   protected moveToTabUuid = this.tile.tabUuid ?? '';
@@ -111,6 +115,95 @@ export class DashboardTileSettingsDialogComponent {
         [key]: value,
       },
     } as DashboardTile;
+  }
+
+  protected wrapMarkdownSelection(before: string, after: string): void {
+    this.mutateMarkdownSelection((value, start, end) => {
+      const selected = value.slice(start, end) || 'text';
+      return {
+        next: `${value.slice(0, start)}${before}${selected}${after}${value.slice(end)}`,
+        cursorStart: start + before.length,
+        cursorEnd: start + before.length + selected.length,
+      };
+    });
+  }
+
+  protected prefixMarkdownSelection(prefix: string): void {
+    this.mutateMarkdownSelection((value, start, end) => {
+      const lineStart = value.lastIndexOf('\n', Math.max(0, start - 1)) + 1;
+      const selected = value.slice(start, end) || 'text';
+      const nextSelected = selected.includes('\n')
+        ? selected
+            .split('\n')
+            .map((line) => (line.startsWith(prefix) ? line : `${prefix}${line}`))
+            .join('\n')
+        : selected.startsWith(prefix)
+          ? selected
+          : `${prefix}${selected}`;
+
+      if (start === end && !value.slice(lineStart, start).trim()) {
+        return {
+          next: `${value.slice(0, lineStart)}${prefix}${value.slice(lineStart)}`,
+          cursorStart: start + prefix.length,
+          cursorEnd: start + prefix.length,
+        };
+      }
+
+      return {
+        next: `${value.slice(0, start)}${nextSelected}${value.slice(end)}`,
+        cursorStart: start,
+        cursorEnd: start + nextSelected.length,
+      };
+    });
+  }
+
+  protected insertMarkdownLink(): void {
+    this.mutateMarkdownSelection((value, start, end) => {
+      const selected = value.slice(start, end) || 'label';
+      const snippet = `[${selected}](https://)`;
+      return {
+        next: `${value.slice(0, start)}${snippet}${value.slice(end)}`,
+        cursorStart: start + selected.length + 3,
+        cursorEnd: start + snippet.length - 1,
+      };
+    });
+  }
+
+  protected insertMarkdownSnippet(snippet: string): void {
+    this.mutateMarkdownSelection((value, start, end) => ({
+      next: `${value.slice(0, start)}${snippet}${value.slice(end)}`,
+      cursorStart: start + snippet.length,
+      cursorEnd: start + snippet.length,
+    }));
+  }
+
+  private mutateMarkdownSelection(
+    mutate: (
+      value: string,
+      start: number,
+      end: number,
+    ) => { next: string; cursorStart: number; cursorEnd: number },
+  ): void {
+    if (this.tile.type !== DashboardTileTypes.MARKDOWN) {
+      return;
+    }
+
+    const textarea = this.markdownContent()?.nativeElement;
+    const value = this.tile.properties.content ?? '';
+    const start = textarea?.selectionStart ?? value.length;
+    const end = textarea?.selectionEnd ?? value.length;
+    const result = mutate(value, start, end);
+
+    this.updateProperty('content', result.next);
+
+    queueMicrotask(() => {
+      const nextTextarea = this.markdownContent()?.nativeElement;
+      if (!nextTextarea) {
+        return;
+      }
+      nextTextarea.focus();
+      nextTextarea.setSelectionRange(result.cursorStart, result.cursorEnd);
+    });
   }
 
   protected save(): void {

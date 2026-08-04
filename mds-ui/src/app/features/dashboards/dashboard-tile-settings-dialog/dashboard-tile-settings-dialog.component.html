@@ -19,28 +19,71 @@
       </mat-slide-toggle>
     }
     @case (DashboardTileTypes.MARKDOWN) {
-      <mat-form-field appearance="outline" class="dashboard-tile-settings-dialog__field">
-        <mat-label>Title</mat-label>
-        <input
-          matInput
-          [ngModel]="tile.properties.title"
-          (ngModelChange)="updateProperty('title', $event)"
-        />
-      </mat-form-field>
-      <mat-form-field appearance="outline" class="dashboard-tile-settings-dialog__field">
-        <mat-label>Content</mat-label>
+      <label class="dashboard-tile-settings-dialog__label" for="markdown-tile-title">
+        Title
+      </label>
+      <input
+        id="markdown-tile-title"
+        class="dashboard-tile-settings-dialog__text-input"
+        type="text"
+        placeholder="Tile title"
+        [ngModel]="tile.properties.title"
+        (ngModelChange)="updateProperty('title', $event)"
+      />
+
+      <div class="dashboard-tile-settings-dialog__markdown-editor">
+        <div class="dashboard-tile-settings-dialog__markdown-toolbar" role="toolbar" aria-label="Markdown formatting">
+          <button type="button" mat-icon-button matTooltip="Bold" (click)="wrapMarkdownSelection('**', '**')">
+            <mat-icon>format_bold</mat-icon>
+          </button>
+          <button type="button" mat-icon-button matTooltip="Italic" (click)="wrapMarkdownSelection('*', '*')">
+            <mat-icon>format_italic</mat-icon>
+          </button>
+          <button type="button" mat-icon-button matTooltip="Strikethrough" (click)="wrapMarkdownSelection('~~', '~~')">
+            <mat-icon>strikethrough_s</mat-icon>
+          </button>
+          <span class="dashboard-tile-settings-dialog__toolbar-sep"></span>
+          <button type="button" mat-icon-button matTooltip="Heading" (click)="prefixMarkdownSelection('## ')">
+            <mat-icon>title</mat-icon>
+          </button>
+          <button type="button" mat-icon-button matTooltip="Link" (click)="insertMarkdownLink()">
+            <mat-icon>link</mat-icon>
+          </button>
+          <button type="button" mat-icon-button matTooltip="Quote" (click)="prefixMarkdownSelection('> ')">
+            <mat-icon>format_quote</mat-icon>
+          </button>
+          <button type="button" mat-icon-button matTooltip="Inline code" (click)="wrapMarkdownSelection('`', '`')">
+            <mat-icon>code</mat-icon>
+          </button>
+          <button type="button" mat-icon-button matTooltip="Code block" (click)="wrapMarkdownSelection('```\n', '\n```')">
+            <mat-icon>data_object</mat-icon>
+          </button>
+          <span class="dashboard-tile-settings-dialog__toolbar-sep"></span>
+          <button type="button" mat-icon-button matTooltip="Bullet list" (click)="prefixMarkdownSelection('- ')">
+            <mat-icon>format_list_bulleted</mat-icon>
+          </button>
+          <button type="button" mat-icon-button matTooltip="Numbered list" (click)="prefixMarkdownSelection('1. ')">
+            <mat-icon>format_list_numbered</mat-icon>
+          </button>
+          <button type="button" mat-icon-button matTooltip="Horizontal rule" (click)="insertMarkdownSnippet('\n\n---\n\n')">
+            <mat-icon>horizontal_rule</mat-icon>
+          </button>
+        </div>
         <textarea
-          matInput
-          rows="6"
+          #markdownContent
+          class="dashboard-tile-settings-dialog__markdown-textarea"
+          rows="12"
           [ngModel]="tile.properties.content"
           (ngModelChange)="updateProperty('content', $event)"
+          aria-label="Markdown content"
         ></textarea>
-      </mat-form-field>
+      </div>
+
       <mat-slide-toggle
-        [ngModel]="tile.properties.hideFrame ?? false"
-        (ngModelChange)="updateProperty('hideFrame', $event)"
+        [ngModel]="!(tile.properties.hideFrame ?? false)"
+        (ngModelChange)="updateProperty('hideFrame', !$event)"
       >
-        Hide tile frame
+        Show tile frame
       </mat-slide-toggle>
     }
     @case (DashboardTileTypes.SAVED_CHART) {
@@ -126,6 +169,6 @@
     [disabled]="!canSave"
     (click)="save()"
   >
-    Apply
+    Save
   </button>
 </mat-dialog-actions>

@@ -6,8 +6,98 @@
   padding-top: var(--ld-spacing-xs);
 }
 
+:host-context(.dashboard-markdown-tile-dialog-panel) .dashboard-tile-settings-dialog__content {
+  min-width: min(720px, 90vw);
+}
+
 .dashboard-tile-settings-dialog__field {
   width: 100%;
+}
+
+.dashboard-tile-settings-dialog__label {
+  margin: 0;
+  color: var(--ld-gray-7);
+  font-size: var(--ld-font-size-sm);
+  font-weight: 500;
+}
+
+.dashboard-tile-settings-dialog__text-input {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 0.65rem 0.75rem;
+  border: 1px solid var(--ld-gray-3);
+  border-radius: var(--ld-radius-md);
+  background: var(--ld-background);
+  color: var(--ld-gray-9);
+  font: inherit;
+  font-size: var(--ld-font-size-sm);
+
+  &:focus {
+    outline: 2px solid color-mix(in srgb, var(--ld-blue-4) 55%, transparent);
+    outline-offset: 1px;
+    border-color: var(--ld-blue-4);
+  }
+}
+
+.dashboard-tile-settings-dialog__markdown-editor {
+  display: flex;
+  flex-direction: column;
+  min-height: 16rem;
+  border: 1px solid var(--ld-gray-3);
+  border-radius: var(--ld-radius-md);
+  overflow: hidden;
+  background: var(--ld-background);
+}
+
+.dashboard-tile-settings-dialog__markdown-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 2px;
+  padding: 4px 6px;
+  border-bottom: 1px solid var(--ld-gray-2);
+  background: var(--ld-gray-0, #f8f9fa);
+
+  button {
+    width: 32px;
+    height: 32px;
+    color: var(--ld-gray-7);
+  }
+
+  mat-icon {
+    width: 18px;
+    height: 18px;
+    font-size: 18px;
+  }
+}
+
+.dashboard-tile-settings-dialog__toolbar-sep {
+  width: 1px;
+  height: 18px;
+  margin: 0 4px;
+  background: var(--ld-gray-3);
+}
+
+.dashboard-tile-settings-dialog__markdown-textarea {
+  flex: 1 1 auto;
+  width: 100%;
+  min-height: 14rem;
+  max-height: min(50vh, 28rem);
+  margin: 0;
+  padding: 0.75rem;
+  border: none;
+  resize: vertical;
+  box-sizing: border-box;
+  background: transparent;
+  color: var(--ld-gray-8);
+  font: inherit;
+  font-size: var(--ld-font-size-sm);
+  line-height: 1.55;
+  overflow: auto;
+
+  &:focus {
+    outline: none;
+  }
 }
 
 .dashboard-tile-settings-dialog__save {
