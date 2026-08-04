@@ -1,5 +1,7 @@
 import { Component, signal } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { provideHttpClient } from '@angular/common/http';
+import { provideHttpClientTesting } from '@angular/common/http/testing';
 import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 import { provideRouter } from '@angular/router';
 import { of } from 'rxjs';
@@ -10,6 +12,7 @@ import { ProjectSummary } from '../../core/models/project.model';
 import { AiAssistantPanelComponent } from '../../features/ai/ai-assistant-panel/ai-assistant-panel.component';
 import { AiAssistantUiService } from '../../features/ai/ai-assistant-ui.service';
 import { ProjectsService } from '../../features/projects/projects.service';
+import { NavbarSearchComponent } from '../navbar/navbar-search.component';
 import { AppShellComponent } from './app-shell.component';
 
 @Component({
@@ -17,6 +20,12 @@ import { AppShellComponent } from './app-shell.component';
   template: '',
 })
 class AiAssistantPanelStub {}
+
+@Component({
+  selector: 'app-navbar-search',
+  template: '',
+})
+class NavbarSearchStub {}
 
 const PROJECT: ProjectSummary = {
   projectUuid: 'project-1',
@@ -47,6 +56,8 @@ describe('AppShellComponent Ask AI flag', () => {
       imports: [AppShellComponent, NoopAnimationsModule],
       providers: [
         provideRouter([]),
+        provideHttpClient(),
+        provideHttpClientTesting(),
         ActiveProjectService,
         AiAssistantUiService,
         {
@@ -54,6 +65,7 @@ describe('AppShellComponent Ask AI flag', () => {
           useValue: {
             health: healthSignal.asReadonly(),
             user: signal(null).asReadonly(),
+            isAdmin: signal(false).asReadonly(),
           },
         },
         {
@@ -65,8 +77,8 @@ describe('AppShellComponent Ask AI flag', () => {
       ],
     })
       .overrideComponent(AppShellComponent, {
-        remove: { imports: [AiAssistantPanelComponent] },
-        add: { imports: [AiAssistantPanelStub] },
+        remove: { imports: [AiAssistantPanelComponent, NavbarSearchComponent] },
+        add: { imports: [AiAssistantPanelStub, NavbarSearchStub] },
       })
       .compileComponents();
 

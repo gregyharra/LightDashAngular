@@ -22,8 +22,8 @@ import { ChangePasswordDialogComponent } from '../navbar/navbar-user-menu.compon
         routerLinkActive="page-sidebar__link--active"
         [routerLinkActiveOptions]="{ exact: false }"
       >
-        <mat-icon>folder</mat-icon>
-        Projects
+        <mat-icon fontIcon="folder" aria-hidden="true"></mat-icon>
+        <span class="settings-nav__item-label">Projects</span>
       </a>
       @if (appState.isAdmin()) {
         <a
@@ -32,8 +32,8 @@ import { ChangePasswordDialogComponent } from '../navbar/navbar-user-menu.compon
           routerLinkActive="page-sidebar__link--active"
           [routerLinkActiveOptions]="{ exact: false }"
         >
-          <mat-icon>storage</mat-icon>
-          Warehouses
+          <mat-icon fontIcon="storage" aria-hidden="true"></mat-icon>
+          <span class="settings-nav__item-label">Warehouses</span>
         </a>
         <a
           class="page-sidebar__link page-sidebar__link--clickable"
@@ -41,8 +41,8 @@ import { ChangePasswordDialogComponent } from '../navbar/navbar-user-menu.compon
           routerLinkActive="page-sidebar__link--active"
           [routerLinkActiveOptions]="{ exact: false }"
         >
-          <mat-icon>group</mat-icon>
-          Users
+          <mat-icon fontIcon="group" aria-hidden="true"></mat-icon>
+          <span class="settings-nav__item-label">Users</span>
         </a>
       }
       <button
@@ -50,16 +50,16 @@ import { ChangePasswordDialogComponent } from '../navbar/navbar-user-menu.compon
         class="page-sidebar__link page-sidebar__link--clickable"
         (click)="changePassword()"
       >
-        <mat-icon>lock</mat-icon>
-        Change password
+        <mat-icon fontIcon="lock" aria-hidden="true"></mat-icon>
+        <span class="settings-nav__item-label">Change password</span>
       </button>
       <button
         type="button"
         class="page-sidebar__link page-sidebar__link--clickable"
         (click)="logout()"
       >
-        <mat-icon>logout</mat-icon>
-        Logout
+        <mat-icon fontIcon="logout" aria-hidden="true"></mat-icon>
+        <span class="settings-nav__item-label">Logout</span>
       </button>
     </nav>
   `,
@@ -90,18 +90,50 @@ import { ChangePasswordDialogComponent } from '../navbar/navbar-user-menu.compon
 
     .settings-nav {
       gap: 4px;
+      min-width: 0;
     }
 
     .page-sidebar__link--clickable {
+      box-sizing: border-box;
       cursor: pointer;
       text-decoration: none;
       color: inherit;
       white-space: nowrap;
+      min-width: 0;
     }
 
     button.page-sidebar__link--clickable {
+      display: flex;
+      align-items: center;
+      gap: var(--ld-spacing-xs);
       width: 100%;
-      font: inherit;
+      margin: 0;
+      appearance: none;
+      -webkit-appearance: none;
+      font-family: inherit;
+      font-size: inherit;
+      font-weight: inherit;
+      line-height: inherit;
+      letter-spacing: inherit;
+    }
+
+    .page-sidebar__link--clickable mat-icon {
+      flex-shrink: 0;
+      width: 16px;
+      height: 16px;
+      font-size: 16px;
+      line-height: 16px;
+      color: var(--ld-gray-6);
+    }
+
+    .page-sidebar__link--clickable.page-sidebar__link--active mat-icon {
+      color: var(--ld-gray-9);
+    }
+
+    .settings-nav__item-label {
+      min-width: 0;
+      overflow: hidden;
+      text-overflow: ellipsis;
     }
 
     .page-sidebar--collapsed .settings-nav__header {
@@ -110,6 +142,18 @@ import { ChangePasswordDialogComponent } from '../navbar/navbar-user-menu.compon
       overflow: hidden;
       opacity: 0;
       pointer-events: none;
+    }
+
+    .page-sidebar--collapsed .settings-nav__item-label {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      padding: 0;
+      margin: -1px;
+      overflow: hidden;
+      clip: rect(0, 0, 0, 0);
+      white-space: nowrap;
+      border: 0;
     }
   `,
 })

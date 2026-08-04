@@ -304,11 +304,16 @@ body.lineage-detail--resizing {
     padding 0.2s ease,
     justify-content 0.2s ease;
 
+  // Native <button> resets that would otherwise blank Material ligature icons.
+  appearance: none;
+  -webkit-appearance: none;
+
   mat-icon {
     flex-shrink: 0;
     width: 16px;
     height: 16px;
     font-size: 16px;
+    line-height: 16px;
     color: var(--ld-gray-6);
   }
 

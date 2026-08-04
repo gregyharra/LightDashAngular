@@ -41,6 +41,8 @@
 }
 
 .charts-list__create-btn {
+  display: inline-flex;
+  align-items: center;
   flex-shrink: 0;
   height: 36px;
   padding: 0 14px;
@@ -49,12 +51,14 @@
   color: var(--ld-gray-0) !important;
   font-size: var(--ld-font-size-sm);
   font-weight: 500;
+  white-space: nowrap;
   box-shadow: var(--ld-shadow-subtle);
 
   mat-icon {
     width: 18px;
     height: 18px;
     font-size: 18px;
+    line-height: 18px;
     margin-right: 4px;
   }
 
@@ -89,10 +93,11 @@
   text-align: center;
   color: var(--ld-gray-6);
 
-  mat-icon {
+  > mat-icon {
     width: 40px;
     height: 40px;
     font-size: 40px;
+    line-height: 40px;
     margin-bottom: var(--ld-spacing-xs);
     color: var(--ld-gray-5);
   }
