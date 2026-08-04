@@ -159,18 +159,12 @@ export const routes: Routes = [
           ).then((m) => m.DashboardViewPageComponent),
       },
       {
-        path: 'projects/:projectUuid/charts',
-        loadComponent: () =>
-          import(
-            './features/charts/charts-list-page/charts-list-page.component'
-          ).then((m) => m.ChartsListPageComponent),
-      },
-      {
         path: 'projects/:projectUuid/charts/new',
+        data: { createMode: true },
         loadComponent: () =>
           import(
-            './features/explorer/tables-workspace-page/tables-workspace-page.component'
-          ).then((m) => m.TablesWorkspacePageComponent),
+            './features/charts/chart-view-page/chart-view-page.component'
+          ).then((m) => m.ChartViewPageComponent),
       },
       {
         path: 'projects/:projectUuid/charts/:chartUuid',
@@ -178,6 +172,14 @@ export const routes: Routes = [
           import(
             './features/charts/chart-view-page/chart-view-page.component'
           ).then((m) => m.ChartViewPageComponent),
+      },
+      {
+        path: 'projects/:projectUuid/charts',
+        pathMatch: 'full',
+        loadComponent: () =>
+          import(
+            './features/charts/charts-list-page/charts-list-page.component'
+          ).then((m) => m.ChartsListPageComponent),
       },
       {
         path: 'projects/:projectUuid/lineage',

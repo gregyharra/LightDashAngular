@@ -42,206 +42,471 @@
     </div>
   </aside>
 
-  <div class="page-layout__content">
-  @if (loading()) {
-    <div class="chart-view__loading">
-      <mat-spinner diameter="32" />
-    </div>
-  } @else if (error()) {
-    <div class="chart-view__error page__container">{{ error() }}</div>
-  } @else if (chart()) {
-    <section class="chart-view">
-      <div class="page__container page__container--wide">
-        <header class="chart-view__header">
-          <nav class="chart-view__breadcrumbs" aria-label="Breadcrumb">
-            <a routerLink="/projects" class="chart-view__breadcrumb-link">Home</a>
-            <mat-icon>chevron_right</mat-icon>
-            <a
-              class="chart-view__breadcrumb-link"
-              [routerLink]="['/projects', projectUuid(), 'charts']"
-            >
-              Charts
-            </a>
-            <mat-icon>chevron_right</mat-icon>
-            <span class="chart-view__breadcrumb-current">{{ chart()!.name }}</span>
-          </nav>
-        </header>
+  @if (editMode()) {
+    <aside class="page-layout__sidebar page-layout__sidebar--project">
+      <app-folder-search-panel
+        [tree]="dbtTree()"
+        [lineageNodes]="lineageNodes()"
+        [projectUuid]="projectUuid()"
+        [selectedNodeId]="selectedTableId()"
+        searchPlaceholder="Search models…"
+        emptyMessage="No models match your search"
+        collapsedStorageKey="lightdash-chart-view-folder-panel-collapsed"
+        treeAriaLabel="dbt project folder tree"
+        (nodeSelected)="onProjectNodeSelected($event)"
+      />
+    </aside>
+  }
 
-        <div class="chart-view__title-row">
-          <div>
-            <h1 class="chart-view__title">{{ chart()!.name }}</h1>
-            @if (chart()!.description) {
-              <p class="chart-view__description">{{ chart()!.description }}</p>
-            }
+  @if (editMode() && (chart() || (isCreateMode() && explore()))) {
+    <aside
+      class="page-layout__sidebar page-layout__sidebar--fields chart-view__config"
+      [class.chart-view__config--collapsed]="configCollapsed()"
+      [class.chart-view__config--resizing]="configResizing()"
+      [class.chart-view__config--configure]="configureMode()"
+      [class.chart-view__config--fields]="!configureMode()"
+      [style.width.px]="
+        configCollapsed() ? configCollapsedWidth : configPanelWidth()
+      "
+      [attr.aria-label]="
+        configureMode() ? 'Chart configuration' : 'Dimensions and metrics'
+      "
+    >
+      @if (configureMode() || configCollapsed()) {
+        <button
+          type="button"
+          class="chart-view__config-fold-btn"
+          [attr.aria-expanded]="!configCollapsed()"
+          [attr.aria-label]="
+            configCollapsed()
+              ? 'Expand chart configuration'
+              : 'Collapse chart configuration'
+          "
+          (click)="toggleConfigCollapsed()"
+        >
+          <mat-icon>{{
+            configCollapsed() ? 'chevron_right' : 'chevron_left'
+          }}</mat-icon>
+        </button>
+      }
+
+      @if (!configureMode() && !configCollapsed()) {
+        <div class="chart-view__config-toolbar">
+          <div class="chart-view__fields-search">
+            <mat-icon>search</mat-icon>
+            <input
+              type="search"
+              class="chart-view__fields-search-input"
+              placeholder="Search metrics + dimensions"
+              [value]="fieldSearch()"
+              (input)="onFieldSearch($any($event.target).value)"
+            />
           </div>
-          <div class="chart-view__title-actions">
-            <mat-button-toggle-group
-              class="chart-view__mode-toggle"
-              [value]="viewMode()"
-              (change)="setViewMode($event.value)"
-              aria-label="View mode"
-            >
-              <mat-button-toggle value="chart">
-                <mat-icon>bar_chart</mat-icon>
-                Chart
-              </mat-button-toggle>
-              <mat-button-toggle value="sql">
-                <mat-icon>code</mat-icon>
-                SQL
-              </mat-button-toggle>
-            </mat-button-toggle-group>
+          <button
+            type="button"
+            class="chart-view__config-fold-btn chart-view__config-fold-btn--inline"
+            [attr.aria-expanded]="!configCollapsed()"
+            aria-label="Collapse chart configuration"
+            (click)="toggleConfigCollapsed()"
+          >
+            <mat-icon>chevron_left</mat-icon>
+          </button>
+        </div>
+      }
+
+      <div class="chart-view__config-body">
+        @if (configureMode()) {
+          <header class="chart-view__config-mode-header">
+            <h2 class="chart-view__panel-title">Configure</h2>
             <button
-              mat-stroked-button
+              mat-icon-button
               type="button"
-              class="chart-view__save-btn"
-              [disabled]="!canSave() || saveLoading()"
-              (click)="saveChart()"
+              aria-label="Close configure"
+              (click)="closeConfigureMode()"
             >
-              @if (saveLoading()) {
-                <mat-spinner diameter="18" />
-              } @else {
-                <mat-icon>save</mat-icon>
-              }
-              Save
+              <mat-icon>close</mat-icon>
             </button>
-            <a
-              mat-stroked-button
-              [routerLink]="['/projects', projectUuid(), 'charts', 'new']"
-              [queryParams]="{ table: chart()!.tableName }"
-            >
-              <mat-icon>open_in_new</mat-icon>
-              Open in builder
-            </a>
-            <span class="chart-view__table-badge">
-              <mat-icon>table_chart</mat-icon>
-              {{ chart()!.tableName }}
-            </span>
+          </header>
+          <div class="chart-view__config-mode-body">
+            <app-tables-chart-config-panel
+              [chartKind]="chartKind()"
+              [chartXField]="chartXField()"
+              [chartYFields]="chartYFields()"
+              [selectedDimensions]="selectedDimensionList()"
+              [selectedMetrics]="selectedMetricList()"
+              [displayConfig]="chartDisplayConfig()"
+              [maxRowLimit]="maxQueryLimit()"
+              [hasQueryResults]="!!queryResults()"
+              [getFieldLabel]="getFieldLabelFn"
+              (chartKindChange)="setChartKind($event)"
+              (chartXFieldChange)="setChartXField($event)"
+              (chartYFieldsChange)="setChartYFields($event)"
+              (displayConfigChange)="setChartDisplayConfig($event)"
+            />
           </div>
-        </div>
-
-        @if (viewMode() === 'sql') {
-          <section class="chart-view__sql" aria-label="Compiled SQL">
-            <div class="chart-view__sql-heading">
-              <div>
-                <h2>Compiled SQL</h2>
-                <p>This is the read-only SQL generated for the current chart query.</p>
-              </div>
-            </div>
-
-            @if (compiledSql(); as sql) {
-              <app-sql-highlight [sql]="sql" ariaLabel="Compiled SQL" />
-            } @else if (queryLoading()) {
-              <div class="chart-view__sql-status">
-                <mat-spinner diameter="24" />
-                <span>Compiling query…</span>
-              </div>
-            } @else {
-              <div class="chart-view__sql-status">
-                <mat-icon>code</mat-icon>
-                <span>Run a chart query to view its compiled SQL.</span>
-              </div>
-            }
-          </section>
         } @else {
-        <div class="chart-view__workspace">
-          <aside class="chart-view__config">
-            <div class="chart-view__panel chart-view__panel--configure">
-              <app-tables-chart-config-panel
-                [chartKind]="chartKind()"
-                [chartXField]="chartXField()"
-                [chartYFields]="chartYFields()"
-                [selectedDimensions]="selectedDimensionList()"
-                [selectedMetrics]="selectedMetricList()"
-                [displayConfig]="chartDisplayConfig()"
-                [hasQueryResults]="!!queryResults()"
-                [getFieldLabel]="getFieldLabelFn"
-                (chartKindChange)="setChartKind($event)"
-                (chartXFieldChange)="setChartXField($event)"
-                (chartYFieldsChange)="setChartYFields($event)"
-                (displayConfigChange)="setChartDisplayConfig($event)"
-              />
-            </div>
+          <div class="chart-view__fields-scroll">
+            <mat-accordion multi>
+              @for (group of filteredTableGroups(); track group.table.name) {
+                <mat-expansion-panel [expanded]="true">
+                  <mat-expansion-panel-header>
+                    <mat-panel-title>{{ group.table.label }}</mat-panel-title>
+                  </mat-expansion-panel-header>
 
-            <div class="chart-view__panel chart-view__panel--fields">
-              <h2 class="chart-view__panel-title">Fields</h2>
-              <mat-accordion multi>
-                @for (group of tableGroups(); track group.table.name) {
-                  <mat-expansion-panel [expanded]="true">
-                    <mat-expansion-panel-header>
-                      <mat-panel-title>{{ group.table.label }}</mat-panel-title>
-                    </mat-expansion-panel-header>
+                  @if (group.dimensions.length > 0) {
+                    <p class="chart-view__field-section">Dimensions</p>
+                    <div class="chart-view__field-list">
+                      @for (field of group.dimensions; track field.fieldId) {
+                        <button
+                          type="button"
+                          class="chart-view__field-btn"
+                          [class.chart-view__field-btn--selected]="
+                            isDimensionSelected(field.fieldId)
+                          "
+                          (click)="toggleDimension(field.fieldId)"
+                        >
+                          <mat-icon>straighten</mat-icon>
+                          {{ field.label }}
+                        </button>
+                      }
+                    </div>
+                  }
 
-                    @if (group.dimensions.length > 0) {
-                      <p class="chart-view__field-section">Dimensions</p>
-                      <div class="chart-view__field-list">
-                        @for (field of group.dimensions; track field.fieldId) {
-                          <button
-                            type="button"
-                            class="chart-view__field-btn"
-                            [class.chart-view__field-btn--selected]="isDimensionSelected(field.fieldId)"
-                            (click)="toggleDimension(field.fieldId)"
-                          >
-                            <mat-icon>straighten</mat-icon>
-                            {{ field.label }}
-                          </button>
-                        }
-                      </div>
-                    }
-
-                    @if (group.metrics.length > 0) {
-                      <p class="chart-view__field-section">Metrics</p>
-                      <div class="chart-view__field-list">
-                        @for (field of group.metrics; track field.fieldId) {
-                          <button
-                            type="button"
-                            class="chart-view__field-btn chart-view__field-btn--metric"
-                            [class.chart-view__field-btn--selected]="isMetricSelected(field.fieldId)"
-                            (click)="toggleMetric(field.fieldId)"
-                          >
-                            <mat-icon>functions</mat-icon>
-                            {{ field.label }}
-                          </button>
-                        }
-                      </div>
-                    }
-                  </mat-expansion-panel>
-                }
-              </mat-accordion>
-            </div>
-          </aside>
-
-          <div class="chart-view__viz">
-            @if (queryLoading()) {
-              <div class="chart-view__viz-loading">
-                <mat-spinner diameter="28" />
-                <span>Running query…</span>
-              </div>
-            } @else if (queryError()) {
-              <div class="chart-view__viz-error">{{ queryError() }}</div>
-            } @else if (queryResults() && !canRenderChart()) {
-              <div class="chart-view__viz-empty">
-                <mat-icon>bar_chart</mat-icon>
-                <p>Add a dimension and a metric, then configure axes to visualize.</p>
-              </div>
-            } @else if (canRenderChart()) {
-              <app-chart-visualization
-                [chartKind]="chartKind()"
-                [queryResults]="queryResults()"
-                [xField]="chartXField()"
-                [yField]="chartYFields()[0]"
-                [displayConfig]="chartDisplayConfig()"
-              />
-            } @else {
-              <div class="chart-view__viz-empty">
-                <mat-icon>bar_chart</mat-icon>
-                <p>Select at least one dimension or metric to visualize.</p>
-              </div>
+                  @if (group.metrics.length > 0) {
+                    <p class="chart-view__field-section">Metrics</p>
+                    <div class="chart-view__field-list">
+                      @for (field of group.metrics; track field.fieldId) {
+                        <button
+                          type="button"
+                          class="chart-view__field-btn chart-view__field-btn--metric"
+                          [class.chart-view__field-btn--selected]="
+                            isMetricSelected(field.fieldId)
+                          "
+                          (click)="toggleMetric(field.fieldId)"
+                        >
+                          <mat-icon>functions</mat-icon>
+                          {{ field.label }}
+                        </button>
+                      }
+                    </div>
+                  }
+                </mat-expansion-panel>
+              }
+            </mat-accordion>
+            @if (fieldSearch().trim() && filteredTableGroups().length === 0) {
+              <p class="chart-view__fields-empty">No matching fields</p>
             }
           </div>
-        </div>
         }
       </div>
-    </section>
+
+      <div
+        class="chart-view__config-resize-handle"
+        role="separator"
+        aria-orientation="vertical"
+        aria-label="Resize chart configuration"
+        tabindex="0"
+        (pointerdown)="onConfigResizeStart($event)"
+      ></div>
+    </aside>
   }
+
+  <div class="page-layout__content">
+    @if (loading()) {
+      <div class="chart-view__loading">
+        <mat-spinner diameter="32" />
+      </div>
+    } @else if (error()) {
+      <div class="chart-view__error page__container">{{ error() }}</div>
+    } @else if (chart() || isCreateMode()) {
+      <section class="chart-view">
+        <div class="page__container page__container--wide">
+          <header class="chart-view__header">
+            <nav class="chart-view__breadcrumbs" aria-label="Breadcrumb">
+              <a routerLink="/projects" class="chart-view__breadcrumb-link">Home</a>
+              <mat-icon>chevron_right</mat-icon>
+              <a
+                class="chart-view__breadcrumb-link"
+                [routerLink]="['/projects', projectUuid(), 'charts']"
+              >
+                Charts
+              </a>
+              <mat-icon>chevron_right</mat-icon>
+              <span class="chart-view__breadcrumb-current-wrap">
+                <span class="chart-view__breadcrumb-current">{{ displayName() }}</span>
+                @if (editMode()) {
+                  <button
+                    mat-icon-button
+                    type="button"
+                    class="chart-view__breadcrumb-edit"
+                    aria-label="Edit chart name and description"
+                    matTooltip="Edit name and description"
+                    (click)="openChartDetailsDialog()"
+                  >
+                    <mat-icon>edit</mat-icon>
+                  </button>
+                }
+              </span>
+            </nav>
+
+            <div class="chart-view__title-actions">
+              @if (editMode()) {
+                <button
+                  mat-stroked-button
+                  type="button"
+                  class="chart-view__action-btn"
+                  [attr.aria-pressed]="configureMode()"
+                  (click)="toggleConfigureMode()"
+                >
+                  <mat-icon>{{ configureMode() ? 'close' : 'tune' }}</mat-icon>
+                  {{ configureMode() ? 'Close configure' : 'Configure chart' }}
+                </button>
+                <button
+                  mat-stroked-button
+                  type="button"
+                  class="chart-view__action-btn chart-view__save-btn"
+                  [disabled]="!canSave() || saveLoading()"
+                  (click)="saveChart()"
+                >
+                  @if (saveLoading()) {
+                    <mat-spinner diameter="18" />
+                  } @else {
+                    <mat-icon>save</mat-icon>
+                  }
+                  Save
+                </button>
+                <button
+                  mat-flat-button
+                  color="primary"
+                  type="button"
+                  class="chart-view__action-btn"
+                  (click)="onDoneClick()"
+                >
+                  Done
+                </button>
+              } @else {
+                <button
+                  mat-flat-button
+                  color="primary"
+                  type="button"
+                  class="chart-view__action-btn"
+                  (click)="enterEditMode()"
+                >
+                  <mat-icon>edit</mat-icon>
+                  Edit
+                </button>
+              }
+              <span class="chart-view__table-badge">
+                <mat-icon>table_chart</mat-icon>
+                {{ displayTableLabel() }}
+              </span>
+            </div>
+          </header>
+
+          <div class="chart-view__body">
+              @if (!editMode()) {
+                <div class="chart-view__title-row">
+                  <div class="chart-view__title-block">
+                    <h1 class="chart-view__title">{{ displayName() }}</h1>
+                    @if (displayDescription()) {
+                      <p class="chart-view__description">{{ displayDescription() }}</p>
+                    }
+                  </div>
+                </div>
+              }
+
+              @if (saveError()) {
+                <div class="chart-view__banner chart-view__banner--error">{{ saveError() }}</div>
+              } @else if (saveSuccess()) {
+                <div class="chart-view__banner chart-view__banner--success">Chart saved.</div>
+              }
+
+              <div class="chart-view__workspace">
+            <div class="chart-view__main">
+              <mat-accordion class="chart-view__accordion" multi>
+                <mat-expansion-panel class="chart-view__panel-section" [expanded]="true">
+                  <mat-expansion-panel-header>
+                    <mat-panel-title>Filters</mat-panel-title>
+                  </mat-expansion-panel-header>
+                  @if (explore()) {
+                    <app-tables-filters-panel
+                      [dimensions]="filterableDimensions()"
+                      [filters]="dimensionFilters()"
+                      (filtersChange)="onDimensionFiltersChange($event)"
+                    />
+                  } @else {
+                    <div class="chart-view__panel-empty">
+                      <p>Loading fields for filters…</p>
+                    </div>
+                  }
+                </mat-expansion-panel>
+
+                <mat-expansion-panel
+                  class="chart-view__panel-section chart-view__panel-section--header-actions"
+                  [expanded]="true"
+                >
+                  <mat-expansion-panel-header>
+                    <mat-panel-title>Chart</mat-panel-title>
+                    @if (editMode()) {
+                      <mat-panel-description>
+                        <button
+                          type="button"
+                          class="chart-view__configure-inline"
+                          (click)="toggleConfigureMode($event)"
+                        >
+                          {{ configureMode() ? 'Close configure' : 'Configure' }}
+                        </button>
+                      </mat-panel-description>
+                    }
+                  </mat-expansion-panel-header>
+
+                  <div class="chart-view__viz">
+                    @if (queryLoading()) {
+                      <div class="chart-view__viz-loading">
+                        <mat-spinner diameter="28" />
+                        <span>Running query…</span>
+                      </div>
+                    } @else if (queryError()) {
+                      <div class="chart-view__viz-error">{{ queryError() }}</div>
+                    } @else if (queryResults() && !canRenderChart()) {
+                      <div class="chart-view__viz-empty">
+                        <mat-icon>bar_chart</mat-icon>
+                        <p>
+                          @if (editMode()) {
+                            Add a dimension and a metric, then configure axes to visualize.
+                          } @else {
+                            This chart has no results to visualize.
+                          }
+                        </p>
+                      </div>
+                    } @else if (canRenderChart()) {
+                      <app-chart-visualization
+                        [chartConfig]="chartConfig()"
+                        [queryResults]="queryResults()"
+                      />
+                    } @else {
+                      <div class="chart-view__viz-empty">
+                        <mat-icon>bar_chart</mat-icon>
+                        <p>
+                          @if (editMode()) {
+                            Select at least one dimension or metric to visualize.
+                          } @else {
+                            No chart data yet.
+                          }
+                        </p>
+                      </div>
+                    }
+                  </div>
+                </mat-expansion-panel>
+
+                <mat-expansion-panel class="chart-view__panel-section" [expanded]="true">
+                  <mat-expansion-panel-header>
+                    <mat-panel-title>Results</mat-panel-title>
+                  </mat-expansion-panel-header>
+
+                  @if (queryLoading()) {
+                    <div class="chart-view__panel-loading">
+                      <mat-spinner diameter="28" />
+                      <p>Running query…</p>
+                    </div>
+                  } @else if (queryError()) {
+                    <div class="chart-view__panel-error">{{ queryError() }}</div>
+                  } @else if (!queryResults()) {
+                    <div class="chart-view__panel-empty chart-view__panel-empty--centered">
+                      <mat-icon>table_view</mat-icon>
+                      <h2>No results yet</h2>
+                      <p>Results appear after the chart query runs.</p>
+                    </div>
+                  } @else if (resultRows().length === 0) {
+                    <div class="chart-view__panel-empty chart-view__panel-empty--centered">
+                      <mat-icon>search_off</mat-icon>
+                      <h2>No results</h2>
+                      <p>Try adjusting filters or selected fields.</p>
+                    </div>
+                  } @else {
+                    <div class="chart-view__results">
+                      <div class="chart-view__results-table-wrap">
+                        <table
+                          mat-table
+                          [dataSource]="pagedResultRows()"
+                          class="chart-view__results-table"
+                        >
+                          @for (column of displayedColumns(); track column) {
+                            <ng-container [matColumnDef]="column">
+                              <th mat-header-cell *matHeaderCellDef>
+                                <span
+                                  class="chart-view__results-header"
+                                  [class.chart-view__results-header--metric]="
+                                    isResultColumnMetric(column)
+                                  "
+                                >
+                                  <mat-icon
+                                    [matTooltip]="
+                                      isResultColumnMetric(column)
+                                        ? 'Metric'
+                                        : 'Dimension'
+                                    "
+                                  >
+                                    {{
+                                      isResultColumnMetric(column)
+                                        ? 'functions'
+                                        : 'straighten'
+                                    }}
+                                  </mat-icon>
+                                  {{ getColumnLabel(column) }}
+                                </span>
+                              </th>
+                              <td mat-cell *matCellDef="let row">{{ row[column] }}</td>
+                            </ng-container>
+                          }
+
+                          <tr
+                            mat-header-row
+                            *matHeaderRowDef="displayedColumns(); sticky: true"
+                          ></tr>
+                          <tr
+                            mat-row
+                            *matRowDef="let row; columns: displayedColumns()"
+                          ></tr>
+                        </table>
+                      </div>
+                      <mat-paginator
+                        class="chart-view__results-paginator"
+                        [length]="resultRows().length"
+                        [pageIndex]="clampedResultsPageIndex()"
+                        [pageSize]="resultsPageSize()"
+                        [pageSizeOptions]="resultsPageSizeOptions"
+                        (page)="onResultsPage($event)"
+                        aria-label="Results pagination"
+                      />
+                    </div>
+                  }
+                </mat-expansion-panel>
+
+                <mat-expansion-panel class="chart-view__panel-section">
+                  <mat-expansion-panel-header>
+                    <mat-panel-title>SQL</mat-panel-title>
+                  </mat-expansion-panel-header>
+
+                  @if (displaySql(); as sql) {
+                    <app-sql-highlight [sql]="sql" ariaLabel="Chart SQL" />
+                  } @else if (queryLoading()) {
+                    <div class="chart-view__panel-loading">
+                      <mat-spinner diameter="24" />
+                      <span>Compiling query…</span>
+                    </div>
+                  } @else {
+                    <div class="chart-view__panel-empty">
+                      <p>Select dimensions or metrics to generate SQL.</p>
+                    </div>
+                  }
+                </mat-expansion-panel>
+              </mat-accordion>
+            </div>
+              </div>
+          </div>
+        </div>
+      </section>
+    }
   </div>
 </div>

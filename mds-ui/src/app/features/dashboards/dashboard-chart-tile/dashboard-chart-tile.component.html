@@ -15,11 +15,8 @@
     </div>
   } @else if (queryResults() && queryResults()!.rows.length > 0) {
     <app-chart-visualization
-      [chartKind]="chartKind()"
+      [chartConfig]="chartConfig()"
       [queryResults]="queryResults()"
-      [xField]="xField()"
-      [yField]="yField()"
-      [displayConfig]="displayConfig()"
       [bigNumberComparison]="bigNumberComparison()"
       [dashboardMode]="true"
     />

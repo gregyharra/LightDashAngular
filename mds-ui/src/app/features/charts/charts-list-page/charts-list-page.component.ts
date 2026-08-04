@@ -174,15 +174,16 @@ export class ChartsListPageComponent {
       return;
     }
 
-    void this.router.navigate(['/projects', projectUuid, 'charts', chartUuid]);
+    void this.router
+      .navigate(['/projects', projectUuid, 'charts', chartUuid])
+      .then((navigated) => {
+        if (!navigated) {
+          this.error.set('Unable to open this chart. Try refreshing the page.');
+        }
+      })
+      .catch(() => {
+        this.error.set('Unable to open this chart. Try refreshing the page.');
+      });
   }
 
-  protected openCreatePage(): void {
-    const projectUuid = this.projectUuid();
-    if (!projectUuid) {
-      return;
-    }
-
-    void this.router.navigate(['/projects', projectUuid, 'charts', 'new']);
-  }
 }

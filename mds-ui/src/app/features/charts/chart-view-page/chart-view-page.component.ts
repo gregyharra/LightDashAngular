@@ -1,35 +1,90 @@
-import { Component, computed, inject, signal } from '@angular/core';
-import { ActivatedRoute, RouterLink } from '@angular/router';
+import { isPlatformBrowser } from '@angular/common';
+import {
+  Component,
+  DestroyRef,
+  PLATFORM_ID,
+  Renderer2,
+  computed,
+  inject,
+  signal,
+} from '@angular/core';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { MatButtonModule } from '@angular/material/button';
-import { MatButtonToggleModule } from '@angular/material/button-toggle';
+import { MatDialog } from '@angular/material/dialog';
 import { MatExpansionModule } from '@angular/material/expansion';
 import { MatIconModule } from '@angular/material/icon';
+import { MatPaginatorModule, PageEvent } from '@angular/material/paginator';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { MatTableModule } from '@angular/material/table';
+import { MatTooltipModule } from '@angular/material/tooltip';
 import { ActiveProjectService } from '../../../core/services/active-project.service';
 import { apiErrorMessage } from '../../../core/api/lightdash-api.service';
+import { DashboardDimensionFilter } from '../../../core/models/dashboard.model';
 import {
+  ChartConfig,
   ChartDisplayConfig,
   ChartKind,
-  DEFAULT_CHART_DISPLAY_CONFIG,
   SavedChart,
+  defaultConfigForType,
+  normalizeChartConfig,
 } from '../../../core/models/chart.model';
+import {
+  applyChartKindChange,
+  applyChartPanelPatch,
+  chartKindFromConfig,
+  ChartConfigCache,
+  toChartPanelView,
+} from '../../../core/models/chart-config.utils';
 import {
   AdditionalMetric,
   CompiledTable,
   Explore,
+  ExploreSummary,
   FieldId,
   MetricQuery,
   QueryResults,
   getFieldId,
 } from '../../../core/models/explore.model';
+import { DbtTreeNode, LineageNode } from '../../../core/models/lineage.model';
 import { ChartService } from '../chart.service';
+import {
+  ChartDetailsDialogComponent,
+  ChartDetailsDialogData,
+  ChartDetailsDialogResult,
+} from '../chart-details-dialog/chart-details-dialog.component';
+import {
+  SaveChartDialogComponent,
+  SaveChartDialogData,
+  SaveChartDialogResult,
+} from '../save-chart-dialog/save-chart-dialog.component';
 import { ExplorerService } from '../../explorer/explorer.service';
+import { LineageService } from '../../lineage/lineage.service';
+import { FolderSearchPanelComponent } from '../../lineage/folder-search-panel/folder-search-panel.component';
+import { findTreeNodeByLineageId } from '../../lineage/dbt-tree-utils';
+import {
+  findExploreByName,
+  findExploreForLineageNode,
+} from '../../explorer/explore-lineage.utils';
+import {
+  exploreHasFields,
+  isExploreableDbtTreeNode,
+  resolveExploreNameForSelection,
+} from '../../explorer/explore-from-dbt.utils';
+import {
+  clampQueryLimit,
+  resolveMaxQueryLimit,
+} from '../../explorer/query-limit.utils';
 import { ChartVisualizationComponent } from '../chart-visualization/chart-visualization.component';
 import { ResizableSidebarDirective } from '../../../layout/resizable-sidebar/resizable-sidebar.directive';
+import { AppStateService } from '../../../core/services/app-state.service';
 import { SqlHighlightComponent } from '../../../shared/sql-highlight/sql-highlight.component';
 import { TablesChartConfigPanelComponent } from '../../explorer/tables-chart-config-panel/tables-chart-config-panel.component';
-
-type ChartViewMode = 'chart' | 'sql';
+import { TablesChartDisplayConfig } from '../../explorer/tables-chart-config-panel/tables-chart-config.constants';
+import { TablesFiltersPanelComponent } from '../../explorer/tables-filters-panel/tables-filters-panel.component';
+import { getFilterableDimensions } from '../../explorer/tables-filters-panel/tables-filters.utils';
+import { buildMetricQuerySql } from '../../explorer/metric-query-sql.utils';
+import { mergeDashboardFiltersIntoMetricQuery } from '../../dashboards/dashboard-filters';
+import { combineLatest, forkJoin } from 'rxjs';
 
 type TableFieldGroup = {
   table: CompiledTable;
@@ -37,17 +92,30 @@ type TableFieldGroup = {
   metrics: { fieldId: FieldId; label: string }[];
 };
 
+const CONFIG_COLLAPSED_STORAGE_KEY = 'lightdash-chart-view-config-collapsed';
+const CONFIG_WIDTH_STORAGE_KEY = 'lightdash-chart-view-config-width';
+const CONFIG_DEFAULT_WIDTH = 300;
+const CONFIG_MIN_WIDTH = 240;
+const CONFIG_MAX_WIDTH = 480;
+const CONFIG_COLLAPSED_WIDTH = 44;
+const RESULTS_PAGE_SIZE_OPTIONS = [10, 25, 50, 100];
+const RESULTS_DEFAULT_PAGE_SIZE = 25;
+
 @Component({
   selector: 'app-chart-view-page',
   imports: [
     RouterLink,
     MatButtonModule,
-    MatButtonToggleModule,
     MatExpansionModule,
     MatIconModule,
+    MatPaginatorModule,
     MatProgressSpinnerModule,
+    MatTableModule,
+    MatTooltipModule,
     ChartVisualizationComponent,
+    FolderSearchPanelComponent,
     TablesChartConfigPanelComponent,
+    TablesFiltersPanelComponent,
     ResizableSidebarDirective,
     SqlHighlightComponent,
   ],
@@ -57,7 +125,14 @@ type TableFieldGroup = {
 export class ChartViewPageComponent {
   private readonly chartService = inject(ChartService);
   private readonly explorerService = inject(ExplorerService);
+  private readonly lineageService = inject(LineageService);
   private readonly route = inject(ActivatedRoute);
+  private readonly router = inject(Router);
+  private readonly appState = inject(AppStateService);
+  private readonly dialog = inject(MatDialog);
+  private readonly platformId = inject(PLATFORM_ID);
+  private readonly renderer = inject(Renderer2);
+  private readonly destroyRef = inject(DestroyRef);
   protected readonly activeProjectService = inject(ActiveProjectService);
 
   protected readonly projectUuid = signal<string | null>(null);
@@ -67,15 +142,35 @@ export class ChartViewPageComponent {
   protected readonly loading = signal(true);
   protected readonly error = signal<string | null>(null);
 
-  protected readonly chartKind = signal<ChartKind>('vertical_bar');
-  protected readonly chartXField = signal<FieldId | null>(null);
-  protected readonly chartYFields = signal<FieldId[]>([]);
-  protected readonly chartDisplayConfig = signal<ChartDisplayConfig>(
-    DEFAULT_CHART_DISPLAY_CONFIG,
+  protected readonly dbtTree = signal<DbtTreeNode[]>([]);
+  protected readonly lineageNodes = signal<LineageNode[]>([]);
+  protected readonly explores = signal<ExploreSummary[]>([]);
+  protected readonly selectedTableId = signal<string | null>(null);
+  protected readonly projectTreeLoading = signal(false);
+  protected readonly projectTreeError = signal<string | null>(null);
+
+  protected readonly resultsPageSizeOptions = RESULTS_PAGE_SIZE_OPTIONS;
+  protected readonly resultsPageIndex = signal(0);
+  protected readonly resultsPageSize = signal(RESULTS_DEFAULT_PAGE_SIZE);
+
+  protected readonly chartConfig = signal<ChartConfig>(
+    defaultConfigForType('cartesian'),
+  );
+  protected readonly cachedChartConfigs = signal<ChartConfigCache>({});
+  protected readonly panelView = computed(() =>
+    toChartPanelView(this.chartConfig()),
+  );
+  protected readonly chartKind = computed(() => this.panelView().chartKind);
+  protected readonly chartXField = computed(() => this.panelView().xField);
+  protected readonly chartYFields = computed(() => this.panelView().yFields);
+  protected readonly chartDisplayConfig = computed(
+    () => this.panelView().displayConfig as TablesChartDisplayConfig,
   );
   protected readonly selectedDimensions = signal<Set<FieldId>>(new Set());
   protected readonly selectedMetrics = signal<Set<FieldId>>(new Set());
+  protected readonly fieldSearch = signal('');
   protected readonly additionalMetrics = signal<AdditionalMetric[]>([]);
+  protected readonly dimensionFilters = signal<DashboardDimensionFilter[]>([]);
   protected readonly queryLoading = signal(false);
   protected readonly queryError = signal<string | null>(null);
   protected readonly queryResults = signal<QueryResults | null>(null);
@@ -83,10 +178,62 @@ export class ChartViewPageComponent {
   protected readonly saveError = signal<string | null>(null);
   protected readonly saveSuccess = signal(false);
 
-  protected readonly viewMode = signal<ChartViewMode>('chart');
+  protected readonly isCreateMode = signal(false);
+  protected readonly editMode = signal(false);
+  protected readonly configureMode = signal(false);
+  protected readonly draftName = signal('');
+  protected readonly draftDescription = signal('');
+
+  protected readonly maxQueryLimit = computed(() =>
+    resolveMaxQueryLimit(this.appState.health()?.query?.maxLimit),
+  );
+
+  protected readonly displayName = computed(() => {
+    if (this.editMode()) {
+      return this.draftName().trim() || this.chart()?.name || 'Untitled chart';
+    }
+    return this.chart()?.name ?? '';
+  });
+
+  protected readonly displayDescription = computed(() => {
+    if (this.editMode()) {
+      return this.draftDescription();
+    }
+    return this.chart()?.description ?? '';
+  });
+
   protected readonly compiledSql = computed(
     () => this.queryResults()?.compiledSql?.trim() || null,
   );
+
+  protected readonly generatedSql = computed(() => {
+    const explore = this.explore();
+    if (!explore) {
+      return null;
+    }
+    return buildMetricQuerySql(
+      explore,
+      this.selectedDimensionList(),
+      this.selectedMetricList(),
+      clampQueryLimit(this.chartDisplayConfig().rowLimit, this.maxQueryLimit()),
+      this.dimensionFilters(),
+    );
+  });
+
+  protected readonly displaySql = computed(
+    () => this.compiledSql() ?? this.generatedSql(),
+  );
+
+  protected readonly configCollapsed = signal(false);
+  protected readonly configPanelWidth = signal(CONFIG_DEFAULT_WIDTH);
+  protected readonly configResizing = signal(false);
+  protected readonly configCollapsedWidth = CONFIG_COLLAPSED_WIDTH;
+
+  private configIsDragging = false;
+  private configStartX = 0;
+  private configStartWidth = 0;
+  private configUnlistenMove?: () => void;
+  private configUnlistenUp?: () => void;
 
   protected readonly tableGroups = computed<TableFieldGroup[]>(() => {
     const explore = this.explore();
@@ -111,6 +258,29 @@ export class ChartViewPageComponent {
     }));
   });
 
+  protected readonly filteredTableGroups = computed(() => {
+    const query = this.fieldSearch().trim().toLowerCase();
+    const groups = this.tableGroups();
+
+    if (!query) {
+      return groups;
+    }
+
+    return groups
+      .map((group) => ({
+        ...group,
+        dimensions: group.dimensions.filter((field) =>
+          field.label.toLowerCase().includes(query),
+        ),
+        metrics: group.metrics.filter((field) =>
+          field.label.toLowerCase().includes(query),
+        ),
+      }))
+      .filter(
+        (group) => group.dimensions.length > 0 || group.metrics.length > 0,
+      );
+  });
+
   protected readonly selectedDimensionList = computed(() =>
     Array.from(this.selectedDimensions()),
   );
@@ -118,6 +288,60 @@ export class ChartViewPageComponent {
   protected readonly selectedMetricList = computed(() =>
     Array.from(this.selectedMetrics()),
   );
+
+  protected readonly filterableDimensions = computed(() => {
+    const explore = this.explore();
+    if (!explore) {
+      return [];
+    }
+    return getFilterableDimensions(explore);
+  });
+
+  protected readonly displayedColumns = computed(() => {
+    const results = this.queryResults();
+    if (!results) {
+      return [];
+    }
+    return Object.keys(results.fields);
+  });
+
+  protected readonly resultRows = computed(() => {
+    const results = this.queryResults();
+    if (!results) {
+      return [];
+    }
+
+    return results.rows.map((row) => {
+      const flat: Record<string, string> = {};
+      for (const [fieldId, cell] of Object.entries(row)) {
+        flat[fieldId] = cell.value.formatted;
+      }
+      return flat;
+    });
+  });
+
+  protected readonly pagedResultRows = computed(() => {
+    const rows = this.resultRows();
+    const pageSize = this.resultsPageSize();
+    const pageIndex = this.clampedResultsPageIndex();
+    const start = pageIndex * pageSize;
+    return rows.slice(start, start + pageSize);
+  });
+
+  protected readonly clampedResultsPageIndex = computed(() => {
+    const rows = this.resultRows();
+    const pageSize = this.resultsPageSize();
+    const maxPage = Math.max(0, Math.ceil(rows.length / pageSize) - 1);
+    return Math.min(this.resultsPageIndex(), maxPage);
+  });
+
+  protected readonly displayTableLabel = computed(() => {
+    const explore = this.explore();
+    if (explore) {
+      return explore.label || explore.name;
+    }
+    return this.chart()?.tableName ?? '';
+  });
 
   protected readonly canRenderChart = computed(() => {
     const results = this.queryResults();
@@ -139,10 +363,13 @@ export class ChartViewPageComponent {
 
   protected readonly canSave = computed(
     () =>
-      !!this.chart() &&
+      (this.isCreateMode() || !!this.chart()) &&
       !!this.explore() &&
+      this.editMode() &&
+      (this.isCreateMode() || this.draftName().trim().length > 0) &&
       this.canRenderChart() &&
       !this.queryLoading() &&
+      !this.queryError() &&
       !this.saveLoading(),
   );
 
@@ -150,19 +377,280 @@ export class ChartViewPageComponent {
     this.getFieldLabel(fieldId);
 
   constructor() {
-    this.route.paramMap.subscribe((params) => {
-      const projectUuid = params.get('projectUuid');
-      const chartUuid = params.get('chartUuid');
+    this.configCollapsed.set(this.readConfigCollapsedState());
+    if (isPlatformBrowser(this.platformId)) {
+      this.configPanelWidth.set(this.readConfigSavedWidth());
+    }
 
-      if (!projectUuid || !chartUuid) {
+    this.destroyRef.onDestroy(() => {
+      this.stopConfigResize();
+    });
+
+    combineLatest([this.route.data, this.route.paramMap]).subscribe(
+      ([data, params]) => {
+        const createMode = !!data['createMode'];
+        this.isCreateMode.set(createMode);
+
+        const projectUuid = params.get('projectUuid');
+        if (!projectUuid) {
+          return;
+        }
+
+        if (createMode) {
+          this.initCreateMode(projectUuid);
+          return;
+        }
+
+        const chartUuid = params.get('chartUuid');
+        if (!chartUuid) {
+          return;
+        }
+
+        this.projectUuid.set(projectUuid);
+        this.chartUuid.set(chartUuid);
+        this.activeProjectService.setActiveProject(projectUuid);
+        this.editMode.set(false);
+        this.configureMode.set(false);
+        this.loadChart(projectUuid, chartUuid);
+      },
+    );
+  }
+
+  protected enterEditMode(): void {
+    const chart = this.chart();
+    if (!chart) {
+      return;
+    }
+    this.draftName.set(chart.name);
+    this.draftDescription.set(chart.description ?? '');
+    this.editMode.set(true);
+    this.configureMode.set(false);
+    this.configCollapsed.set(false);
+    this.ensureProjectTreeLoaded();
+  }
+
+  protected exitEditMode(): void {
+    this.editMode.set(false);
+    this.configureMode.set(false);
+    this.saveSuccess.set(false);
+    this.saveError.set(null);
+  }
+
+  protected onDoneClick(): void {
+    if (this.isCreateMode()) {
+      this.cancelCreate();
+      return;
+    }
+    this.exitEditMode();
+  }
+
+  protected cancelCreate(): void {
+    const projectUuid = this.projectUuid();
+    if (!projectUuid) {
+      return;
+    }
+    void this.router.navigate(['/projects', projectUuid, 'charts']);
+  }
+
+  protected toggleConfigureMode(event?: Event): void {
+    event?.stopPropagation();
+    if (!this.editMode()) {
+      return;
+    }
+    const next = !this.configureMode();
+    this.configureMode.set(next);
+    if (next) {
+      this.configCollapsed.set(false);
+    }
+  }
+
+  protected closeConfigureMode(): void {
+    this.configureMode.set(false);
+  }
+
+  protected openChartDetailsDialog(): void {
+    if (!this.editMode()) {
+      return;
+    }
+
+    const dialogRef = this.dialog.open<
+      ChartDetailsDialogComponent,
+      ChartDetailsDialogData,
+      ChartDetailsDialogResult
+    >(ChartDetailsDialogComponent, {
+      data: {
+        name: this.draftName(),
+        description: this.draftDescription(),
+      },
+      width: '28rem',
+      maxWidth: '90vw',
+      panelClass: 'chart-details-dialog-panel',
+    });
+
+    dialogRef.afterClosed().subscribe((result) => {
+      if (!result) {
         return;
       }
-
-      this.projectUuid.set(projectUuid);
-      this.chartUuid.set(chartUuid);
-      this.activeProjectService.setActiveProject(projectUuid);
-      this.loadChart(projectUuid, chartUuid);
+      this.draftName.set(result.name);
+      this.draftDescription.set(result.description);
     });
+  }
+
+  protected onDimensionFiltersChange(filters: DashboardDimensionFilter[]): void {
+    this.dimensionFilters.set(filters);
+    this.runQuery();
+  }
+
+  protected getColumnLabel(column: FieldId): string {
+    const results = this.queryResults();
+    return results?.fields[column]?.label ?? this.getFieldLabel(column);
+  }
+
+  protected isResultColumnMetric(column: FieldId): boolean {
+    const results = this.queryResults();
+    if (!results) {
+      return false;
+    }
+    const field = results.fields[column];
+    if (field?.fieldType === 'metric') {
+      return true;
+    }
+    if (field?.fieldType === 'dimension') {
+      return false;
+    }
+    return results.metricQuery.metrics.includes(column);
+  }
+
+  protected onResultsPage(event: PageEvent): void {
+    this.resultsPageIndex.set(event.pageIndex);
+    this.resultsPageSize.set(event.pageSize);
+  }
+
+  protected onProjectNodeSelected(lineageNodeId: string): void {
+    if (!this.editMode() || lineageNodeId === this.selectedTableId()) {
+      return;
+    }
+    this.selectedTableId.set(lineageNodeId);
+    this.switchExplore(lineageNodeId);
+  }
+
+  protected toggleConfigCollapsed(): void {
+    const next = !this.configCollapsed();
+    this.configCollapsed.set(next);
+    if (isPlatformBrowser(this.platformId)) {
+      localStorage.setItem(CONFIG_COLLAPSED_STORAGE_KEY, String(next));
+    }
+  }
+
+  protected onConfigResizeStart(event: PointerEvent): void {
+    if (this.configCollapsed()) {
+      return;
+    }
+
+    const handle = event.currentTarget as HTMLElement;
+    event.preventDefault();
+    this.configIsDragging = true;
+    this.configResizing.set(true);
+    this.configStartX = event.clientX;
+    this.configStartWidth = this.configPanelWidth();
+    handle.setPointerCapture(event.pointerId);
+    this.renderer.addClass(document.body, 'chart-view-config--resizing');
+
+    this.configUnlistenMove = this.renderer.listen(
+      'document',
+      'pointermove',
+      (moveEvent: PointerEvent) => this.onConfigResizeMove(moveEvent),
+    );
+    this.configUnlistenUp = this.renderer.listen(
+      'document',
+      'pointerup',
+      (upEvent: PointerEvent) => this.onConfigResizeEnd(upEvent, handle),
+    );
+  }
+
+  private onConfigResizeMove(event: PointerEvent): void {
+    if (!this.configIsDragging || this.configCollapsed()) {
+      return;
+    }
+
+    const width = this.clampConfigWidth(
+      this.configStartWidth + (event.clientX - this.configStartX),
+    );
+    this.configPanelWidth.set(width);
+  }
+
+  private onConfigResizeEnd(event: PointerEvent, handle: HTMLElement): void {
+    if (!this.configIsDragging) {
+      return;
+    }
+
+    handle.releasePointerCapture(event.pointerId);
+    this.stopConfigResize();
+
+    if (isPlatformBrowser(this.platformId)) {
+      localStorage.setItem(
+        CONFIG_WIDTH_STORAGE_KEY,
+        String(this.configPanelWidth()),
+      );
+    }
+  }
+
+  private stopConfigResize(): void {
+    this.configIsDragging = false;
+    this.configResizing.set(false);
+    this.renderer.removeClass(document.body, 'chart-view-config--resizing');
+    this.configUnlistenMove?.();
+    this.configUnlistenUp?.();
+    this.configUnlistenMove = undefined;
+    this.configUnlistenUp = undefined;
+  }
+
+  private readConfigCollapsedState(): boolean {
+    if (!isPlatformBrowser(this.platformId)) {
+      return false;
+    }
+    return localStorage.getItem(CONFIG_COLLAPSED_STORAGE_KEY) === 'true';
+  }
+
+  private readConfigSavedWidth(): number {
+    const saved = localStorage.getItem(CONFIG_WIDTH_STORAGE_KEY);
+    const parsed = saved ? Number.parseInt(saved, 10) : Number.NaN;
+    return Number.isFinite(parsed)
+      ? this.clampConfigWidth(parsed)
+      : CONFIG_DEFAULT_WIDTH;
+  }
+
+  private clampConfigWidth(width: number): number {
+    return Math.min(CONFIG_MAX_WIDTH, Math.max(CONFIG_MIN_WIDTH, width));
+  }
+
+  private initCreateMode(projectUuid: string): void {
+    this.projectUuid.set(projectUuid);
+    this.chartUuid.set(null);
+    this.chart.set(null);
+    this.explore.set(null);
+    this.editMode.set(true);
+    this.configureMode.set(false);
+    this.draftName.set('Untitled chart');
+    this.draftDescription.set('');
+    this.chartConfig.set(defaultConfigForType('cartesian'));
+    this.cachedChartConfigs.set({});
+    this.selectedDimensions.set(new Set());
+    this.selectedMetrics.set(new Set());
+    this.additionalMetrics.set([]);
+    this.fieldSearch.set('');
+    this.dimensionFilters.set([]);
+    this.queryResults.set(null);
+    this.queryError.set(null);
+    this.queryLoading.set(false);
+    this.loading.set(false);
+    this.error.set(null);
+    this.saveSuccess.set(false);
+    this.saveError.set(null);
+    this.resultsPageIndex.set(0);
+    this.selectedTableId.set(null);
+    this.activeProjectService.setActiveProject(projectUuid);
+    this.loadProjectTree(projectUuid, null);
   }
 
   private loadChart(projectUuid: string, chartUuid: string): void {
@@ -170,14 +658,23 @@ export class ChartViewPageComponent {
     this.error.set(null);
     this.queryResults.set(null);
     this.queryError.set(null);
+    this.dimensionFilters.set([]);
+    this.fieldSearch.set('');
+    this.saveSuccess.set(false);
+    this.saveError.set(null);
+    this.resultsPageIndex.set(0);
+    this.selectedTableId.set(null);
 
     this.chartService.get(projectUuid, chartUuid).subscribe({
       next: (chart) => {
         this.chart.set(chart);
+        this.draftName.set(chart.name);
+        this.draftDescription.set(chart.description ?? '');
         this.applySavedChartConfig(chart);
         this.applyMetricQuery(chart.metricQuery);
         this.loading.set(false);
-        this.loadExplore(projectUuid, chart.tableName);
+        this.loadExplore(projectUuid, chart.tableName, false);
+        this.loadProjectTree(projectUuid, chart.tableName);
       },
       error: (err) => {
         this.error.set(apiErrorMessage(err, 'Failed to load chart.'));
@@ -187,38 +684,203 @@ export class ChartViewPageComponent {
   }
 
   private applySavedChartConfig(chart: SavedChart): void {
-    const { chartConfig } = chart;
-    this.chartKind.set(chartConfig.type);
+    const normalized = normalizeChartConfig(chart.chartConfig);
+    let next = normalized;
 
-    const xField =
-      chartConfig.xField ?? chart.metricQuery.dimensions[0] ?? null;
-    const yFields =
-      chartConfig.yFields ??
-      (chartConfig.yField
-        ? [chartConfig.yField]
-        : chart.metricQuery.metrics[0]
-          ? [chart.metricQuery.metrics[0]]
-          : []);
+    if (next.type === 'cartesian') {
+      next = applyChartPanelPatch(next, {
+        xField:
+          next.config.layout.xField ??
+          chart.metricQuery.dimensions[0] ??
+          null,
+        yFields:
+          next.config.layout.yFields?.length
+            ? next.config.layout.yFields
+            : chart.metricQuery.metrics[0]
+              ? [chart.metricQuery.metrics[0]]
+              : [],
+        rowLimit: clampQueryLimit(
+          next.config.rowLimit ?? chart.metricQuery.limit,
+          this.maxQueryLimit(),
+        ),
+      });
+    } else if (next.type === 'pie') {
+      next = applyChartPanelPatch(next, {
+        xField: next.config.xField ?? chart.metricQuery.dimensions[0] ?? null,
+        yFields: next.config.yField
+          ? [next.config.yField]
+          : chart.metricQuery.metrics[0]
+            ? [chart.metricQuery.metrics[0]]
+            : [],
+        rowLimit: clampQueryLimit(
+          next.config.rowLimit ?? chart.metricQuery.limit,
+          this.maxQueryLimit(),
+        ),
+      });
+    } else if (next.type === 'big_number') {
+      next = applyChartPanelPatch(next, {
+        yFields: next.config.selectedField
+          ? [next.config.selectedField]
+          : chart.metricQuery.metrics[0]
+            ? [chart.metricQuery.metrics[0]]
+            : [],
+        rowLimit: clampQueryLimit(
+          next.config.rowLimit ?? chart.metricQuery.limit,
+          this.maxQueryLimit(),
+        ),
+      });
+    }
 
-    this.chartXField.set(xField);
-    this.chartYFields.set(yFields);
-    this.chartDisplayConfig.set({
-      ...DEFAULT_CHART_DISPLAY_CONFIG,
-      ...chartConfig.displayConfig,
-      flipAxes: chartConfig.type === 'horizontal_bar',
-    });
+    this.chartConfig.set(next);
+    this.cachedChartConfigs.set({});
   }
 
-  private loadExplore(projectUuid: string, tableName: string): void {
+  private loadExplore(
+    projectUuid: string,
+    tableName: string,
+    resetSelection: boolean,
+  ): void {
     this.explorerService.getExplore(projectUuid, tableName).subscribe({
       next: (explore) => {
+        if (!exploreHasFields(explore)) {
+          this.explore.set(null);
+          this.queryError.set('Unable to load fields for this model.');
+          return;
+        }
         this.explore.set(explore);
+        this.queryError.set(null);
+        if (resetSelection) {
+          this.setDefaultSelection(explore);
+        }
         this.runQuery();
       },
       error: (err) => {
         this.queryError.set(apiErrorMessage(err, 'Failed to load explore fields.'));
       },
     });
+  }
+
+  private ensureProjectTreeLoaded(): void {
+    const projectUuid = this.projectUuid();
+    if (!projectUuid || this.dbtTree().length > 0 || this.projectTreeLoading()) {
+      return;
+    }
+    this.loadProjectTree(projectUuid, this.explore()?.name ?? this.chart()?.tableName ?? null);
+  }
+
+  private loadProjectTree(projectUuid: string, tableName: string | null): void {
+    this.projectTreeLoading.set(true);
+    this.projectTreeError.set(null);
+    this.lineageNodes.set([]);
+
+    forkJoin({
+      tree: this.lineageService.getDbtTree(projectUuid),
+      explores: this.explorerService.listExplores(projectUuid),
+    }).subscribe({
+      next: ({ tree, explores }) => {
+        this.dbtTree.set(tree.root);
+        this.explores.set(
+          [...explores].sort((left, right) =>
+            left.label.localeCompare(right.label),
+          ),
+        );
+        this.projectTreeLoading.set(false);
+        this.syncSelectedTableId(tableName);
+      },
+      error: (err) => {
+        this.projectTreeError.set(
+          apiErrorMessage(err, 'Failed to load project tree.'),
+        );
+        this.projectTreeLoading.set(false);
+      },
+    });
+
+    this.lineageService.getProjectLineage(projectUuid).subscribe({
+      next: (lineage) => this.lineageNodes.set(lineage.nodes),
+      error: () => this.lineageNodes.set([]),
+    });
+  }
+
+  private syncSelectedTableId(tableName: string | null): void {
+    if (!tableName) {
+      return;
+    }
+    const summary = findExploreByName(this.explores(), tableName);
+    this.selectedTableId.set(summary?.lineageNodeId ?? tableName);
+  }
+
+  private switchExplore(lineageNodeId: string): void {
+    const projectUuid = this.projectUuid();
+    if (!projectUuid) {
+      return;
+    }
+
+    this.resetExploreSelectionState();
+
+    const treeNode = findTreeNodeByLineageId(this.dbtTree(), lineageNodeId);
+    const exploreSummary = findExploreForLineageNode(
+      this.explores(),
+      lineageNodeId,
+      treeNode,
+    );
+    const exploreName = resolveExploreNameForSelection(
+      exploreSummary?.name,
+      treeNode,
+      lineageNodeId,
+    );
+
+    if (!exploreName) {
+      this.explore.set(null);
+      if (isExploreableDbtTreeNode(treeNode)) {
+        this.queryError.set('Unable to load fields for this model.');
+      }
+      return;
+    }
+
+    this.loadExplore(projectUuid, exploreName, true);
+  }
+
+  private resetExploreSelectionState(): void {
+    const kind = this.chartKind();
+    this.selectedDimensions.set(new Set());
+    this.selectedMetrics.set(new Set());
+    this.additionalMetrics.set([]);
+    this.dimensionFilters.set([]);
+    this.fieldSearch.set('');
+    this.queryResults.set(null);
+    this.queryError.set(null);
+    this.resultsPageIndex.set(0);
+    const result = applyChartKindChange(
+      defaultConfigForType('cartesian'),
+      {},
+      kind,
+    );
+    this.chartConfig.set(result.chartConfig);
+    this.cachedChartConfigs.set({});
+    this.configureMode.set(false);
+  }
+
+  private setDefaultSelection(explore: Explore): void {
+    const dimensions = new Set<FieldId>();
+    const metrics = new Set<FieldId>();
+
+    const firstTable = Object.values(explore.tables)[0];
+    if (firstTable) {
+      const firstDim = Object.values(firstTable.dimensions).find((dim) => !dim.hidden);
+      if (firstDim) {
+        dimensions.add(getFieldId(firstTable.name, firstDim.name));
+      }
+      const firstMetric = Object.values(firstTable.metrics).find(
+        (metric) => !metric.hidden,
+      );
+      if (firstMetric) {
+        metrics.add(getFieldId(firstTable.name, firstMetric.name));
+      }
+    }
+
+    this.selectedDimensions.set(dimensions);
+    this.selectedMetrics.set(metrics);
+    this.syncChartAxisFields();
   }
 
   private applyMetricQuery(metricQuery: MetricQuery): void {
@@ -236,7 +898,14 @@ export class ChartViewPageComponent {
     return this.selectedMetrics().has(fieldId);
   }
 
+  protected onFieldSearch(value: string): void {
+    this.fieldSearch.set(value);
+  }
+
   protected toggleDimension(fieldId: FieldId): void {
+    if (!this.editMode()) {
+      return;
+    }
     const next = new Set(this.selectedDimensions());
     if (next.has(fieldId)) {
       next.delete(fieldId);
@@ -249,6 +918,9 @@ export class ChartViewPageComponent {
   }
 
   protected toggleMetric(fieldId: FieldId): void {
+    if (!this.editMode()) {
+      return;
+    }
     const next = new Set(this.selectedMetrics());
     if (next.has(fieldId)) {
       next.delete(fieldId);
@@ -291,12 +963,13 @@ export class ChartViewPageComponent {
 
   protected setChartKind(kind: ChartKind): void {
     const previousKind = this.chartKind();
-    this.chartKind.set(kind);
-    if (kind === 'horizontal_bar') {
-      this.chartDisplayConfig.update((config) => ({ ...config, flipAxes: true }));
-    } else if (kind === 'vertical_bar') {
-      this.chartDisplayConfig.update((config) => ({ ...config, flipAxes: false }));
-    }
+    const result = applyChartKindChange(
+      this.chartConfig(),
+      this.cachedChartConfigs(),
+      kind,
+    );
+    this.chartConfig.set(result.chartConfig);
+    this.cachedChartConfigs.set(result.cache);
 
     if (kind === 'big_number') {
       this.ensureBigNumberMetric();
@@ -306,70 +979,174 @@ export class ChartViewPageComponent {
   }
 
   protected setChartXField(fieldId: FieldId): void {
-    this.chartXField.set(fieldId);
+    this.chartConfig.set(
+      applyChartPanelPatch(this.chartConfig(), { xField: fieldId }),
+    );
   }
 
   protected setChartYFields(fieldIds: FieldId[]): void {
-    this.chartYFields.set(fieldIds);
+    this.chartConfig.set(
+      applyChartPanelPatch(this.chartConfig(), { yFields: fieldIds }),
+    );
   }
 
   protected setChartDisplayConfig(config: ChartDisplayConfig): void {
     const prevLimit = this.chartDisplayConfig().rowLimit;
-    this.chartDisplayConfig.set(config);
-    if (config.flipAxes && this.chartKind() === 'vertical_bar') {
-      this.chartKind.set('horizontal_bar');
-    } else if (!config.flipAxes && this.chartKind() === 'horizontal_bar') {
-      this.chartKind.set('vertical_bar');
-    }
-    if (config.rowLimit !== prevLimit) {
+    const next = {
+      ...config,
+      rowLimit: clampQueryLimit(config.rowLimit, this.maxQueryLimit()),
+    };
+    this.chartConfig.set(applyChartPanelPatch(this.chartConfig(), next));
+    if (next.rowLimit !== prevLimit) {
       this.runQuery();
     }
   }
 
-  protected setViewMode(mode: ChartViewMode): void {
-    this.viewMode.set(mode);
-  }
-
   protected saveChart(): void {
-    const projectUuid = this.projectUuid();
-    const chartUuid = this.chartUuid();
-    const chart = this.chart();
-    const explore = this.explore();
-
-    if (!projectUuid || !chartUuid || !chart || !explore || !this.canSave()) {
+    if (!this.canSave()) {
       return;
     }
 
-    const yFields = this.chartYFields();
+    if (this.isCreateMode()) {
+      this.openCreateSaveDialog();
+      return;
+    }
+
+    this.saveExistingChart();
+  }
+
+  private openCreateSaveDialog(): void {
+    const projectUuid = this.projectUuid();
+    const explore = this.explore();
+    if (!projectUuid || !explore) {
+      return;
+    }
+
+    const suggestedName =
+      this.draftName().trim() || explore.label || explore.name;
+
+    const dialogRef = this.dialog.open<
+      SaveChartDialogComponent,
+      SaveChartDialogData,
+      SaveChartDialogResult
+    >(SaveChartDialogComponent, {
+      data: {
+        projectUuid,
+        suggestedName,
+      },
+      width: '24rem',
+    });
+
+    dialogRef.afterClosed().subscribe((result) => {
+      if (!result) {
+        return;
+      }
+      this.createChart(projectUuid, explore, result.name, result.spaceUuid);
+    });
+  }
+
+  private createChart(
+    projectUuid: string,
+    explore: Explore,
+    name: string,
+    spaceUuid: string,
+  ): void {
     this.saveLoading.set(true);
     this.saveError.set(null);
     this.saveSuccess.set(false);
 
+    const baseMetricQuery: MetricQuery = {
+      exploreName: explore.name,
+      dimensions: this.selectedDimensionList(),
+      metrics: this.selectedMetricList(),
+      filters: {},
+      sorts: [],
+      limit: clampQueryLimit(
+        this.chartDisplayConfig().rowLimit,
+        this.maxQueryLimit(),
+      ),
+      tableCalculations: [],
+      additionalMetrics: this.additionalMetrics(),
+    };
+
+    this.chartService
+      .create(projectUuid, {
+        name,
+        spaceUuid,
+        description: this.draftDescription().trim() || undefined,
+        tableName: explore.name,
+        chartKind: chartKindFromConfig(this.chartConfig()),
+        metricQuery: mergeDashboardFiltersIntoMetricQuery(
+          baseMetricQuery,
+          this.dimensionFilters(),
+          explore,
+        ),
+        chartConfig: this.chartConfig(),
+      })
+      .subscribe({
+        next: (created) => {
+          this.saveLoading.set(false);
+          void this.router.navigate([
+            '/projects',
+            projectUuid,
+            'charts',
+            created.uuid,
+          ]);
+        },
+        error: (err) => {
+          this.saveError.set(apiErrorMessage(err, 'Failed to save chart.'));
+          this.saveLoading.set(false);
+        },
+      });
+  }
+
+  private saveExistingChart(): void {
+    const projectUuid = this.projectUuid();
+    const chartUuid = this.chartUuid();
+    const chart = this.chart();
+    const explore = this.explore();
+    const name = this.draftName().trim();
+
+    if (!projectUuid || !chartUuid || !chart || !explore) {
+      return;
+    }
+
+    this.saveLoading.set(true);
+    this.saveError.set(null);
+    this.saveSuccess.set(false);
+
+    const baseMetricQuery: MetricQuery = {
+      exploreName: explore.name,
+      dimensions: this.selectedDimensionList(),
+      metrics: this.selectedMetricList(),
+      filters: {},
+      sorts: [],
+      limit: clampQueryLimit(
+        this.chartDisplayConfig().rowLimit,
+        this.maxQueryLimit(),
+      ),
+      tableCalculations: [],
+      additionalMetrics: this.additionalMetrics(),
+    };
+
     this.chartService
       .update(projectUuid, chartUuid, {
-        chartKind: this.chartKind(),
+        name,
+        description: this.draftDescription().trim() || undefined,
+        chartKind: chartKindFromConfig(this.chartConfig()),
         tableName: explore.name,
-        metricQuery: {
-          exploreName: explore.name,
-          dimensions: this.selectedDimensionList(),
-          metrics: this.selectedMetricList(),
-          filters: {},
-          sorts: [],
-          limit: this.chartDisplayConfig().rowLimit,
-          tableCalculations: [],
-          additionalMetrics: this.additionalMetrics(),
-        },
-        chartConfig: {
-          type: this.chartKind(),
-          xField: this.chartXField() ?? undefined,
-          yField: yFields[0] ?? undefined,
-          yFields,
-          displayConfig: this.chartDisplayConfig(),
-        },
+        metricQuery: mergeDashboardFiltersIntoMetricQuery(
+          baseMetricQuery,
+          this.dimensionFilters(),
+          explore,
+        ),
+        chartConfig: this.chartConfig(),
       })
       .subscribe({
         next: (updated) => {
           this.chart.set(updated);
+          this.draftName.set(updated.name);
+          this.draftDescription.set(updated.description ?? '');
           this.saveLoading.set(false);
           this.saveSuccess.set(true);
         },
@@ -386,31 +1163,43 @@ export class ChartViewPageComponent {
     const currentX = this.chartXField();
     const currentY = this.chartYFields();
     const kind = this.chartKind();
+    const patch: {
+      xField?: FieldId | null;
+      yFields?: FieldId[];
+    } = {};
 
     if (kind !== 'big_number') {
       if (!currentX || !dimensions.includes(currentX)) {
-        this.chartXField.set(dimensions[0] ?? null);
+        patch.xField = dimensions[0] ?? null;
       }
     }
 
     const validY = currentY.filter((fieldId) => metrics.includes(fieldId));
     if (validY.length === 0) {
-      this.chartYFields.set(metrics[0] ? [metrics[0]] : []);
+      patch.yFields = metrics[0] ? [metrics[0]] : [];
     } else if (kind === 'big_number') {
-      this.chartYFields.set([validY[0]]);
+      patch.yFields = [validY[0]];
     } else {
-      this.chartYFields.set(validY);
+      patch.yFields = validY;
+    }
+
+    if (patch.xField !== undefined || patch.yFields !== undefined) {
+      this.chartConfig.set(applyChartPanelPatch(this.chartConfig(), patch));
     }
   }
 
   private ensureBigNumberMetric(): void {
     const metrics = this.selectedMetricList();
-    const currentY = this.chartYFields().filter((fieldId) => metrics.includes(fieldId));
-    if (currentY.length === 0) {
-      this.chartYFields.set(metrics[0] ? [metrics[0]] : []);
-    } else {
-      this.chartYFields.set([currentY[0]]);
-    }
+    const currentY = this.chartYFields().filter((fieldId) =>
+      metrics.includes(fieldId),
+    );
+    const yFields =
+      currentY.length === 0
+        ? metrics[0]
+          ? [metrics[0]]
+          : []
+        : [currentY[0]];
+    this.chartConfig.set(applyChartPanelPatch(this.chartConfig(), { yFields }));
   }
 
   protected runQuery(): void {
@@ -427,20 +1216,33 @@ export class ChartViewPageComponent {
     this.queryLoading.set(true);
     this.queryError.set(null);
 
+    const baseMetricQuery: MetricQuery = {
+      exploreName: explore.name,
+      dimensions,
+      metrics,
+      filters: {},
+      sorts: [],
+      limit: clampQueryLimit(
+        this.chartDisplayConfig().rowLimit,
+        this.maxQueryLimit(),
+      ),
+      tableCalculations: [],
+      additionalMetrics: this.additionalMetrics(),
+    };
+
     this.explorerService
-      .runQuery(projectUuid, {
-        exploreName: explore.name,
-        dimensions,
-        metrics,
-        filters: {},
-        sorts: [],
-        limit: this.chartDisplayConfig().rowLimit,
-        tableCalculations: [],
-        additionalMetrics: this.additionalMetrics(),
-      })
+      .runQuery(
+        projectUuid,
+        mergeDashboardFiltersIntoMetricQuery(
+          baseMetricQuery,
+          this.dimensionFilters(),
+          explore,
+        ),
+      )
       .subscribe({
         next: (results) => {
           this.queryResults.set(results);
+          this.resultsPageIndex.set(0);
           this.queryLoading.set(false);
         },
         error: (err) => {

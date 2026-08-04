@@ -75,6 +75,11 @@ body.tables-fields-panel--resizing {
   user-select: none;
 }
 
+body.chart-view-config--resizing {
+  cursor: col-resize !important;
+  user-select: none;
+}
+
 body.lineage-detail--resizing {
   cursor: col-resize !important;
   user-select: none;

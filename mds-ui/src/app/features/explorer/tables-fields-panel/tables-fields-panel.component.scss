@@ -96,6 +96,44 @@
 .tables-fields-panel__header {
   flex-shrink: 0;
   padding: var(--ld-spacing-md) 44px var(--ld-spacing-sm) var(--ld-spacing-md);
+
+  &--configure {
+    display: flex;
+    align-items: center;
+    gap: var(--ld-spacing-xs);
+    min-width: 0;
+    padding-right: 76px;
+  }
+}
+
+.tables-fields-panel__configure-title {
+  flex: 1;
+  min-width: 0;
+  margin: 0;
+  font-size: var(--ld-font-size-md);
+  font-weight: 600;
+  color: var(--ld-gray-9);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.tables-fields-panel__configure-close {
+  flex-shrink: 0;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  color: var(--ld-gray-6);
+
+  mat-icon {
+    width: 20px;
+    height: 20px;
+    font-size: 20px;
+  }
+
+  &:hover {
+    color: var(--ld-gray-8);
+  }
 }
 
 .tables-fields-panel__breadcrumb {
@@ -192,7 +230,16 @@
   flex: 1;
   min-height: 0;
   overflow-y: auto;
+  overflow-x: hidden;
   padding: 0 var(--ld-spacing-xs) var(--ld-spacing-md);
+
+  &--configure {
+    padding: 0 var(--ld-spacing-sm) var(--ld-spacing-md);
+
+    &[hidden] {
+      display: none;
+    }
+  }
 }
 
 .tables-fields-panel__section-header {

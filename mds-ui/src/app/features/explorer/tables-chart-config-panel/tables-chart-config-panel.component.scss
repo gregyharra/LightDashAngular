@@ -67,29 +67,60 @@
   color: var(--ld-brand) !important;
 }
 
-.tables-chart-config__accordion {
+.tables-chart-config__tabs {
   display: block;
+  min-width: 0;
+  max-width: 100%;
+  overflow-x: clip;
+
+  ::ng-deep {
+    .mat-mdc-tab-header {
+      min-width: 0;
+      border-bottom: 1px solid var(--ld-gray-2);
+    }
+
+    .mat-mdc-tab-label-container {
+      min-width: 0;
+    }
+
+    .mat-mdc-tab {
+      min-width: 0;
+      height: 36px;
+      padding: 0 10px;
+      flex: 0 0 auto;
+    }
+
+    .mdc-tab__text-label {
+      font-size: var(--ld-font-size-xs);
+      font-weight: 500;
+      letter-spacing: 0;
+      white-space: nowrap;
+    }
+
+    .mat-mdc-tab-body-wrapper {
+      min-width: 0;
+    }
+
+    .mat-mdc-tab-body-content {
+      overflow: visible;
+    }
+
+    .mat-mdc-tab-header-pagination {
+      flex-shrink: 0;
+    }
+
+    .mat-mdc-tab-header-pagination-chevron {
+      border-color: var(--ld-gray-6);
+    }
+  }
 }
 
-.tables-chart-config__panel {
-  box-shadow: none !important;
-  border: 1px solid var(--ld-gray-2);
-  border-radius: var(--ld-radius-sm) !important;
-
-  & + & {
-    margin-top: var(--ld-spacing-xs);
-  }
-
-  .mat-expansion-panel-header {
-    height: 36px !important;
-    padding: 0 10px;
-    font-size: var(--ld-font-size-sm);
-    font-weight: 500;
-  }
-
-  .mat-expansion-panel-body {
-    padding: 10px;
-  }
+.tables-chart-config__tab-body {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  min-width: 0;
+  padding: 10px 2px 4px;
 }
 
 .tables-chart-config__group {

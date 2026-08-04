@@ -1,0 +1,56 @@
+<div class="run-query-button">
+  <button
+    mat-flat-button
+    type="button"
+    class="run-query-button__run"
+    [attr.aria-label]="runLabel()"
+    [matTooltip]="runLabel()"
+    [disabled]="disabled() || loading()"
+    (click)="onRun()"
+  >
+    @if (loading()) {
+      <mat-spinner diameter="18" />
+    } @else {
+      <mat-icon>play_arrow</mat-icon>
+    }
+    @if (showLabel()) {
+      <span class="run-query-button__label">{{ runLabel() }}</span>
+    }
+  </button>
+
+  <button
+    mat-flat-button
+    type="button"
+    class="run-query-button__settings"
+    aria-label="Query settings"
+    matTooltip="Query settings"
+    [disabled]="disabled() || loading()"
+    [matMenuTriggerFor]="settingsMenu"
+  >
+    <mat-icon>expand_more</mat-icon>
+  </button>
+
+  <mat-menu #settingsMenu="matMenu" class="run-query-button__menu" xPosition="before">
+    <div
+      class="run-query-button__popover"
+      (click)="$event.stopPropagation()"
+      (keydown)="$event.stopPropagation()"
+    >
+      <mat-form-field appearance="outline" subscriptSizing="dynamic" class="run-query-button__field">
+        <mat-label>Row limit</mat-label>
+        <input
+          matInput
+          type="number"
+          min="1"
+          [max]="resolvedMaxLimit()"
+          step="100"
+          [ngModel]="draftLimit()"
+          (ngModelChange)="onDraftLimitChange($event)"
+          (blur)="commitLimit()"
+          (keydown)="onLimitKeydown($event)"
+        />
+      </mat-form-field>
+      <p class="run-query-button__hint">Max {{ resolvedMaxLimit().toLocaleString() }}</p>
+    </div>
+  </mat-menu>
+</div>

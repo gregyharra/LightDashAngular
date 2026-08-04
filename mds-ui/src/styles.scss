@@ -183,6 +183,21 @@ strong {
   }
 }
 
+.chart-details-dialog-panel .mat-mdc-dialog-content {
+  display: block;
+  min-height: 0;
+  max-height: min(80vh, 900px);
+  overflow-x: hidden;
+  overflow-y: auto;
+}
+
+@supports (-moz-appearance: none) {
+  .chart-details-dialog-panel .mat-mdc-dialog-content {
+    max-height: none;
+    overflow: visible;
+  }
+}
+
 .user-form-dialog-panel .mat-mdc-dialog-content {
   display: block;
   min-height: 0;
