@@ -246,6 +246,23 @@
   margin-bottom: var(--ld-spacing-xs);
 }
 
+.tables-fields-panel__section--issue {
+  opacity: 0.55;
+  pointer-events: none;
+
+  .tables-fields-panel__section-header {
+    pointer-events: auto;
+  }
+
+  .tables-fields-panel__table-selector {
+    color: var(--ld-gray-6);
+
+    mat-icon {
+      color: var(--ld-gray-6);
+    }
+  }
+}
+
 .tables-fields-panel__table-selector {
   display: inline-flex;
   align-items: center;

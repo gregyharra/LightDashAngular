@@ -89,7 +89,7 @@ def get_explore(project_uuid: str, table_id: str, db: Session = Depends(get_db))
     node = find_lineage_node(lineage, table_id)
     if not node:
         raise HTTPException(status_code=404, detail=f"Explore not found: {table_id}")
-    explore = build_explore_from_lineage_node(node)
+    explore = build_explore_from_lineage_node(node, lineage)
     overlay = dictionary_service.get_overlay_for_explore(db, project_uuid, node["id"])
     column_overlays = overlay.get("columns") or {}
     for table in (explore.get("tables") or {}).values():

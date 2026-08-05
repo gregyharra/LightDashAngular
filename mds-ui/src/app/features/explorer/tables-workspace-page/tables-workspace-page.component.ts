@@ -27,7 +27,6 @@ import { apiErrorMessage } from '../../../core/api/lightdash-api.service';
 import { queryErrorWarning } from '../../../core/api/api-error.service';
 import {
   AdditionalMetric,
-  CompiledTable,
   Explore,
   ExploreSummary,
   FieldId,
@@ -41,7 +40,11 @@ import { FolderSearchPanelComponent } from '../../lineage/folder-search-panel/fo
 import { findTreeNodeByLineageId } from '../../lineage/dbt-tree-utils';
 import { LineageService } from '../../lineage/lineage.service';
 import { ResizableSidebarDirective } from '../../../layout/resizable-sidebar/resizable-sidebar.directive';
-import { TablesFieldsPanelComponent } from '../tables-fields-panel/tables-fields-panel.component';
+import {
+  filterTablesFieldGroups,
+  TablesFieldGroup,
+  TablesFieldsPanelComponent,
+} from '../tables-fields-panel/tables-fields-panel.component';
 import { ChartVisualizationComponent } from '../../charts/chart-visualization/chart-visualization.component';
 import { TablesChartConfigPanelComponent } from '../tables-chart-config-panel/tables-chart-config-panel.component';
 import { TablesChartDisplayConfig } from '../tables-chart-config-panel/tables-chart-config.constants';
@@ -51,6 +54,7 @@ import {
 } from '../explore-lineage.utils';
 import {
   exploreHasFields,
+  formatModelLabel,
   isExploreableDbtTreeNode,
   resolveExploreNameForSelection,
 } from '../explore-from-dbt.utils';
@@ -79,12 +83,6 @@ import {
   CustomMetricDialogData,
   CustomMetricDialogResult,
 } from '../custom-metric/custom-metric-dialog.component';
-
-type TableFieldGroup = {
-  table: CompiledTable;
-  dimensions: { fieldId: FieldId; label: string; type: string }[];
-  metrics: { fieldId: FieldId; label: string }[];
-};
 
 @Component({
   selector: 'app-tables-workspace-page',
@@ -195,13 +193,13 @@ export class TablesWorkspacePageComponent {
     return node?.name ?? nodeId;
   });
 
-  protected readonly tableGroups = computed<TableFieldGroup[]>(() => {
+  protected readonly tableGroups = computed<TablesFieldGroup[]>(() => {
     const explore = this.explore();
     if (!explore) {
       return [];
     }
 
-    return Object.values(explore.tables).map((table) => {
+    const tableGroups = Object.values(explore.tables).map((table) => {
       const exploreMetricFieldIds = new Set(
         Object.values(table.metrics)
           .filter((metric) => !metric.hidden)
@@ -209,6 +207,7 @@ export class TablesWorkspacePageComponent {
       );
 
       return {
+        trackKey: `table:${table.name}`,
         table,
         dimensions: Object.values(table.dimensions)
           .filter((dim) => !dim.hidden)
@@ -237,6 +236,19 @@ export class TablesWorkspacePageComponent {
           ),
       };
     });
+
+    const issueGroups = (explore.joinIssues ?? []).map((issue, index) => ({
+      trackKey: `issue:${issue.table}:${issue.code}:${index}`,
+      table: {
+        name: issue.table,
+        label: issue.label || formatModelLabel(issue.table),
+      },
+      dimensions: [],
+      metrics: [],
+      issue,
+    }));
+
+    return [...tableGroups, ...issueGroups];
   });
 
   protected readonly customMetricDimensions = computed(() =>
@@ -254,26 +266,7 @@ export class TablesWorkspacePageComponent {
   );
 
   protected readonly filteredTableGroups = computed(() => {
-    const query = this.fieldSearch().trim().toLowerCase();
-    const groups = this.tableGroups();
-
-    if (!query) {
-      return groups;
-    }
-
-    return groups
-      .map((group) => ({
-        ...group,
-        dimensions: group.dimensions.filter((field) =>
-          field.label.toLowerCase().includes(query),
-        ),
-        metrics: group.metrics.filter((field) =>
-          field.label.toLowerCase().includes(query),
-        ),
-      }))
-      .filter(
-        (group) => group.dimensions.length > 0 || group.metrics.length > 0,
-      );
+    return filterTablesFieldGroups(this.tableGroups(), this.fieldSearch());
   });
 
   protected readonly selectedFieldList = computed(() =>
