@@ -346,7 +346,7 @@
                         [value]="pieMetric()"
                         (valueChange)="setPieMetric($event)"
                       >
-                        @for (metricId of yFieldOptions(pieMetric() ?? selectedMetrics()[0]); track metricId) {
+                        @for (metricId of yFieldOptions(pieMetric() || selectedMetrics()[0]); track metricId) {
                           <mat-option [value]="metricId">
                             {{ getFieldLabel()(metricId) }}
                           </mat-option>

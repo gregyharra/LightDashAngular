@@ -251,6 +251,16 @@
 
             <div class="chart-view__title-actions">
               @if (editMode()) {
+                @if (explore()) {
+                  <app-run-query-button
+                    [limit]="queryRowLimit()"
+                    [maxLimit]="maxQueryLimit()"
+                    [disabled]="!canRunQuery()"
+                    [loading]="queryLoading()"
+                    (run)="runQuery()"
+                    (limitChange)="setQueryRowLimit($event)"
+                  />
+                }
                 <button
                   mat-stroked-button
                   type="button"
@@ -389,7 +399,7 @@
                         <mat-icon>bar_chart</mat-icon>
                         <p>
                           @if (editMode()) {
-                            Select at least one dimension or metric to visualize.
+                            Select fields, then click <strong>Run query</strong> to visualize.
                           } @else {
                             No chart data yet.
                           }
@@ -415,7 +425,13 @@
                     <div class="chart-view__panel-empty chart-view__panel-empty--centered">
                       <mat-icon>table_view</mat-icon>
                       <h2>No results yet</h2>
-                      <p>Results appear after the chart query runs.</p>
+                      <p>
+                        @if (editMode()) {
+                          Select fields and click <strong>Run query</strong> to see results.
+                        } @else {
+                          Results appear after the chart query runs.
+                        }
+                      </p>
                     </div>
                   } @else if (resultRows().length === 0) {
                     <div class="chart-view__panel-empty chart-view__panel-empty--centered">

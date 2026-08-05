@@ -136,15 +136,16 @@ import { ChangePasswordDialogComponent } from '../navbar/navbar-user-menu.compon
       text-overflow: ellipsis;
     }
 
-    .page-sidebar--collapsed .settings-nav__header {
+    :host-context(.page-sidebar--collapsed) .settings-nav__header {
       height: 0;
       margin: 0;
+      padding: 0;
       overflow: hidden;
       opacity: 0;
       pointer-events: none;
     }
 
-    .page-sidebar--collapsed .settings-nav__item-label {
+    :host-context(.page-sidebar--collapsed) .settings-nav__item-label {
       position: absolute;
       width: 1px;
       height: 1px;

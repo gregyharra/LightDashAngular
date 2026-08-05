@@ -78,6 +78,7 @@ import { ChartVisualizationComponent } from '../chart-visualization/chart-visual
 import { ResizableSidebarDirective } from '../../../layout/resizable-sidebar/resizable-sidebar.directive';
 import { AppStateService } from '../../../core/services/app-state.service';
 import { SqlHighlightComponent } from '../../../shared/sql-highlight/sql-highlight.component';
+import { RunQueryButtonComponent } from '../../../shared/run-query-button/run-query-button.component';
 import { TablesChartConfigPanelComponent } from '../../explorer/tables-chart-config-panel/tables-chart-config-panel.component';
 import { TablesChartDisplayConfig } from '../../explorer/tables-chart-config-panel/tables-chart-config.constants';
 import { TablesFiltersPanelComponent } from '../../explorer/tables-filters-panel/tables-filters-panel.component';
@@ -117,6 +118,7 @@ const RESULTS_DEFAULT_PAGE_SIZE = 25;
     TablesChartConfigPanelComponent,
     TablesFiltersPanelComponent,
     ResizableSidebarDirective,
+    RunQueryButtonComponent,
     SqlHighlightComponent,
   ],
   templateUrl: './chart-view-page.component.html',
@@ -186,6 +188,16 @@ export class ChartViewPageComponent {
 
   protected readonly maxQueryLimit = computed(() =>
     resolveMaxQueryLimit(this.appState.health()?.query?.maxLimit),
+  );
+
+  protected readonly queryRowLimit = computed(() =>
+    clampQueryLimit(this.chartDisplayConfig().rowLimit, this.maxQueryLimit()),
+  );
+
+  protected readonly canRunQuery = computed(
+    () =>
+      this.selectedDimensionList().length > 0 ||
+      this.selectedMetricList().length > 0,
   );
 
   protected readonly displayName = computed(() => {
@@ -498,7 +510,6 @@ export class ChartViewPageComponent {
 
   protected onDimensionFiltersChange(filters: DashboardDimensionFilter[]): void {
     this.dimensionFilters.set(filters);
-    this.runQuery();
   }
 
   protected getColumnLabel(column: FieldId): string {
@@ -914,7 +925,6 @@ export class ChartViewPageComponent {
     }
     this.selectedDimensions.set(next);
     this.syncChartAxisFields();
-    this.runQuery();
   }
 
   protected toggleMetric(fieldId: FieldId): void {
@@ -929,7 +939,6 @@ export class ChartViewPageComponent {
     }
     this.selectedMetrics.set(next);
     this.syncChartAxisFields();
-    this.runQuery();
   }
 
   protected getFieldLabel(fieldId: FieldId): string {
@@ -990,15 +999,19 @@ export class ChartViewPageComponent {
   }
 
   protected setChartDisplayConfig(config: ChartDisplayConfig): void {
-    const prevLimit = this.chartDisplayConfig().rowLimit;
     const next = {
       ...config,
       rowLimit: clampQueryLimit(config.rowLimit, this.maxQueryLimit()),
     };
     this.chartConfig.set(applyChartPanelPatch(this.chartConfig(), next));
-    if (next.rowLimit !== prevLimit) {
-      this.runQuery();
-    }
+  }
+
+  protected setQueryRowLimit(limit: number): void {
+    this.chartConfig.set(
+      applyChartPanelPatch(this.chartConfig(), {
+        rowLimit: clampQueryLimit(limit, this.maxQueryLimit()),
+      }),
+    );
   }
 
   protected saveChart(): void {
