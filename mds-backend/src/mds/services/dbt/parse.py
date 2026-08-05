@@ -1336,6 +1336,8 @@ def build_project_lineage(
         config_meta = (node.get("config") or {}).get("meta") or {}
         top_level_meta = node.get("meta") or {}
         joins = config_meta.get("joins") or top_level_meta.get("joins") or []
+        if not isinstance(joins, list):
+            joins = []
 
         lineage_node: dict[str, Any] = {
             "id": node_id,
@@ -1545,7 +1547,7 @@ def _pick_sum_column(columns: list[dict[str, Any]]) -> dict[str, Any] | None:
 
 def _compiled_table_from_node(
     node: dict[str, Any],
-    fields: list[str] | None = None,
+    fields: list[Any] | None = None,
 ) -> dict[str, Any]:
     table_name = node["name"]
     table_label = _format_words(table_name)
@@ -1596,9 +1598,12 @@ def _compiled_table_from_node(
             }
 
     if fields is not None:
-        allowed_fields = set(fields)
-        dimensions = {name: field for name, field in dimensions.items() if name in allowed_fields}
-        metrics = {name: field for name, field in metrics.items() if name in allowed_fields}
+        allowed_fields = {field for field in fields if isinstance(field, str)}
+        if allowed_fields or not fields:
+            dimensions = {
+                name: field for name, field in dimensions.items() if name in allowed_fields
+            }
+            metrics = {name: field for name, field in metrics.items() if name in allowed_fields}
 
     node_type = node.get("type")
     temporal_type = "none" if node_type == "seed" else "iceberg"

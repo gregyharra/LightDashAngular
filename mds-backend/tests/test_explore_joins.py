@@ -1,4 +1,8 @@
-from mds.services.dbt.parse import build_explore_from_lineage_node
+from datetime import datetime, timezone
+from pathlib import Path
+
+from mds.services.dbt.loader import DbtArtifacts
+from mds.services.dbt.parse import build_explore_from_lineage_node, build_project_lineage
 
 
 def _node(name: str, columns: list[dict] | None = None, joins: list | None = None) -> dict:
@@ -104,3 +108,60 @@ def test_fields_whitelist_limits_joined_dimensions_and_metrics():
     explore = build_explore_from_lineage_node(base, {"nodes": [base, joined]})
     dims = explore["tables"]["dim_customers"]["dimensions"]
     assert set(dims.keys()) == {"first_name"}
+
+
+def test_scalar_joins_are_ignored_during_lineage_construction(tmp_path: Path):
+    manifest_node = {
+        "resource_type": "model",
+        "name": "fct_orders",
+        "schema": "analytics",
+        "database": "lake",
+        "columns": {"id": {"name": "id", "data_type": "integer"}},
+        "config": {"meta": {"joins": 42}},
+    }
+    artifacts = DbtArtifacts(
+        project_path=tmp_path,
+        manifest_path=tmp_path / "manifest.json",
+        catalog_path=None,
+        manifest={
+            "metadata": {"project_name": "test"},
+            "nodes": {"model.test.fct_orders": manifest_node},
+            "sources": {},
+        },
+        catalog={"nodes": {}, "sources": {}},
+        loaded_at=datetime.now(timezone.utc),
+    )
+
+    lineage = build_project_lineage(
+        artifacts,
+        project_uuid="project-1",
+        project_name="test",
+        warehouse_type="trino",
+    )
+
+    assert lineage["nodes"][0]["joins"] == []
+
+
+def test_fields_whitelist_ignores_unhashable_non_string_values():
+    base = _node(
+        "fct_orders",
+        joins=[
+            {
+                "join": "dim_customers",
+                "sql_on": "${fct_orders.customer_id} = ${dim_customers.customer_id}",
+                "fields": ["first_name", {}],
+            }
+        ],
+    )
+    joined = _node(
+        "dim_customers",
+        columns=[
+            {"name": "customer_id", "type": "integer"},
+            {"name": "first_name", "type": "varchar"},
+            {"name": "last_name", "type": "varchar"},
+        ],
+    )
+
+    explore = build_explore_from_lineage_node(base, {"nodes": [base, joined]})
+
+    assert set(explore["tables"]["dim_customers"]["dimensions"]) == {"first_name"}
