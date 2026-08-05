@@ -41,6 +41,7 @@ import { findTreeNodeByLineageId } from '../../lineage/dbt-tree-utils';
 import { LineageService } from '../../lineage/lineage.service';
 import { ResizableSidebarDirective } from '../../../layout/resizable-sidebar/resizable-sidebar.directive';
 import {
+  filterTablesFieldGroups,
   TablesFieldGroup,
   TablesFieldsPanelComponent,
 } from '../tables-fields-panel/tables-fields-panel.component';
@@ -206,6 +207,7 @@ export class TablesWorkspacePageComponent {
       );
 
       return {
+        trackKey: `table:${table.name}`,
         table,
         dimensions: Object.values(table.dimensions)
           .filter((dim) => !dim.hidden)
@@ -235,7 +237,8 @@ export class TablesWorkspacePageComponent {
       };
     });
 
-    const issueGroups = (explore.joinIssues ?? []).map((issue) => ({
+    const issueGroups = (explore.joinIssues ?? []).map((issue, index) => ({
+      trackKey: `issue:${issue.table}:${issue.code}:${index}`,
       table: {
         name: issue.table,
         label: issue.label || formatModelLabel(issue.table),
@@ -263,26 +266,7 @@ export class TablesWorkspacePageComponent {
   );
 
   protected readonly filteredTableGroups = computed(() => {
-    const query = this.fieldSearch().trim().toLowerCase();
-    const groups = this.tableGroups();
-
-    if (!query) {
-      return groups;
-    }
-
-    return groups
-      .map((group) => ({
-        ...group,
-        dimensions: group.dimensions.filter((field) =>
-          field.label.toLowerCase().includes(query),
-        ),
-        metrics: group.metrics.filter((field) =>
-          field.label.toLowerCase().includes(query),
-        ),
-      }))
-      .filter(
-        (group) => group.dimensions.length > 0 || group.metrics.length > 0,
-      );
+    return filterTablesFieldGroups(this.tableGroups(), this.fieldSearch());
   });
 
   protected readonly selectedFieldList = computed(() =>

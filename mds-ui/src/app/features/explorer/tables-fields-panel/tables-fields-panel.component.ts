@@ -21,11 +21,43 @@ import {
 } from '../../../core/models/explore.model';
 
 export type TablesFieldGroup = {
+  trackKey: string;
   table: { name: string; label: string };
   dimensions: { fieldId: FieldId; label: string; type: string }[];
   metrics: { fieldId: FieldId; label: string }[];
   issue?: ExploreJoinIssue;
 };
+
+export function filterTablesFieldGroups(
+  groups: TablesFieldGroup[],
+  search: string,
+): TablesFieldGroup[] {
+  const query = search.trim().toLowerCase();
+  if (!query) {
+    return groups;
+  }
+
+  return groups
+    .map((group) =>
+      group.issue
+        ? group
+        : {
+            ...group,
+            dimensions: group.dimensions.filter((field) =>
+              field.label.toLowerCase().includes(query),
+            ),
+            metrics: group.metrics.filter((field) =>
+              field.label.toLowerCase().includes(query),
+            ),
+          },
+    )
+    .filter(
+      (group) =>
+        !!group.issue ||
+        group.dimensions.length > 0 ||
+        group.metrics.length > 0,
+    );
+}
 
 const COLLAPSED_STORAGE_KEY = 'lightdash-tables-fields-panel-collapsed';
 const WIDTH_STORAGE_KEY = 'lightdash-tables-fields-panel-width';

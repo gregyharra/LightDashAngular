@@ -71,17 +71,18 @@
       <div class="tables-fields-panel__error">{{ exploreError() }}</div>
     } @else if (hasExplore()) {
       <div class="tables-fields-panel__fields">
-        @for (group of fieldGroups(); track group.table.name) {
+        @for (group of fieldGroups(); track group.trackKey) {
           <section
             class="tables-fields-panel__section"
             [class.tables-fields-panel__section--issue]="group.issue"
           >
-            <div
-              class="tables-fields-panel__section-header"
-              [matTooltip]="group.issue ? issueTooltip(group.issue) : ''"
-              [matTooltipDisabled]="!group.issue"
-            >
-              <button type="button" class="tables-fields-panel__table-selector">
+            <div class="tables-fields-panel__section-header">
+              <button
+                type="button"
+                class="tables-fields-panel__table-selector"
+                [matTooltip]="group.issue ? issueTooltip(group.issue) : ''"
+                [matTooltipDisabled]="!group.issue"
+              >
                 @if (group.issue) {
                   <mat-icon>{{ group.issue.severity === 'error' ? 'error' : 'warning' }}</mat-icon>
                 } @else {
