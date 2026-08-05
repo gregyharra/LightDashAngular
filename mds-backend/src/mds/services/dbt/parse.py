@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import difflib
 import re
 from pathlib import Path
 from typing import Any
@@ -1332,6 +1333,9 @@ def build_project_lineage(
         database = node.get("database") or node.get("schema") or "default"
         schema = node.get("schema") or "default"
         catalog = database
+        config_meta = (node.get("config") or {}).get("meta") or {}
+        top_level_meta = node.get("meta") or {}
+        joins = config_meta.get("joins") or top_level_meta.get("joins") or []
 
         lineage_node: dict[str, Any] = {
             "id": node_id,
@@ -1347,6 +1351,7 @@ def build_project_lineage(
             "tags": list(node.get("tags") or []),
             "packageName": node.get("package_name"),
             "dbtPath": _dbt_path(node),
+            "joins": list(joins),
         }
         sql = _node_raw_sql(artifacts, node)
         if sql:
@@ -1538,7 +1543,10 @@ def _pick_sum_column(columns: list[dict[str, Any]]) -> dict[str, Any] | None:
     return None
 
 
-def build_explore_from_lineage_node(node: dict[str, Any]) -> dict[str, Any]:
+def _compiled_table_from_node(
+    node: dict[str, Any],
+    fields: list[str] | None = None,
+) -> dict[str, Any]:
     table_name = node["name"]
     table_label = _format_words(table_name)
     columns = node.get("columns") or []
@@ -1587,10 +1595,15 @@ def build_explore_from_lineage_node(node: dict[str, Any]) -> dict[str, Any]:
                 "description": f"Sum of {_format_words(sum_column['name'])}",
             }
 
+    if fields is not None:
+        allowed_fields = set(fields)
+        dimensions = {name: field for name, field in dimensions.items() if name in allowed_fields}
+        metrics = {name: field for name, field in metrics.items() if name in allowed_fields}
+
     node_type = node.get("type")
     temporal_type = "none" if node_type == "seed" else "iceberg"
 
-    compiled_table = {
+    return {
         "name": table_name,
         "label": table_label,
         "database": node["database"],
@@ -1602,16 +1615,107 @@ def build_explore_from_lineage_node(node: dict[str, Any]) -> dict[str, Any]:
         "metrics": metrics,
     }
 
-    return {
+
+def _suggest_join_target(name: str, candidates: list[str]) -> str | None:
+    matches = difflib.get_close_matches(name, candidates, n=1, cutoff=0.6)
+    return matches[0] if matches else None
+
+
+def build_explore_from_lineage_node(
+    node: dict[str, Any],
+    lineage: dict[str, Any] | None = None,
+) -> dict[str, Any]:
+    table_name = node["name"]
+    table_label = _format_words(table_name)
+    joined_tables: list[dict[str, Any]] = []
+    join_issues: list[dict[str, Any]] = []
+    tables = {table_name: _compiled_table_from_node(node)}
+
+    nodes = (lineage or {}).get("nodes") or []
+    nodes_by_name = {candidate["name"]: candidate for candidate in nodes}
+
+    if lineage is not None:
+        for raw in node.get("joins") or []:
+            if not isinstance(raw, dict):
+                join_issues.append(
+                    {
+                        "table": str(raw),
+                        "code": "JOIN_INVALID",
+                        "message": "Join declaration must be an object.",
+                        "severity": "warning",
+                    }
+                )
+                continue
+
+            target_name = raw.get("join")
+            if not isinstance(target_name, str) or not target_name:
+                join_issues.append(
+                    {
+                        "table": str(target_name or ""),
+                        "code": "JOIN_INVALID",
+                        "message": "Join declaration is missing a target table.",
+                        "severity": "warning",
+                    }
+                )
+                continue
+
+            issue_base: dict[str, Any] = {"table": target_name}
+            if raw.get("label"):
+                issue_base["label"] = raw["label"]
+
+            sql_on = raw.get("sql_on")
+            if not isinstance(sql_on, str) or not sql_on.strip():
+                join_issues.append(
+                    {
+                        **issue_base,
+                        "code": "JOIN_MISSING_SQL_ON",
+                        "message": f"Join to {target_name} is missing sql_on.",
+                        "severity": "error",
+                    }
+                )
+                continue
+
+            target = nodes_by_name.get(target_name)
+            if target is None:
+                issue = {
+                    **issue_base,
+                    "code": "JOIN_TARGET_NOT_FOUND",
+                    "message": f"Join target not found: {target_name}.",
+                    "severity": "error",
+                }
+                suggestion = _suggest_join_target(target_name, list(nodes_by_name))
+                if suggestion:
+                    issue["suggestion"] = suggestion
+                join_issues.append(issue)
+                continue
+
+            fields = raw.get("fields")
+            field_whitelist = fields if isinstance(fields, list) else None
+            tables[target_name] = _compiled_table_from_node(target, field_whitelist)
+            joined_table: dict[str, Any] = {
+                "table": target_name,
+                "sqlOn": sql_on,
+                "type": raw.get("type") or "left",
+            }
+            if raw.get("label"):
+                joined_table["label"] = raw["label"]
+            if raw.get("relationship"):
+                joined_table["relationship"] = raw["relationship"]
+            joined_tables.append(joined_table)
+
+    result = {
         "name": table_name,
         "label": table_label,
         "tags": node.get("tags") or [],
         "description": node.get("description"),
         "baseTable": table_name,
         "targetDatabase": "trino",
-        "joinedTables": [],
-        "tables": {table_name: compiled_table},
+        "joinedTables": joined_tables,
+        "tables": tables,
     }
+    if join_issues:
+        result["joinIssues"] = join_issues
+    return result
 
 
 def build_explores_map(lineage: dict[str, Any]) -> dict[str, dict[str, Any]]:
