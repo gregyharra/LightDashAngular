@@ -645,7 +645,6 @@ export class TablesWorkspacePageComponent {
   }
 
   protected setChartKind(kind: ChartKind): void {
-    const previousKind = this.chartKind();
     const result = applyChartKindChange(
       this.chartConfig(),
       this.cachedChartConfigs(),
@@ -656,7 +655,7 @@ export class TablesWorkspacePageComponent {
 
     if (kind === 'big_number') {
       this.ensureBigNumberMetric();
-    } else if (previousKind === 'big_number') {
+    } else {
       this.syncChartAxisFields();
     }
   }

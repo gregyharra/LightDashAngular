@@ -962,7 +962,6 @@ export class ChartViewPageComponent {
   }
 
   protected setChartKind(kind: ChartKind): void {
-    const previousKind = this.chartKind();
     const result = applyChartKindChange(
       this.chartConfig(),
       this.cachedChartConfigs(),
@@ -973,7 +972,7 @@ export class ChartViewPageComponent {
 
     if (kind === 'big_number') {
       this.ensureBigNumberMetric();
-    } else if (previousKind === 'big_number') {
+    } else {
       this.syncChartAxisFields();
     }
   }

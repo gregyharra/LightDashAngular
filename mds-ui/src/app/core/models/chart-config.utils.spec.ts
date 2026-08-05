@@ -42,6 +42,31 @@ describe('chart-config.utils', () => {
     expect(step2.chartConfig.config).toEqual(pie.config);
   });
 
+  it('fresh pie configs can receive group and metric via panel patch after kind switch', () => {
+    const cartesian = normalizeChartConfig({
+      type: 'vertical_bar',
+      xField: 'status',
+      yField: 'rev',
+    });
+    const switched = applyChartKindChange(cartesian, {}, 'pie').chartConfig;
+    expect(switched.type).toBe('pie');
+    if (switched.type !== 'pie') {
+      return;
+    }
+    expect(switched.config.xField).toBeUndefined();
+    expect(switched.config.yField).toBeUndefined();
+
+    const patched = applyChartPanelPatch(switched, {
+      xField: 'status',
+      yFields: ['rev'],
+    });
+    expect(patched.type).toBe('pie');
+    if (patched.type === 'pie') {
+      expect(patched.config.xField).toBe('status');
+      expect(patched.config.yField).toBe('rev');
+    }
+  });
+
   it('toChartPanelView exposes flat fields for the existing panel', () => {
     const cfg = normalizeChartConfig({
       type: 'line',

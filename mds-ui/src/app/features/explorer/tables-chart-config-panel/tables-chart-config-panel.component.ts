@@ -22,6 +22,7 @@ import {
   ChartLegendPlacement,
   ChartStackMode,
   DEFAULT_CHART_DISPLAY_CONFIG,
+  PIE_CONFIG_SECTIONS,
   TABLES_CHART_TYPE_OPTIONS,
   TABLE_CONFIG_SECTIONS,
   TablesChartDisplayConfig,
@@ -49,6 +50,7 @@ import {
 export class TablesChartConfigPanelComponent {
   protected readonly chartTypeOptions = TABLES_CHART_TYPE_OPTIONS;
   protected readonly cartesianSections = CARTESIAN_CONFIG_SECTIONS;
+  protected readonly pieSections = PIE_CONFIG_SECTIONS;
   protected readonly tableSections = TABLE_CONFIG_SECTIONS;
 
   readonly chartKind = input.required<ChartKind>();
@@ -85,9 +87,13 @@ export class TablesChartConfigPanelComponent {
 
   protected readonly isTableChart = computed(() => this.chartKind() === 'table');
 
+  protected readonly isPieChart = computed(() => this.chartKind() === 'pie');
+
   protected readonly isBigNumberChart = computed(() => this.chartKind() === 'big_number');
 
   protected readonly bigNumberMetric = computed(() => this.chartYFields()[0] ?? null);
+
+  protected readonly pieMetric = computed(() => this.chartYFields()[0] ?? null);
 
   protected readonly availableYFields = computed(() => {
     const selected = new Set(this.chartYFields());
@@ -117,6 +123,10 @@ export class TablesChartConfigPanelComponent {
   }
 
   protected setBigNumberMetric(fieldId: FieldId): void {
+    this.chartYFieldsChange.emit([fieldId]);
+  }
+
+  protected setPieMetric(fieldId: FieldId): void {
     this.chartYFieldsChange.emit([fieldId]);
   }
 

@@ -42,3 +42,11 @@ export const TABLE_CONFIG_SECTIONS: { id: TableConfigSection; label: string }[] 
   { id: 'conditional-formatting', label: 'Conditional formatting' },
   { id: 'cell-display', label: 'Cell display' },
 ];
+
+export type PieConfigSection = 'layout' | 'display' | 'margins';
+
+export const PIE_CONFIG_SECTIONS: { id: PieConfigSection; label: string }[] = [
+  { id: 'layout', label: 'Layout' },
+  { id: 'display', label: 'Display' },
+  { id: 'margins', label: 'Margins' },
+];
