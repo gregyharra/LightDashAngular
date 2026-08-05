@@ -14,12 +14,17 @@ import { RouterLink } from '@angular/router';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
-import { FieldId } from '../../../core/models/explore.model';
+import { MatTooltipModule } from '@angular/material/tooltip';
+import {
+  ExploreJoinIssue,
+  FieldId,
+} from '../../../core/models/explore.model';
 
 export type TablesFieldGroup = {
   table: { name: string; label: string };
   dimensions: { fieldId: FieldId; label: string; type: string }[];
   metrics: { fieldId: FieldId; label: string }[];
+  issue?: ExploreJoinIssue;
 };
 
 const COLLAPSED_STORAGE_KEY = 'lightdash-tables-fields-panel-collapsed';
@@ -34,7 +39,13 @@ const COLLAPSED_WIDTH = 44;
   host: {
     class: 'tables-fields-panel-host',
   },
-  imports: [RouterLink, MatButtonModule, MatIconModule, MatProgressSpinnerModule],
+  imports: [
+    RouterLink,
+    MatButtonModule,
+    MatIconModule,
+    MatProgressSpinnerModule,
+    MatTooltipModule,
+  ],
   templateUrl: './tables-fields-panel.component.html',
   styleUrl: './tables-fields-panel.component.scss',
 })
@@ -169,6 +180,10 @@ export class TablesFieldsPanelComponent {
 
   protected toggleField(fieldId: FieldId): void {
     this.fieldToggled.emit(fieldId);
+  }
+
+  protected issueTooltip(issue: ExploreJoinIssue): string {
+    return `${issue.message}${issue.suggestion ? ` Did you mean ${issue.suggestion}?` : ''}`;
   }
 
   protected onCustomMetricAdd(): void {

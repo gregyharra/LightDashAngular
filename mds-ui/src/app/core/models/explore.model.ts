@@ -74,6 +74,15 @@ export type ExploreJoin = {
   relationship?: string;
 };
 
+export type ExploreJoinIssue = {
+  table: string;
+  label?: string;
+  code: 'JOIN_TARGET_NOT_FOUND' | 'JOIN_MISSING_SQL_ON' | 'JOIN_INVALID';
+  message: string;
+  severity: 'warning' | 'error';
+  suggestion?: string;
+};
+
 export type ExploreSummary = {
   name: string;
   label: string;
@@ -98,6 +107,7 @@ export type Explore = {
   baseTable: string;
   joinedTables: ExploreJoin[];
   tables: Record<string, CompiledTable>;
+  joinIssues?: ExploreJoinIssue[];
   targetDatabase: string;
 };
 
