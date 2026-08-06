@@ -142,6 +142,14 @@ export class TablesChartConfigPanelComponent {
 
   protected readonly pieMetric = computed(() => this.chartYFields()[0] ?? null);
 
+  protected readonly funnelMetric = computed(() => this.chartXField());
+
+  protected readonly funnelLabelField = computed(() => this.chartYFields()[0] ?? null);
+
+  readonly funnelDataInput = input<'column' | 'row'>('column');
+
+  readonly funnelDataInputChange = output<'column' | 'row'>();
+
   protected readonly availableYFields = computed(() => {
     const selected = new Set(this.chartYFields());
     return this.selectedMetrics().filter((fieldId) => !selected.has(fieldId));
@@ -183,6 +191,18 @@ export class TablesChartConfigPanelComponent {
 
   protected setPieMetric(fieldId: FieldId): void {
     this.chartYFieldsChange.emit([fieldId]);
+  }
+
+  protected setFunnelMetric(fieldId: FieldId): void {
+    this.chartXFieldChange.emit(fieldId);
+  }
+
+  protected setFunnelLabelField(fieldId: FieldId | null): void {
+    this.chartYFieldsChange.emit(fieldId ? [fieldId] : []);
+  }
+
+  protected setFunnelDataInput(dataInput: 'column' | 'row'): void {
+    this.funnelDataInputChange.emit(dataInput);
   }
 
   protected addYField(): void {

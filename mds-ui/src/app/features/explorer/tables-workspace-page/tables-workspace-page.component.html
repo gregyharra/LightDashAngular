@@ -89,6 +89,7 @@
                 [chartXField]="chartXField()"
                 [chartYFields]="chartYFields()"
                 [series]="chartSeries()"
+                [funnelDataInput]="funnelDataInput()"
                 [selectedDimensions]="selectedDimensionList()"
                 [selectedMetrics]="selectedMetricList()"
                 [displayConfig]="chartDisplayConfig()"
@@ -99,6 +100,7 @@
                 (chartXFieldChange)="setChartXField($event)"
                 (chartYFieldsChange)="setChartYFields($event)"
                 (seriesChange)="setChartSeries($event)"
+                (funnelDataInputChange)="setFunnelDataInput($event)"
                 (displayConfigChange)="setChartDisplayConfig($event)"
               />
             }

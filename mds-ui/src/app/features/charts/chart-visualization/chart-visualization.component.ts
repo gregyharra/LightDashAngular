@@ -8,6 +8,7 @@ import {
 import { chartKindFromConfig } from '../../../core/models/chart-config.utils';
 import { FieldId, QueryResults } from '../../../core/models/explore.model';
 import { buildCartesianOption } from '../echarts/build-cartesian-option';
+import { buildFunnelOption } from '../echarts/build-funnel-option';
 import { buildPieOption } from '../echarts/build-pie-option';
 import { EchartHostComponent } from '../echarts/echart-host.component';
 
@@ -58,6 +59,14 @@ export class ChartVisualizationComponent {
 
       if (config.type === 'pie') {
         return buildPieOption({
+          results,
+          config: config.config,
+          dashboardMode: this.dashboardMode(),
+        });
+      }
+
+      if (config.type === 'funnel') {
+        return buildFunnelOption({
           results,
           config: config.config,
           dashboardMode: this.dashboardMode(),

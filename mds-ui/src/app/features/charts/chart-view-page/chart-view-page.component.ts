@@ -167,6 +167,9 @@ export class ChartViewPageComponent {
   protected readonly chartXField = computed(() => this.panelView().xField);
   protected readonly chartYFields = computed(() => this.panelView().yFields);
   protected readonly chartSeries = computed(() => this.panelView().series);
+  protected readonly funnelDataInput = computed(
+    () => this.panelView().funnelDataInput ?? 'column',
+  );
   protected readonly chartDisplayConfig = computed(
     () => this.panelView().displayConfig as TablesChartDisplayConfig,
   );
@@ -370,6 +373,10 @@ export class ChartViewPageComponent {
 
     if (kind === 'big_number') {
       return this.chartYFields().length > 0;
+    }
+
+    if (kind === 'funnel') {
+      return !!this.chartXField();
     }
 
     return !!(this.chartXField() && this.chartYFields().length > 0);
@@ -1014,6 +1021,12 @@ export class ChartViewPageComponent {
     this.chartConfig.set(applyChartPanelPatch(this.chartConfig(), next));
   }
 
+  protected setFunnelDataInput(dataInput: 'column' | 'row'): void {
+    this.chartConfig.set(
+      applyChartPanelPatch(this.chartConfig(), { funnelDataInput: dataInput }),
+    );
+  }
+
   protected setQueryRowLimit(limit: number): void {
     this.chartConfig.set(
       applyChartPanelPatch(this.chartConfig(), {
@@ -1187,6 +1200,22 @@ export class ChartViewPageComponent {
       xField?: FieldId | null;
       yFields?: FieldId[];
     } = {};
+
+    if (kind === 'funnel') {
+      if (!currentX || !metrics.includes(currentX)) {
+        patch.xField = metrics[0] ?? null;
+      }
+
+      const labelField = currentY[0];
+      if (labelField && !dimensions.includes(labelField)) {
+        patch.yFields = [];
+      }
+
+      if (patch.xField !== undefined || patch.yFields !== undefined) {
+        this.chartConfig.set(applyChartPanelPatch(this.chartConfig(), patch));
+      }
+      return;
+    }
 
     if (kind !== 'big_number') {
       if (!currentX || !dimensions.includes(currentX)) {

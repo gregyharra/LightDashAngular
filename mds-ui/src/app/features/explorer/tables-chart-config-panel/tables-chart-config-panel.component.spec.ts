@@ -99,4 +99,53 @@ describe('TablesChartConfigPanelComponent', () => {
       ],
     ]);
   });
+
+  it('shows funnel layout and display controls', () => {
+    fixture.componentRef.setInput('chartKind', 'funnel');
+    fixture.componentRef.setInput('chartXField', 'orders_revenue');
+    fixture.componentRef.setInput('chartYFields', ['orders_status']);
+    fixture.componentRef.setInput('funnelDataInput', 'column');
+    fixture.detectChanges();
+
+    const text = (fixture.nativeElement as HTMLElement).textContent ?? '';
+    expect(text).toContain('Metric');
+    expect(text).toContain('Label (optional)');
+    expect(text).toContain('Orientation');
+    expect(text).toContain('Display');
+    expect(text).not.toContain('Funnel field configuration is available in a future update.');
+  });
+
+  it('emits funnel field and dataInput changes', () => {
+    fixture.componentRef.setInput('chartKind', 'funnel');
+    fixture.componentRef.setInput('chartXField', 'orders_revenue');
+    fixture.componentRef.setInput('chartYFields', ['orders_status']);
+    fixture.componentRef.setInput('funnelDataInput', 'column');
+    fixture.detectChanges();
+
+    const xEmissions: string[] = [];
+    const yEmissions: string[][] = [];
+    const dataInputEmissions: Array<'column' | 'row'> = [];
+    fixture.componentInstance.chartXFieldChange.subscribe((value) =>
+      xEmissions.push(value),
+    );
+    fixture.componentInstance.chartYFieldsChange.subscribe((value) =>
+      yEmissions.push(value),
+    );
+    fixture.componentInstance.funnelDataInputChange.subscribe((value) =>
+      dataInputEmissions.push(value),
+    );
+
+    const api = fixture.componentInstance as unknown as {
+      setFunnelMetric: (fieldId: string) => void;
+      setFunnelLabelField: (fieldId: string | null) => void;
+      setFunnelDataInput: (dataInput: 'column' | 'row') => void;
+    };
+    api.setFunnelMetric('orders_count');
+    api.setFunnelLabelField('orders_region');
+    api.setFunnelDataInput('row');
+
+    expect(xEmissions).toEqual(['orders_count']);
+    expect(yEmissions).toEqual([['orders_region']]);
+    expect(dataInputEmissions).toEqual(['row']);
+  });
 });
