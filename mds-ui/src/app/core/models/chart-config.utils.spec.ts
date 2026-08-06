@@ -6,7 +6,7 @@ import {
   getValidChartConfig,
   toChartPanelView,
 } from './chart-config.utils';
-import { normalizeChartConfig } from './chart.model';
+import { defaultConfigForType, normalizeChartConfig } from './chart.model';
 
 describe('chart-config.utils', () => {
   it('maps kinds to types', () => {
@@ -103,5 +103,144 @@ describe('chart-config.utils', () => {
     const restored = getValidChartConfig('table', { table: pie });
     expect(restored.type).toBe('table');
     expect(restored).toEqual(defaultTable);
+  });
+});
+
+describe('chart kinds expansion utils', () => {
+  it('maps area/scatter/mixed to cartesian', () => {
+    expect(chartTypeFromKind('area')).toBe('cartesian');
+    expect(chartTypeFromKind('scatter')).toBe('cartesian');
+    expect(chartTypeFromKind('mixed')).toBe('cartesian');
+    expect(chartTypeFromKind('funnel')).toBe('funnel');
+    expect(chartTypeFromKind('sankey')).toBe('sankey');
+  });
+
+  it('applyChartKindChange sets cartesianKind for area', () => {
+    const { chartConfig } = applyChartKindChange(
+      defaultConfigForType('cartesian'),
+      {},
+      'area',
+    );
+    expect(chartKindFromConfig(chartConfig)).toBe('area');
+  });
+
+  it('applyChartKindChange switches to sankey family', () => {
+    const { chartConfig, cache } = applyChartKindChange(
+      defaultConfigForType('cartesian'),
+      {},
+      'sankey',
+    );
+    expect(chartConfig.type).toBe('sankey');
+    expect(cache.cartesian?.type).toBe('cartesian');
+  });
+
+  it('panel patch updates sankey fields', () => {
+    const patched = applyChartPanelPatch(defaultConfigForType('sankey'), {
+      sankeySourceFieldId: 'orders_status',
+      sankeyTargetFieldId: 'orders_city',
+      sankeyWeightFieldId: 'orders_order_count',
+    });
+    expect(patched.type).toBe('sankey');
+    if (patched.type === 'sankey') {
+      expect(patched.config.sourceFieldId).toBe('orders_status');
+      expect(patched.config.targetFieldId).toBe('orders_city');
+      expect(patched.config.weightFieldId).toBe('orders_order_count');
+    }
+  });
+
+  it('toChartPanelView exposes mixed series', () => {
+    const config = defaultConfigForType('cartesian');
+    if (config.type !== 'cartesian') throw new Error('expected cartesian');
+    config.config.layout.cartesianKind = 'mixed';
+    config.config.layout.yFields = ['m1', 'm2'];
+    config.config.series = [
+      { fieldId: 'm1', type: 'bar' },
+      { fieldId: 'm2', type: 'line' },
+    ];
+    const view = toChartPanelView(config);
+    expect(view.chartKind).toBe('mixed');
+    expect(view.series).toEqual(config.config.series);
+  });
+
+  it('applyChartPanelPatch keeps mixed series in sync when yFields change', () => {
+    const config = defaultConfigForType('cartesian');
+    if (config.type !== 'cartesian') throw new Error('expected cartesian');
+    config.config.layout.cartesianKind = 'mixed';
+    config.config.layout.yFields = ['m1', 'm2'];
+    config.config.series = [
+      { fieldId: 'm1', type: 'bar' },
+      { fieldId: 'm2', type: 'line' },
+    ];
+    const patched = applyChartPanelPatch(config, { yFields: ['m2', 'm3'] });
+    expect(patched.type).toBe('cartesian');
+    if (patched.type === 'cartesian') {
+      expect(patched.config.series).toEqual([
+        { fieldId: 'm2', type: 'line' },
+        { fieldId: 'm3', type: 'bar' },
+      ]);
+    }
+  });
+
+  it('panel patch updates funnel, treemap and gauge fields', () => {
+    const funnel = applyChartPanelPatch(defaultConfigForType('funnel'), {
+      funnelDataInput: 'row',
+    });
+    expect(funnel.type).toBe('funnel');
+    if (funnel.type === 'funnel') {
+      expect(funnel.config.dataInput).toBe('row');
+    }
+
+    const treemap = applyChartPanelPatch(defaultConfigForType('treemap'), {
+      treemapDimensionFieldIds: ['orders_status', 'orders_city'],
+    });
+    expect(treemap.type).toBe('treemap');
+    if (treemap.type === 'treemap') {
+      expect(treemap.config.dimensionFieldIds).toEqual(['orders_status', 'orders_city']);
+    }
+
+    const gauge = applyChartPanelPatch(defaultConfigForType('gauge'), {
+      gaugeMin: 0,
+      gaugeMax: 100,
+      showGaugeLabel: false,
+    });
+    expect(gauge.type).toBe('gauge');
+    if (gauge.type === 'gauge') {
+      expect(gauge.config.min).toBe(0);
+      expect(gauge.config.max).toBe(100);
+      expect(gauge.config.showLabel).toBe(false);
+    }
+  });
+
+  it('toChartPanelView exposes funnel/treemap/gauge/sankey family fields', () => {
+    const sankey = defaultConfigForType('sankey');
+    if (sankey.type !== 'sankey') throw new Error('expected sankey');
+    sankey.config.sourceFieldId = 'orders_status';
+    sankey.config.targetFieldId = 'orders_city';
+    sankey.config.weightFieldId = 'orders_order_count';
+    const sankeyView = toChartPanelView(sankey);
+    expect(sankeyView.sankeySourceFieldId).toBe('orders_status');
+    expect(sankeyView.sankeyTargetFieldId).toBe('orders_city');
+    expect(sankeyView.sankeyWeightFieldId).toBe('orders_order_count');
+
+    const gauge = defaultConfigForType('gauge');
+    if (gauge.type !== 'gauge') throw new Error('expected gauge');
+    gauge.config.min = 0;
+    gauge.config.max = 50;
+    const gaugeView = toChartPanelView(gauge);
+    expect(gaugeView.gaugeMin).toBe(0);
+    expect(gaugeView.gaugeMax).toBe(50);
+    expect(gaugeView.showGaugeLabel).toBe(true);
+
+    const treemap = defaultConfigForType('treemap');
+    if (treemap.type !== 'treemap') throw new Error('expected treemap');
+    treemap.config.dimensionFieldIds = ['orders_status'];
+    const treemapView = toChartPanelView(treemap);
+    expect(treemapView.treemapDimensionFieldIds).toEqual(['orders_status']);
+
+    const funnel = defaultConfigForType('funnel');
+    if (funnel.type !== 'funnel') throw new Error('expected funnel');
+    funnel.config.dataInput = 'row';
+    const funnelView = toChartPanelView(funnel);
+    expect(funnelView.funnelDataInput).toBe('row');
   });
 });

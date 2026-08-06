@@ -3,13 +3,18 @@ import {
   BigNumberChartConfigBody,
   CartesianChartConfigBody,
   CartesianLayoutConfig,
+  CartesianSeriesConfig,
   ChartConfig,
   ChartDisplayConfig,
   ChartKind,
   ChartType,
   DEFAULT_CHART_DISPLAY_CONFIG,
+  FunnelChartConfigBody,
+  GaugeChartConfigBody,
   PieChartConfigBody,
+  SankeyChartConfigBody,
   TableChartConfigBody,
+  TreemapChartConfigBody,
   defaultConfigForType,
 } from './chart.model';
 
@@ -20,9 +25,22 @@ export type ChartPanelView = {
   xField: FieldId | null;
   yFields: FieldId[];
   displayConfig: ChartDisplayConfig;
+  series?: CartesianSeriesConfig[];
+  funnelDataInput?: 'column' | 'row';
+  treemapDimensionFieldIds?: FieldId[];
+  gaugeMin?: number;
+  gaugeMax?: number;
+  sankeySourceFieldId?: FieldId | null;
+  sankeyTargetFieldId?: FieldId | null;
+  sankeyWeightFieldId?: FieldId | null;
+  showNodeLabels?: boolean;
+  showGaugeLabel?: boolean;
 };
 
-type CartesianKind = Extract<ChartKind, 'vertical_bar' | 'horizontal_bar' | 'line'>;
+type CartesianKind = Extract<
+  ChartKind,
+  'vertical_bar' | 'horizontal_bar' | 'line' | 'area' | 'scatter' | 'mixed'
+>;
 
 function cartesianKindFromLayout(layout: CartesianLayoutConfig): CartesianKind {
   if (layout.cartesianKind) {
@@ -35,6 +53,9 @@ const CARTESIAN_KINDS = new Set<CartesianKind>([
   'vertical_bar',
   'horizontal_bar',
   'line',
+  'area',
+  'scatter',
+  'mixed',
 ]);
 
 function cloneChartConfig(config: ChartConfig): ChartConfig {
@@ -45,8 +66,16 @@ function isCartesianKind(kind: ChartKind): kind is CartesianKind {
   return CARTESIAN_KINDS.has(kind as CartesianKind);
 }
 
-function flipAxesForCartesianKind(kind: CartesianKind): boolean {
-  return kind === 'horizontal_bar';
+function flipAxesForCartesianKind(kind: CartesianKind, previousFlipAxes?: boolean): boolean {
+  if (kind === 'horizontal_bar') {
+    return true;
+  }
+  if (kind === 'vertical_bar') {
+    return false;
+  }
+  // area/scatter/mixed default to unflipped axes, but preserve a flip that
+  // already existed on the layout (e.g. restored from cache).
+  return previousFlipAxes ?? false;
 }
 
 function displayConfigFromCartesian(config: CartesianChartConfigBody): ChartDisplayConfig {
@@ -96,16 +125,62 @@ function displayConfigFromBigNumber(config: BigNumberChartConfigBody): ChartDisp
   };
 }
 
+function displayConfigFromFunnel(config: FunnelChartConfigBody): ChartDisplayConfig {
+  return {
+    ...DEFAULT_CHART_DISPLAY_CONFIG,
+    showLegend: config.showLegend,
+    legendPlacement: config.legendPlacement,
+    rowLimit: config.rowLimit,
+    margins: { ...config.margins },
+  };
+}
+
+function displayConfigFromTreemap(config: TreemapChartConfigBody): ChartDisplayConfig {
+  return {
+    ...DEFAULT_CHART_DISPLAY_CONFIG,
+    showLegend: config.showLegend,
+    rowLimit: config.rowLimit,
+    margins: { ...config.margins },
+  };
+}
+
+function displayConfigFromGauge(config: GaugeChartConfigBody): ChartDisplayConfig {
+  return {
+    ...DEFAULT_CHART_DISPLAY_CONFIG,
+    rowLimit: config.rowLimit,
+    margins: { ...config.margins },
+  };
+}
+
+function displayConfigFromSankey(config: SankeyChartConfigBody): ChartDisplayConfig {
+  return {
+    ...DEFAULT_CHART_DISPLAY_CONFIG,
+    rowLimit: config.rowLimit,
+    margins: { ...config.margins },
+  };
+}
+
 export function chartTypeFromKind(kind: ChartKind): ChartType {
   switch (kind) {
     case 'vertical_bar':
     case 'horizontal_bar':
     case 'line':
+    case 'area':
+    case 'scatter':
+    case 'mixed':
       return 'cartesian';
     case 'pie':
       return 'pie';
     case 'big_number':
       return 'big_number';
+    case 'funnel':
+      return 'funnel';
+    case 'treemap':
+      return 'treemap';
+    case 'gauge':
+      return 'gauge';
+    case 'sankey':
+      return 'sankey';
     case 'table':
     default:
       return 'table';
@@ -122,6 +197,14 @@ export function chartKindFromConfig(config: ChartConfig): ChartKind {
       return 'table';
     case 'big_number':
       return 'big_number';
+    case 'funnel':
+      return 'funnel';
+    case 'treemap':
+      return 'treemap';
+    case 'gauge':
+      return 'gauge';
+    case 'sankey':
+      return 'sankey';
   }
 }
 
@@ -153,8 +236,9 @@ function applyCartesianKind(config: ChartConfig, kind: CartesianKind): ChartConf
   }
 
   const layout = next.config.layout;
+  const previousFlipAxes = layout.flipAxes;
   layout.cartesianKind = kind;
-  layout.flipAxes = flipAxesForCartesianKind(kind);
+  layout.flipAxes = flipAxesForCartesianKind(kind, previousFlipAxes);
   return next;
 }
 
@@ -200,6 +284,7 @@ export function toChartPanelView(config: ChartConfig): ChartPanelView {
         xField: layout.xField ?? null,
         yFields: [...(layout.yFields ?? [])],
         displayConfig: displayConfigFromCartesian(config.config),
+        series: config.config.series ? [...config.config.series] : undefined,
       };
     }
     case 'pie':
@@ -223,6 +308,43 @@ export function toChartPanelView(config: ChartConfig): ChartPanelView {
         yFields: config.config.selectedField ? [config.config.selectedField] : [],
         displayConfig: displayConfigFromBigNumber(config.config),
       };
+    case 'funnel':
+      return {
+        chartKind,
+        xField: config.config.fieldId ?? null,
+        yFields: config.config.labelFieldId ? [config.config.labelFieldId] : [],
+        displayConfig: displayConfigFromFunnel(config.config),
+        funnelDataInput: config.config.dataInput,
+      };
+    case 'treemap':
+      return {
+        chartKind,
+        xField: null,
+        yFields: config.config.metricFieldId ? [config.config.metricFieldId] : [],
+        displayConfig: displayConfigFromTreemap(config.config),
+        treemapDimensionFieldIds: [...config.config.dimensionFieldIds],
+      };
+    case 'gauge':
+      return {
+        chartKind,
+        xField: null,
+        yFields: config.config.selectedField ? [config.config.selectedField] : [],
+        displayConfig: displayConfigFromGauge(config.config),
+        gaugeMin: config.config.min,
+        gaugeMax: config.config.max,
+        showGaugeLabel: config.config.showLabel,
+      };
+    case 'sankey':
+      return {
+        chartKind,
+        xField: null,
+        yFields: [],
+        displayConfig: displayConfigFromSankey(config.config),
+        sankeySourceFieldId: config.config.sourceFieldId ?? null,
+        sankeyTargetFieldId: config.config.targetFieldId ?? null,
+        sankeyWeightFieldId: config.config.weightFieldId ?? null,
+        showNodeLabels: config.config.showNodeLabels,
+      };
   }
 }
 
@@ -231,6 +353,16 @@ export function applyChartPanelPatch(
   patch: Partial<ChartDisplayConfig> & {
     xField?: FieldId | null;
     yFields?: FieldId[];
+    series?: CartesianSeriesConfig[];
+    funnelDataInput?: 'column' | 'row';
+    treemapDimensionFieldIds?: FieldId[];
+    gaugeMin?: number;
+    gaugeMax?: number;
+    sankeySourceFieldId?: FieldId | null;
+    sankeyTargetFieldId?: FieldId | null;
+    sankeyWeightFieldId?: FieldId | null;
+    showNodeLabels?: boolean;
+    showGaugeLabel?: boolean;
   },
 ): ChartConfig {
   const next = cloneChartConfig(current);
@@ -242,6 +374,7 @@ export function applyChartPanelPatch(
       const {
         xField,
         yFields,
+        series,
         flipAxes,
         stackMode,
         showGridX,
@@ -258,6 +391,15 @@ export function applyChartPanelPatch(
         showValueLabels,
         showTableNames: _showTableNames,
         showColumnTotals: _showColumnTotals,
+        funnelDataInput: _funnelDataInput,
+        treemapDimensionFieldIds: _treemapDimensionFieldIds,
+        gaugeMin: _gaugeMin,
+        gaugeMax: _gaugeMax,
+        sankeySourceFieldId: _sankeySourceFieldId,
+        sankeyTargetFieldId: _sankeyTargetFieldId,
+        sankeyWeightFieldId: _sankeyWeightFieldId,
+        showNodeLabels: _showNodeLabels,
+        showGaugeLabel: _showGaugeLabel,
         ...rest
       } = patch;
 
@@ -266,6 +408,19 @@ export function applyChartPanelPatch(
       }
       if (yFields !== undefined) {
         layout.yFields = yFields;
+        const kindForSync = layout.cartesianKind ?? cartesianKindFromLayout(layout);
+        if (kindForSync === 'mixed') {
+          const existingSeries = body.series ?? [];
+          const keptSeries = existingSeries.filter((s) => yFields.includes(s.fieldId));
+          const keptFieldIds = new Set(keptSeries.map((s) => s.fieldId));
+          const appendedSeries = yFields
+            .filter((fieldId) => !keptFieldIds.has(fieldId))
+            .map((fieldId): CartesianSeriesConfig => ({ fieldId, type: 'bar' }));
+          body.series = [...keptSeries, ...appendedSeries];
+        }
+      }
+      if (series !== undefined) {
+        body.series = series;
       }
       if (flipAxes !== undefined) {
         layout.flipAxes = flipAxes;
@@ -314,6 +469,66 @@ export function applyChartPanelPatch(
       const { yFields, rowLimit } = patch;
       if (yFields !== undefined) body.selectedField = yFields[0];
       if (rowLimit !== undefined) body.rowLimit = rowLimit;
+      return next;
+    }
+    case 'funnel': {
+      const body = next.config;
+      const { xField, yFields, showLegend, legendPlacement, rowLimit, margins, funnelDataInput } =
+        patch;
+      if (xField !== undefined) body.fieldId = xField ?? undefined;
+      if (yFields !== undefined) body.labelFieldId = yFields[0];
+      if (showLegend !== undefined) body.showLegend = showLegend;
+      if (legendPlacement !== undefined) body.legendPlacement = legendPlacement;
+      if (rowLimit !== undefined) body.rowLimit = rowLimit;
+      if (margins !== undefined) body.margins = { ...margins };
+      if (funnelDataInput !== undefined) body.dataInput = funnelDataInput;
+      return next;
+    }
+    case 'treemap': {
+      const body = next.config;
+      const { yFields, showLegend, rowLimit, margins, treemapDimensionFieldIds } = patch;
+      if (yFields !== undefined) body.metricFieldId = yFields[0];
+      if (showLegend !== undefined) body.showLegend = showLegend;
+      if (rowLimit !== undefined) body.rowLimit = rowLimit;
+      if (margins !== undefined) body.margins = { ...margins };
+      if (treemapDimensionFieldIds !== undefined) {
+        body.dimensionFieldIds = treemapDimensionFieldIds;
+      }
+      return next;
+    }
+    case 'gauge': {
+      const body = next.config;
+      const { yFields, rowLimit, margins, gaugeMin, gaugeMax, showGaugeLabel } = patch;
+      if (yFields !== undefined) body.selectedField = yFields[0];
+      if (rowLimit !== undefined) body.rowLimit = rowLimit;
+      if (margins !== undefined) body.margins = { ...margins };
+      if (gaugeMin !== undefined) body.min = gaugeMin;
+      if (gaugeMax !== undefined) body.max = gaugeMax;
+      if (showGaugeLabel !== undefined) body.showLabel = showGaugeLabel;
+      return next;
+    }
+    case 'sankey': {
+      const body = next.config;
+      const {
+        rowLimit,
+        margins,
+        sankeySourceFieldId,
+        sankeyTargetFieldId,
+        sankeyWeightFieldId,
+        showNodeLabels,
+      } = patch;
+      if (rowLimit !== undefined) body.rowLimit = rowLimit;
+      if (margins !== undefined) body.margins = { ...margins };
+      if (sankeySourceFieldId !== undefined) {
+        body.sourceFieldId = sankeySourceFieldId ?? undefined;
+      }
+      if (sankeyTargetFieldId !== undefined) {
+        body.targetFieldId = sankeyTargetFieldId ?? undefined;
+      }
+      if (sankeyWeightFieldId !== undefined) {
+        body.weightFieldId = sankeyWeightFieldId ?? undefined;
+      }
+      if (showNodeLabels !== undefined) body.showNodeLabels = showNodeLabels;
       return next;
     }
   }
