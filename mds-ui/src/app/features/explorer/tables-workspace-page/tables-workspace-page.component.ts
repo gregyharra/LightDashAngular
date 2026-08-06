@@ -13,7 +13,6 @@ import { DbtTreeNode, LineageNode } from '../../../core/models/lineage.model';
 import {
   ChartConfig,
   ChartKind,
-  CartesianSeriesConfig,
   defaultConfigForType,
 } from '../../../core/models/chart.model';
 import {
@@ -149,7 +148,6 @@ export class TablesWorkspacePageComponent {
   protected readonly chartKind = computed(() => this.panelView().chartKind);
   protected readonly chartXField = computed(() => this.panelView().xField);
   protected readonly chartYFields = computed(() => this.panelView().yFields);
-  protected readonly chartSeries = computed(() => this.panelView().series);
   protected readonly funnelDataInput = computed(
     () => this.panelView().funnelDataInput ?? 'column',
   );
@@ -709,11 +707,6 @@ export class TablesWorkspacePageComponent {
     );
   }
 
-  protected setChartSeries(series: CartesianSeriesConfig[]): void {
-    this.chartConfig.set(
-      applyChartPanelPatch(this.chartConfig(), { series }),
-    );
-  }
 
   protected setChartDisplayConfig(config: TablesChartDisplayConfig): void {
     const next = {

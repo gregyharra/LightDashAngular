@@ -230,45 +230,6 @@ describe('buildCartesianOption', () => {
     expect(series?.[0].type).toBe('scatter');
   });
 
-  it('builds mixed series from config.series', () => {
-    const option = buildCartesianOption({
-      results: {
-        ...results,
-        metricQuery: {
-          ...results.metricQuery,
-          metrics: ['orders_total', 'orders_count'],
-        },
-        fields: {
-          ...results.fields,
-          orders_count: {
-            ...results.fields['orders_total'],
-            fieldId: 'orders_count',
-            name: 'count',
-            label: 'Count',
-          },
-        },
-        rows: results.rows.map((row) => ({
-          ...row,
-          orders_count: { value: { raw: 5, formatted: '5' } },
-        })),
-      },
-      config: {
-        ...config,
-        layout: {
-          ...config.layout,
-          cartesianKind: 'mixed',
-          yFields: ['orders_total', 'orders_count'],
-        },
-        series: [
-          { fieldId: 'orders_total', type: 'bar' },
-          { fieldId: 'orders_count', type: 'line' },
-        ],
-      },
-      chartKind: 'mixed',
-    });
-    const series = option?.series as Array<{ type?: string }>;
-    expect(series?.map((s) => s.type)).toEqual(['bar', 'line']);
-  });
 
   it('returns null without required fields, rows, or fields missing from results', () => {
     expect(

@@ -18,7 +18,6 @@ export const TABLES_CHART_TYPE_OPTIONS: TablesChartTypeOption[] = [
   { value: 'line', label: 'Line chart', icon: 'show_chart' },
   { value: 'area', label: 'Area chart', icon: 'area_chart' },
   { value: 'scatter', label: 'Scatter chart', icon: 'scatter_plot' },
-  { value: 'mixed', label: 'Mixed chart', icon: 'multiline_chart' },
   { value: 'pie', label: 'Pie chart', icon: 'pie_chart' },
   { value: 'funnel', label: 'Funnel chart', icon: 'filter_alt' },
   { value: 'treemap', label: 'Treemap', icon: 'grid_view' },

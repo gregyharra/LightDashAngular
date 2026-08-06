@@ -6,7 +6,6 @@ describe('charts.fixture', () => {
       jasmine.arrayContaining([
         'area',
         'scatter',
-        'mixed',
         'funnel',
         'treemap',
         'gauge',

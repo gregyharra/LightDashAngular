@@ -11,7 +11,7 @@ import { MatSelectModule } from '@angular/material/select';
 import { MatSlideToggleModule } from '@angular/material/slide-toggle';
 import { MatTabsModule } from '@angular/material/tabs';
 import { MatTooltipModule } from '@angular/material/tooltip';
-import { ChartKind, CartesianSeriesConfig, CartesianSeriesType } from '../../../core/models/chart.model';
+import { ChartKind } from '../../../core/models/chart.model';
 import { FieldId } from '../../../core/models/explore.model';
 import {
   clampQueryLimit,
@@ -31,20 +31,6 @@ import {
   TREEMAP_CONFIG_SECTIONS,
   TablesChartDisplayConfig,
 } from './tables-chart-config.constants';
-
-export function updateSeriesType(
-  series: CartesianSeriesConfig[] | undefined,
-  fieldId: FieldId,
-  type: CartesianSeriesType,
-): CartesianSeriesConfig[] {
-  const existing = series ? [...series] : [];
-  const index = existing.findIndex((entry) => entry.fieldId === fieldId);
-  if (index >= 0) {
-    existing[index] = { fieldId, type };
-    return existing;
-  }
-  return [...existing, { fieldId, type }];
-}
 
 @Component({
   selector: 'app-tables-chart-config-panel',
@@ -75,11 +61,6 @@ export class TablesChartConfigPanelComponent {
   protected readonly gaugeSections = GAUGE_CONFIG_SECTIONS;
   protected readonly sankeySections = SANKEY_CONFIG_SECTIONS;
 
-  protected readonly mixedSeriesTypeOptions: { value: CartesianSeriesType; label: string }[] = [
-    { value: 'bar', label: 'Bar' },
-    { value: 'line', label: 'Line' },
-    { value: 'area', label: 'Area' },
-  ];
 
   readonly chartKind = input.required<ChartKind>();
   readonly chartXField = input<FieldId | null>(null);
@@ -87,7 +68,6 @@ export class TablesChartConfigPanelComponent {
   readonly selectedDimensions = input<FieldId[]>([]);
   readonly selectedMetrics = input<FieldId[]>([]);
   readonly displayConfig = input<TablesChartDisplayConfig>(DEFAULT_CHART_DISPLAY_CONFIG);
-  readonly series = input<CartesianSeriesConfig[] | undefined>(undefined);
   readonly maxRowLimit = input<number | null | undefined>(undefined);
   readonly hasQueryResults = input(false);
   readonly getFieldLabel = input.required<(fieldId: FieldId) => string>();
@@ -96,7 +76,6 @@ export class TablesChartConfigPanelComponent {
   readonly chartXFieldChange = output<FieldId>();
   readonly chartYFieldsChange = output<FieldId[]>();
   readonly displayConfigChange = output<TablesChartDisplayConfig>();
-  readonly seriesChange = output<CartesianSeriesConfig[]>();
 
   protected readonly resolvedMaxRowLimit = computed(() =>
     resolveMaxQueryLimit(this.maxRowLimit()),
@@ -117,12 +96,10 @@ export class TablesChartConfigPanelComponent {
       kind === 'horizontal_bar' ||
       kind === 'line' ||
       kind === 'area' ||
-      kind === 'scatter' ||
-      kind === 'mixed'
+      kind === 'scatter'
     );
   });
 
-  protected readonly isMixedChart = computed(() => this.chartKind() === 'mixed');
 
   protected readonly isTableChart = computed(() => this.chartKind() === 'table');
 
@@ -208,13 +185,7 @@ export class TablesChartConfigPanelComponent {
     this.chartKindChange.emit(kind);
   }
 
-  protected setSeriesType(fieldId: FieldId, type: CartesianSeriesType): void {
-    this.seriesChange.emit(updateSeriesType(this.series(), fieldId, type));
-  }
 
-  protected seriesTypeForField(fieldId: FieldId): CartesianSeriesType {
-    return this.series()?.find((entry) => entry.fieldId === fieldId)?.type ?? 'bar';
-  }
 
   protected setChartXField(fieldId: FieldId): void {
     this.chartXFieldChange.emit(fieldId);

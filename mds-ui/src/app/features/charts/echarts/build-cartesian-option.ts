@@ -1,7 +1,6 @@
 import { EChartsOption, SeriesOption } from 'echarts';
 import {
   CartesianChartConfigBody,
-  CartesianSeriesType,
   ChartKind,
   ChartLegendPlacement,
 } from '../../../core/models/chart.model';
@@ -11,10 +10,10 @@ const SERIES_COLORS = ['#7262ff', '#e67700', '#12b886', '#5c7cfa', '#fab005'];
 
 type CartesianChartKind = Extract<
   ChartKind,
-  'vertical_bar' | 'horizontal_bar' | 'line' | 'area' | 'scatter' | 'mixed'
+  'vertical_bar' | 'horizontal_bar' | 'line' | 'area' | 'scatter'
 >;
 
-type ResolvedSeriesGeometry = CartesianSeriesType | 'scatter';
+type ResolvedSeriesGeometry = 'bar' | 'line' | 'area' | 'scatter';
 
 const DEFAULT_COLOR_BY_KIND: Record<CartesianChartKind, string> = {
   vertical_bar: '#7262ff',
@@ -22,7 +21,6 @@ const DEFAULT_COLOR_BY_KIND: Record<CartesianChartKind, string> = {
   horizontal_bar: '#12b886',
   area: '#7262ff',
   scatter: '#7262ff',
-  mixed: '#7262ff',
 };
 
 export type BuildCartesianArgs = {
@@ -40,20 +38,9 @@ function defaultSeriesGeometry(chartKind: CartesianChartKind): ResolvedSeriesGeo
       return 'area';
     case 'scatter':
       return 'scatter';
-    case 'mixed':
-      return 'bar';
     default:
       return 'bar';
   }
-}
-
-function resolveSeriesGeometry(
-  fieldId: FieldId,
-  config: CartesianChartConfigBody,
-  chartKind: CartesianChartKind,
-): ResolvedSeriesGeometry {
-  const override = config.series?.find((entry) => entry.fieldId === fieldId)?.type;
-  return override ?? defaultSeriesGeometry(chartKind);
 }
 
 function toEChartsSeriesType(
@@ -149,7 +136,7 @@ export function buildCartesianOption({
   const primaryColor = config.seriesColor ?? DEFAULT_COLOR_BY_KIND[chartKind];
 
   const series: SeriesOption[] = yFields.map((fieldId, index) => {
-    const geometry = resolveSeriesGeometry(fieldId, config, chartKind);
+    const geometry = defaultSeriesGeometry(chartKind);
     const seriesType = toEChartsSeriesType(geometry);
     const color = seriesColorAt(index, primaryColor, SERIES_COLORS);
     const base = {

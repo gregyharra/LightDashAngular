@@ -180,25 +180,6 @@
                       <span class="tables-chart-config__series-label">{{
                         getFieldLabel()(fieldId)
                       }}</span>
-                      @if (isMixedChart()) {
-                        <mat-form-field
-                          appearance="outline"
-                          subscriptSizing="dynamic"
-                          class="tables-chart-config__series-type"
-                        >
-                          <mat-label>Type</mat-label>
-                          <mat-select
-                            [value]="seriesTypeForField(fieldId)"
-                            (valueChange)="setSeriesType(fieldId, $event)"
-                          >
-                            @for (option of mixedSeriesTypeOptions; track option.value) {
-                              <mat-option [value]="option.value">
-                                {{ option.label }}
-                              </mat-option>
-                            }
-                          </mat-select>
-                        </mat-form-field>
-                      }
                     </div>
                   }
                 } @else {

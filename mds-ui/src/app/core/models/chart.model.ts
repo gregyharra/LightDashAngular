@@ -19,7 +19,6 @@ export type ChartKind =
   | 'line'
   | 'area'
   | 'scatter'
-  | 'mixed'
   | 'pie'
   | 'table'
   | 'big_number'
@@ -97,12 +96,6 @@ export const DEFAULT_CHART_DISPLAY_CONFIG: ChartDisplayConfig = {
   showColumnTotals: false,
 };
 
-export type CartesianSeriesType = 'bar' | 'line' | 'area';
-
-export type CartesianSeriesConfig = {
-  fieldId: FieldId;
-  type: CartesianSeriesType;
-};
 
 export type CartesianLayoutConfig = {
   xField?: FieldId;
@@ -110,7 +103,7 @@ export type CartesianLayoutConfig = {
   /** Distinguishes line vs bar kinds on the same cartesian family config. */
   cartesianKind?: Extract<
     ChartKind,
-    'vertical_bar' | 'horizontal_bar' | 'line' | 'area' | 'scatter' | 'mixed'
+    'vertical_bar' | 'horizontal_bar' | 'line' | 'area' | 'scatter'
   >;
   flipAxes: boolean;
   stackMode: ChartStackMode;
@@ -130,7 +123,6 @@ export type CartesianChartConfigBody = {
   margins: ChartDisplayConfig['margins'];
   seriesColor?: string;
   showValueLabels?: boolean;
-  series?: CartesianSeriesConfig[];
 };
 
 export type PieChartConfigBody = {
@@ -216,7 +208,6 @@ const LEGACY_CARTESIAN_KINDS = new Set<ChartKind>([
   'line',
   'area',
   'scatter',
-  'mixed',
 ]);
 
 type LegacyChartConfig = {
@@ -372,7 +363,7 @@ function migrateLegacyCartesian(legacy: LegacyChartConfig): ChartConfig {
   if (LEGACY_CARTESIAN_KINDS.has(legacy.type)) {
     layout.cartesianKind = legacy.type as Extract<
       ChartKind,
-      'vertical_bar' | 'horizontal_bar' | 'line' | 'area' | 'scatter' | 'mixed'
+      'vertical_bar' | 'horizontal_bar' | 'line' | 'area' | 'scatter'
     >;
   }
   if (legacy.type === 'horizontal_bar') {
@@ -460,7 +451,6 @@ function isLegacyChartConfig(raw: Record<string, unknown>): raw is LegacyChartCo
     type === 'line' ||
     type === 'area' ||
     type === 'scatter' ||
-    type === 'mixed' ||
     type === 'pie' ||
     type === 'table' ||
     type === 'big_number'

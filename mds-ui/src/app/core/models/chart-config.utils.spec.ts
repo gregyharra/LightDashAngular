@@ -107,10 +107,9 @@ describe('chart-config.utils', () => {
 });
 
 describe('chart kinds expansion utils', () => {
-  it('maps area/scatter/mixed to cartesian', () => {
+  it('maps area/scatter to cartesian', () => {
     expect(chartTypeFromKind('area')).toBe('cartesian');
     expect(chartTypeFromKind('scatter')).toBe('cartesian');
-    expect(chartTypeFromKind('mixed')).toBe('cartesian');
     expect(chartTypeFromKind('funnel')).toBe('funnel');
     expect(chartTypeFromKind('sankey')).toBe('sankey');
   });
@@ -148,38 +147,7 @@ describe('chart kinds expansion utils', () => {
     }
   });
 
-  it('toChartPanelView exposes mixed series', () => {
-    const config = defaultConfigForType('cartesian');
-    if (config.type !== 'cartesian') throw new Error('expected cartesian');
-    config.config.layout.cartesianKind = 'mixed';
-    config.config.layout.yFields = ['m1', 'm2'];
-    config.config.series = [
-      { fieldId: 'm1', type: 'bar' },
-      { fieldId: 'm2', type: 'line' },
-    ];
-    const view = toChartPanelView(config);
-    expect(view.chartKind).toBe('mixed');
-    expect(view.series).toEqual(config.config.series);
-  });
 
-  it('applyChartPanelPatch keeps mixed series in sync when yFields change', () => {
-    const config = defaultConfigForType('cartesian');
-    if (config.type !== 'cartesian') throw new Error('expected cartesian');
-    config.config.layout.cartesianKind = 'mixed';
-    config.config.layout.yFields = ['m1', 'm2'];
-    config.config.series = [
-      { fieldId: 'm1', type: 'bar' },
-      { fieldId: 'm2', type: 'line' },
-    ];
-    const patched = applyChartPanelPatch(config, { yFields: ['m2', 'm3'] });
-    expect(patched.type).toBe('cartesian');
-    if (patched.type === 'cartesian') {
-      expect(patched.config.series).toEqual([
-        { fieldId: 'm2', type: 'line' },
-        { fieldId: 'm3', type: 'bar' },
-      ]);
-    }
-  });
 
   it('panel patch updates funnel, treemap and gauge fields', () => {
     const funnel = applyChartPanelPatch(defaultConfigForType('funnel'), {

@@ -3,7 +3,6 @@ import {
   BigNumberChartConfigBody,
   CartesianChartConfigBody,
   CartesianLayoutConfig,
-  CartesianSeriesConfig,
   ChartConfig,
   ChartDisplayConfig,
   ChartKind,
@@ -25,7 +24,6 @@ export type ChartPanelView = {
   xField: FieldId | null;
   yFields: FieldId[];
   displayConfig: ChartDisplayConfig;
-  series?: CartesianSeriesConfig[];
   funnelDataInput?: 'column' | 'row';
   treemapDimensionFieldIds?: FieldId[];
   gaugeMin?: number;
@@ -39,7 +37,7 @@ export type ChartPanelView = {
 
 type CartesianKind = Extract<
   ChartKind,
-  'vertical_bar' | 'horizontal_bar' | 'line' | 'area' | 'scatter' | 'mixed'
+  'vertical_bar' | 'horizontal_bar' | 'line' | 'area' | 'scatter'
 >;
 
 function cartesianKindFromLayout(layout: CartesianLayoutConfig): CartesianKind {
@@ -55,7 +53,6 @@ const CARTESIAN_KINDS = new Set<CartesianKind>([
   'line',
   'area',
   'scatter',
-  'mixed',
 ]);
 
 function cloneChartConfig(config: ChartConfig): ChartConfig {
@@ -73,7 +70,7 @@ function flipAxesForCartesianKind(kind: CartesianKind, previousFlipAxes?: boolea
   if (kind === 'vertical_bar') {
     return false;
   }
-  // area/scatter/mixed default to unflipped axes, but preserve a flip that
+  // area/scatter default to unflipped axes, but preserve a flip that
   // already existed on the layout (e.g. restored from cache).
   return previousFlipAxes ?? false;
 }
@@ -167,7 +164,6 @@ export function chartTypeFromKind(kind: ChartKind): ChartType {
     case 'line':
     case 'area':
     case 'scatter':
-    case 'mixed':
       return 'cartesian';
     case 'pie':
       return 'pie';
@@ -284,7 +280,6 @@ export function toChartPanelView(config: ChartConfig): ChartPanelView {
         xField: layout.xField ?? null,
         yFields: [...(layout.yFields ?? [])],
         displayConfig: displayConfigFromCartesian(config.config),
-        series: config.config.series ? [...config.config.series] : undefined,
       };
     }
     case 'pie':
@@ -353,7 +348,6 @@ export function applyChartPanelPatch(
   patch: Partial<ChartDisplayConfig> & {
     xField?: FieldId | null;
     yFields?: FieldId[];
-    series?: CartesianSeriesConfig[];
     funnelDataInput?: 'column' | 'row';
     treemapDimensionFieldIds?: FieldId[];
     gaugeMin?: number;
@@ -374,7 +368,6 @@ export function applyChartPanelPatch(
       const {
         xField,
         yFields,
-        series,
         flipAxes,
         stackMode,
         showGridX,
@@ -408,19 +401,6 @@ export function applyChartPanelPatch(
       }
       if (yFields !== undefined) {
         layout.yFields = yFields;
-        const kindForSync = layout.cartesianKind ?? cartesianKindFromLayout(layout);
-        if (kindForSync === 'mixed') {
-          const existingSeries = body.series ?? [];
-          const keptSeries = existingSeries.filter((s) => yFields.includes(s.fieldId));
-          const keptFieldIds = new Set(keptSeries.map((s) => s.fieldId));
-          const appendedSeries = yFields
-            .filter((fieldId) => !keptFieldIds.has(fieldId))
-            .map((fieldId): CartesianSeriesConfig => ({ fieldId, type: 'bar' }));
-          body.series = [...keptSeries, ...appendedSeries];
-        }
-      }
-      if (series !== undefined) {
-        body.series = series;
       }
       if (flipAxes !== undefined) {
         layout.flipAxes = flipAxes;

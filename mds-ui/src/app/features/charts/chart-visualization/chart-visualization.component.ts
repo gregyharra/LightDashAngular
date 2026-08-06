@@ -47,8 +47,7 @@ export class ChartVisualizationComponent {
           kind !== 'horizontal_bar' &&
           kind !== 'line' &&
           kind !== 'area' &&
-          kind !== 'scatter' &&
-          kind !== 'mixed'
+          kind !== 'scatter'
         ) {
           return null;
         }

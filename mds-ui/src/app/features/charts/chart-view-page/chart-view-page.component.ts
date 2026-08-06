@@ -24,7 +24,6 @@ import {
   ChartConfig,
   ChartDisplayConfig,
   ChartKind,
-  CartesianSeriesConfig,
   SavedChart,
   defaultConfigForType,
   normalizeChartConfig,
@@ -166,7 +165,6 @@ export class ChartViewPageComponent {
   protected readonly chartKind = computed(() => this.panelView().chartKind);
   protected readonly chartXField = computed(() => this.panelView().xField);
   protected readonly chartYFields = computed(() => this.panelView().yFields);
-  protected readonly chartSeries = computed(() => this.panelView().series);
   protected readonly funnelDataInput = computed(
     () => this.panelView().funnelDataInput ?? 'column',
   );
@@ -1042,11 +1040,6 @@ export class ChartViewPageComponent {
     );
   }
 
-  protected setChartSeries(series: CartesianSeriesConfig[]): void {
-    this.chartConfig.set(
-      applyChartPanelPatch(this.chartConfig(), { series }),
-    );
-  }
 
   protected setChartDisplayConfig(config: ChartDisplayConfig): void {
     const next = {

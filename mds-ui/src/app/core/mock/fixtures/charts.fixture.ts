@@ -16,7 +16,6 @@ import {
   MOCK_CHART_8_UUID,
   MOCK_CHART_9_UUID,
   MOCK_CHART_10_UUID,
-  MOCK_CHART_11_UUID,
   MOCK_CHART_12_UUID,
   MOCK_CHART_13_UUID,
   MOCK_CHART_14_UUID,
@@ -202,25 +201,6 @@ const revenueScatterConfig = normalizeChartConfig({
   },
 });
 
-const mixedRevenueOrdersConfig = normalizeChartConfig({
-  type: 'cartesian',
-  config: {
-    layout: {
-      cartesianKind: 'mixed',
-      xField: getFieldId('orders', 'order_date'),
-      yFields: [
-        getFieldId('orders', 'total_revenue'),
-        getFieldId('orders', 'order_count'),
-      ],
-      flipAxes: false,
-    },
-    series: [
-      { fieldId: getFieldId('orders', 'total_revenue'), type: 'bar' },
-      { fieldId: getFieldId('orders', 'order_count'), type: 'line' },
-    ],
-    showLegend: true,
-  },
-});
 
 const statusFunnelConfig = normalizeChartConfig({
   type: 'funnel',
@@ -268,19 +248,6 @@ const statusStoreSankeyConfig = normalizeChartConfig({
   },
 });
 
-const mixedRevenueOrdersQuery = {
-  exploreName: 'orders',
-  dimensions: [getFieldId('orders', 'order_date')],
-  metrics: [
-    getFieldId('orders', 'total_revenue'),
-    getFieldId('orders', 'order_count'),
-  ],
-  filters: {},
-  sorts: [{ fieldId: getFieldId('orders', 'order_date'), descending: false }],
-  limit: 500,
-  tableCalculations: [],
-  additionalMetrics: [],
-};
 
 
 export const mockSavedChartDetails: Record<string, SavedChart> = {
@@ -545,30 +512,6 @@ export const mockSavedChartDetails: Record<string, SavedChart> = {
     tableName: 'orders',
     metricQuery: revenueByMonthQuery,
     chartConfig: revenueScatterConfig,
-    updatedByUser: {
-      userUuid: MOCK_USER_UUID,
-      firstName: 'Demo',
-      lastName: 'Analyst',
-    },
-  },
-  [MOCK_CHART_11_UUID]: {
-    uuid: MOCK_CHART_11_UUID,
-    name: 'Revenue vs orders mixed',
-    description: 'Mixed bar and line series',
-    spaceUuid: MOCK_SPACE_UUID,
-    spaceName: 'Shared',
-    projectUuid: MOCK_PROJECT_UUID,
-    updatedAt: '2024-06-03T12:00:00.000Z',
-    pinnedListUuid: null,
-    pinnedListOrder: null,
-    views: 5,
-    firstViewedAt: '2024-04-03T10:00:00.000Z',
-    isPrivate: false,
-    access: [],
-    chartKind: 'mixed',
-    tableName: 'orders',
-    metricQuery: mixedRevenueOrdersQuery,
-    chartConfig: mixedRevenueOrdersConfig,
     updatedByUser: {
       userUuid: MOCK_USER_UUID,
       firstName: 'Demo',
