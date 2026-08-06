@@ -855,9 +855,104 @@
       @for (section of gaugeSections; track section.id) {
         <mat-tab [label]="section.label">
           <div class="tables-chart-config__tab-body">
-            <p class="tables-chart-config__hint tables-chart-config__hint--disabled">
-              Gauge field configuration is available in a future update.
-            </p>
+            @switch (section.id) {
+              @case ('layout') {
+                <div class="tables-chart-config__group">
+                  <span class="tables-chart-config__subheading">Metric</span>
+                  @if (selectedMetrics().length > 0) {
+                    <mat-form-field appearance="outline" subscriptSizing="dynamic">
+                      <mat-label>Metric</mat-label>
+                      <mat-select
+                        [value]="gaugeMetric()"
+                        (valueChange)="setGaugeMetric($event)"
+                      >
+                        @for (metricId of yFieldOptions(gaugeMetric() || selectedMetrics()[0]); track metricId) {
+                          <mat-option [value]="metricId">
+                            {{ getFieldLabel()(metricId) }}
+                          </mat-option>
+                        }
+                      </mat-select>
+                    </mat-form-field>
+                  } @else {
+                    <p class="tables-chart-config__hint">Select a metric for the gauge value.</p>
+                  }
+                </div>
+
+                <div class="tables-chart-config__group">
+                  <span class="tables-chart-config__subheading">Range</span>
+                  <div class="tables-chart-config__margins">
+                    <mat-form-field appearance="outline" subscriptSizing="dynamic">
+                      <mat-label>Min</mat-label>
+                      <input
+                        matInput
+                        type="number"
+                        [value]="gaugeMin() ?? ''"
+                        (change)="setGaugeMin($any($event.target).value)"
+                        (blur)="setGaugeMin($any($event.target).value)"
+                      />
+                    </mat-form-field>
+                    <mat-form-field appearance="outline" subscriptSizing="dynamic">
+                      <mat-label>Max</mat-label>
+                      <input
+                        matInput
+                        type="number"
+                        [value]="gaugeMax() ?? ''"
+                        (change)="setGaugeMax($any($event.target).value)"
+                        (blur)="setGaugeMax($any($event.target).value)"
+                      />
+                    </mat-form-field>
+                  </div>
+                </div>
+
+                <div class="tables-chart-config__group">
+                  <span class="tables-chart-config__subheading">Data</span>
+                  <mat-form-field appearance="outline" subscriptSizing="dynamic">
+                    <mat-label>Row limit</mat-label>
+                    <input
+                      matInput
+                      type="number"
+                      min="1"
+                      [max]="resolvedMaxRowLimit()"
+                      step="100"
+                      [value]="displayConfig().rowLimit"
+                      (change)="setRowLimit($any($event.target).value)"
+                      (blur)="setRowLimit($any($event.target).value)"
+                      (keydown)="onRowLimitKeydown($event)"
+                    />
+                  </mat-form-field>
+                </div>
+              }
+
+              @case ('display') {
+                <div class="tables-chart-config__group">
+                  <span class="tables-chart-config__subheading">Label</span>
+                  <mat-slide-toggle
+                    [checked]="showGaugeLabel()"
+                    (change)="setShowGaugeLabel($event.checked)"
+                  >
+                    Show label
+                  </mat-slide-toggle>
+                </div>
+
+                <div class="tables-chart-config__group">
+                  <span class="tables-chart-config__subheading">Margins</span>
+                  <div class="tables-chart-config__margins">
+                    @for (side of marginSides; track side) {
+                      <mat-form-field appearance="outline" subscriptSizing="dynamic">
+                        <mat-label>{{ side | titlecase }}</mat-label>
+                        <input
+                          matInput
+                          type="number"
+                          min="0"
+                          [ngModel]="marginValue(side)"
+                          (ngModelChange)="patchMargins(side, $event)"
+                        />
+                      </mat-form-field>
+                    }
+                  </div>
+                </div>
+              }
+            }
           </div>
         </mat-tab>
       }

@@ -173,6 +173,11 @@ export class ChartViewPageComponent {
   protected readonly treemapDimensionFieldIds = computed(
     () => this.panelView().treemapDimensionFieldIds ?? [],
   );
+  protected readonly gaugeMin = computed(() => this.panelView().gaugeMin);
+  protected readonly gaugeMax = computed(() => this.panelView().gaugeMax);
+  protected readonly showGaugeLabel = computed(
+    () => this.panelView().showGaugeLabel ?? true,
+  );
   protected readonly chartDisplayConfig = computed(
     () => this.panelView().displayConfig as TablesChartDisplayConfig,
   );
@@ -374,7 +379,7 @@ export class ChartViewPageComponent {
       return true;
     }
 
-    if (kind === 'big_number') {
+    if (kind === 'big_number' || kind === 'gauge') {
       return this.chartYFields().length > 0;
     }
 
@@ -998,7 +1003,7 @@ export class ChartViewPageComponent {
     this.chartConfig.set(result.chartConfig);
     this.cachedChartConfigs.set(result.cache);
 
-    if (kind === 'big_number') {
+    if (kind === 'big_number' || kind === 'gauge') {
       this.ensureBigNumberMetric();
     } else {
       this.syncChartAxisFields();
@@ -1042,6 +1047,24 @@ export class ChartViewPageComponent {
       applyChartPanelPatch(this.chartConfig(), {
         treemapDimensionFieldIds: fieldIds,
       }),
+    );
+  }
+
+  protected setGaugeMin(min: number | undefined): void {
+    this.chartConfig.set(
+      applyChartPanelPatch(this.chartConfig(), { gaugeMin: min }),
+    );
+  }
+
+  protected setGaugeMax(max: number | undefined): void {
+    this.chartConfig.set(
+      applyChartPanelPatch(this.chartConfig(), { gaugeMax: max }),
+    );
+  }
+
+  protected setShowGaugeLabel(show: boolean): void {
+    this.chartConfig.set(
+      applyChartPanelPatch(this.chartConfig(), { showGaugeLabel: show }),
     );
   }
 
@@ -1262,7 +1285,7 @@ export class ChartViewPageComponent {
       return;
     }
 
-    if (kind !== 'big_number') {
+    if (kind !== 'big_number' && kind !== 'gauge') {
       if (!currentX || !dimensions.includes(currentX)) {
         patch.xField = dimensions[0] ?? null;
       }
@@ -1271,7 +1294,7 @@ export class ChartViewPageComponent {
     const validY = currentY.filter((fieldId) => metrics.includes(fieldId));
     if (validY.length === 0) {
       patch.yFields = metrics[0] ? [metrics[0]] : [];
-    } else if (kind === 'big_number') {
+    } else if (kind === 'big_number' || kind === 'gauge') {
       patch.yFields = [validY[0]];
     } else {
       patch.yFields = validY;

@@ -148,6 +148,8 @@ export class TablesChartConfigPanelComponent {
 
   protected readonly treemapMetric = computed(() => this.chartYFields()[0] ?? null);
 
+  protected readonly gaugeMetric = computed(() => this.chartYFields()[0] ?? null);
+
   readonly funnelDataInput = input<'column' | 'row'>('column');
 
   readonly funnelDataInputChange = output<'column' | 'row'>();
@@ -155,6 +157,18 @@ export class TablesChartConfigPanelComponent {
   readonly treemapDimensionFieldIds = input<FieldId[]>([]);
 
   readonly treemapDimensionFieldIdsChange = output<FieldId[]>();
+
+  readonly gaugeMin = input<number | undefined>(undefined);
+
+  readonly gaugeMax = input<number | undefined>(undefined);
+
+  readonly showGaugeLabel = input(true);
+
+  readonly gaugeMinChange = output<number | undefined>();
+
+  readonly gaugeMaxChange = output<number | undefined>();
+
+  readonly showGaugeLabelChange = output<boolean>();
 
   protected readonly availableTreemapDimensions = computed(() => {
     const selected = new Set(this.treemapDimensionFieldIds());
@@ -218,6 +232,30 @@ export class TablesChartConfigPanelComponent {
 
   protected setTreemapMetric(fieldId: FieldId): void {
     this.chartYFieldsChange.emit([fieldId]);
+  }
+
+  protected setGaugeMetric(fieldId: FieldId): void {
+    this.chartYFieldsChange.emit([fieldId]);
+  }
+
+  protected setGaugeMin(value: number | string | null): void {
+    const parsed =
+      value === '' || value === null ? undefined : Number(value);
+    this.gaugeMinChange.emit(
+      parsed === undefined || Number.isNaN(parsed) ? undefined : parsed,
+    );
+  }
+
+  protected setGaugeMax(value: number | string | null): void {
+    const parsed =
+      value === '' || value === null ? undefined : Number(value);
+    this.gaugeMaxChange.emit(
+      parsed === undefined || Number.isNaN(parsed) ? undefined : parsed,
+    );
+  }
+
+  protected setShowGaugeLabel(show: boolean): void {
+    this.showGaugeLabelChange.emit(show);
   }
 
   protected setTreemapDimensionField(index: number, fieldId: FieldId): void {

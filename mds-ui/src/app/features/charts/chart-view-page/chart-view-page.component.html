@@ -135,6 +135,9 @@
               [series]="chartSeries()"
               [funnelDataInput]="funnelDataInput()"
               [treemapDimensionFieldIds]="treemapDimensionFieldIds()"
+              [gaugeMin]="gaugeMin()"
+              [gaugeMax]="gaugeMax()"
+              [showGaugeLabel]="showGaugeLabel()"
               [selectedDimensions]="selectedDimensionList()"
               [selectedMetrics]="selectedMetricList()"
               [displayConfig]="chartDisplayConfig()"
@@ -147,6 +150,9 @@
               (seriesChange)="setChartSeries($event)"
               (funnelDataInputChange)="setFunnelDataInput($event)"
               (treemapDimensionFieldIdsChange)="setTreemapDimensionFieldIds($event)"
+              (gaugeMinChange)="setGaugeMin($event)"
+              (gaugeMaxChange)="setGaugeMax($event)"
+              (showGaugeLabelChange)="setShowGaugeLabel($event)"
               (displayConfigChange)="setChartDisplayConfig($event)"
             />
           </div>
