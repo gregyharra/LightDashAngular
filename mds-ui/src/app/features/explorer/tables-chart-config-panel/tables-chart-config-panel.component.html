@@ -177,7 +177,28 @@
                   @for (fieldId of chartYFields(); track fieldId) {
                     <div class="tables-chart-config__series-row">
                       <span class="tables-chart-config__series-swatch"></span>
-                      <span>{{ getFieldLabel()(fieldId) }}</span>
+                      <span class="tables-chart-config__series-label">{{
+                        getFieldLabel()(fieldId)
+                      }}</span>
+                      @if (isMixedChart()) {
+                        <mat-form-field
+                          appearance="outline"
+                          subscriptSizing="dynamic"
+                          class="tables-chart-config__series-type"
+                        >
+                          <mat-label>Type</mat-label>
+                          <mat-select
+                            [value]="seriesTypeForField(fieldId)"
+                            (valueChange)="setSeriesType(fieldId, $event)"
+                          >
+                            @for (option of mixedSeriesTypeOptions; track option.value) {
+                              <mat-option [value]="option.value">
+                                {{ option.label }}
+                              </mat-option>
+                            }
+                          </mat-select>
+                        </mat-form-field>
+                      }
                     </div>
                   }
                 } @else {
@@ -515,6 +536,74 @@
         <p class="tables-chart-config__hint">Select a metric to display as the big value.</p>
       }
     </section>
+  } @else if (isFunnelChart()) {
+    <mat-tab-group
+      class="tables-chart-config__tabs"
+      [mat-stretch-tabs]="false"
+      mat-align-tabs="start"
+      animationDuration="0ms"
+    >
+      @for (section of funnelSections; track section.id) {
+        <mat-tab [label]="section.label">
+          <div class="tables-chart-config__tab-body">
+            <p class="tables-chart-config__hint tables-chart-config__hint--disabled">
+              Funnel field configuration is available in a future update.
+            </p>
+          </div>
+        </mat-tab>
+      }
+    </mat-tab-group>
+  } @else if (isTreemapChart()) {
+    <mat-tab-group
+      class="tables-chart-config__tabs"
+      [mat-stretch-tabs]="false"
+      mat-align-tabs="start"
+      animationDuration="0ms"
+    >
+      @for (section of treemapSections; track section.id) {
+        <mat-tab [label]="section.label">
+          <div class="tables-chart-config__tab-body">
+            <p class="tables-chart-config__hint tables-chart-config__hint--disabled">
+              Treemap field configuration is available in a future update.
+            </p>
+          </div>
+        </mat-tab>
+      }
+    </mat-tab-group>
+  } @else if (isGaugeChart()) {
+    <mat-tab-group
+      class="tables-chart-config__tabs"
+      [mat-stretch-tabs]="false"
+      mat-align-tabs="start"
+      animationDuration="0ms"
+    >
+      @for (section of gaugeSections; track section.id) {
+        <mat-tab [label]="section.label">
+          <div class="tables-chart-config__tab-body">
+            <p class="tables-chart-config__hint tables-chart-config__hint--disabled">
+              Gauge field configuration is available in a future update.
+            </p>
+          </div>
+        </mat-tab>
+      }
+    </mat-tab-group>
+  } @else if (isSankeyChart()) {
+    <mat-tab-group
+      class="tables-chart-config__tabs"
+      [mat-stretch-tabs]="false"
+      mat-align-tabs="start"
+      animationDuration="0ms"
+    >
+      @for (section of sankeySections; track section.id) {
+        <mat-tab [label]="section.label">
+          <div class="tables-chart-config__tab-body">
+            <p class="tables-chart-config__hint tables-chart-config__hint--disabled">
+              Sankey field configuration is available in a future update.
+            </p>
+          </div>
+        </mat-tab>
+      }
+    </mat-tab-group>
   } @else {
     <section class="tables-chart-config__section">
       <p class="tables-chart-config__hint">

@@ -1,7 +1,24 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 import { DEFAULT_CHART_DISPLAY_CONFIG } from './tables-chart-config.constants';
-import { TablesChartConfigPanelComponent } from './tables-chart-config-panel.component';
+import {
+  TablesChartConfigPanelComponent,
+  updateSeriesType,
+} from './tables-chart-config-panel.component';
+
+describe('updateSeriesType', () => {
+  it('updates the type for one field while preserving others', () => {
+    const series = [
+      { fieldId: 'orders_revenue', type: 'bar' as const },
+      { fieldId: 'orders_count', type: 'bar' as const },
+    ];
+
+    expect(updateSeriesType(series, 'orders_count', 'line')).toEqual([
+      { fieldId: 'orders_revenue', type: 'bar' },
+      { fieldId: 'orders_count', type: 'line' },
+    ]);
+  });
+});
 
 describe('TablesChartConfigPanelComponent', () => {
   let fixture: ComponentFixture<TablesChartConfigPanelComponent>;
@@ -56,5 +73,30 @@ describe('TablesChartConfigPanelComponent', () => {
 
     expect(xEmissions).toEqual(['orders_region']);
     expect(yEmissions).toEqual([['orders_count']]);
+  });
+
+  it('emits seriesChange when mixed chart series type changes', () => {
+    fixture.componentRef.setInput('chartKind', 'mixed');
+    fixture.componentRef.setInput('chartYFields', ['orders_revenue', 'orders_count']);
+    fixture.componentRef.setInput('series', [
+      { fieldId: 'orders_revenue', type: 'bar' },
+      { fieldId: 'orders_count', type: 'bar' },
+    ]);
+    fixture.detectChanges();
+
+    const emissions: Array<Array<{ fieldId: string; type: string }>> = [];
+    fixture.componentInstance.seriesChange.subscribe((value) => emissions.push(value));
+
+    const api = fixture.componentInstance as unknown as {
+      setSeriesType: (fieldId: string, type: 'bar' | 'line' | 'area') => void;
+    };
+    api.setSeriesType('orders_count', 'line');
+
+    expect(emissions).toEqual([
+      [
+        { fieldId: 'orders_revenue', type: 'bar' },
+        { fieldId: 'orders_count', type: 'line' },
+      ],
+    ]);
   });
 });

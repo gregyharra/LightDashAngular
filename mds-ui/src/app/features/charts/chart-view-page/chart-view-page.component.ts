@@ -24,6 +24,7 @@ import {
   ChartConfig,
   ChartDisplayConfig,
   ChartKind,
+  CartesianSeriesConfig,
   SavedChart,
   defaultConfigForType,
   normalizeChartConfig,
@@ -165,6 +166,7 @@ export class ChartViewPageComponent {
   protected readonly chartKind = computed(() => this.panelView().chartKind);
   protected readonly chartXField = computed(() => this.panelView().xField);
   protected readonly chartYFields = computed(() => this.panelView().yFields);
+  protected readonly chartSeries = computed(() => this.panelView().series);
   protected readonly chartDisplayConfig = computed(
     () => this.panelView().displayConfig as TablesChartDisplayConfig,
   );
@@ -995,6 +997,12 @@ export class ChartViewPageComponent {
   protected setChartYFields(fieldIds: FieldId[]): void {
     this.chartConfig.set(
       applyChartPanelPatch(this.chartConfig(), { yFields: fieldIds }),
+    );
+  }
+
+  protected setChartSeries(series: CartesianSeriesConfig[]): void {
+    this.chartConfig.set(
+      applyChartPanelPatch(this.chartConfig(), { series }),
     );
   }
 

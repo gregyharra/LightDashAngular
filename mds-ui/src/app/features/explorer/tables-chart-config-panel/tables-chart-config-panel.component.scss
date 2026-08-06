@@ -207,6 +207,20 @@
   padding: 6px 0;
   font-size: var(--ld-font-size-sm);
   color: var(--ld-gray-8);
+  min-width: 0;
+}
+
+.tables-chart-config__series-label {
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.tables-chart-config__series-type {
+  flex: 0 0 7rem;
+  min-width: 0;
 }
 
 .tables-chart-config__series-swatch {

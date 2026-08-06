@@ -132,6 +132,7 @@
               [chartKind]="chartKind()"
               [chartXField]="chartXField()"
               [chartYFields]="chartYFields()"
+              [series]="chartSeries()"
               [selectedDimensions]="selectedDimensionList()"
               [selectedMetrics]="selectedMetricList()"
               [displayConfig]="chartDisplayConfig()"
@@ -141,6 +142,7 @@
               (chartKindChange)="setChartKind($event)"
               (chartXFieldChange)="setChartXField($event)"
               (chartYFieldsChange)="setChartYFields($event)"
+              (seriesChange)="setChartSeries($event)"
               (displayConfigChange)="setChartDisplayConfig($event)"
             />
           </div>
