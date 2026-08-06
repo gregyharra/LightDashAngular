@@ -1,4 +1,4 @@
-import { normalizeChartConfig } from './chart.model';
+import { defaultConfigForType, normalizeChartConfig } from './chart.model';
 
 describe('normalizeChartConfig', () => {
   it('migrates legacy line chart to cartesian', () => {
@@ -81,7 +81,7 @@ describe('normalizeChartConfig', () => {
   });
 
   it('falls unknown future type back to table', () => {
-    const result = normalizeChartConfig({ type: 'sankey', config: {} });
+    const result = normalizeChartConfig({ type: 'map', config: {} });
     expect(result.type).toBe('table');
   });
 
@@ -144,5 +144,57 @@ describe('normalizeChartConfig', () => {
       },
     };
     expect(normalizeChartConfig(input)).toEqual(input);
+  });
+
+  it('returns funnel defaults from defaultConfigForType', () => {
+    const result = defaultConfigForType('funnel');
+    expect(result.type).toBe('funnel');
+    if (result.type === 'funnel') {
+      expect(result.config.dataInput).toBe('column');
+    }
+  });
+
+  it('normalizes a funnel ChartConfig passthrough', () => {
+    const result = normalizeChartConfig({
+      type: 'funnel',
+      config: {
+        fieldId: 'orders_order_count',
+        dataInput: 'column',
+        showLegend: true,
+        legendPlacement: 'chart',
+        rowLimit: 500,
+        margins: { top: 8, right: 8, bottom: 8, left: 8 },
+      },
+    });
+    expect(result.type).toBe('funnel');
+  });
+
+  it('normalizes cartesian area kind with cartesianKind', () => {
+    const result = normalizeChartConfig({
+      type: 'cartesian',
+      config: {
+        layout: {
+          xField: 'orders_order_date',
+          yFields: ['orders_total_revenue'],
+          cartesianKind: 'area',
+          flipAxes: false,
+          stackMode: 'none',
+          showGridX: true,
+          showGridY: true,
+          showXAxis: true,
+          showYAxis: true,
+          xAxisLabel: '',
+          yAxisLabel: '',
+        },
+        showLegend: true,
+        legendPlacement: 'chart',
+        rowLimit: 500,
+        margins: { top: 8, right: 8, bottom: 8, left: 8 },
+      },
+    });
+    expect(result.type).toBe('cartesian');
+    if (result.type === 'cartesian') {
+      expect(result.config.layout.cartesianKind).toBe('area');
+    }
   });
 });

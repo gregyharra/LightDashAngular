@@ -17,9 +17,16 @@ export type ChartKind =
   | 'vertical_bar'
   | 'horizontal_bar'
   | 'line'
+  | 'area'
+  | 'scatter'
+  | 'mixed'
   | 'pie'
   | 'table'
-  | 'big_number';
+  | 'big_number'
+  | 'funnel'
+  | 'treemap'
+  | 'gauge'
+  | 'sankey';
 
 export type SavedChartBasic = {
   uuid: string;
@@ -90,11 +97,21 @@ export const DEFAULT_CHART_DISPLAY_CONFIG: ChartDisplayConfig = {
   showColumnTotals: false,
 };
 
+export type CartesianSeriesType = 'bar' | 'line' | 'area';
+
+export type CartesianSeriesConfig = {
+  fieldId: FieldId;
+  type: CartesianSeriesType;
+};
+
 export type CartesianLayoutConfig = {
   xField?: FieldId;
   yFields?: FieldId[];
   /** Distinguishes line vs bar kinds on the same cartesian family config. */
-  cartesianKind?: Extract<ChartKind, 'vertical_bar' | 'horizontal_bar' | 'line'>;
+  cartesianKind?: Extract<
+    ChartKind,
+    'vertical_bar' | 'horizontal_bar' | 'line' | 'area' | 'scatter' | 'mixed'
+  >;
   flipAxes: boolean;
   stackMode: ChartStackMode;
   showGridX: boolean;
@@ -113,6 +130,7 @@ export type CartesianChartConfigBody = {
   margins: ChartDisplayConfig['margins'];
   seriesColor?: string;
   showValueLabels?: boolean;
+  series?: CartesianSeriesConfig[];
 };
 
 export type PieChartConfigBody = {
@@ -135,23 +153,70 @@ export type BigNumberChartConfigBody = {
   rowLimit: number;
 };
 
+export type FunnelChartConfigBody = {
+  fieldId?: FieldId;
+  labelFieldId?: FieldId;
+  dataInput: 'column' | 'row';
+  showLegend: boolean;
+  legendPlacement: ChartLegendPlacement;
+  rowLimit: number;
+  margins: ChartDisplayConfig['margins'];
+};
+
+export type TreemapChartConfigBody = {
+  dimensionFieldIds: FieldId[];
+  metricFieldId?: FieldId;
+  showLegend: boolean;
+  rowLimit: number;
+  margins: ChartDisplayConfig['margins'];
+};
+
+export type GaugeChartConfigBody = {
+  selectedField?: FieldId;
+  min?: number;
+  max?: number;
+  showLabel: boolean;
+  rowLimit: number;
+  margins: ChartDisplayConfig['margins'];
+};
+
+export type SankeyChartConfigBody = {
+  sourceFieldId?: FieldId;
+  targetFieldId?: FieldId;
+  weightFieldId?: FieldId;
+  showNodeLabels: boolean;
+  rowLimit: number;
+  margins: ChartDisplayConfig['margins'];
+};
+
 export type ChartConfig =
   | { type: 'cartesian'; config: CartesianChartConfigBody }
   | { type: 'pie'; config: PieChartConfigBody }
   | { type: 'table'; config: TableChartConfigBody }
-  | { type: 'big_number'; config: BigNumberChartConfigBody };
+  | { type: 'big_number'; config: BigNumberChartConfigBody }
+  | { type: 'funnel'; config: FunnelChartConfigBody }
+  | { type: 'treemap'; config: TreemapChartConfigBody }
+  | { type: 'gauge'; config: GaugeChartConfigBody }
+  | { type: 'sankey'; config: SankeyChartConfigBody };
 
 const ACTIVE_CHART_TYPES = new Set<ChartType>([
   'cartesian',
   'pie',
   'table',
   'big_number',
+  'funnel',
+  'treemap',
+  'gauge',
+  'sankey',
 ]);
 
 const LEGACY_CARTESIAN_KINDS = new Set<ChartKind>([
   'vertical_bar',
   'horizontal_bar',
   'line',
+  'area',
+  'scatter',
+  'mixed',
 ]);
 
 type LegacyChartConfig = {
@@ -216,6 +281,45 @@ function defaultBigNumberConfig(): BigNumberChartConfigBody {
   };
 }
 
+function defaultFunnelConfig(): FunnelChartConfigBody {
+  const d = DEFAULT_CHART_DISPLAY_CONFIG;
+  return {
+    dataInput: 'column',
+    showLegend: d.showLegend,
+    legendPlacement: d.legendPlacement,
+    rowLimit: d.rowLimit,
+    margins: { ...d.margins },
+  };
+}
+
+function defaultTreemapConfig(): TreemapChartConfigBody {
+  const d = DEFAULT_CHART_DISPLAY_CONFIG;
+  return {
+    dimensionFieldIds: [],
+    showLegend: d.showLegend,
+    rowLimit: d.rowLimit,
+    margins: { ...d.margins },
+  };
+}
+
+function defaultGaugeConfig(): GaugeChartConfigBody {
+  const d = DEFAULT_CHART_DISPLAY_CONFIG;
+  return {
+    showLabel: true,
+    rowLimit: d.rowLimit,
+    margins: { ...d.margins },
+  };
+}
+
+function defaultSankeyConfig(): SankeyChartConfigBody {
+  const d = DEFAULT_CHART_DISPLAY_CONFIG;
+  return {
+    showNodeLabels: true,
+    rowLimit: d.rowLimit,
+    margins: { ...d.margins },
+  };
+}
+
 export function defaultConfigForType(type: ChartType): ChartConfig {
   switch (type) {
     case 'cartesian':
@@ -224,7 +328,18 @@ export function defaultConfigForType(type: ChartType): ChartConfig {
       return { type: 'pie', config: defaultPieConfig() };
     case 'big_number':
       return { type: 'big_number', config: defaultBigNumberConfig() };
+    case 'funnel':
+      return { type: 'funnel', config: defaultFunnelConfig() };
+    case 'treemap':
+      return { type: 'treemap', config: defaultTreemapConfig() };
+    case 'gauge':
+      return { type: 'gauge', config: defaultGaugeConfig() };
+    case 'sankey':
+      return { type: 'sankey', config: defaultSankeyConfig() };
     case 'table':
+    case 'map':
+    case 'custom':
+    case 'data_app_viz':
     default:
       return { type: 'table', config: defaultTableConfig() };
   }
@@ -257,7 +372,7 @@ function migrateLegacyCartesian(legacy: LegacyChartConfig): ChartConfig {
   if (LEGACY_CARTESIAN_KINDS.has(legacy.type)) {
     layout.cartesianKind = legacy.type as Extract<
       ChartKind,
-      'vertical_bar' | 'horizontal_bar' | 'line'
+      'vertical_bar' | 'horizontal_bar' | 'line' | 'area' | 'scatter' | 'mixed'
     >;
   }
   if (legacy.type === 'horizontal_bar') {
@@ -343,6 +458,9 @@ function isLegacyChartConfig(raw: Record<string, unknown>): raw is LegacyChartCo
     type === 'vertical_bar' ||
     type === 'horizontal_bar' ||
     type === 'line' ||
+    type === 'area' ||
+    type === 'scatter' ||
+    type === 'mixed' ||
     type === 'pie' ||
     type === 'table' ||
     type === 'big_number'
@@ -393,6 +511,38 @@ function normalizeActiveFamily(raw: Record<string, unknown>): ChartConfig {
       const partial = config as Partial<BigNumberChartConfigBody>;
       return {
         type: 'big_number',
+        config: { ...base, ...partial },
+      };
+    }
+    case 'funnel': {
+      const base = defaultFunnelConfig();
+      const partial = config as Partial<FunnelChartConfigBody>;
+      return {
+        type: 'funnel',
+        config: { ...base, ...partial },
+      };
+    }
+    case 'treemap': {
+      const base = defaultTreemapConfig();
+      const partial = config as Partial<TreemapChartConfigBody>;
+      return {
+        type: 'treemap',
+        config: { ...base, ...partial },
+      };
+    }
+    case 'gauge': {
+      const base = defaultGaugeConfig();
+      const partial = config as Partial<GaugeChartConfigBody>;
+      return {
+        type: 'gauge',
+        config: { ...base, ...partial },
+      };
+    }
+    case 'sankey': {
+      const base = defaultSankeyConfig();
+      const partial = config as Partial<SankeyChartConfigBody>;
+      return {
+        type: 'sankey',
         config: { ...base, ...partial },
       };
     }
