@@ -1,6 +1,7 @@
 import { EChartsOption, SeriesOption } from 'echarts';
 import {
   CartesianChartConfigBody,
+  CartesianSeriesType,
   ChartKind,
   ChartLegendPlacement,
 } from '../../../core/models/chart.model';
@@ -8,18 +9,58 @@ import { FieldId, QueryResults } from '../../../core/models/explore.model';
 
 const SERIES_COLORS = ['#7262ff', '#e67700', '#12b886', '#5c7cfa', '#fab005'];
 
-const DEFAULT_COLOR_BY_KIND: Record<BuildCartesianArgs['chartKind'], string> = {
+type CartesianChartKind = Extract<
+  ChartKind,
+  'vertical_bar' | 'horizontal_bar' | 'line' | 'area' | 'scatter' | 'mixed'
+>;
+
+type ResolvedSeriesGeometry = CartesianSeriesType | 'scatter';
+
+const DEFAULT_COLOR_BY_KIND: Record<CartesianChartKind, string> = {
   vertical_bar: '#7262ff',
   line: '#e67700',
   horizontal_bar: '#12b886',
+  area: '#7262ff',
+  scatter: '#7262ff',
+  mixed: '#7262ff',
 };
 
 export type BuildCartesianArgs = {
   results: QueryResults;
   config: CartesianChartConfigBody;
-  chartKind: Extract<ChartKind, 'vertical_bar' | 'horizontal_bar' | 'line'>;
+  chartKind: CartesianChartKind;
   dashboardMode?: boolean;
 };
+
+function defaultSeriesGeometry(chartKind: CartesianChartKind): ResolvedSeriesGeometry {
+  switch (chartKind) {
+    case 'line':
+      return 'line';
+    case 'area':
+      return 'area';
+    case 'scatter':
+      return 'scatter';
+    case 'mixed':
+      return 'bar';
+    default:
+      return 'bar';
+  }
+}
+
+function resolveSeriesGeometry(
+  fieldId: FieldId,
+  config: CartesianChartConfigBody,
+  chartKind: CartesianChartKind,
+): ResolvedSeriesGeometry {
+  const override = config.series?.find((entry) => entry.fieldId === fieldId)?.type;
+  return override ?? defaultSeriesGeometry(chartKind);
+}
+
+function toEChartsSeriesType(
+  geometry: ResolvedSeriesGeometry,
+): 'bar' | 'line' | 'scatter' {
+  return geometry === 'scatter' ? 'scatter' : geometry === 'area' ? 'line' : geometry;
+}
 
 function toNumber(raw: unknown): number {
   if (typeof raw === 'number') {
@@ -105,10 +146,11 @@ export function buildCartesianOption({
     config.layout.stackMode === 'stack' ||
     config.layout.stackMode === 'percent';
   const labels = results.rows.map((row) => row[xField]?.value.formatted ?? '');
-  const seriesType = chartKind === 'line' ? 'line' : 'bar';
   const primaryColor = config.seriesColor ?? DEFAULT_COLOR_BY_KIND[chartKind];
 
   const series: SeriesOption[] = yFields.map((fieldId, index) => {
+    const geometry = resolveSeriesGeometry(fieldId, config, chartKind);
+    const seriesType = toEChartsSeriesType(geometry);
     const color = seriesColorAt(index, primaryColor, SERIES_COLORS);
     const base = {
       name: fieldLabel(results, fieldId),
@@ -118,6 +160,15 @@ export function buildCartesianOption({
       label: { show: config.showValueLabels ?? false },
       itemStyle: { color },
     } as const;
+
+    if (geometry === 'area') {
+      return {
+        ...base,
+        lineStyle: { color, width: 2 },
+        symbolSize: 8,
+        areaStyle: {},
+      };
+    }
 
     if (seriesType === 'line') {
       return {
