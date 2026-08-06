@@ -146,9 +146,20 @@ export class TablesChartConfigPanelComponent {
 
   protected readonly funnelLabelField = computed(() => this.chartYFields()[0] ?? null);
 
+  protected readonly treemapMetric = computed(() => this.chartYFields()[0] ?? null);
+
   readonly funnelDataInput = input<'column' | 'row'>('column');
 
   readonly funnelDataInputChange = output<'column' | 'row'>();
+
+  readonly treemapDimensionFieldIds = input<FieldId[]>([]);
+
+  readonly treemapDimensionFieldIdsChange = output<FieldId[]>();
+
+  protected readonly availableTreemapDimensions = computed(() => {
+    const selected = new Set(this.treemapDimensionFieldIds());
+    return this.selectedDimensions().filter((fieldId) => !selected.has(fieldId));
+  });
 
   protected readonly availableYFields = computed(() => {
     const selected = new Set(this.chartYFields());
@@ -203,6 +214,51 @@ export class TablesChartConfigPanelComponent {
 
   protected setFunnelDataInput(dataInput: 'column' | 'row'): void {
     this.funnelDataInputChange.emit(dataInput);
+  }
+
+  protected setTreemapMetric(fieldId: FieldId): void {
+    this.chartYFieldsChange.emit([fieldId]);
+  }
+
+  protected setTreemapDimensionField(index: number, fieldId: FieldId): void {
+    const next = [...this.treemapDimensionFieldIds()];
+    next[index] = fieldId;
+    this.treemapDimensionFieldIdsChange.emit(next);
+  }
+
+  protected addTreemapDimension(): void {
+    const available = this.availableTreemapDimensions();
+    if (available.length === 0) {
+      return;
+    }
+    this.treemapDimensionFieldIdsChange.emit([
+      ...this.treemapDimensionFieldIds(),
+      available[0],
+    ]);
+  }
+
+  protected removeTreemapDimension(index: number): void {
+    const next = this.treemapDimensionFieldIds().filter(
+      (_, fieldIndex) => fieldIndex !== index,
+    );
+    this.treemapDimensionFieldIdsChange.emit(next);
+  }
+
+  protected moveTreemapDimension(index: number, direction: -1 | 1): void {
+    const next = [...this.treemapDimensionFieldIds()];
+    const target = index + direction;
+    if (target < 0 || target >= next.length) {
+      return;
+    }
+    [next[index], next[target]] = [next[target], next[index]];
+    this.treemapDimensionFieldIdsChange.emit(next);
+  }
+
+  protected treemapDimensionOptions(currentFieldId: FieldId): FieldId[] {
+    const dimensions = this.selectedDimensions();
+    return dimensions.includes(currentFieldId)
+      ? dimensions
+      : [currentFieldId, ...dimensions];
   }
 
   protected addYField(): void {

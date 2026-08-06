@@ -153,6 +153,9 @@ export class TablesWorkspacePageComponent {
   protected readonly funnelDataInput = computed(
     () => this.panelView().funnelDataInput ?? 'column',
   );
+  protected readonly treemapDimensionFieldIds = computed(
+    () => this.panelView().treemapDimensionFieldIds ?? [],
+  );
   protected readonly chartDisplayConfig = computed(
     () => this.panelView().displayConfig as TablesChartDisplayConfig,
   );
@@ -303,6 +306,13 @@ export class TablesWorkspacePageComponent {
 
     if (kind === 'funnel') {
       return !!this.chartXField();
+    }
+
+    if (kind === 'treemap') {
+      return (
+        this.chartYFields().length > 0 &&
+        this.treemapDimensionFieldIds().length > 0
+      );
     }
 
     return !!(this.chartXField() && this.chartYFields().length > 0);
@@ -694,6 +704,14 @@ export class TablesWorkspacePageComponent {
     );
   }
 
+  protected setTreemapDimensionFieldIds(fieldIds: FieldId[]): void {
+    this.chartConfig.set(
+      applyChartPanelPatch(this.chartConfig(), {
+        treemapDimensionFieldIds: fieldIds,
+      }),
+    );
+  }
+
   protected setQueryRowLimit(limit: number): void {
     this.chartConfig.set(
       applyChartPanelPatch(this.chartConfig(), {
@@ -720,6 +738,7 @@ export class TablesWorkspacePageComponent {
     const patch: {
       xField?: FieldId | null;
       yFields?: FieldId[];
+      treemapDimensionFieldIds?: FieldId[];
     } = {};
 
     if (kind === 'funnel') {
@@ -733,6 +752,32 @@ export class TablesWorkspacePageComponent {
       }
 
       if (patch.xField !== undefined || patch.yFields !== undefined) {
+        this.chartConfig.set(applyChartPanelPatch(this.chartConfig(), patch));
+      }
+      return;
+    }
+
+    if (kind === 'treemap') {
+      const currentMetric = currentY[0];
+      if (!currentMetric || !metrics.includes(currentMetric)) {
+        patch.yFields = metrics[0] ? [metrics[0]] : [];
+      }
+
+      const currentDims = this.panelView().treemapDimensionFieldIds ?? [];
+      const validDims = currentDims.filter((fieldId) =>
+        dimensions.includes(fieldId),
+      );
+      if (validDims.length === 0) {
+        patch.treemapDimensionFieldIds =
+          dimensions.length > 0 ? [dimensions[0]] : [];
+      } else if (validDims.length !== currentDims.length) {
+        patch.treemapDimensionFieldIds = validDims;
+      }
+
+      if (
+        patch.yFields !== undefined ||
+        patch.treemapDimensionFieldIds !== undefined
+      ) {
         this.chartConfig.set(applyChartPanelPatch(this.chartConfig(), patch));
       }
       return;

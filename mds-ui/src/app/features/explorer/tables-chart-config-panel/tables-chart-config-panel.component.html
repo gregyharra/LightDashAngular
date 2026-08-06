@@ -704,9 +704,143 @@
       @for (section of treemapSections; track section.id) {
         <mat-tab [label]="section.label">
           <div class="tables-chart-config__tab-body">
-            <p class="tables-chart-config__hint tables-chart-config__hint--disabled">
-              Treemap field configuration is available in a future update.
-            </p>
+            @switch (section.id) {
+              @case ('layout') {
+                <div class="tables-chart-config__group">
+                  <div class="tables-chart-config__group-header">
+                    <span class="tables-chart-config__subheading">Dimensions</span>
+                    @if (availableTreemapDimensions().length > 0) {
+                      <button
+                        mat-button
+                        type="button"
+                        class="tables-chart-config__text-action"
+                        (click)="addTreemapDimension()"
+                      >
+                        <mat-icon>add</mat-icon>
+                        Add
+                      </button>
+                    }
+                  </div>
+
+                  @if (treemapDimensionFieldIds().length > 0) {
+                    @for (fieldId of treemapDimensionFieldIds(); track fieldId; let index = $index) {
+                      <div class="tables-chart-config__series-row">
+                        <mat-form-field appearance="outline" subscriptSizing="dynamic">
+                          <mat-label>Dimension {{ index + 1 }}</mat-label>
+                          <mat-select
+                            [value]="fieldId"
+                            (valueChange)="setTreemapDimensionField(index, $event)"
+                          >
+                            @for (dimensionId of treemapDimensionOptions(fieldId); track dimensionId) {
+                              <mat-option [value]="dimensionId">
+                                {{ getFieldLabel()(dimensionId) }}
+                              </mat-option>
+                            }
+                          </mat-select>
+                        </mat-form-field>
+                        <button
+                          mat-icon-button
+                          type="button"
+                          aria-label="Move dimension up"
+                          [disabled]="index === 0"
+                          (click)="moveTreemapDimension(index, -1)"
+                        >
+                          <mat-icon>arrow_upward</mat-icon>
+                        </button>
+                        <button
+                          mat-icon-button
+                          type="button"
+                          aria-label="Move dimension down"
+                          [disabled]="index === treemapDimensionFieldIds().length - 1"
+                          (click)="moveTreemapDimension(index, 1)"
+                        >
+                          <mat-icon>arrow_downward</mat-icon>
+                        </button>
+                        <button
+                          mat-icon-button
+                          type="button"
+                          aria-label="Remove dimension"
+                          (click)="removeTreemapDimension(index)"
+                        >
+                          <mat-icon>close</mat-icon>
+                        </button>
+                      </div>
+                    }
+                  } @else {
+                    <p class="tables-chart-config__hint">Select dimensions to group treemap tiles.</p>
+                  }
+                </div>
+
+                <div class="tables-chart-config__group">
+                  <span class="tables-chart-config__subheading">Metric</span>
+                  @if (selectedMetrics().length > 0) {
+                    <mat-form-field appearance="outline" subscriptSizing="dynamic">
+                      <mat-label>Metric</mat-label>
+                      <mat-select
+                        [value]="treemapMetric()"
+                        (valueChange)="setTreemapMetric($event)"
+                      >
+                        @for (metricId of yFieldOptions(treemapMetric() || selectedMetrics()[0]); track metricId) {
+                          <mat-option [value]="metricId">
+                            {{ getFieldLabel()(metricId) }}
+                          </mat-option>
+                        }
+                      </mat-select>
+                    </mat-form-field>
+                  } @else {
+                    <p class="tables-chart-config__hint">Select a metric for tile size.</p>
+                  }
+                </div>
+
+                <div class="tables-chart-config__group">
+                  <span class="tables-chart-config__subheading">Data</span>
+                  <mat-form-field appearance="outline" subscriptSizing="dynamic">
+                    <mat-label>Row limit</mat-label>
+                    <input
+                      matInput
+                      type="number"
+                      min="1"
+                      [max]="resolvedMaxRowLimit()"
+                      step="100"
+                      [value]="displayConfig().rowLimit"
+                      (change)="setRowLimit($any($event.target).value)"
+                      (blur)="setRowLimit($any($event.target).value)"
+                      (keydown)="onRowLimitKeydown($event)"
+                    />
+                  </mat-form-field>
+                </div>
+              }
+
+              @case ('display') {
+                <div class="tables-chart-config__group">
+                  <span class="tables-chart-config__subheading">Legend</span>
+                  <mat-slide-toggle
+                    [checked]="displayConfig().showLegend"
+                    (change)="patchDisplayConfig({ showLegend: $event.checked })"
+                  >
+                    Show legend
+                  </mat-slide-toggle>
+                </div>
+
+                <div class="tables-chart-config__group">
+                  <span class="tables-chart-config__subheading">Margins</span>
+                  <div class="tables-chart-config__margins">
+                    @for (side of marginSides; track side) {
+                      <mat-form-field appearance="outline" subscriptSizing="dynamic">
+                        <mat-label>{{ side | titlecase }}</mat-label>
+                        <input
+                          matInput
+                          type="number"
+                          min="0"
+                          [ngModel]="marginValue(side)"
+                          (ngModelChange)="patchMargins(side, $event)"
+                        />
+                      </mat-form-field>
+                    }
+                  </div>
+                </div>
+              }
+            }
           </div>
         </mat-tab>
       }

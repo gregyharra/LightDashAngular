@@ -134,6 +134,7 @@
               [chartYFields]="chartYFields()"
               [series]="chartSeries()"
               [funnelDataInput]="funnelDataInput()"
+              [treemapDimensionFieldIds]="treemapDimensionFieldIds()"
               [selectedDimensions]="selectedDimensionList()"
               [selectedMetrics]="selectedMetricList()"
               [displayConfig]="chartDisplayConfig()"
@@ -145,6 +146,7 @@
               (chartYFieldsChange)="setChartYFields($event)"
               (seriesChange)="setChartSeries($event)"
               (funnelDataInputChange)="setFunnelDataInput($event)"
+              (treemapDimensionFieldIdsChange)="setTreemapDimensionFieldIds($event)"
               (displayConfigChange)="setChartDisplayConfig($event)"
             />
           </div>
