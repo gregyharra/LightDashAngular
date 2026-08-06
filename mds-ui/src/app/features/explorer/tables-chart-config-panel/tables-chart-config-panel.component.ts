@@ -170,6 +170,22 @@ export class TablesChartConfigPanelComponent {
 
   readonly showGaugeLabelChange = output<boolean>();
 
+  readonly sankeySourceFieldId = input<FieldId | null>(null);
+
+  readonly sankeyTargetFieldId = input<FieldId | null>(null);
+
+  readonly sankeyWeightFieldId = input<FieldId | null>(null);
+
+  readonly showNodeLabels = input(true);
+
+  readonly sankeySourceFieldIdChange = output<FieldId>();
+
+  readonly sankeyTargetFieldIdChange = output<FieldId>();
+
+  readonly sankeyWeightFieldIdChange = output<FieldId>();
+
+  readonly showNodeLabelsChange = output<boolean>();
+
   protected readonly availableTreemapDimensions = computed(() => {
     const selected = new Set(this.treemapDimensionFieldIds());
     return this.selectedDimensions().filter((fieldId) => !selected.has(fieldId));
@@ -256,6 +272,22 @@ export class TablesChartConfigPanelComponent {
 
   protected setShowGaugeLabel(show: boolean): void {
     this.showGaugeLabelChange.emit(show);
+  }
+
+  protected setSankeySourceFieldId(fieldId: FieldId): void {
+    this.sankeySourceFieldIdChange.emit(fieldId);
+  }
+
+  protected setSankeyTargetFieldId(fieldId: FieldId): void {
+    this.sankeyTargetFieldIdChange.emit(fieldId);
+  }
+
+  protected setSankeyWeightFieldId(fieldId: FieldId): void {
+    this.sankeyWeightFieldIdChange.emit(fieldId);
+  }
+
+  protected setShowNodeLabels(show: boolean): void {
+    this.showNodeLabelsChange.emit(show);
   }
 
   protected setTreemapDimensionField(index: number, fieldId: FieldId): void {

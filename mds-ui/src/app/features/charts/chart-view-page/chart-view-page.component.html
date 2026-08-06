@@ -138,6 +138,10 @@
               [gaugeMin]="gaugeMin()"
               [gaugeMax]="gaugeMax()"
               [showGaugeLabel]="showGaugeLabel()"
+              [sankeySourceFieldId]="sankeySourceFieldId()"
+              [sankeyTargetFieldId]="sankeyTargetFieldId()"
+              [sankeyWeightFieldId]="sankeyWeightFieldId()"
+              [showNodeLabels]="showNodeLabels()"
               [selectedDimensions]="selectedDimensionList()"
               [selectedMetrics]="selectedMetricList()"
               [displayConfig]="chartDisplayConfig()"
@@ -153,6 +157,10 @@
               (gaugeMinChange)="setGaugeMin($event)"
               (gaugeMaxChange)="setGaugeMax($event)"
               (showGaugeLabelChange)="setShowGaugeLabel($event)"
+              (sankeySourceFieldIdChange)="setSankeySourceFieldId($event)"
+              (sankeyTargetFieldIdChange)="setSankeyTargetFieldId($event)"
+              (sankeyWeightFieldIdChange)="setSankeyWeightFieldId($event)"
+              (showNodeLabelsChange)="setShowNodeLabels($event)"
               (displayConfigChange)="setChartDisplayConfig($event)"
             />
           </div>

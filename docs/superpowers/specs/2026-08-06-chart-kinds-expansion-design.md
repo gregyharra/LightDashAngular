@@ -1,7 +1,7 @@
 # Chart kinds expansion (cartesian extras + ECharts-native)
 
 **Date:** 2026-08-06  
-**Status:** Draft — pending user review  
+**Status:** Accepted — implementation plan in `docs/superpowers/plans/2026-08-06-chart-kinds-expansion.md`  
 **Scope:** Second chart-viz sub-project after the foundation (`2026-08-03-chart-viz-foundation-design.md`)  
 **Related context:** Lightdash `ChartKind` / visualization config tabs; MDS UI ECharts host + subtab config panel
 

@@ -967,9 +967,99 @@
       @for (section of sankeySections; track section.id) {
         <mat-tab [label]="section.label">
           <div class="tables-chart-config__tab-body">
-            <p class="tables-chart-config__hint tables-chart-config__hint--disabled">
-              Sankey field configuration is available in a future update.
-            </p>
+            @switch (section.id) {
+              @case ('layout') {
+                <div class="tables-chart-config__group">
+                  <span class="tables-chart-config__subheading">Fields</span>
+                  <mat-form-field appearance="outline" subscriptSizing="dynamic">
+                    <mat-label>Source</mat-label>
+                    <mat-select
+                      [value]="sankeySourceFieldId()"
+                      (selectionChange)="setSankeySourceFieldId($event.value)"
+                    >
+                      @for (fieldId of selectedDimensions(); track fieldId) {
+                        <mat-option [value]="fieldId">{{ getFieldLabel()(fieldId) }}</mat-option>
+                      }
+                    </mat-select>
+                  </mat-form-field>
+                  <mat-form-field appearance="outline" subscriptSizing="dynamic">
+                    <mat-label>Target</mat-label>
+                    <mat-select
+                      [value]="sankeyTargetFieldId()"
+                      (selectionChange)="setSankeyTargetFieldId($event.value)"
+                    >
+                      @for (fieldId of selectedDimensions(); track fieldId) {
+                        <mat-option [value]="fieldId">{{ getFieldLabel()(fieldId) }}</mat-option>
+                      }
+                    </mat-select>
+                  </mat-form-field>
+                  <mat-form-field appearance="outline" subscriptSizing="dynamic">
+                    <mat-label>Weight</mat-label>
+                    <mat-select
+                      [value]="sankeyWeightFieldId()"
+                      (selectionChange)="setSankeyWeightFieldId($event.value)"
+                    >
+                      @for (fieldId of selectedMetrics(); track fieldId) {
+                        <mat-option [value]="fieldId">{{ getFieldLabel()(fieldId) }}</mat-option>
+                      }
+                    </mat-select>
+                  </mat-form-field>
+                  @if (selectedDimensions().length < 2 || selectedMetrics().length < 1) {
+                    <p class="tables-chart-config__hint">
+                      Select at least two dimensions and one metric to render a sankey.
+                    </p>
+                  }
+                </div>
+
+                <div class="tables-chart-config__group">
+                  <span class="tables-chart-config__subheading">Data</span>
+                  <mat-form-field appearance="outline" subscriptSizing="dynamic">
+                    <mat-label>Row limit</mat-label>
+                    <input
+                      matInput
+                      type="number"
+                      min="1"
+                      [max]="resolvedMaxRowLimit()"
+                      step="100"
+                      [value]="displayConfig().rowLimit"
+                      (change)="setRowLimit($any($event.target).value)"
+                      (blur)="setRowLimit($any($event.target).value)"
+                      (keydown)="onRowLimitKeydown($event)"
+                    />
+                  </mat-form-field>
+                </div>
+              }
+
+              @case ('display') {
+                <div class="tables-chart-config__group">
+                  <span class="tables-chart-config__subheading">Labels</span>
+                  <mat-slide-toggle
+                    [checked]="showNodeLabels()"
+                    (change)="setShowNodeLabels($event.checked)"
+                  >
+                    Show node labels
+                  </mat-slide-toggle>
+                </div>
+
+                <div class="tables-chart-config__group">
+                  <span class="tables-chart-config__subheading">Margins</span>
+                  <div class="tables-chart-config__margins">
+                    @for (side of marginSides; track side) {
+                      <mat-form-field appearance="outline" subscriptSizing="dynamic">
+                        <mat-label>{{ side | titlecase }}</mat-label>
+                        <input
+                          matInput
+                          type="number"
+                          min="0"
+                          [ngModel]="marginValue(side)"
+                          (ngModelChange)="patchMargins(side, $event)"
+                        />
+                      </mat-form-field>
+                    }
+                  </div>
+                </div>
+              }
+            }
           </div>
         </mat-tab>
       }

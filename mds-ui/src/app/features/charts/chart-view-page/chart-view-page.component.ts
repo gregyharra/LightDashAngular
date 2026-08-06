@@ -178,6 +178,18 @@ export class ChartViewPageComponent {
   protected readonly showGaugeLabel = computed(
     () => this.panelView().showGaugeLabel ?? true,
   );
+  protected readonly sankeySourceFieldId = computed(
+    () => this.panelView().sankeySourceFieldId ?? null,
+  );
+  protected readonly sankeyTargetFieldId = computed(
+    () => this.panelView().sankeyTargetFieldId ?? null,
+  );
+  protected readonly sankeyWeightFieldId = computed(
+    () => this.panelView().sankeyWeightFieldId ?? null,
+  );
+  protected readonly showNodeLabels = computed(
+    () => this.panelView().showNodeLabels ?? true,
+  );
   protected readonly chartDisplayConfig = computed(
     () => this.panelView().displayConfig as TablesChartDisplayConfig,
   );
@@ -391,6 +403,14 @@ export class ChartViewPageComponent {
       return (
         this.chartYFields().length > 0 &&
         this.treemapDimensionFieldIds().length > 0
+      );
+    }
+
+    if (kind === 'sankey') {
+      return !!(
+        this.sankeySourceFieldId() &&
+        this.sankeyTargetFieldId() &&
+        this.sankeyWeightFieldId()
       );
     }
 
@@ -1068,6 +1088,36 @@ export class ChartViewPageComponent {
     );
   }
 
+  protected setSankeySourceFieldId(fieldId: FieldId): void {
+    this.chartConfig.set(
+      applyChartPanelPatch(this.chartConfig(), {
+        sankeySourceFieldId: fieldId,
+      }),
+    );
+  }
+
+  protected setSankeyTargetFieldId(fieldId: FieldId): void {
+    this.chartConfig.set(
+      applyChartPanelPatch(this.chartConfig(), {
+        sankeyTargetFieldId: fieldId,
+      }),
+    );
+  }
+
+  protected setSankeyWeightFieldId(fieldId: FieldId): void {
+    this.chartConfig.set(
+      applyChartPanelPatch(this.chartConfig(), {
+        sankeyWeightFieldId: fieldId,
+      }),
+    );
+  }
+
+  protected setShowNodeLabels(show: boolean): void {
+    this.chartConfig.set(
+      applyChartPanelPatch(this.chartConfig(), { showNodeLabels: show }),
+    );
+  }
+
   protected setQueryRowLimit(limit: number): void {
     this.chartConfig.set(
       applyChartPanelPatch(this.chartConfig(), {
@@ -1281,6 +1331,47 @@ export class ChartViewPageComponent {
         patch.treemapDimensionFieldIds !== undefined
       ) {
         this.chartConfig.set(applyChartPanelPatch(this.chartConfig(), patch));
+      }
+      return;
+    }
+
+    if (kind === 'sankey') {
+      const view = this.panelView();
+      const sankeyPatch: {
+        sankeySourceFieldId?: FieldId | null;
+        sankeyTargetFieldId?: FieldId | null;
+        sankeyWeightFieldId?: FieldId | null;
+      } = {};
+      const source = view.sankeySourceFieldId;
+      const target = view.sankeyTargetFieldId;
+      const weight = view.sankeyWeightFieldId;
+
+      if (!source || !dimensions.includes(source)) {
+        sankeyPatch.sankeySourceFieldId = dimensions[0] ?? null;
+      }
+      if (
+        !target ||
+        !dimensions.includes(target) ||
+        target === (sankeyPatch.sankeySourceFieldId ?? source)
+      ) {
+        sankeyPatch.sankeyTargetFieldId =
+          dimensions.find(
+            (fieldId) =>
+              fieldId !== (sankeyPatch.sankeySourceFieldId ?? source),
+          ) ?? null;
+      }
+      if (!weight || !metrics.includes(weight)) {
+        sankeyPatch.sankeyWeightFieldId = metrics[0] ?? null;
+      }
+
+      if (
+        sankeyPatch.sankeySourceFieldId !== undefined ||
+        sankeyPatch.sankeyTargetFieldId !== undefined ||
+        sankeyPatch.sankeyWeightFieldId !== undefined
+      ) {
+        this.chartConfig.set(
+          applyChartPanelPatch(this.chartConfig(), sankeyPatch),
+        );
       }
       return;
     }
