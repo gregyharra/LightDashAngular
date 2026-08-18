@@ -1,8 +1,13 @@
 from __future__ import annotations
 
 import time
+import uuid
 from pathlib import Path
 
+import pytest
+from fastapi.testclient import TestClient
+
+from mds.main import app
 from mds.schemas.query import MetricQuery
 from mds.services.query import export_store, export_writer, store
 from mds.services.query.compile import build_metric_query_sql
@@ -205,3 +210,167 @@ def test_export_executor_does_not_touch_query_store(monkeypatch):
     assert len(store._queries) == queries_before
     if ready.file_path:
         Path(ready.file_path).unlink(missing_ok=True)
+
+
+EXPORT_PAYLOAD = {
+    "metricQuery": {
+        "exploreName": "orders",
+        "dimensions": ["orders_status"],
+        "metrics": ["orders_order_count"],
+        "filters": {},
+        "sorts": [],
+        "limit": 10,
+        "tableCalculations": [],
+        "additionalMetrics": [],
+    },
+    "format": "csv",
+    "overrideRowCap": False,
+    "filenameBase": "Orders",
+}
+
+
+@pytest.fixture
+def client() -> TestClient:
+    with TestClient(app) as test_client:
+        yield test_client
+
+
+def _apply_export_stubs(monkeypatch, *, schedule: str = "sync"):
+    from types import SimpleNamespace
+
+    from mds.routers import exports
+    from mds.services.query import export_executor
+
+    monkeypatch.setattr(exports, "_load_lineage_context", lambda *_a, **_k: (object(), {}))
+    monkeypatch.setattr(exports, "find_lineage_node", lambda *_a, **_k: object())
+    monkeypatch.setattr(
+        exports, "build_explore_from_lineage_node", lambda *_a, **_k: _orders_explore()
+    )
+    monkeypatch.setattr(
+        exports,
+        "get_connection_for_project",
+        lambda *_a, **_k: SimpleNamespace(type="trino"),
+    )
+    snap = TrinoConnectionSnapshot("h", 8080, "c", "s", "u", None, False)
+    monkeypatch.setattr(exports, "snapshot_from_warehouse", lambda _w: snap)
+
+    def fake_iter(_snapshot, _sql, _field_ids):
+        yield ["open"]
+        yield ["closed"]
+
+    monkeypatch.setattr(export_executor, "iter_trino_formatted_rows", fake_iter)
+
+    if schedule == "noop":
+        monkeypatch.setattr(exports, "schedule_export", lambda *_a, **_k: None)
+        return None
+
+    if schedule == "capture":
+        captured: dict[str, object] = {}
+
+        def capture(*args):
+            captured["args"] = args
+
+        monkeypatch.setattr(exports, "schedule_export", capture)
+        return captured
+
+    def sync_schedule(*args):
+        export_executor._run_export(*args)
+
+    monkeypatch.setattr(exports, "schedule_export", sync_schedule)
+    return None
+
+
+def _cleanup_export(export_uuid: str) -> None:
+    stored = export_store.get_export(export_uuid)
+    if stored and stored.file_path:
+        Path(stored.file_path).unlink(missing_ok=True)
+
+
+def test_post_export_returns_uuid_without_waiting(client: TestClient, monkeypatch):
+    try:
+        _apply_export_stubs(monkeypatch, schedule="noop")
+    except ImportError:
+        pass
+
+    export_store.clear_exports()
+    response = client.post("/api/v2/projects/project/exports", json=EXPORT_PAYLOAD)
+    assert response.status_code == 200
+    export_uuid = response.json()["results"]["exportUuid"]
+    uuid.UUID(export_uuid)
+
+
+def test_capped_export_compile_uses_csv_max_limit(client: TestClient, monkeypatch):
+    captured = _apply_export_stubs(monkeypatch, schedule="capture")
+    export_store.clear_exports()
+    response = client.post("/api/v2/projects/project/exports", json=EXPORT_PAYLOAD)
+    assert response.status_code == 200
+    sql = captured["args"][2]
+    override_row_cap = captured["args"][7]
+    assert "LIMIT 5000000" in sql
+    assert override_row_cap is False
+
+
+def test_override_export_compile_omits_limit(client: TestClient, monkeypatch):
+    captured = _apply_export_stubs(monkeypatch, schedule="capture")
+    export_store.clear_exports()
+    payload = {**EXPORT_PAYLOAD, "overrideRowCap": True}
+    response = client.post("/api/v2/projects/project/exports", json=payload)
+    assert response.status_code == 200
+    sql = captured["args"][2]
+    assert "LIMIT" not in sql.upper()
+
+
+def test_poll_truncated_when_row_count_equals_cap(client: TestClient, monkeypatch):
+    from mds.routers import exports
+
+    _apply_export_stubs(monkeypatch, schedule="sync")
+    monkeypatch.setattr(exports, "CSV_MAX_LIMIT", 2)
+    export_store.clear_exports()
+    created = client.post("/api/v2/projects/project/exports", json=EXPORT_PAYLOAD)
+    assert created.status_code == 200
+    export_uuid = created.json()["results"]["exportUuid"]
+    try:
+        polled = client.get(f"/api/v2/projects/project/exports/{export_uuid}")
+        assert polled.status_code == 200
+        results = polled.json()["results"]
+        assert results["truncated"] is True
+        assert results["rowCount"] == 2
+    finally:
+        _cleanup_export(export_uuid)
+
+
+def test_file_streams_csv_attachment(client: TestClient, monkeypatch):
+    _apply_export_stubs(monkeypatch, schedule="sync")
+    export_store.clear_exports()
+    created = client.post("/api/v2/projects/project/exports", json=EXPORT_PAYLOAD)
+    assert created.status_code == 200
+    export_uuid = created.json()["results"]["exportUuid"]
+    try:
+        response = client.get(f"/api/v2/projects/project/exports/{export_uuid}/file")
+        assert response.status_code == 200
+        disposition = response.headers.get("content-disposition", "")
+        assert "attachment" in disposition
+        assert ".csv" in disposition
+        assert response.content.startswith(b"\xef\xbb\xbf")
+    finally:
+        _cleanup_export(export_uuid)
+
+
+def test_file_error_when_job_failed(client: TestClient):
+    export_store.clear_exports()
+    job = export_store.create_export(
+        export_format="csv",
+        override_row_cap=False,
+        csv_max_limit=2,
+        filename="orders.csv",
+    )
+    export_store.set_export_error(job.export_uuid, "boom")
+    response = client.get(f"/api/v2/projects/project/exports/{job.export_uuid}/file")
+    assert response.status_code in {400, 409, 410}
+
+
+def test_metric_query_still_uses_query_pool():
+    from mds.services.query import executor, export_executor
+
+    assert executor._pool._max_workers == 4
+    assert export_executor._pool._max_workers == 1
