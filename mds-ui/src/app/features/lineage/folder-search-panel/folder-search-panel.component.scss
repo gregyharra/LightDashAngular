@@ -42,11 +42,8 @@
 }
 
 .folder-panel__fold-btn {
-  position: absolute;
-  top: 10px;
-  right: 8px;
-  z-index: 2;
   display: inline-flex;
+  flex: 0 0 auto;
   align-items: center;
   justify-content: center;
   width: 28px;
@@ -57,9 +54,8 @@
   background: var(--ld-background);
   color: var(--ld-gray-6);
   cursor: pointer;
+  white-space: nowrap;
   transition:
-    right 0.2s ease,
-    transform 0.2s ease,
     background-color 0.15s ease,
     color 0.15s ease;
 
@@ -74,26 +70,13 @@
     color: var(--ld-gray-8);
     border-color: var(--ld-gray-4);
   }
-
-  .folder-panel--collapsed & {
-    right: 50%;
-    transform: translateX(50%);
-  }
 }
 
 .folder-panel__header {
   flex-shrink: 0;
   min-width: 0;
   padding: var(--ld-spacing-md);
-  padding-right: 44px;
   border-bottom: 1px solid var(--ld-gray-2);
-  opacity: 1;
-  transition: opacity 0.15s ease;
-
-  .folder-panel--collapsed & {
-    opacity: 0;
-    pointer-events: none;
-  }
 }
 
 .folder-panel__header-top {
@@ -101,6 +84,7 @@
   align-items: center;
   gap: var(--ld-spacing-sm);
   min-width: 0;
+  height: 28px;
   margin-bottom: var(--ld-spacing-sm);
 }
 
@@ -140,6 +124,7 @@
   background: transparent;
   color: var(--ld-gray-5);
   cursor: pointer;
+  white-space: nowrap;
   transition:
     background-color 0.15s ease,
     color 0.15s ease,
@@ -224,6 +209,7 @@
 
 .folder-panel__tree {
   flex: 1;
+  min-width: 0;
   overflow-y: auto;
   padding: var(--ld-spacing-xs) 0;
   opacity: 1;
@@ -233,6 +219,37 @@
     opacity: 0;
     pointer-events: none;
     overflow: hidden;
+  }
+}
+
+.folder-panel--collapsed {
+  .folder-panel__header {
+    padding-left: 8px;
+    padding-right: 8px;
+    border-bottom-color: transparent;
+  }
+
+  .folder-panel__header-top {
+    justify-content: center;
+    gap: 0;
+    margin-bottom: 0;
+  }
+
+  .folder-panel__title,
+  .folder-panel__view-toggle,
+  .folder-panel__search-wrap,
+  .folder-panel__match-count {
+    flex: 0 0 0;
+    width: 0;
+    min-width: 0;
+    height: 0;
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+    border: none;
   }
 }
 

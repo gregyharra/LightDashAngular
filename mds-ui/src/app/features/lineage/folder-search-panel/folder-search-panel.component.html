@@ -4,16 +4,6 @@
   [class.folder-panel--resizing]="resizing()"
   [style.width.px]="collapsed() ? collapsedWidth : panelWidth()"
 >
-  <button
-    type="button"
-    class="folder-panel__fold-btn"
-    [attr.aria-expanded]="!collapsed()"
-    [attr.aria-label]="collapsed() ? 'Expand project panel' : 'Collapse project panel'"
-    (click)="toggleCollapsed()"
-  >
-    <mat-icon>{{ collapsed() ? 'chevron_right' : 'chevron_left' }}</mat-icon>
-  </button>
-
   <header class="folder-panel__header">
     <div class="folder-panel__header-top">
       <h2 class="folder-panel__title">{{ title() }}</h2>
@@ -49,6 +39,15 @@
           <mat-icon aria-hidden="true">schema</mat-icon>
         </button>
       </div>
+      <button
+        type="button"
+        class="folder-panel__fold-btn"
+        [attr.aria-expanded]="!collapsed()"
+        [attr.aria-label]="collapsed() ? 'Expand project panel' : 'Collapse project panel'"
+        (click)="toggleCollapsed()"
+      >
+        <mat-icon>{{ collapsed() ? 'chevron_right' : 'chevron_left' }}</mat-icon>
+      </button>
     </div>
     <div class="folder-panel__search-wrap">
       <mat-icon class="folder-panel__search-icon">search</mat-icon>
