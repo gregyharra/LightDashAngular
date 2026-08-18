@@ -14,6 +14,7 @@ import { Store } from '@ngrx/store';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { MatButtonModule } from '@angular/material/button';
 import { MatDialog } from '@angular/material/dialog';
+import { MatMenuModule } from '@angular/material/menu';
 import { MatExpansionModule } from '@angular/material/expansion';
 import { MatIconModule } from '@angular/material/icon';
 import { PageEvent } from '@angular/material/paginator';
@@ -89,6 +90,7 @@ import { QueryResultsPanelComponent } from '../query-results-panel/query-results
 import { ExportFormat } from '../../export/export.models';
 import { ExportService } from '../../export/export.service';
 import { startExport } from '../../export/start-export';
+import { chartExportPlacement } from './chart-export-placement';
 import { ResizableSidebarDirective } from '../../../layout/resizable-sidebar/resizable-sidebar.directive';
 import { AppStateService } from '../../../core/services/app-state.service';
 import { SqlHighlightComponent } from '../../../shared/sql-highlight/sql-highlight.component';
@@ -128,6 +130,7 @@ const RESULTS_DEFAULT_PAGE_SIZE = 25;
   imports: [
     RouterLink,
     MatButtonModule,
+    MatMenuModule,
     MatExpansionModule,
     MatIconModule,
     MatProgressSpinnerModule,
@@ -159,6 +162,7 @@ export class ChartViewPageComponent {
   private readonly destroyRef = inject(DestroyRef);
   private readonly store = inject(Store);
   protected readonly activeProjectService = inject(ActiveProjectService);
+  protected readonly chartExportPlacement = chartExportPlacement;
 
   private readonly cacheEntries = toSignal(this.store.select(selectEntries), {
     initialValue: {} as Record<string, ChartQueryEntry>,

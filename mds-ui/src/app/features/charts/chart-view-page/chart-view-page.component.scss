@@ -199,6 +199,11 @@
   white-space: nowrap;
 }
 
+.chart-view__export-btn {
+  flex-shrink: 0;
+  white-space: nowrap;
+}
+
 .chart-view__action-btn {
   flex-shrink: 0;
   white-space: nowrap;

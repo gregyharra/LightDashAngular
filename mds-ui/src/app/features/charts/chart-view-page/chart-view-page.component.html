@@ -323,6 +323,26 @@
                   <mat-icon>edit</mat-icon>
                   Edit
                 </button>
+                @if (chartExportPlacement(editMode()) === 'header') {
+                  <button
+                    mat-stroked-button
+                    type="button"
+                    class="chart-view__action-btn chart-view__export-btn"
+                    [disabled]="!queryResults()"
+                    [matMenuTriggerFor]="headerExportMenu"
+                  >
+                    <mat-icon>download</mat-icon>
+                    Export
+                  </button>
+                  <mat-menu #headerExportMenu="matMenu">
+                    <button mat-menu-item type="button" (click)="onExportCsv()">
+                      CSV
+                    </button>
+                    <button mat-menu-item type="button" (click)="onExportXlsx()">
+                      Excel
+                    </button>
+                  </mat-menu>
+                }
               }
               <span class="chart-view__table-badge">
                 <mat-icon>table_chart</mat-icon>
@@ -443,7 +463,7 @@
                     [pageIndex]="clampedResultsPageIndex()"
                     [pageSize]="resultsPageSize()"
                     [pageSizeOptions]="resultsPageSizeOptions"
-                    [showExport]="editMode()"
+                    [showExport]="chartExportPlacement(editMode()) === 'results'"
                     [exportDisabled]="!queryResults()"
                     (page)="onResultsPage($event)"
                     (exportCsv)="onExportCsv()"
