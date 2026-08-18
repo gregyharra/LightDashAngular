@@ -1,7 +1,7 @@
 # Explore page and unlimited chart/explore export
 
 **Date:** 2026-08-18  
-**Status:** Draft — pending user review  
+**Status:** Accepted — implementation plan in `docs/superpowers/plans/2026-08-18-explore-and-chart-export.md`  
 **Branch:** `feature/chart-data-export`  
 **Related:** async warehouse queries (`docs/superpowers/specs/2026-07-31-async-warehouse-queries-design.md`); chart view page; health `query.csvMaxLimit`
 
