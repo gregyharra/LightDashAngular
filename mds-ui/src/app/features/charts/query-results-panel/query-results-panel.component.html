@@ -1,0 +1,94 @@
+<div class="query-results-panel">
+  @if (showExport()) {
+    <div class="query-results-panel__toolbar">
+      <button
+        mat-stroked-button
+        type="button"
+        class="query-results-panel__export-btn"
+        [disabled]="exportDisabled()"
+        [matMenuTriggerFor]="exportMenu"
+      >
+        <mat-icon>download</mat-icon>
+        Export
+      </button>
+      <mat-menu #exportMenu="matMenu">
+        <button mat-menu-item type="button" (click)="exportCsv.emit()">CSV</button>
+        <button mat-menu-item type="button" (click)="exportXlsx.emit()">Excel</button>
+      </mat-menu>
+    </div>
+  }
+
+  @if (loading()) {
+    <div class="query-results-panel__loading">
+      <mat-spinner diameter="28" />
+      <p>Running query…</p>
+    </div>
+  } @else if (error()) {
+    <div class="query-results-panel__error">{{ error() }}</div>
+  } @else if (!hasResultsObject()) {
+    <div class="query-results-panel__empty query-results-panel__empty--centered">
+      <mat-icon>table_view</mat-icon>
+      <h2>No results yet</h2>
+      <p>
+        @if (showExport()) {
+          Select fields and click <strong>Run query</strong> to see results.
+        } @else {
+          Results appear after the chart query runs.
+        }
+      </p>
+    </div>
+  } @else if (rows().length === 0) {
+    <div class="query-results-panel__empty query-results-panel__empty--centered">
+      <mat-icon>search_off</mat-icon>
+      <h2>No results</h2>
+      <p>Try adjusting filters or selected fields.</p>
+    </div>
+  } @else {
+    <div class="query-results-panel__results">
+      <div class="query-results-panel__table-wrap">
+        <table
+          mat-table
+          [dataSource]="pagedRows()"
+          class="query-results-panel__table"
+        >
+          @for (column of displayedColumns(); track column) {
+            <ng-container [matColumnDef]="column">
+              <th mat-header-cell *matHeaderCellDef>
+                <span
+                  class="query-results-panel__header"
+                  [class.query-results-panel__header--metric]="isMetric()(column)"
+                >
+                  <mat-icon
+                    [matTooltip]="isMetric()(column) ? 'Metric' : 'Dimension'"
+                  >
+                    {{ isMetric()(column) ? 'functions' : 'straighten' }}
+                  </mat-icon>
+                  {{ columnLabel()(column) }}
+                </span>
+              </th>
+              <td mat-cell *matCellDef="let row">{{ row[column] }}</td>
+            </ng-container>
+          }
+
+          <tr
+            mat-header-row
+            *matHeaderRowDef="displayedColumns(); sticky: true"
+          ></tr>
+          <tr
+            mat-row
+            *matRowDef="let row; columns: displayedColumns()"
+          ></tr>
+        </table>
+      </div>
+      <mat-paginator
+        class="query-results-panel__paginator"
+        [length]="rows().length"
+        [pageIndex]="clampedPageIndex()"
+        [pageSize]="pageSize()"
+        [pageSizeOptions]="pageSizeOptions()"
+        (page)="page.emit($event)"
+        aria-label="Results pagination"
+      />
+    </div>
+  }
+</div>

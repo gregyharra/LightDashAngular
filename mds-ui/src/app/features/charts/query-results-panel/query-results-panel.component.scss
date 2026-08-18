@@ -1,0 +1,157 @@
+.query-results-panel {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ld-spacing-sm);
+  min-width: 0;
+}
+
+.query-results-panel__toolbar {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  min-width: 0;
+}
+
+.query-results-panel__export-btn {
+  flex-shrink: 0;
+  white-space: nowrap;
+
+  mat-icon {
+    width: 16px;
+    height: 16px;
+    font-size: 16px;
+    margin-right: 4px;
+  }
+}
+
+.query-results-panel__loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--ld-spacing-xs);
+  min-height: 140px;
+  color: var(--ld-gray-6);
+  font-size: var(--ld-font-size-sm);
+}
+
+.query-results-panel__error {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 120px;
+  padding: var(--ld-spacing-md);
+  border: 1px solid #fa5252;
+  border-radius: var(--ld-radius-md);
+  background-color: #fff5f5;
+  color: #c92a2a;
+  font-size: var(--ld-font-size-sm);
+}
+
+.query-results-panel__empty {
+  padding: var(--ld-spacing-md);
+  color: var(--ld-gray-6);
+  font-size: var(--ld-font-size-sm);
+
+  p {
+    margin: 0;
+  }
+
+  &--centered {
+    display: grid;
+    place-items: center;
+    min-height: 180px;
+    text-align: center;
+
+    mat-icon {
+      width: 40px;
+      height: 40px;
+      font-size: 40px;
+      margin-bottom: var(--ld-spacing-sm);
+      color: var(--ld-gray-4);
+    }
+
+    h2 {
+      margin: 0 0 var(--ld-spacing-xs);
+      font-size: 16px;
+      font-weight: 600;
+      color: var(--ld-gray-8);
+    }
+  }
+}
+
+.query-results-panel__results {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ld-spacing-sm);
+  min-width: 0;
+}
+
+.query-results-panel__table-wrap {
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  max-height: min(320px, 40vh);
+  overflow-x: auto;
+  overflow-y: auto;
+  border: 1px solid var(--ld-gray-2);
+  border-radius: var(--ld-radius-md);
+  background-color: var(--ld-background);
+}
+
+.query-results-panel__table {
+  width: 100%;
+  min-width: max-content;
+  font-size: var(--ld-font-size-sm);
+
+  th {
+    position: sticky;
+    top: 0;
+    z-index: 1;
+    padding: 10px var(--ld-spacing-md);
+    background-color: var(--ld-gray-0);
+    color: var(--ld-gray-6);
+    font-size: var(--ld-font-size-xs);
+    font-weight: 600;
+    white-space: nowrap;
+    border-bottom: 1px solid var(--ld-gray-2);
+  }
+
+  td {
+    padding: 10px var(--ld-spacing-md);
+    color: var(--ld-gray-8);
+    border-bottom: 1px solid var(--ld-gray-2);
+    white-space: nowrap;
+  }
+
+  tr:last-child td {
+    border-bottom: none;
+  }
+}
+
+.query-results-panel__header {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  max-width: 100%;
+
+  mat-icon {
+    flex-shrink: 0;
+    width: 14px;
+    height: 14px;
+    font-size: 14px;
+    color: var(--ld-blue-6);
+  }
+
+  &--metric mat-icon {
+    color: #7950f2;
+  }
+}
+
+.query-results-panel__paginator {
+  flex-shrink: 0;
+  min-width: 0;
+  overflow-x: auto;
+  background: transparent;
+  border-top: none;
+}

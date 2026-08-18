@@ -16,9 +16,9 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatDialog } from '@angular/material/dialog';
 import { MatExpansionModule } from '@angular/material/expansion';
 import { MatIconModule } from '@angular/material/icon';
-import { MatPaginatorModule, PageEvent } from '@angular/material/paginator';
+import { PageEvent } from '@angular/material/paginator';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
-import { MatTableModule } from '@angular/material/table';
+import { MatSnackBar } from '@angular/material/snack-bar';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { ActiveProjectService } from '../../../core/services/active-project.service';
 import { apiErrorMessage } from '../../../core/api/lightdash-api.service';
@@ -75,9 +75,14 @@ import {
 } from '../../explorer/explore-from-dbt.utils';
 import {
   clampQueryLimit,
+  resolveCsvMaxLimit,
   resolveMaxQueryLimit,
 } from '../../explorer/query-limit.utils';
 import { ChartVisualizationComponent } from '../chart-visualization/chart-visualization.component';
+import { QueryResultsPanelComponent } from '../query-results-panel/query-results-panel.component';
+import { ExportFormat } from '../../export/export.models';
+import { ExportService } from '../../export/export.service';
+import { startExport } from '../../export/start-export';
 import { ResizableSidebarDirective } from '../../../layout/resizable-sidebar/resizable-sidebar.directive';
 import { AppStateService } from '../../../core/services/app-state.service';
 import { SqlHighlightComponent } from '../../../shared/sql-highlight/sql-highlight.component';
@@ -119,11 +124,10 @@ const RESULTS_DEFAULT_PAGE_SIZE = 25;
     MatButtonModule,
     MatExpansionModule,
     MatIconModule,
-    MatPaginatorModule,
     MatProgressSpinnerModule,
-    MatTableModule,
     MatTooltipModule,
     ChartVisualizationComponent,
+    QueryResultsPanelComponent,
     FolderSearchPanelComponent,
     TablesChartConfigPanelComponent,
     TablesFiltersPanelComponent,
@@ -142,6 +146,8 @@ export class ChartViewPageComponent {
   private readonly router = inject(Router);
   private readonly appState = inject(AppStateService);
   private readonly dialog = inject(MatDialog);
+  private readonly exportService = inject(ExportService);
+  private readonly snackBar = inject(MatSnackBar);
   private readonly platformId = inject(PLATFORM_ID);
   private readonly renderer = inject(Renderer2);
   private readonly destroyRef = inject(DestroyRef);
@@ -605,6 +611,12 @@ export class ChartViewPageComponent {
     return results?.fields[column]?.label ?? this.getFieldLabel(column);
   }
 
+  protected readonly columnLabelFn = (column: string): string =>
+    this.getColumnLabel(column);
+
+  protected readonly isMetricFn = (column: string): boolean =>
+    this.isResultColumnMetric(column);
+
   protected isResultColumnMetric(column: FieldId): boolean {
     const results = this.queryResults();
     if (!results) {
@@ -623,6 +635,33 @@ export class ChartViewPageComponent {
   protected onResultsPage(event: PageEvent): void {
     this.resultsPageIndex.set(event.pageIndex);
     this.resultsPageSize.set(event.pageSize);
+  }
+
+  protected onExportCsv(): void {
+    this.startChartExport('csv');
+  }
+
+  protected onExportXlsx(): void {
+    this.startChartExport('xlsx');
+  }
+
+  private startChartExport(format: ExportFormat): void {
+    const projectUuid = this.projectUuid();
+    const metricQuery = this.queryResults()?.metricQuery;
+    if (!projectUuid || !metricQuery) {
+      return;
+    }
+
+    startExport({
+      dialog: this.dialog,
+      exportService: this.exportService,
+      snackBar: this.snackBar,
+      projectUuid,
+      metricQuery,
+      format,
+      csvMaxLimit: resolveCsvMaxLimit(this.appState.health()?.query?.csvMaxLimit),
+      filenameBase: this.displayName() || this.displayTableLabel() || 'export',
+    });
   }
 
   protected onProjectNodeSelected(lineageNodeId: string): void {
