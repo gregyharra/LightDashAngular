@@ -45,7 +45,9 @@ import {
   ExploreSummary,
   FieldId,
   MetricQuery,
+  MetricQueryFilter,
   QueryResults,
+  TimeTravelConfig,
   getFieldId,
 } from '../../../core/models/explore.model';
 import { DbtTreeNode, LineageNode } from '../../../core/models/lineage.model';
@@ -61,6 +63,10 @@ import {
   SaveChartDialogResult,
 } from '../save-chart-dialog/save-chart-dialog.component';
 import { ExplorerService } from '../../explorer/explorer.service';
+import {
+  CreateChartFromExploreState,
+  readCreateFromExploreState,
+} from '../../explorer/create-chart-from-explore';
 import { LineageService } from '../../lineage/lineage.service';
 import { FolderSearchPanelComponent } from '../../lineage/folder-search-panel/folder-search-panel.component';
 import { findTreeNodeByLineageId } from '../../lineage/dbt-tree-utils';
@@ -217,6 +223,9 @@ export class ChartViewPageComponent {
   protected readonly fieldSearch = signal('');
   protected readonly additionalMetrics = signal<AdditionalMetric[]>([]);
   protected readonly dimensionFilters = signal<DashboardDimensionFilter[]>([]);
+  private readonly metricQueryFilters = signal<MetricQueryFilter>({});
+  private readonly timeTravel = signal<TimeTravelConfig | null>(null);
+  private pendingCreateFromExplore: CreateChartFromExploreState | null = null;
   protected readonly queryLoading = signal(false);
   protected readonly queryError = signal<string | null>(null);
   protected readonly queryResults = signal<QueryResults | null>(null);
@@ -460,6 +469,8 @@ export class ChartViewPageComponent {
     this.destroyRef.onDestroy(() => {
       this.stopConfigResize();
     });
+
+    this.pendingCreateFromExplore = readCreateFromExploreState(this.router);
 
     combineLatest([this.route.data, this.route.paramMap]).subscribe(
       ([data, params]) => {
@@ -778,6 +789,8 @@ export class ChartViewPageComponent {
     this.additionalMetrics.set([]);
     this.fieldSearch.set('');
     this.dimensionFilters.set([]);
+    this.metricQueryFilters.set({});
+    this.timeTravel.set(null);
     this.queryResults.set(null);
     this.queryError.set(null);
     this.queryLoading.set(false);
@@ -788,6 +801,16 @@ export class ChartViewPageComponent {
     this.resultsPageIndex.set(0);
     this.selectedTableId.set(null);
     this.activeProjectService.setActiveProject(projectUuid);
+
+    const pending = this.pendingCreateFromExplore;
+    this.pendingCreateFromExplore = null;
+    if (pending) {
+      this.applyCreateFromExploreState(pending);
+      this.loadExplore(projectUuid, pending.exploreName, false);
+      this.loadProjectTree(projectUuid, pending.exploreName);
+      return;
+    }
+
     this.loadProjectTree(projectUuid, null);
   }
 
@@ -796,6 +819,8 @@ export class ChartViewPageComponent {
     this.error.set(null);
     this.queryError.set(null);
     this.dimensionFilters.set([]);
+    this.metricQueryFilters.set({});
+    this.timeTravel.set(null);
     this.fieldSearch.set('');
     this.saveSuccess.set(false);
     this.saveError.set(null);
@@ -1037,6 +1062,24 @@ export class ChartViewPageComponent {
     this.selectedMetrics.set(new Set(metricQuery.metrics));
     this.additionalMetrics.set(metricQuery.additionalMetrics);
     this.syncChartAxisFields();
+  }
+
+  private applyCreateFromExploreState(state: CreateChartFromExploreState): void {
+    this.applyMetricQuery({
+      exploreName: state.exploreName,
+      dimensions: state.dimensions,
+      metrics: state.metrics,
+      filters: state.filters,
+      sorts: state.sorts,
+      limit: state.rowLimit,
+      tableCalculations: [],
+      additionalMetrics: state.additionalMetrics,
+      ...(state.timeTravel ? { timeTravel: state.timeTravel } : {}),
+    });
+    this.dimensionFilters.set(state.dimensionFilters);
+    this.setQueryRowLimit(state.rowLimit);
+    this.timeTravel.set(state.timeTravel ?? null);
+    this.metricQueryFilters.set(state.filters);
   }
 
   protected isDimensionSelected(fieldId: FieldId): boolean {
@@ -1564,7 +1607,7 @@ export class ChartViewPageComponent {
         exploreName: explore.name,
         dimensions,
         metrics,
-        filters: {},
+        filters: this.metricQueryFilters(),
         sorts: [],
         limit: clampQueryLimit(
           this.chartDisplayConfig().rowLimit,
@@ -1574,7 +1617,7 @@ export class ChartViewPageComponent {
         additionalMetrics: this.additionalMetrics(),
       },
       dimensionFilters: this.dimensionFilters(),
-      timeTravel: null,
+      timeTravel: this.timeTravel(),
     };
   }
 }

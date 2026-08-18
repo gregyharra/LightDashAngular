@@ -1,3 +1,4 @@
+import { Router } from '@angular/router';
 import { DashboardDimensionFilter } from '../../core/models/dashboard.model';
 import {
   AdditionalMetric,
@@ -19,3 +20,11 @@ export type CreateChartFromExploreState = {
   timeTravel?: TimeTravelConfig | null;
   dimensionFilters: DashboardDimensionFilter[];
 };
+
+export function readCreateFromExploreState(
+  router: Router,
+): CreateChartFromExploreState | null {
+  const value =
+    router.getCurrentNavigation()?.extras.state?.[CREATE_FROM_EXPLORE_STATE_KEY];
+  return (value as CreateChartFromExploreState | undefined) ?? null;
+}
