@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import logging
+from collections.abc import Iterator
 from dataclasses import dataclass
 from typing import Any
 
@@ -205,6 +206,60 @@ def _execute_trino_snapshot_raw(
         return raw_rows, None, columns
     except (TrinoQueryError, TrinoUserError, OSError) as exc:
         return [], format_trino_error(exc), []
+
+
+def iter_trino_formatted_rows(
+    snapshot: TrinoConnectionSnapshot,
+    sql: str,
+    field_ids: list[str],
+) -> Iterator[list[str]]:
+    try:
+        import trino
+        from trino.exceptions import TrinoQueryError, TrinoUserError
+    except ImportError as exc:
+        raise RuntimeError("trino package is not installed") from exc
+
+    kwargs = dict(
+        credentials_to_trino_kwargs(
+            host=snapshot.host,
+            port=snapshot.port,
+            user=snapshot.user,
+            password=snapshot.password,
+            catalog=snapshot.catalog,
+            schema_name=snapshot.schema_name,
+            ssl=snapshot.ssl,
+        )
+    )
+    auth = kwargs.pop("auth", None)
+    query_sql = _prepare_query_sql(sql, None)
+
+    client = None
+    cursor = None
+    try:
+        _log_sql_context(_snapshot_label(snapshot), query_sql)
+        client = trino.dbapi.connect(auth=auth, **kwargs)
+        cursor = client.cursor()
+        cursor.execute(query_sql)
+        columns = [desc[0] for desc in cursor.description or []]
+        column_index = {name: index for index, name in enumerate(columns)}
+        while True:
+            batch = cursor.fetchmany(1000)
+            if not batch:
+                break
+            for raw_row in batch:
+                yield [
+                    _format_value(
+                        raw_row[column_index[field_id]] if field_id in column_index else None
+                    )
+                    for field_id in field_ids
+                ]
+    except (TrinoQueryError, TrinoUserError, OSError) as exc:
+        raise RuntimeError(format_trino_error(exc)) from exc
+    finally:
+        if cursor is not None:
+            cursor.close()
+        if client is not None:
+            client.close()
 
 
 def execute_trino_query_snapshot(
