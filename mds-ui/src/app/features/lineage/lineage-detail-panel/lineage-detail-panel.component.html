@@ -37,12 +37,22 @@
         <p class="lineage-detail__description">{{ selected.description }}</p>
       }
       @if (projectUuid(); as uuid) {
-        <a
-          class="lineage-detail__open-tables"
-          [routerLink]="['/projects', uuid, 'tables', selected.id]"
-        >
-          Open in Tables
-        </a>
+        <div class="lineage-detail__open-links">
+          <a
+            class="lineage-detail__open-tables"
+            [routerLink]="['/projects', uuid, 'tables', selected.id]"
+          >
+            Open in Tables
+          </a>
+          @if (isExploreableLineageNode(selected)) {
+            <a
+              class="lineage-detail__open-tables"
+              [routerLink]="explorePath(uuid, selected.id)"
+            >
+              Explore data
+            </a>
+          }
+        </div>
       }
     </header>
 

@@ -9,6 +9,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { Observable, forkJoin, of } from 'rxjs';
 import { ActiveProjectService } from '../../../core/services/active-project.service';
+import { explorePath, isExploreableLineageNode } from '../../explorer/explore-routes';
 import { apiErrorMessage } from '../../../core/api/lightdash-api.service';
 import {
   CUSTOM_ATTRIBUTE_DEFS_KEY,
@@ -696,9 +697,7 @@ export class TableHubPageComponent {
     if (!projectUuid || !tableId) {
       return;
     }
-    void this.router.navigate(['/projects', projectUuid, 'charts', 'new'], {
-      queryParams: { table: tableId },
-    });
+    void this.router.navigate(explorePath(projectUuid, tableId));
   }
 
   protected openFullLineage(): void {

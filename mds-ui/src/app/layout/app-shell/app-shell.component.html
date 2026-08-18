@@ -26,10 +26,10 @@
             </a>
             <a
               mat-menu-item
-              [routerLink]="['/projects', projectUuid, 'charts', 'new']"
+              [routerLink]="exploreRootPath(projectUuid)"
             >
               <mat-icon>bar_chart</mat-icon>
-              Chart
+              Explore data
             </a>
           </mat-menu>
           <a
@@ -44,7 +44,7 @@
           <a
             mat-button
             class="shell__nav-btn shell__nav-inline"
-            [routerLink]="['/projects', projectUuid, 'charts', 'new']"
+            [routerLink]="exploreRootPath(projectUuid)"
             aria-label="Metrics"
           >
             <mat-icon>bar_chart</mat-icon>
@@ -80,10 +80,10 @@
             </a>
             <a
               mat-menu-item
-              [routerLink]="['/projects', projectUuid, 'charts', 'new']"
+              [routerLink]="exploreRootPath(projectUuid)"
             >
               <mat-icon>bar_chart</mat-icon>
-              New chart
+              Explore data
             </a>
             <a
               mat-menu-item
@@ -94,7 +94,7 @@
             </a>
             <a
               mat-menu-item
-              [routerLink]="['/projects', projectUuid, 'charts', 'new']"
+              [routerLink]="exploreRootPath(projectUuid)"
             >
               <mat-icon>bar_chart</mat-icon>
               Metrics

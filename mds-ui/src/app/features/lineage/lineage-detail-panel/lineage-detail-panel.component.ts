@@ -28,6 +28,10 @@ import {
 } from '../../../core/models/lineage.model';
 import { ActiveProjectService } from '../../../core/services/active-project.service';
 import {
+  explorePath,
+  isExploreableLineageNode,
+} from '../../explorer/explore-routes';
+import {
   computeColumnLineageHighlight,
   columnRefKey,
   getColumnDownstream,
@@ -87,6 +91,9 @@ export class LineageDetailPanelComponent {
   protected readonly projectUuid = computed(
     () => this.activeProjectService.activeProjectUuid(),
   );
+
+  protected readonly explorePath = explorePath;
+  protected readonly isExploreableLineageNode = isExploreableLineageNode;
 
   protected readonly collapsed = signal(this.readCollapsedState());
   protected readonly panelWidth = signal(DEFAULT_WIDTH);

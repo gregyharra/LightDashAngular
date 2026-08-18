@@ -11,6 +11,7 @@ import { AiAssistantUiService } from '../../features/ai/ai-assistant-ui.service'
 import { NavbarProjectSwitcherComponent } from '../navbar/navbar-project-switcher.component';
 import { NavbarSearchComponent } from '../navbar/navbar-search.component';
 import { NavbarUserMenuComponent } from '../navbar/navbar-user-menu.component';
+import { exploreRootPath } from '../../features/explorer/explore-routes';
 
 @Component({
   selector: 'app-shell',
@@ -37,6 +38,8 @@ export class AppShellComponent implements OnInit {
   protected readonly askAiEnabled = computed(
     () => this.appState.health()?.askAiEnabled === true,
   );
+
+  protected readonly exploreRootPath = exploreRootPath;
 
   protected openAiAssistant(): void {
     if (!this.askAiEnabled()) {
