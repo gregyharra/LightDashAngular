@@ -11,6 +11,7 @@ from mds.db.models import Project, Space, User, Warehouse
 from mds.db.session import get_db
 from mds.schemas.project import ProjectCreate, ProjectUpdate
 from mds.services.auth.abilities import user_payload
+from mds.services.query.limits import CSV_MAX_LIMIT
 from mds.services.project.git import (
     GitRepoError,
     desync_project_repo,
@@ -83,7 +84,7 @@ def health(
                 "queryMaxLimit": 1_000_000,
                 "defaultLimit": 500,
                 "csvCellsLimit": 100,
-                "csvMaxLimit": 5_000_000,
+                "csvMaxLimit": CSV_MAX_LIMIT,
                 "retryQueryOnTransientErrors": True,
             },
             "dashboard": {

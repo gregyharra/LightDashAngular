@@ -108,6 +108,9 @@ def _build_from_clause(
 def build_metric_query_sql(
     explore: dict[str, Any],
     metric_query: MetricQuery,
+    *,
+    apply_limit: bool = True,
+    limit_override: int | None = None,
 ) -> tuple[str | None, list[QueryWarning]]:
     warnings: list[QueryWarning] = []
     dimensions = metric_query.dimensions
@@ -176,5 +179,7 @@ def build_metric_query_sql(
     if metrics and group_by_parts:
         lines.append(f"GROUP BY {', '.join(group_by_parts)}")
 
-    lines.append(f"LIMIT {metric_query.limit}")
+    if apply_limit:
+        limit = limit_override if limit_override is not None else metric_query.limit
+        lines.append(f"LIMIT {limit}")
     return "\n".join(line for line in lines if line), warnings
