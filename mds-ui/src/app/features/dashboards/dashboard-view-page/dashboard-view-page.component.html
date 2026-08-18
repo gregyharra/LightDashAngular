@@ -47,137 +47,369 @@
   <div class="dashboard-view__loading">
     <mat-spinner diameter="32" />
   </div>
-} @else if (error()) {
+} @else if (error() && !dashboard()) {
   <div class="dashboard-view__error-wrap">
     <div class="dashboard-view__error">{{ error() }}</div>
   </div>
 } @else {
   @if (dashboard(); as dash) {
-  <div class="dashboard-view" #dashboardRoot>
-    <header class="dashboard-view__header page-header">
-      <div class="dashboard-view__header-inner page__container page__container--wide page-header--compact-padding">
-        <div class="dashboard-view__title-row page-header__title-row">
-          <div class="dashboard-view__title-block page-header__title-block">
-            <div class="dashboard-view__title-line">
-              <h1 class="dashboard-view__title">{{ dash.name }}</h1>
-              @if (dash.description) {
+  <div
+    class="dashboard-view"
+    [class.dashboard-edit]="editMode()"
+    #dashboardRoot
+  >
+    <header
+      class="page-header"
+      [class.dashboard-view__header]="!editMode()"
+      [class.dashboard-edit__header]="editMode()"
+    >
+      <div
+        class="page__container page__container--wide page-header--compact-padding"
+        [class.dashboard-view__header-inner]="!editMode()"
+        [class.dashboard-edit__header-inner]="editMode()"
+      >
+        <div class="page-header__title-row" [class.dashboard-view__title-row]="!editMode()" [class.dashboard-edit__title-row]="editMode()">
+          <div class="page-header__title-block" [class.dashboard-view__title-block]="!editMode()" [class.dashboard-edit__title-block]="editMode()">
+            <div [class.dashboard-view__title-line]="!editMode()" [class.dashboard-edit__title-line]="editMode()">
+              @if (editMode() && draft(); as state) {
+                <input
+                  class="dashboard-edit__title-input"
+                  [ngModel]="state.name"
+                  (ngModelChange)="updateDraft({ name: $event })"
+                  [disabled]="saving()"
+                  aria-label="Dashboard name"
+                  placeholder="Dashboard name"
+                />
                 <button
                   type="button"
-                  class="dashboard-view__info-btn"
-                  [matTooltip]="dash.description"
-                  aria-label="Dashboard description"
+                  class="dashboard-edit__description-btn"
+                  [matMenuTriggerFor]="descriptionMenu"
+                  aria-label="Edit description"
+                  matTooltip="Edit description"
                 >
                   <mat-icon>info_outline</mat-icon>
                 </button>
+                <mat-menu #descriptionMenu="matMenu" class="dashboard-edit__menu">
+                  <div
+                    class="dashboard-edit__description-menu"
+                    (click)="$event.stopPropagation()"
+                  >
+                    <label class="dashboard-edit__description-label" for="dashboard-description">
+                      Description
+                    </label>
+                    <textarea
+                      id="dashboard-description"
+                      class="dashboard-edit__description-input"
+                      rows="3"
+                      [ngModel]="state.description"
+                      (ngModelChange)="updateDraft({ description: $event })"
+                      [disabled]="saving()"
+                      placeholder="Add a description"
+                    ></textarea>
+                  </div>
+                </mat-menu>
+              } @else {
+                <h1 class="dashboard-view__title">{{ dash.name }}</h1>
+                @if (dash.description) {
+                  <button
+                    type="button"
+                    class="dashboard-view__info-btn"
+                    [matTooltip]="dash.description"
+                    aria-label="Dashboard description"
+                  >
+                    <mat-icon>info_outline</mat-icon>
+                  </button>
+                }
+                <button
+                  type="button"
+                  class="dashboard-view__star-btn"
+                  [class.dashboard-view__star-btn--active]="isFavorite()"
+                  (click)="toggleFavorite()"
+                  [attr.aria-label]="isFavorite() ? 'Remove from favorites' : 'Add to favorites'"
+                >
+                  <mat-icon>{{ isFavorite() ? 'star' : 'star_border' }}</mat-icon>
+                </button>
               }
-              <button
-                type="button"
-                class="dashboard-view__star-btn"
-                [class.dashboard-view__star-btn--active]="isFavorite()"
-                (click)="toggleFavorite()"
-                [attr.aria-label]="isFavorite() ? 'Remove from favorites' : 'Add to favorites'"
-              >
-                <mat-icon>{{ isFavorite() ? 'star' : 'star_border' }}</mat-icon>
-              </button>
             </div>
           </div>
 
-          <div class="dashboard-view__actions page-header__actions">
-            <a
-              mat-flat-button
-              class="dashboard-view__edit-btn page-header__action-btn--labeled"
-              [routerLink]="[
-                '/projects',
-                projectUuid(),
-                'dashboards',
-                dashboardUuid(),
-                'edit',
-              ]"
-            >
-              <mat-icon>edit</mat-icon>
-              <span class="page-header__action-label">Edit</span>
-            </a>
-
-            <button
-              type="button"
-              mat-stroked-button
-              class="dashboard-view__icon-action"
-              [disabled]="refreshing()"
-              (click)="refreshDashboard()"
-              aria-label="Refresh dashboard"
-              matTooltip="Refresh"
-            >
-              <mat-icon [class.dashboard-view__spin]="refreshing()">refresh</mat-icon>
-            </button>
-
-            <button
-              type="button"
-              mat-stroked-button
-              class="dashboard-view__icon-action dashboard-view__views-btn page-header__action-btn--labeled"
-              [matMenuTriggerFor]="viewsMenu"
-              aria-label="Views"
-            >
-              <mat-icon>visibility</mat-icon>
-              <span class="page-header__action-label">Views</span>
-              <mat-icon class="dashboard-view__chevron page-header__views-chevron">expand_more</mat-icon>
-            </button>
-
-            <mat-menu #viewsMenu="matMenu" class="dashboard-view__menu">
-              <button mat-menu-item disabled>
-                <span>{{ dash.views }} total views</span>
+          <div class="page-header__actions" [class.dashboard-view__actions]="!editMode()" [class.dashboard-edit__actions]="editMode()">
+            @if (editMode()) {
+              <button
+                mat-stroked-button
+                type="button"
+                class="dashboard-edit__action-btn page-header__action-btn--labeled"
+                [matMenuTriggerFor]="addTileMenu"
+                [disabled]="saving()"
+              >
+                <mat-icon>add</mat-icon>
+                <span class="page-header__action-label">Add tile</span>
               </button>
-              @if (dash.firstViewedAt) {
-                <button mat-menu-item disabled>
-                  <span>First viewed {{ formatDate(dash.firstViewedAt) }}</span>
+              <mat-menu #addTileMenu="matMenu" panelClass="ld-navbar-menu">
+                <button mat-menu-item type="button" (click)="addHeadingTile()">
+                  <mat-icon>title</mat-icon>
+                  Heading
                 </button>
-              }
-              <button mat-menu-item disabled>
-                <span>Updated {{ formatDate(dash.updatedAt) }}</span>
-              </button>
-              <button mat-menu-item disabled>
-                <span>Space: {{ dash.spaceName }}</span>
-              </button>
-            </mat-menu>
+                <button mat-menu-item type="button" (click)="addMarkdownTile()">
+                  <mat-icon>notes</mat-icon>
+                  Markdown
+                </button>
+                <button mat-menu-item type="button" (click)="addLoomTile()">
+                  <mat-icon>videocam</mat-icon>
+                  Loom video
+                </button>
+                <button mat-menu-item type="button" [matMenuTriggerFor]="chartMenu">
+                  <mat-icon>bar_chart</mat-icon>
+                  Saved chart
+                </button>
+                <button mat-menu-item type="button" [matMenuTriggerFor]="sqlChartMenu">
+                  <mat-icon>query_stats</mat-icon>
+                  SQL chart
+                </button>
+                <button mat-menu-item type="button" (click)="addTab()">
+                  <mat-icon>tab</mat-icon>
+                  Add tab
+                </button>
+              </mat-menu>
+              <mat-menu #chartMenu="matMenu" panelClass="ld-navbar-menu">
+                @for (chart of charts(); track chart.uuid) {
+                  <button mat-menu-item type="button" (click)="addChartTile(chart.uuid)">
+                    {{ chart.name }}
+                  </button>
+                } @empty {
+                  <button mat-menu-item disabled>No charts available</button>
+                }
+              </mat-menu>
+              <mat-menu #sqlChartMenu="matMenu" panelClass="ld-navbar-menu">
+                @for (chart of sqlCharts(); track chart.uuid) {
+                  <button mat-menu-item type="button" (click)="addSqlChartTile(chart.uuid)">
+                    {{ chart.name }}
+                  </button>
+                } @empty {
+                  <button mat-menu-item disabled>No SQL charts available</button>
+                }
+              </mat-menu>
 
-            <button
-              type="button"
-              mat-stroked-button
-              class="dashboard-view__icon-action"
-              (click)="toggleFullscreen()"
-              [attr.aria-label]="isFullscreen() ? 'Exit fullscreen' : 'Enter fullscreen'"
-              matTooltip="{{ isFullscreen() ? 'Exit fullscreen' : 'Fullscreen' }}"
-            >
-              <mat-icon>{{ isFullscreen() ? 'fullscreen_exit' : 'fullscreen' }}</mat-icon>
-            </button>
+              <button
+                mat-stroked-button
+                type="button"
+                class="dashboard-edit__action-btn page-header__action-btn--labeled page-header__action-btn--cancel"
+                (click)="cancelEdit()"
+                [disabled]="saving()"
+                aria-label="Cancel"
+              >
+                <mat-icon>close</mat-icon>
+                <span class="page-header__action-label page-header__action-btn--cancel-label">Cancel</span>
+              </button>
+              <button
+                mat-flat-button
+                type="button"
+                class="dashboard-edit__save-btn page-header__action-btn--labeled"
+                (click)="saveDashboard()"
+                [disabled]="saving() || !draft()?.name?.trim()"
+              >
+                @if (saving()) {
+                  <mat-spinner diameter="18" />
+                } @else {
+                  <mat-icon>save</mat-icon>
+                }
+                @if (!saving()) {
+                  <span class="page-header__action-label">Save</span>
+                }
+              </button>
+            } @else {
+              <button
+                mat-flat-button
+                type="button"
+                class="dashboard-view__edit-btn page-header__action-btn--labeled"
+                (click)="enterEditMode()"
+              >
+                <mat-icon>edit</mat-icon>
+                <span class="page-header__action-label">Edit</span>
+              </button>
 
-            <button
-              type="button"
-              mat-stroked-button
-              class="dashboard-view__icon-action"
-              [matMenuTriggerFor]="moreMenu"
-              aria-label="More actions"
-            >
-              <mat-icon>more_horiz</mat-icon>
-            </button>
+              <button
+                type="button"
+                mat-stroked-button
+                class="dashboard-view__icon-action"
+                [disabled]="refreshing()"
+                (click)="refreshDashboard()"
+                aria-label="Refresh dashboard"
+                matTooltip="Refresh"
+              >
+                <mat-icon [class.dashboard-view__spin]="refreshing()">refresh</mat-icon>
+              </button>
 
-            <mat-menu #moreMenu="matMenu" class="dashboard-view__menu">
-              <button mat-menu-item disabled>
-                <mat-icon>share</mat-icon>
-                Share
+              <button
+                type="button"
+                mat-stroked-button
+                class="dashboard-view__icon-action dashboard-view__views-btn page-header__action-btn--labeled"
+                [matMenuTriggerFor]="viewsMenu"
+                aria-label="Views"
+              >
+                <mat-icon>visibility</mat-icon>
+                <span class="page-header__action-label">Views</span>
+                <mat-icon class="dashboard-view__chevron page-header__views-chevron">expand_more</mat-icon>
               </button>
-              <button mat-menu-item disabled>
-                <mat-icon>content_copy</mat-icon>
-                Duplicate
+
+              <mat-menu #viewsMenu="matMenu" class="dashboard-view__menu">
+                <button mat-menu-item disabled>
+                  <span>{{ dash.views }} total views</span>
+                </button>
+                @if (dash.firstViewedAt) {
+                  <button mat-menu-item disabled>
+                    <span>First viewed {{ formatDate(dash.firstViewedAt) }}</span>
+                  </button>
+                }
+                <button mat-menu-item disabled>
+                  <span>Updated {{ formatDate(dash.updatedAt) }}</span>
+                </button>
+                <button mat-menu-item disabled>
+                  <span>Space: {{ dash.spaceName }}</span>
+                </button>
+              </mat-menu>
+
+              <button
+                type="button"
+                mat-stroked-button
+                class="dashboard-view__icon-action"
+                (click)="toggleFullscreen()"
+                [attr.aria-label]="isFullscreen() ? 'Exit fullscreen' : 'Enter fullscreen'"
+                matTooltip="{{ isFullscreen() ? 'Exit fullscreen' : 'Fullscreen' }}"
+              >
+                <mat-icon>{{ isFullscreen() ? 'fullscreen_exit' : 'fullscreen' }}</mat-icon>
               </button>
-              <button mat-menu-item disabled>
-                <mat-icon>download</mat-icon>
-                Export
+
+              <button
+                type="button"
+                mat-stroked-button
+                class="dashboard-view__icon-action"
+                [matMenuTriggerFor]="moreMenu"
+                aria-label="More actions"
+              >
+                <mat-icon>more_horiz</mat-icon>
               </button>
-            </mat-menu>
+
+              <mat-menu #moreMenu="matMenu" class="dashboard-view__menu">
+                <button mat-menu-item disabled>
+                  <mat-icon>share</mat-icon>
+                  Share
+                </button>
+                <button mat-menu-item disabled>
+                  <mat-icon>content_copy</mat-icon>
+                  Duplicate
+                </button>
+                <button mat-menu-item disabled>
+                  <mat-icon>download</mat-icon>
+                  Export
+                </button>
+              </mat-menu>
+            }
           </div>
         </div>
 
-        @if (visibleTabs().length > 1) {
+        @if (editMode() && draft(); as state) {
+          @if (state.tabs.length > 0) {
+            <div
+              class="dashboard-edit__tabs"
+              cdkDropList
+              cdkDropListOrientation="horizontal"
+              (cdkDropListDropped)="reorderTabs($event)"
+              role="tablist"
+              aria-label="Dashboard tabs"
+            >
+              @for (tab of sortedTabs(); track tab.uuid) {
+                <div
+                  class="dashboard-edit__tab-wrap"
+                  cdkDrag
+                  [class.dashboard-edit__tab-wrap--active]="activeTab()?.uuid === tab.uuid"
+                  [class.dashboard-edit__tab-wrap--hidden]="tab.hidden"
+                >
+                  <button
+                    type="button"
+                    class="dashboard-edit__tab-drag non-draggable"
+                    cdkDragHandle
+                    aria-label="Reorder tab"
+                  >
+                    <mat-icon>drag_indicator</mat-icon>
+                  </button>
+                  <button
+                    type="button"
+                    class="dashboard-edit__tab"
+                    role="tab"
+                    [class.dashboard-edit__tab--active]="activeTab()?.uuid === tab.uuid"
+                    [attr.aria-selected]="activeTab()?.uuid === tab.uuid"
+                    (click)="setActiveTab(tab.uuid)"
+                  >
+                    {{ tab.name }}
+                  </button>
+                  <button
+                    type="button"
+                    class="dashboard-edit__tab-edit non-draggable"
+                    aria-label="Edit tab"
+                    [matMenuTriggerFor]="tabMenu"
+                    (click)="openTabRenameMenu(tab)"
+                  >
+                    <mat-icon>edit</mat-icon>
+                  </button>
+                  <mat-menu #tabMenu="matMenu" class="dashboard-edit__menu">
+                    <div
+                      class="dashboard-edit__tab-menu non-draggable"
+                      (click)="$event.stopPropagation()"
+                    >
+                      <label class="dashboard-edit__tab-menu-label" for="tab-name-{{ tab.uuid }}">
+                        Tab name
+                      </label>
+                      <input
+                        id="tab-name-{{ tab.uuid }}"
+                        class="dashboard-edit__tab-menu-input"
+                        [ngModel]="tabRenameDraft()"
+                        (ngModelChange)="tabRenameDraft.set($event)"
+                      />
+                      <div class="dashboard-edit__tab-menu-actions">
+                        <button
+                          mat-stroked-button
+                          type="button"
+                          (click)="saveTabRename(tab.uuid)"
+                        >
+                          Rename
+                        </button>
+                        <button
+                          mat-stroked-button
+                          type="button"
+                          (click)="duplicateTab(tab.uuid)"
+                        >
+                          Duplicate
+                        </button>
+                        <button
+                          mat-stroked-button
+                          type="button"
+                          (click)="toggleTabHidden(tab.uuid)"
+                        >
+                          {{ tab.hidden ? 'Show tab' : 'Hide tab' }}
+                        </button>
+                        @if (state.tabs.length > 1) {
+                          <button
+                            mat-stroked-button
+                            type="button"
+                            class="dashboard-edit__tab-delete-btn"
+                            (click)="deleteTab(tab.uuid)"
+                          >
+                            Delete tab
+                          </button>
+                        }
+                      </div>
+                    </div>
+                  </mat-menu>
+                </div>
+              }
+            </div>
+          }
+
+          @if (error()) {
+            <div class="dashboard-edit__error dashboard-edit__error--inline">{{ error() }}</div>
+          }
+        } @else if (visibleTabs().length > 1) {
           <div class="dashboard-view__tabs" role="tablist" aria-label="Dashboard tabs">
             @for (tab of visibleTabs(); track tab.uuid) {
               <button
@@ -197,109 +429,250 @@
     </header>
 
     <app-dashboard-filters-bar
-      [filters]="dashboardFilters()"
-      [config]="dash.config"
+      [filters]="activeFilters()"
+      [config]="activeDashboardConfig()"
       [dateZoomGranularity]="dateZoomGranularity()"
       [timeTravel]="timeTravel()"
+      [isEditMode]="editMode()"
+      [filterableDimensions]="editMode() ? filterableDimensions() : []"
       (filtersChange)="onFiltersChange($event)"
       (dateZoomChange)="onDateZoomChange($event)"
       (timeTravelChange)="onTimeTravelChange($event)"
     />
 
-    <div class="dashboard-view__content">
+    <div [class.dashboard-view__content]="!editMode()" [class.dashboard-edit__content]="editMode()">
       <div class="page__container page__container--wide">
         <div
-          class="dashboard-view__grid"
+          #dashboardGrid
+          [class.dashboard-view__grid]="!editMode()"
+          [class.dashboard-edit__grid]="editMode()"
           [style.--grid-row-height.px]="gridRowHeight"
           [style.--grid-gap.px]="gridGap"
         >
           @for (tile of visibleTiles(); track tile.uuid) {
-            @switch (tile.type) {
-              @case (DashboardTileTypes.HEADING) {
-                <div class="dashboard-tile dashboard-tile--heading" [ngStyle]="tileGridStyle(tile)">
-                  <h2 class="dashboard-tile__heading-text">{{ tile.properties.text }}</h2>
-                  @if (tile.properties.showDivider) {
-                    <hr class="dashboard-tile__heading-divider" />
-                  }
+            @if (editMode()) {
+              <div
+                class="dashboard-edit__tile-wrap"
+                [class.dashboard-edit__tile-wrap--selected]="selectedTileUuid() === tile.uuid"
+                [ngStyle]="tileGridStyle(tile)"
+                [appDashboardTileGridInteraction]="{ x: tile.x, y: tile.y, w: tile.w, h: tile.h }"
+                [gridElement]="dashboardGrid"
+                [disabled]="saving()"
+                (tilePositionChange)="updateTilePosition(tile.uuid, $event)"
+                (click)="selectTile(tile.uuid)"
+              >
+                <div class="dashboard-edit__tile-toolbar non-draggable">
+                  <button
+                    type="button"
+                    class="dashboard-edit__tile-drag-handle"
+                    aria-label="Move tile"
+                    (click)="$event.stopPropagation()"
+                  >
+                    <mat-icon>drag_indicator</mat-icon>
+                  </button>
+                  <button
+                    type="button"
+                    class="dashboard-edit__tile-menu-btn"
+                    aria-label="Tile actions"
+                    [matMenuTriggerFor]="tileMenu"
+                    (click)="$event.stopPropagation()"
+                  >
+                    <mat-icon>more_horiz</mat-icon>
+                  </button>
+                  <mat-menu #tileMenu="matMenu" class="dashboard-edit__menu">
+                    <button mat-menu-item type="button" (click)="openTileSettings(tile)">
+                      <mat-icon>edit</mat-icon>
+                      Edit tile content
+                    </button>
+                    <button mat-menu-item type="button" (click)="removeTile(tile.uuid)">
+                      <mat-icon>delete</mat-icon>
+                      Remove tile
+                    </button>
+                  </mat-menu>
                 </div>
-              }
-              @case (DashboardTileTypes.MARKDOWN) {
-                <div
-                  class="dashboard-tile dashboard-tile--markdown"
-                  [class.dashboard-tile--markdown-frameless]="tile.properties.hideFrame"
-                  [ngStyle]="tileGridStyle(tile)"
-                >
-                  @if (tile.properties.title) {
-                    <header class="dashboard-tile__header">
-                      <h3 class="dashboard-tile__title">{{ tile.properties.title }}</h3>
-                    </header>
+
+                @switch (tile.type) {
+                  @case (DashboardTileTypes.HEADING) {
+                    <div class="dashboard-tile dashboard-tile--heading dashboard-tile--edit">
+                      <h2 class="dashboard-tile__heading-text">{{ tile.properties.text }}</h2>
+                      @if (tile.properties.showDivider) {
+                        <hr class="dashboard-tile__heading-divider" />
+                      }
+                    </div>
                   }
-                  <div class="dashboard-tile__markdown">
-                    <app-dashboard-markdown [content]="tile.properties.content" />
-                  </div>
-                </div>
-              }
-              @case (DashboardTileTypes.SAVED_CHART) {
-                <div
-                  class="dashboard-tile dashboard-tile--chart"
-                  [class.dashboard-tile--chart-kpi]="tile.properties.lastVersionChartKind === 'big_number'"
-                  [ngStyle]="tileGridStyle(tile)"
-                >
-                  <header class="dashboard-tile__header">
-                    <h3 class="dashboard-tile__title">
-                      {{ tile.properties.title ?? tile.properties.chartName ?? 'Chart' }}
-                    </h3>
-                  </header>
-                  <div class="dashboard-tile__chart-body">
-                    <app-dashboard-chart-tile
-                      [projectUuid]="projectUuid()!"
-                      [savedChartUuid]="tile.properties.savedChartUuid"
-                      [dashboardFilters]="dashboardFilters()"
-                      [dateZoomGranularity]="dateZoomGranularity()"
-                      [timeTravel]="timeTravel()"
-                      [refreshToken]="refreshToken()"
-                    />
-                  </div>
-                </div>
-              }
-              @case (DashboardTileTypes.LOOM) {
-                <div class="dashboard-tile dashboard-tile--loom" [ngStyle]="tileGridStyle(tile)">
-                  @if (!tile.properties.hideTitle) {
-                    <header class="dashboard-tile__header">
-                      <h3 class="dashboard-tile__title">{{ tile.properties.title }}</h3>
-                    </header>
-                  }
-                  <div class="dashboard-tile__loom-body">
-                    @if (loomEmbedUrl(tile.properties.url); as embedUrl) {
-                      <iframe
-                        class="dashboard-tile__loom-iframe"
-                        [title]="tile.properties.title"
-                        [src]="embedUrl"
-                        allowfullscreen
-                      ></iframe>
-                    } @else {
-                      <div class="dashboard-tile__placeholder">
-                        Loom video unavailable.
+                  @case (DashboardTileTypes.MARKDOWN) {
+                    <div
+                      class="dashboard-tile dashboard-tile--markdown dashboard-tile--edit"
+                      [class.dashboard-tile--markdown-frameless]="tile.properties.hideFrame"
+                    >
+                      @if (tile.properties.title) {
+                        <header class="dashboard-tile__header">
+                          <h3 class="dashboard-tile__title">{{ tile.properties.title }}</h3>
+                        </header>
+                      }
+                      <div class="dashboard-tile__markdown">
+                        <app-dashboard-markdown [content]="tile.properties.content" />
                       </div>
+                    </div>
+                  }
+                  @case (DashboardTileTypes.SAVED_CHART) {
+                    <div
+                      class="dashboard-tile dashboard-tile--chart dashboard-tile--edit"
+                      [class.dashboard-tile--chart-kpi]="tile.properties.lastVersionChartKind === 'big_number'"
+                    >
+                      @if (!tile.properties.hideTitle) {
+                        <header class="dashboard-tile__header">
+                          <h3 class="dashboard-tile__title">
+                            {{ tile.properties.title ?? tile.properties.chartName ?? 'Chart' }}
+                          </h3>
+                        </header>
+                      }
+                      <div class="dashboard-tile__chart-body non-draggable">
+                        <app-dashboard-chart-tile
+                          [projectUuid]="projectUuid()!"
+                          [savedChartUuid]="tile.properties.savedChartUuid"
+                          [dashboardFilters]="activeFilters()"
+                          [dateZoomGranularity]="dateZoomGranularity()"
+                          [timeTravel]="timeTravel()"
+                        />
+                      </div>
+                    </div>
+                  }
+                  @case (DashboardTileTypes.LOOM) {
+                    <div class="dashboard-tile dashboard-tile--loom dashboard-tile--edit">
+                      @if (!tile.properties.hideTitle) {
+                        <header class="dashboard-tile__header">
+                          <h3 class="dashboard-tile__title">{{ tile.properties.title }}</h3>
+                        </header>
+                      }
+                      <div class="dashboard-tile__loom-body">
+                        @if (loomEmbedUrl(tile.properties.url); as embedUrl) {
+                          <iframe
+                            class="dashboard-tile__loom-iframe non-draggable"
+                            [title]="tile.properties.title"
+                            [src]="embedUrl"
+                            allowfullscreen
+                          ></iframe>
+                        } @else {
+                          <div class="dashboard-tile__placeholder non-draggable">
+                            Enter a valid Loom share URL in tile settings.
+                          </div>
+                        }
+                      </div>
+                    </div>
+                  }
+                  @case (DashboardTileTypes.SQL_CHART) {
+                    <div class="dashboard-tile dashboard-tile--sql-chart dashboard-tile--edit">
+                      @if (!tile.properties.hideTitle) {
+                        <header class="dashboard-tile__header">
+                          <h3 class="dashboard-tile__title">
+                            {{ tile.properties.title ?? tile.properties.chartName }}
+                          </h3>
+                        </header>
+                      }
+                      <div class="dashboard-tile__sql-chart-body non-draggable">
+                        <div class="dashboard-tile__placeholder">
+                          SQL chart preview — {{ tile.properties.chartName }}
+                        </div>
+                      </div>
+                    </div>
+                  }
+                }
+                <button
+                  type="button"
+                  class="dashboard-edit__tile-resize-handle non-draggable"
+                  aria-label="Resize tile"
+                  (click)="$event.stopPropagation()"
+                ></button>
+              </div>
+            } @else {
+              @switch (tile.type) {
+                @case (DashboardTileTypes.HEADING) {
+                  <div class="dashboard-tile dashboard-tile--heading" [ngStyle]="tileGridStyle(tile)">
+                    <h2 class="dashboard-tile__heading-text">{{ tile.properties.text }}</h2>
+                    @if (tile.properties.showDivider) {
+                      <hr class="dashboard-tile__heading-divider" />
                     }
                   </div>
-                </div>
-              }
-              @case (DashboardTileTypes.SQL_CHART) {
-                <div class="dashboard-tile dashboard-tile--sql-chart" [ngStyle]="tileGridStyle(tile)">
-                  @if (!tile.properties.hideTitle) {
-                    <header class="dashboard-tile__header">
-                      <h3 class="dashboard-tile__title">
-                        {{ tile.properties.title ?? tile.properties.chartName }}
-                      </h3>
-                    </header>
-                  }
-                  <div class="dashboard-tile__sql-chart-body">
-                    <div class="dashboard-tile__placeholder">
-                      SQL chart preview — {{ tile.properties.chartName }}
+                }
+                @case (DashboardTileTypes.MARKDOWN) {
+                  <div
+                    class="dashboard-tile dashboard-tile--markdown"
+                    [class.dashboard-tile--markdown-frameless]="tile.properties.hideFrame"
+                    [ngStyle]="tileGridStyle(tile)"
+                  >
+                    @if (tile.properties.title) {
+                      <header class="dashboard-tile__header">
+                        <h3 class="dashboard-tile__title">{{ tile.properties.title }}</h3>
+                      </header>
+                    }
+                    <div class="dashboard-tile__markdown">
+                      <app-dashboard-markdown [content]="tile.properties.content" />
                     </div>
                   </div>
-                </div>
+                }
+                @case (DashboardTileTypes.SAVED_CHART) {
+                  <div
+                    class="dashboard-tile dashboard-tile--chart"
+                    [class.dashboard-tile--chart-kpi]="tile.properties.lastVersionChartKind === 'big_number'"
+                    [ngStyle]="tileGridStyle(tile)"
+                  >
+                    <header class="dashboard-tile__header">
+                      <h3 class="dashboard-tile__title">
+                        {{ tile.properties.title ?? tile.properties.chartName ?? 'Chart' }}
+                      </h3>
+                    </header>
+                    <div class="dashboard-tile__chart-body">
+                      <app-dashboard-chart-tile
+                        [projectUuid]="projectUuid()!"
+                        [savedChartUuid]="tile.properties.savedChartUuid"
+                        [dashboardFilters]="activeFilters()"
+                        [dateZoomGranularity]="dateZoomGranularity()"
+                        [timeTravel]="timeTravel()"
+                        [refreshToken]="refreshToken()"
+                      />
+                    </div>
+                  </div>
+                }
+                @case (DashboardTileTypes.LOOM) {
+                  <div class="dashboard-tile dashboard-tile--loom" [ngStyle]="tileGridStyle(tile)">
+                    @if (!tile.properties.hideTitle) {
+                      <header class="dashboard-tile__header">
+                        <h3 class="dashboard-tile__title">{{ tile.properties.title }}</h3>
+                      </header>
+                    }
+                    <div class="dashboard-tile__loom-body">
+                      @if (loomEmbedUrl(tile.properties.url); as embedUrl) {
+                        <iframe
+                          class="dashboard-tile__loom-iframe"
+                          [title]="tile.properties.title"
+                          [src]="embedUrl"
+                          allowfullscreen
+                        ></iframe>
+                      } @else {
+                        <div class="dashboard-tile__placeholder">
+                          Loom video unavailable.
+                        </div>
+                      }
+                    </div>
+                  </div>
+                }
+                @case (DashboardTileTypes.SQL_CHART) {
+                  <div class="dashboard-tile dashboard-tile--sql-chart" [ngStyle]="tileGridStyle(tile)">
+                    @if (!tile.properties.hideTitle) {
+                      <header class="dashboard-tile__header">
+                        <h3 class="dashboard-tile__title">
+                          {{ tile.properties.title ?? tile.properties.chartName }}
+                        </h3>
+                      </header>
+                    }
+                    <div class="dashboard-tile__sql-chart-body">
+                      <div class="dashboard-tile__placeholder">
+                        SQL chart preview — {{ tile.properties.chartName }}
+                      </div>
+                    </div>
+                  </div>
+                }
               }
             }
           }
@@ -307,7 +680,7 @@
       </div>
     </div>
 
-    @if (showScrollTop()) {
+    @if (!editMode() && showScrollTop()) {
       <button
         type="button"
         class="dashboard-view__scroll-top"

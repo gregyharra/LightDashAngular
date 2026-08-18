@@ -1,8 +1,11 @@
-import { Injectable, computed, signal } from '@angular/core';
+import { Injectable, computed, inject, signal } from '@angular/core';
+import { Store } from '@ngrx/store';
+import { ChartQueryActions } from '../store';
 import { ProjectSummary } from '../models/project.model';
 
 @Injectable({ providedIn: 'root' })
 export class ActiveProjectService {
+  private readonly store = inject(Store);
   private readonly projectsSignal = signal<ProjectSummary[]>([]);
   private readonly activeUuidSignal = signal<string | null>(null);
 
@@ -24,8 +27,15 @@ export class ActiveProjectService {
   }
 
   setActiveProject(projectUuid: string): void {
-    if (this.projectsSignal().some((p) => p.projectUuid === projectUuid)) {
-      this.activeUuidSignal.set(projectUuid);
+    if (!this.projectsSignal().some((p) => p.projectUuid === projectUuid)) {
+      return;
     }
+
+    const previous = this.activeUuidSignal();
+    if (previous !== null && previous !== projectUuid) {
+      this.store.dispatch(ChartQueryActions.invalidateAll());
+    }
+
+    this.activeUuidSignal.set(projectUuid);
   }
 }

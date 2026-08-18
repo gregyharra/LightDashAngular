@@ -1,5 +1,5 @@
 import { Injectable, inject } from '@angular/core';
-import { Observable, switchMap, throwError, timer } from 'rxjs';
+import { Observable, shareReplay, switchMap, tap, throwError, timer } from 'rxjs';
 import { map } from 'rxjs/operators';
 import { LightdashApiService, toApiError } from '../../core/api/lightdash-api.service';
 import {
@@ -12,9 +12,15 @@ import {
   QueryResults,
 } from '../../core/models/explore.model';
 
+export type RunQueryOptions = {
+  bypassCache?: boolean;
+};
+
 @Injectable({ providedIn: 'root' })
 export class ExplorerService {
   private readonly api = inject(LightdashApiService);
+  private readonly exploreCache = new Map<string, Observable<Explore>>();
+  private readonly queryCache = new Map<string, Observable<QueryResults>>();
 
   listExplores(projectUuid: string): Observable<ExploreSummary[]> {
     return this.api
@@ -23,13 +29,36 @@ export class ExplorerService {
   }
 
   getExplore(projectUuid: string, tableId: string): Observable<Explore> {
-    return this.api.get<Explore>(
-      `/projects/${projectUuid}/explores/${tableId}`,
-    );
+    const key = `${projectUuid}:${tableId}`;
+    const cached = this.exploreCache.get(key);
+    if (cached) {
+      return cached;
+    }
+
+    const request$ = this.api
+      .get<Explore>(`/projects/${projectUuid}/explores/${tableId}`)
+      .pipe(
+        tap({ error: () => this.exploreCache.delete(key) }),
+        shareReplay({ bufferSize: 1, refCount: false }),
+      );
+    this.exploreCache.set(key, request$);
+    return request$;
   }
 
-  runQuery(projectUuid: string, metricQuery: MetricQuery): Observable<QueryResults> {
-    return this.api
+  runQuery(
+    projectUuid: string,
+    metricQuery: MetricQuery,
+    options?: RunQueryOptions,
+  ): Observable<QueryResults> {
+    const key = JSON.stringify({ projectUuid, metricQuery });
+    if (!options?.bypassCache) {
+      const cached = this.queryCache.get(key);
+      if (cached) {
+        return cached;
+      }
+    }
+
+    const request$ = this.api
       .post<ExecuteAsyncMetricQueryResponse>(
         `/projects/${projectUuid}/query/metric-query`,
         { query: metricQuery },
@@ -49,7 +78,11 @@ export class ExplorerService {
             })),
           ),
         ),
+        tap({ error: () => this.queryCache.delete(key) }),
+        shareReplay({ bufferSize: 1, refCount: false }),
       );
+    this.queryCache.set(key, request$);
+    return request$;
   }
 
   private pollQueryResults(

@@ -103,9 +103,10 @@ test('dragging a tile over another rearranges without overlap and persists on sa
   page,
 }) => {
   await page.goto(
-    `/projects/${PROJECT_UUID}/dashboards/${DASHBOARD_UUID}/edit`,
+    `/projects/${PROJECT_UUID}/dashboards/${DASHBOARD_UUID}`,
   );
 
+  await page.getByRole('button', { name: 'Edit' }).click();
   await expect(page.getByRole('button', { name: 'Save' })).toBeVisible();
 
   const before = await readTilePositions(page);
@@ -123,6 +124,7 @@ test('dragging a tile over another rearranges without overlap and persists on sa
   await expect(page).toHaveURL(
     new RegExp(`/projects/${PROJECT_UUID}/dashboards/${DASHBOARD_UUID}$`),
   );
+  await expect(page.getByRole('button', { name: 'Edit' })).toBeVisible();
   await expect(page.locator('.dashboard-view__grid .dashboard-tile')).toHaveCount(
     afterDrag.length,
   );

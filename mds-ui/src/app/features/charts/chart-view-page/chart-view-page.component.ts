@@ -5,9 +5,12 @@ import {
   PLATFORM_ID,
   Renderer2,
   computed,
+  effect,
   inject,
   signal,
 } from '@angular/core';
+import { toSignal } from '@angular/core/rxjs-interop';
+import { Store } from '@ngrx/store';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { MatButtonModule } from '@angular/material/button';
 import { MatDialog } from '@angular/material/dialog';
@@ -85,6 +88,13 @@ import { TablesFiltersPanelComponent } from '../../explorer/tables-filters-panel
 import { getFilterableDimensions } from '../../explorer/tables-filters-panel/tables-filters.utils';
 import { buildMetricQuerySql } from '../../explorer/metric-query-sql.utils';
 import { mergeDashboardFiltersIntoMetricQuery } from '../../dashboards/dashboard-filters';
+import {
+  ChartQueryActions,
+  ChartQueryEntry,
+  ChartQueryKeyInput,
+  chartQueryKey,
+  selectEntries,
+} from '../../../core/store';
 import { combineLatest, forkJoin } from 'rxjs';
 
 type TableFieldGroup = {
@@ -135,7 +145,12 @@ export class ChartViewPageComponent {
   private readonly platformId = inject(PLATFORM_ID);
   private readonly renderer = inject(Renderer2);
   private readonly destroyRef = inject(DestroyRef);
+  private readonly store = inject(Store);
   protected readonly activeProjectService = inject(ActiveProjectService);
+
+  private readonly cacheEntries = toSignal(this.store.select(selectEntries), {
+    initialValue: {} as Record<string, ChartQueryEntry>,
+  });
 
   protected readonly projectUuid = signal<string | null>(null);
   protected readonly chartUuid = signal<string | null>(null);
@@ -468,6 +483,37 @@ export class ChartViewPageComponent {
         this.loadChart(projectUuid, chartUuid);
       },
     );
+
+    effect(() => {
+      const input = this.queryCacheInput();
+      if (!input) {
+        return;
+      }
+
+      const entry = this.cacheEntries()[chartQueryKey(input)];
+      if (!entry) {
+        return;
+      }
+
+      if (entry.snapshot?.queryResults) {
+        this.queryResults.set(entry.snapshot.queryResults);
+        if (entry.snapshot.chartConfig) {
+          this.chartConfig.set(entry.snapshot.chartConfig);
+        }
+        this.resultsPageIndex.set(0);
+      }
+
+      if (entry.status === 'loading') {
+        this.queryLoading.set(!entry.snapshot?.queryResults);
+        this.queryError.set(null);
+      } else if (entry.status === 'success') {
+        this.queryLoading.set(false);
+        this.queryError.set(null);
+      } else if (entry.status === 'error') {
+        this.queryLoading.set(false);
+        this.queryError.set(entry.error ?? 'Failed to run query.');
+      }
+    });
   }
 
   protected enterEditMode(): void {
@@ -709,7 +755,6 @@ export class ChartViewPageComponent {
   private loadChart(projectUuid: string, chartUuid: string): void {
     this.loading.set(true);
     this.error.set(null);
-    this.queryResults.set(null);
     this.queryError.set(null);
     this.dimensionFilters.set([]);
     this.fieldSearch.set('');
@@ -717,6 +762,18 @@ export class ChartViewPageComponent {
     this.saveError.set(null);
     this.resultsPageIndex.set(0);
     this.selectedTableId.set(null);
+
+    const cachedEntry = this.cacheEntries()[
+      chartQueryKey({
+        kind: 'savedChartView',
+        projectUuid,
+        savedChartUuid: chartUuid,
+        dimensionFilters: [],
+      })
+    ];
+    if (!cachedEntry?.snapshot?.queryResults) {
+      this.queryResults.set(null);
+    }
 
     this.chartService.get(projectUuid, chartUuid).subscribe({
       next: (chart) => {
@@ -1404,52 +1461,81 @@ export class ChartViewPageComponent {
   }
 
   protected runQuery(): void {
-    const projectUuid = this.projectUuid();
-    const explore = this.explore();
-    const dimensions = this.selectedDimensionList();
-    const metrics = this.selectedMetricList();
-
-    if (!projectUuid || !explore || (dimensions.length === 0 && metrics.length === 0)) {
+    const input = this.queryCacheInput();
+    if (!input) {
       this.queryResults.set(null);
       return;
     }
 
-    this.queryLoading.set(true);
+    const cacheKey = chartQueryKey(input);
+    const cachedEntry = this.cacheEntries()[cacheKey];
+    if (cachedEntry?.status === 'success' && cachedEntry.snapshot?.queryResults) {
+      this.queryResults.set(cachedEntry.snapshot.queryResults);
+      if (cachedEntry.snapshot.chartConfig) {
+        this.chartConfig.set(cachedEntry.snapshot.chartConfig);
+      }
+      this.resultsPageIndex.set(0);
+      this.queryLoading.set(false);
+      this.queryError.set(null);
+      return;
+    }
+
+    if (cachedEntry?.status === 'loading') {
+      this.queryLoading.set(!cachedEntry.snapshot?.queryResults);
+      return;
+    }
+
+    this.queryLoading.set(!cachedEntry?.snapshot?.queryResults);
     this.queryError.set(null);
+    this.store.dispatch(ChartQueryActions.load({ key: cacheKey, input }));
+  }
 
-    const baseMetricQuery: MetricQuery = {
-      exploreName: explore.name,
-      dimensions,
-      metrics,
-      filters: {},
-      sorts: [],
-      limit: clampQueryLimit(
-        this.chartDisplayConfig().rowLimit,
-        this.maxQueryLimit(),
-      ),
-      tableCalculations: [],
-      additionalMetrics: this.additionalMetrics(),
-    };
+  private queryCacheInput(): ChartQueryKeyInput | null {
+    const projectUuid = this.projectUuid();
+    const explore = this.explore();
+    const chartUuid = this.chartUuid();
 
-    this.explorerService
-      .runQuery(
+    if (!projectUuid) {
+      return null;
+    }
+
+    if (!this.editMode() && !this.isCreateMode() && chartUuid) {
+      return {
+        kind: 'savedChartView',
         projectUuid,
-        mergeDashboardFiltersIntoMetricQuery(
-          baseMetricQuery,
-          this.dimensionFilters(),
-          explore,
+        savedChartUuid: chartUuid,
+        dimensionFilters: this.dimensionFilters(),
+      };
+    }
+
+    if (!explore) {
+      return null;
+    }
+
+    const dimensions = this.selectedDimensionList();
+    const metrics = this.selectedMetricList();
+    if (dimensions.length === 0 && metrics.length === 0) {
+      return null;
+    }
+
+    return {
+      kind: 'metricQuery',
+      projectUuid,
+      metricQuery: {
+        exploreName: explore.name,
+        dimensions,
+        metrics,
+        filters: {},
+        sorts: [],
+        limit: clampQueryLimit(
+          this.chartDisplayConfig().rowLimit,
+          this.maxQueryLimit(),
         ),
-      )
-      .subscribe({
-        next: (results) => {
-          this.queryResults.set(results);
-          this.resultsPageIndex.set(0);
-          this.queryLoading.set(false);
-        },
-        error: (err) => {
-          this.queryError.set(apiErrorMessage(err, 'Failed to run query.'));
-          this.queryLoading.set(false);
-        },
-      });
+        tableCalculations: [],
+        additionalMetrics: this.additionalMetrics(),
+      },
+      dimensionFilters: this.dimensionFilters(),
+      timeTravel: null,
+    };
   }
 }

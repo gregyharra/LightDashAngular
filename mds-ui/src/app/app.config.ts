@@ -8,10 +8,12 @@ import { routes } from './app.routes';
 import { authInterceptor } from './core/interceptors/auth.interceptor';
 import { mockApiInterceptor } from './core/mock/mock-api.interceptor';
 import { AppStateService } from './core/services/app-state.service';
+import { provideAppStore } from './core/store';
 
 export const appConfig: ApplicationConfig = {
   providers: [
     provideZoneChangeDetection({ eventCoalescing: true }),
+    ...provideAppStore(),
     provideRouter(routes),
     provideAnimationsAsync(),
     {

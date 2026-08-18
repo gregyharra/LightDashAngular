@@ -1,29 +1,30 @@
 <div class="dashboard-chart-tile">
+  @let results = displayResults();
   @if (!savedChartUuid()) {
     <div class="dashboard-chart-tile__state dashboard-chart-tile__state--empty">
       <mat-icon>bar_chart</mat-icon>
       <span>Chart not configured</span>
     </div>
-  } @else if (loading()) {
-    <div class="dashboard-chart-tile__state dashboard-chart-tile__state--loading">
-      <mat-spinner diameter="24" />
+  } @else if (results && results.rows.length > 0) {
+    <app-chart-visualization
+      [chartConfig]="displayConfig()"
+      [queryResults]="results"
+      [bigNumberComparison]="displayComparison()"
+      [dashboardMode]="true"
+    />
+  } @else if (results) {
+    <div class="dashboard-chart-tile__state dashboard-chart-tile__state--empty">
+      <mat-icon>bar_chart</mat-icon>
+      <span>No data available</span>
     </div>
   } @else if (error()) {
     <div class="dashboard-chart-tile__state dashboard-chart-tile__state--error">
       <mat-icon>error_outline</mat-icon>
       <span>{{ error() }}</span>
     </div>
-  } @else if (queryResults() && queryResults()!.rows.length > 0) {
-    <app-chart-visualization
-      [chartConfig]="chartConfig()"
-      [queryResults]="queryResults()"
-      [bigNumberComparison]="bigNumberComparison()"
-      [dashboardMode]="true"
-    />
   } @else {
-    <div class="dashboard-chart-tile__state dashboard-chart-tile__state--empty">
-      <mat-icon>bar_chart</mat-icon>
-      <span>No data available</span>
+    <div class="dashboard-chart-tile__state dashboard-chart-tile__state--loading">
+      <mat-spinner diameter="24" />
     </div>
   }
 </div>

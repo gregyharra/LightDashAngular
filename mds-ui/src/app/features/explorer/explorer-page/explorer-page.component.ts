@@ -1,4 +1,6 @@
-import { Component, computed, inject, signal } from '@angular/core';
+import { Component, computed, effect, inject, signal } from '@angular/core';
+import { toSignal } from '@angular/core/rxjs-interop';
+import { Store } from '@ngrx/store';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { MatButtonModule } from '@angular/material/button';
 import { MatChipsModule } from '@angular/material/chips';
@@ -16,6 +18,13 @@ import {
   getFieldId,
 } from '../../../core/models/explore.model';
 import { ExplorerService } from '../explorer.service';
+import {
+  ChartQueryActions,
+  ChartQueryEntry,
+  ChartQueryKeyInput,
+  chartQueryKey,
+  selectEntries,
+} from '../../../core/store';
 import { ResizableSidebarDirective } from '../../../layout/resizable-sidebar/resizable-sidebar.directive';
 
 type TableFieldGroup = {
@@ -42,7 +51,12 @@ type TableFieldGroup = {
 export class ExplorerPageComponent {
   private readonly explorerService = inject(ExplorerService);
   private readonly route = inject(ActivatedRoute);
+  private readonly store = inject(Store);
   protected readonly activeProjectService = inject(ActiveProjectService);
+
+  private readonly cacheEntries = toSignal(this.store.select(selectEntries), {
+    initialValue: {} as Record<string, ChartQueryEntry>,
+  });
 
   protected readonly projectUuid = signal<string | null>(null);
   protected readonly tableId = signal<string | null>(null);
@@ -132,6 +146,34 @@ export class ExplorerPageComponent {
       this.tableId.set(tableId);
       this.activeProjectService.setActiveProject(projectUuid);
       this.loadExplore(projectUuid, tableId);
+    });
+
+    effect(() => {
+      const input = this.queryCacheInput();
+      if (!input) {
+        return;
+      }
+
+      const entry = this.cacheEntries()[chartQueryKey(input)];
+      if (!entry) {
+        return;
+      }
+
+      if (entry.snapshot?.queryResults) {
+        this.queryResults.set(entry.snapshot.queryResults);
+        this.hasRunQuery.set(true);
+      }
+
+      if (entry.status === 'loading') {
+        this.queryLoading.set(!entry.snapshot?.queryResults);
+        this.queryError.set(null);
+      } else if (entry.status === 'success') {
+        this.queryLoading.set(false);
+        this.queryError.set(null);
+      } else if (entry.status === 'error') {
+        this.queryLoading.set(false);
+        this.queryError.set(entry.error ?? 'Failed to run query.');
+      }
     });
   }
 
@@ -264,23 +306,48 @@ export class ExplorerPageComponent {
   }
 
   protected runQuery(): void {
+    const input = this.queryCacheInput();
+    if (!input) {
+      return;
+    }
+
+    const cacheKey = chartQueryKey(input);
+    const cachedEntry = this.cacheEntries()[cacheKey];
+    if (cachedEntry?.status === 'success' && cachedEntry.snapshot?.queryResults) {
+      this.queryResults.set(cachedEntry.snapshot.queryResults);
+      this.hasRunQuery.set(true);
+      this.queryLoading.set(false);
+      this.queryError.set(null);
+      return;
+    }
+
+    if (cachedEntry?.status === 'loading') {
+      this.queryLoading.set(!cachedEntry.snapshot?.queryResults);
+      return;
+    }
+
+    this.queryLoading.set(!cachedEntry?.snapshot?.queryResults);
+    this.queryError.set(null);
+    this.hasRunQuery.set(true);
+    this.store.dispatch(ChartQueryActions.load({ key: cacheKey, input }));
+  }
+
+  private queryCacheInput(): ChartQueryKeyInput | null {
     const projectUuid = this.projectUuid();
     const explore = this.explore();
     const selected = this.selectedFieldList();
 
     if (!projectUuid || !explore || selected.length === 0) {
-      return;
+      return null;
     }
 
     const dimensions = selected.filter((id) => !this.isMetricField(id));
     const metrics = selected.filter((id) => this.isMetricField(id));
 
-    this.queryLoading.set(true);
-    this.queryError.set(null);
-    this.hasRunQuery.set(true);
-
-    this.explorerService
-      .runQuery(projectUuid, {
+    return {
+      kind: 'metricQuery',
+      projectUuid,
+      metricQuery: {
         exploreName: explore.name,
         dimensions,
         metrics,
@@ -289,16 +356,9 @@ export class ExplorerPageComponent {
         limit: 500,
         tableCalculations: [],
         additionalMetrics: [],
-      })
-      .subscribe({
-        next: (results) => {
-          this.queryResults.set(results);
-          this.queryLoading.set(false);
-        },
-        error: (err) => {
-          this.queryError.set(apiErrorMessage(err, 'Failed to run query.'));
-          this.queryLoading.set(false);
-        },
-      });
+      },
+      dimensionFilters: [],
+      timeTravel: null,
+    };
   }
 }

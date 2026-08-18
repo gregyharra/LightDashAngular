@@ -1,8 +1,10 @@
 import { Injectable, inject } from '@angular/core';
+import { Store } from '@ngrx/store';
 import { Observable, from } from 'rxjs';
 import { switchMap } from 'rxjs/operators';
 import { LightdashApiService } from '../api/lightdash-api.service';
 import { UserProfile } from '../api/api.types';
+import { ChartQueryActions } from '../store';
 import { AppStateService } from './app-state.service';
 
 export type SetupPayload = {
@@ -50,6 +52,7 @@ export type UpdateUserPayload = {
 export class AuthService {
   private readonly api = inject(LightdashApiService);
   private readonly appState = inject(AppStateService);
+  private readonly store = inject(Store);
 
   setup(payload: SetupPayload): Observable<UserProfile> {
     return this.api.post<UserProfile>('/setup', payload).pipe(
@@ -66,6 +69,7 @@ export class AuthService {
   logout(): Observable<null> {
     return this.api.post<null>('/logout', {}).pipe(
       switchMap(() => {
+        this.store.dispatch(ChartQueryActions.invalidateAll());
         this.appState.clearUser();
         return [null];
       }),

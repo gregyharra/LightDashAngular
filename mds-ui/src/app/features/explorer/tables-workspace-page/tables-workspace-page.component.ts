@@ -1,4 +1,6 @@
-import { Component, computed, inject, signal, viewChild } from '@angular/core';
+import { Component, computed, effect, inject, signal, viewChild } from '@angular/core';
+import { toSignal } from '@angular/core/rxjs-interop';
+import { Store } from '@ngrx/store';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { forkJoin } from 'rxjs';
 import { MatButtonModule } from '@angular/material/button';
@@ -24,7 +26,6 @@ import {
 } from '../../../core/models/chart-config.utils';
 import { ActiveProjectService } from '../../../core/services/active-project.service';
 import { apiErrorMessage } from '../../../core/api/lightdash-api.service';
-import { queryErrorWarning } from '../../../core/api/api-error.service';
 import {
   AdditionalMetric,
   Explore,
@@ -61,6 +62,13 @@ import {
 import { buildMetricQuerySql } from '../metric-query-sql.utils';
 import { ExplorerService } from '../explorer.service';
 import { mergeDashboardFiltersIntoMetricQuery } from '../../dashboards/dashboard-filters';
+import {
+  ChartQueryActions,
+  ChartQueryEntry,
+  ChartQueryKeyInput,
+  chartQueryKey,
+  selectEntries,
+} from '../../../core/store';
 import { mergeTimeTravelIntoMetricQuery } from '../time-travel.utils';
 import { getFilterableDimensions } from '../tables-filters-panel/tables-filters.utils';
 import { TablesFiltersPanelComponent } from '../tables-filters-panel/tables-filters-panel.component';
@@ -118,7 +126,12 @@ export class TablesWorkspacePageComponent {
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
   private readonly appState = inject(AppStateService);
+  private readonly store = inject(Store);
   protected readonly activeProjectService = inject(ActiveProjectService);
+
+  private readonly cacheEntries = toSignal(this.store.select(selectEntries), {
+    initialValue: {} as Record<string, ChartQueryEntry>,
+  });
 
   protected readonly projectUuid = signal<string | null>(null);
   protected readonly tableId = signal<string | null>(null);
@@ -464,6 +477,36 @@ export class TablesWorkspacePageComponent {
       this.tableId.set(tableId);
       if (this.dbtTree().length > 0) {
         this.syncSelectionFromRoute(projectUuid, tableId);
+      }
+    });
+
+    effect(() => {
+      const input = this.queryCacheInput();
+      if (!input) {
+        return;
+      }
+
+      const entry = this.cacheEntries()[chartQueryKey(input)];
+      if (!entry) {
+        return;
+      }
+
+      if (entry.snapshot?.queryResults) {
+        this.queryResults.set(entry.snapshot.queryResults);
+        this.queryWarnings.set(entry.snapshot.queryResults.warnings ?? []);
+        this.hasRunQuery.set(true);
+      }
+
+      if (entry.status === 'loading') {
+        this.queryLoading.set(!entry.snapshot?.queryResults);
+        this.queryError.set(null);
+      } else if (entry.status === 'success') {
+        this.queryLoading.set(false);
+        this.queryError.set(null);
+      } else if (entry.status === 'error') {
+        this.queryWarnings.set([]);
+        this.queryError.set(entry.error ?? 'Failed to run query.');
+        this.queryLoading.set(false);
       }
     });
   }
@@ -993,35 +1036,66 @@ export class TablesWorkspacePageComponent {
   }
 
   protected runQuery(): void {
+    const input = this.queryCacheInput();
+    if (!input) {
+      return;
+    }
+
+    const cacheKey = chartQueryKey(input);
+    const cachedEntry = this.cacheEntries()[cacheKey];
+    if (cachedEntry?.status === 'success' && cachedEntry.snapshot?.queryResults) {
+      this.queryResults.set(cachedEntry.snapshot.queryResults);
+      this.queryWarnings.set(cachedEntry.snapshot.queryResults.warnings ?? []);
+      this.hasRunQuery.set(true);
+      this.queryLoading.set(false);
+      this.queryError.set(null);
+      return;
+    }
+
+    if (cachedEntry?.status === 'loading') {
+      this.queryLoading.set(!cachedEntry.snapshot?.queryResults);
+      return;
+    }
+
+    this.queryLoading.set(!cachedEntry?.snapshot?.queryResults);
+    this.queryError.set(null);
+    this.queryWarnings.set([]);
+    this.hasRunQuery.set(true);
+    this.store.dispatch(ChartQueryActions.load({ key: cacheKey, input }));
+  }
+
+  private queryCacheInput(): ChartQueryKeyInput | null {
     const projectUuid = this.projectUuid();
     const explore = this.explore();
     const selected = this.selectedFieldList();
 
     if (!projectUuid || !explore || selected.length === 0) {
-      return;
+      return null;
     }
 
-    this.queryLoading.set(true);
-    this.queryError.set(null);
-    this.queryWarnings.set([]);
-    this.hasRunQuery.set(true);
+    const dimensions = selected.filter((id) => !this.isMetricField(id));
+    const metrics = selected.filter((id) => this.isMetricField(id));
+    const selectedMetricIds = new Set(metrics);
+    const additionalMetrics = this.additionalMetrics().filter((metric) =>
+      selectedMetricIds.has(getFieldId(metric.tableName, metric.name)),
+    );
 
-    const timeTravel = this.resolveTimeTravelForQuery();
-
-    this.explorerService
-      .runQuery(projectUuid, this.buildCurrentMetricQuery(timeTravel))
-      .subscribe({
-        next: (results) => {
-          this.queryResults.set(results);
-          this.queryWarnings.set(results.warnings ?? []);
-          this.queryLoading.set(false);
-        },
-        error: (err) => {
-          this.queryWarnings.set([queryErrorWarning(err)]);
-          this.queryError.set(null);
-          this.queryLoading.set(false);
-        },
-      });
+    return {
+      kind: 'metricQuery',
+      projectUuid,
+      metricQuery: {
+        exploreName: explore.name,
+        dimensions,
+        metrics,
+        filters: {},
+        sorts: [],
+        limit: this.queryRowLimit(),
+        tableCalculations: [],
+        additionalMetrics,
+      },
+      dimensionFilters: this.dimensionFilters(),
+      timeTravel: this.resolveTimeTravelForQuery(),
+    };
   }
 
   protected openCustomMetricDialog(): void {
