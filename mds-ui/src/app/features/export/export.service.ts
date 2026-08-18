@@ -35,6 +35,6 @@ export class ExportService {
     iframe.style.display = 'none';
     iframe.src = fileUrl;
     document.body.appendChild(iframe);
-    window.setTimeout(() => iframe.remove(), 60_000);
+    window.setTimeout(() => iframe.remove(), 1_800_000);
   }
 }

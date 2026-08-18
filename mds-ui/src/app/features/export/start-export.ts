@@ -113,6 +113,7 @@ function handlePollResult(
   }
 
   if (poll.truncated) {
+    opts.exportService.startBrowserDownload(fileUrl);
     const n = (poll.rowCount ?? opts.csvMaxLimit).toLocaleString('en-US');
     openSnackbar(opts, `File contains the first ${n} rows.`, 'Export all rows')
       .onAction()

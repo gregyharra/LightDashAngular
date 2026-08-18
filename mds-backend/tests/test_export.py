@@ -111,6 +111,20 @@ def test_write_xlsx_headers_and_rows(tmp_path: Path):
     assert count == 1
 
 
+def test_xlsx_max_data_rows_constant():
+    assert export_writer.XLSX_MAX_DATA_ROWS == 1_048_575
+
+
+def test_export_row_cap_xlsx_even_when_override():
+    assert export_writer.export_row_cap("xlsx", 5_000_000, False) == 1_048_575
+    assert export_writer.export_row_cap("xlsx", 5_000_000, True) == 1_048_575
+
+
+def test_export_row_cap_csv_respects_override():
+    assert export_writer.export_row_cap("csv", 5_000_000, False) == 5_000_000
+    assert export_writer.export_row_cap("csv", 5_000_000, True) is None
+
+
 def test_export_store_ready_and_truncated():
     export_store.clear_exports()
     job = export_store.create_export(
@@ -337,6 +351,88 @@ def test_poll_truncated_when_row_count_equals_cap(client: TestClient, monkeypatc
         assert results["rowCount"] == 2
     finally:
         _cleanup_export(export_uuid)
+
+
+def test_xlsx_executor_truncated_when_count_equals_cap(monkeypatch):
+    from mds.services.query import export_executor
+
+    export_store.clear_exports()
+    monkeypatch.setattr(export_writer, "XLSX_MAX_DATA_ROWS", 2)
+
+    def fake_iter(_snapshot, _sql, _field_ids):
+        yield ["a"]
+        yield ["b"]
+        yield ["c"]
+
+    monkeypatch.setattr(export_executor, "iter_trino_formatted_rows", fake_iter)
+
+    job = export_store.create_export(
+        export_format="xlsx",
+        override_row_cap=True,
+        csv_max_limit=5_000_000,
+        filename="orders.xlsx",
+    )
+    snap = TrinoConnectionSnapshot(
+        host="h",
+        port=8080,
+        catalog="c",
+        schema_name="s",
+        user="u",
+        password=None,
+        ssl=False,
+    )
+    export_executor._run_export(
+        job.export_uuid,
+        snap,
+        "SELECT 1",
+        ["orders_status"],
+        ["Status"],
+        "xlsx",
+        5_000_000,
+        True,
+    )
+    ready = export_store.get_export(job.export_uuid)
+    assert ready is not None
+    assert ready.status == "ready"
+    assert ready.row_count == 2
+    assert ready.truncated is True
+    if ready.file_path:
+        Path(ready.file_path).unlink(missing_ok=True)
+
+
+def test_file_download_does_not_use_db(client: TestClient, tmp_path: Path):
+    from mds.db.session import get_db
+    from mds.main import app as fastapi_app
+
+    def boom():
+        raise AssertionError("GET /file must not open a DB session")
+        yield
+
+    fastapi_app.dependency_overrides[get_db] = boom
+    csv_path = tmp_path / "orders.csv"
+    csv_path.write_bytes(b"\xef\xbb\xbfStatus\nopen\n")
+    export_store.clear_exports()
+    job = export_store.create_export(
+        export_format="csv",
+        override_row_cap=False,
+        csv_max_limit=2,
+        filename="orders.csv",
+    )
+    export_store.set_export_ready(
+        job.export_uuid,
+        file_path=str(csv_path),
+        row_count=1,
+        truncated=False,
+    )
+    try:
+        response = client.get(f"/api/v2/projects/project/exports/{job.export_uuid}/file")
+        assert response.status_code == 200
+        assert response.content.startswith(b"\xef\xbb\xbf")
+        disposition = response.headers.get("content-disposition", "")
+        assert "attachment" in disposition
+        assert ".csv" in disposition
+    finally:
+        fastapi_app.dependency_overrides.pop(get_db, None)
 
 
 def test_file_streams_csv_attachment(client: TestClient, monkeypatch):

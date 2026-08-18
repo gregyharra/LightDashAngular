@@ -142,7 +142,7 @@ describe('startExport', () => {
 
   it('offers Export all rows when the file is truncated', () => {
     const action$ = new Subject<void>();
-    const { opts, create, snackBarOpen } = createHarness({
+    const { opts, create, snackBarOpen, startBrowserDownload } = createHarness({
       pollResult: of({
         status: 'ready',
         truncated: true,
@@ -154,6 +154,8 @@ describe('startExport', () => {
 
     startExport(opts);
 
+    expect(startBrowserDownload).toHaveBeenCalledWith(fileUrl);
+    expect(startBrowserDownload).toHaveBeenCalledTimes(2);
     expect(snackBarOpen).toHaveBeenCalledWith(
       'File contains the first 5,000,000 rows.',
       'Export all rows',

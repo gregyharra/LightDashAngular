@@ -66,4 +66,15 @@ describe('ExportService', () => {
   it('returns the same-origin file url', () => {
     expect(service.fileUrl('p', 'u')).toBe('/api/v2/projects/p/exports/u/file');
   });
+
+  it('keeps the download iframe until the file wait window elapses', () => {
+    const setTimeoutSpy = spyOn(window, 'setTimeout');
+
+    service.startBrowserDownload('/api/v2/projects/p/exports/u/file');
+
+    expect(setTimeoutSpy).toHaveBeenCalledWith(jasmine.any(Function), 1_800_000);
+    const iframe = document.body.querySelector('iframe');
+    expect(iframe).not.toBeNull();
+    iframe?.remove();
+  });
 });

@@ -4,6 +4,16 @@ import csv
 from collections.abc import Iterable
 from pathlib import Path
 
+XLSX_MAX_DATA_ROWS = 1_048_575
+
+
+def export_row_cap(format: str, csv_max_limit: int, override: bool) -> int | None:
+    if format == "xlsx":
+        return XLSX_MAX_DATA_ROWS
+    if override:
+        return None
+    return csv_max_limit
+
 
 def write_csv(path: str | Path, headers: list[str], rows: Iterable[list[str]]) -> int:
     count = 0

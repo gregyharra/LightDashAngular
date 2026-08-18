@@ -35,8 +35,6 @@ import {
   chartQueryKey,
   selectEntries,
 } from '../../../core/store';
-import { mergeDashboardFiltersIntoMetricQuery } from '../../dashboards/dashboard-filters';
-import { mergeTimeTravelIntoMetricQuery } from '../time-travel.utils';
 import {
   clampQueryLimit,
   DEFAULT_QUERY_LIMIT,
@@ -528,23 +526,10 @@ export class ExplorerPageComponent {
   private startExploreExport(format: ExportFormat): void {
     const projectUuid = this.projectUuid();
     const explore = this.explore();
-    const input = this.queryCacheInput();
-    const base =
-      input?.kind === 'metricQuery'
-        ? input.metricQuery
-        : this.queryResults()?.metricQuery;
-    if (!projectUuid || !base) {
+    const metricQuery = this.queryResults()?.metricQuery;
+    if (!projectUuid || !metricQuery) {
       return;
     }
-
-    const metricQuery = mergeTimeTravelIntoMetricQuery(
-      mergeDashboardFiltersIntoMetricQuery(
-        base,
-        this.dimensionFilters(),
-        explore ?? undefined,
-      ),
-      this.timeTravel(),
-    );
 
     startExport({
       dialog: this.dialog,

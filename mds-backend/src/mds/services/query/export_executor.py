@@ -3,6 +3,7 @@ from __future__ import annotations
 import logging
 import tempfile
 from concurrent.futures import ThreadPoolExecutor
+from itertools import islice
 from pathlib import Path
 
 from mds.services.query import export_store, export_writer
@@ -55,11 +56,16 @@ def _run_export(
         with tempfile.NamedTemporaryFile(delete=False, suffix=suffix) as tmp:
             tmp_path = tmp.name
         rows = iter_trino_formatted_rows(snapshot, sql, field_ids)
+        cap = export_writer.export_row_cap(
+            export_format, csv_max_limit, override_row_cap
+        )
+        if cap is not None:
+            rows = islice(rows, cap)
         if export_format == "xlsx":
             count = export_writer.write_xlsx(tmp_path, headers, rows)
         else:
             count = export_writer.write_csv(tmp_path, headers, rows)
-        truncated = (not override_row_cap) and count == csv_max_limit
+        truncated = cap is not None and count == cap
         export_store.set_export_ready(
             export_uuid,
             file_path=tmp_path,

@@ -129,9 +129,8 @@ def poll_export(project_uuid: str, export_uuid: str, db: Session = Depends(get_d
 def download_export_file(
     project_uuid: str,
     export_uuid: str,
-    db: Session = Depends(get_db),
 ):
-    _ = (project_uuid, db)
+    _ = project_uuid
     deadline = time.time() + EXPORT_FILE_WAIT_SECONDS
     while True:
         stored = export_store.get_export(export_uuid)
