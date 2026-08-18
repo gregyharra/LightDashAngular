@@ -1,4 +1,4 @@
-<div class="page-layout page-layout--explorer">
+<div class="page-layout">
   <aside class="page-layout__sidebar" appResizableSidebar>
     <div class="page-sidebar">
       <header class="page-sidebar__header">
@@ -25,7 +25,7 @@
           Charts
         </a>
         <a
-          class="page-sidebar__link page-sidebar__link--active page-sidebar__link--clickable"
+          class="page-sidebar__link page-sidebar__link--clickable"
           [routerLink]="['/projects', projectUuid(), 'tables']"
         >
           <mat-icon>table_chart</mat-icon>
@@ -42,163 +42,269 @@
     </div>
   </aside>
 
-  <div class="page-layout__content page-layout__content--flush">
+  @if (explore(); as exploreData) {
+    <aside
+      class="page-layout__sidebar page-layout__sidebar--fields explorer-page__fields"
+      aria-label="Dimensions and metrics"
+    >
+      <div class="explorer-page__fields-toolbar">
+        <div class="explorer-page__fields-search">
+          <mat-icon>search</mat-icon>
+          <input
+            type="search"
+            class="explorer-page__fields-search-input"
+            placeholder="Search metrics + dimensions"
+            [value]="fieldSearch()"
+            (input)="onFieldSearch($any($event.target).value)"
+          />
+        </div>
+      </div>
+      <div class="explorer-page__fields-scroll">
+        <mat-accordion multi>
+          @for (group of filteredTableGroups(); track group.table.name) {
+            <mat-expansion-panel [expanded]="true">
+              <mat-expansion-panel-header>
+                <mat-panel-title>{{ group.table.label }}</mat-panel-title>
+              </mat-expansion-panel-header>
+
+              @if (group.dimensions.length > 0) {
+                <p class="explorer-page__field-section">Dimensions</p>
+                <div class="explorer-page__field-list">
+                  @for (field of group.dimensions; track field.fieldId) {
+                    <button
+                      type="button"
+                      class="explorer-page__field-btn"
+                      [class.explorer-page__field-btn--selected]="
+                        isDimensionSelected(field.fieldId)
+                      "
+                      (click)="toggleDimension(field.fieldId)"
+                    >
+                      <mat-icon>straighten</mat-icon>
+                      {{ field.label }}
+                    </button>
+                  }
+                </div>
+              }
+
+              @if (group.metrics.length > 0) {
+                <p class="explorer-page__field-section">Metrics</p>
+                <div class="explorer-page__field-list">
+                  @for (field of group.metrics; track field.fieldId) {
+                    <button
+                      type="button"
+                      class="explorer-page__field-btn explorer-page__field-btn--metric"
+                      [class.explorer-page__field-btn--selected]="
+                        isMetricSelected(field.fieldId)
+                      "
+                      (click)="toggleMetric(field.fieldId)"
+                    >
+                      <mat-icon>functions</mat-icon>
+                      {{ field.label }}
+                    </button>
+                  }
+                </div>
+              }
+            </mat-expansion-panel>
+          }
+        </mat-accordion>
+        @if (fieldSearch().trim() && filteredTableGroups().length === 0) {
+          <p class="explorer-page__fields-empty">No matching fields</p>
+        }
+      </div>
+    </aside>
+  }
+
+  <div class="page-layout__content">
     @if (loading()) {
       <div class="explorer-page__loading">
         <mat-spinner diameter="32" />
       </div>
     } @else if (error()) {
-      <div class="explorer-page__error">{{ error() }}</div>
+      <div class="explorer-page__error page__container">
+        <p>{{ error() }}</p>
+        @if (tableId()) {
+          <a
+            class="explorer-page__error-link"
+            [routerLink]="['/projects', projectUuid(), 'explore']"
+          >
+            Back to Explore
+          </a>
+        }
+      </div>
+    } @else if (!tableId()) {
+      <section class="explorer-page explorer-page--picker">
+        <div class="page__container page__container--wide">
+          <header class="explorer-page__header">
+            <nav class="explorer-page__breadcrumbs" aria-label="Breadcrumb">
+              <a routerLink="/projects" class="explorer-page__breadcrumb-link">Home</a>
+              <mat-icon>chevron_right</mat-icon>
+              <span class="explorer-page__breadcrumb-current">Explore</span>
+            </nav>
+          </header>
+
+          <h1 class="explorer-page__title">Explore</h1>
+          <p class="explorer-page__subtitle">Select a model to query</p>
+
+          @if (explores().length === 0) {
+            <div class="explorer-page__empty">
+              <mat-icon>table_chart</mat-icon>
+              <p>No explores available.</p>
+            </div>
+          } @else {
+            <div class="explorer-page__grid">
+              @for (explore of explores(); track explore.name) {
+                <button
+                  type="button"
+                  class="explorer-page__card"
+                  (click)="openExplore(explore.name)"
+                >
+                  <div class="explorer-page__card-icon">
+                    <mat-icon>table_chart</mat-icon>
+                  </div>
+                  <div class="explorer-page__card-body">
+                    <span class="explorer-page__card-name">{{ explore.label }}</span>
+                    @if (explore.description) {
+                      <span class="explorer-page__card-description">{{
+                        explore.description
+                      }}</span>
+                    }
+                    <span class="explorer-page__card-meta">
+                      {{ explore.databaseName }}.{{ explore.schemaName }}
+                    </span>
+                  </div>
+                  <mat-icon class="explorer-page__card-chevron">chevron_right</mat-icon>
+                </button>
+              }
+            </div>
+          }
+        </div>
+      </section>
     } @else {
       @if (explore(); as exploreData) {
       <section class="explorer-page">
-        <header class="explorer-page__header">
-          <nav class="explorer-page__breadcrumbs" aria-label="Breadcrumb">
-            <a routerLink="/projects" class="explorer-page__breadcrumb-link">Home</a>
-            <mat-icon>chevron_right</mat-icon>
-            <a
-              class="explorer-page__breadcrumb-link"
-              [routerLink]="['/projects', projectUuid(), 'tables']"
-            >
-              Tables
-            </a>
-            <mat-icon>chevron_right</mat-icon>
-            <span class="explorer-page__breadcrumb-current">{{ exploreData.label }}</span>
-          </nav>
-          <h1 class="explorer-page__title">{{ exploreData.label }}</h1>
-          @if (exploreData.description) {
-            <p class="explorer-page__description">{{ exploreData.description }}</p>
-          }
-        </header>
+        <div class="page__container page__container--wide">
+          <header class="explorer-page__header explorer-page__header--workspace">
+            <nav class="explorer-page__breadcrumbs" aria-label="Breadcrumb">
+              <a routerLink="/projects" class="explorer-page__breadcrumb-link">Home</a>
+              <mat-icon>chevron_right</mat-icon>
+              <a
+                class="explorer-page__breadcrumb-link"
+                [routerLink]="['/projects', projectUuid(), 'explore']"
+              >
+                Explore
+              </a>
+              <mat-icon>chevron_right</mat-icon>
+              <span class="explorer-page__breadcrumb-current">{{
+                exploreData.label
+              }}</span>
+            </nav>
 
-        <div class="explorer-page__workspace">
-          <aside class="explorer-page__fields-panel" aria-label="Dimensions and metrics">
-            <h2 class="explorer-page__panel-title">Fields</h2>
-
-            <mat-accordion multi class="explorer-page__accordion">
-              @for (group of tableGroups(); track group.table.name) {
-                <mat-expansion-panel expanded>
-                  <mat-expansion-panel-header>
-                    <mat-panel-title>{{ group.table.label }}</mat-panel-title>
-                  </mat-expansion-panel-header>
-
-                  @if (group.dimensions.length > 0) {
-                    <p class="explorer-page__field-group-label">Dimensions</p>
-                    <ul class="explorer-page__field-list">
-                      @for (field of group.dimensions; track field.fieldId) {
-                        <li>
-                          <button
-                            type="button"
-                            class="explorer-page__field-btn"
-                            [class.explorer-page__field-btn--selected]="isFieldSelected(field.fieldId)"
-                            (click)="toggleField(field.fieldId)"
-                          >
-                            <mat-icon>tag</mat-icon>
-                            {{ field.label }}
-                          </button>
-                        </li>
-                      }
-                    </ul>
-                  }
-
-                  @if (group.metrics.length > 0) {
-                    <p class="explorer-page__field-group-label">Metrics</p>
-                    <ul class="explorer-page__field-list">
-                      @for (field of group.metrics; track field.fieldId) {
-                        <li>
-                          <button
-                            type="button"
-                            class="explorer-page__field-btn explorer-page__field-btn--metric"
-                            [class.explorer-page__field-btn--selected]="isFieldSelected(field.fieldId)"
-                            (click)="toggleField(field.fieldId)"
-                          >
-                            <mat-icon>functions</mat-icon>
-                            {{ field.label }}
-                          </button>
-                        </li>
-                      }
-                    </ul>
-                  }
-                </mat-expansion-panel>
-              }
-            </mat-accordion>
-          </aside>
-
-          <div class="explorer-page__main">
-            <div class="explorer-page__query-bar">
-              <div class="explorer-page__chips">
-                @if (selectedFieldList().length === 0) {
-                  <span class="explorer-page__chips-empty">Select fields to query</span>
-                } @else {
-                  @for (fieldId of selectedFieldList(); track fieldId) {
-                    <mat-chip
-                      class="explorer-page__chip"
-                      [class.explorer-page__chip--metric]="isMetricField(fieldId)"
-                      (removed)="removeField(fieldId)"
-                    >
-                      {{ getFieldLabel(fieldId) }}
-                      <button matChipRemove aria-label="Remove field">
-                        <mat-icon>cancel</mat-icon>
-                      </button>
-                    </mat-chip>
-                  }
-                }
-              </div>
-
+            <div class="explorer-page__title-actions">
+              <app-run-query-button
+                [limit]="queryRowLimit()"
+                [maxLimit]="maxQueryLimit()"
+                [disabled]="!canRunQuery()"
+                [loading]="queryLoading()"
+                (run)="runQuery()"
+                (limitChange)="setQueryRowLimit($event)"
+              />
+              <button
+                mat-stroked-button
+                type="button"
+                class="explorer-page__action-btn"
+                [disabled]="!canExport()"
+                [matMenuTriggerFor]="exportMenu"
+              >
+                <mat-icon>download</mat-icon>
+                Export
+              </button>
+              <mat-menu #exportMenu="matMenu">
+                <button mat-menu-item type="button" (click)="onExportCsv()">
+                  CSV
+                </button>
+                <button mat-menu-item type="button" (click)="onExportXlsx()">
+                  Excel
+                </button>
+              </mat-menu>
               <button
                 mat-flat-button
-                class="explorer-page__run-btn"
-                [disabled]="selectedFieldList().length === 0 || queryLoading()"
-                (click)="runQuery()"
+                color="primary"
+                type="button"
+                class="explorer-page__action-btn"
+                [disabled]="!canCreateChart()"
+                (click)="createChartFromData()"
               >
-                @if (queryLoading()) {
-                  <mat-spinner diameter="18" />
-                } @else {
-                  <mat-icon>play_arrow</mat-icon>
-                }
-                Run query
+                <mat-icon>insert_chart</mat-icon>
+                Create chart from data
               </button>
             </div>
+          </header>
 
-            <div class="explorer-page__results">
-              @if (queryLoading()) {
-                <div class="explorer-page__results-loading">
-                  <mat-spinner diameter="32" />
-                  <p>Running query…</p>
-                </div>
-              } @else if (queryError()) {
-                <div class="explorer-page__results-error">{{ queryError() }}</div>
-              } @else if (!hasRunQuery()) {
-                <div class="explorer-page__results-empty">
-                  <mat-icon>table_view</mat-icon>
-                  <p>Select fields and click <strong>Run query</strong> to see results.</p>
-                </div>
-              } @else if (resultRows().length === 0) {
-                <div class="explorer-page__results-empty">
-                  <mat-icon>search_off</mat-icon>
-                  <p>No results returned.</p>
-                </div>
-              } @else {
-                <div class="explorer-page__table-wrap">
-                  <table
-                    mat-table
-                    [dataSource]="resultRows()"
-                    class="explorer-page__table"
+          <div class="explorer-page__body">
+            <div class="explorer-page__workspace">
+              <div class="explorer-page__main">
+                <mat-accordion class="explorer-page__accordion" multi>
+                  <mat-expansion-panel
+                    class="explorer-page__panel-section"
+                    [expanded]="true"
                   >
-                    @for (column of displayedColumns(); track column) {
-                      <ng-container [matColumnDef]="column">
-                        <th mat-header-cell *matHeaderCellDef>
-                          {{ getColumnLabel(column) }}
-                        </th>
-                        <td mat-cell *matCellDef="let row">{{ row[column] }}</td>
-                      </ng-container>
-                    }
+                    <mat-expansion-panel-header>
+                      <mat-panel-title>Filters</mat-panel-title>
+                    </mat-expansion-panel-header>
+                    <app-tables-filters-panel
+                      [dimensions]="filterableDimensions()"
+                      [filters]="dimensionFilters()"
+                      (filtersChange)="onDimensionFiltersChange($event)"
+                    />
+                  </mat-expansion-panel>
 
-                    <tr mat-header-row *matHeaderRowDef="displayedColumns()"></tr>
-                    <tr mat-row *matRowDef="let row; columns: displayedColumns()"></tr>
-                  </table>
-                </div>
-              }
+                  <mat-expansion-panel
+                    class="explorer-page__panel-section"
+                    [expanded]="true"
+                  >
+                    <mat-expansion-panel-header>
+                      <mat-panel-title>Results</mat-panel-title>
+                    </mat-expansion-panel-header>
+
+                    <app-query-results-panel
+                      [loading]="queryLoading()"
+                      [error]="queryError()"
+                      [hasResultsObject]="!!queryResults()"
+                      [rows]="resultRows()"
+                      [displayedColumns]="displayedColumns()"
+                      [columnLabel]="columnLabelFn"
+                      [isMetric]="isMetricFn"
+                      [pageIndex]="clampedResultsPageIndex()"
+                      [pageSize]="resultsPageSize()"
+                      [pageSizeOptions]="resultsPageSizeOptions"
+                      [showExport]="true"
+                      [exportDisabled]="!canExport()"
+                      (page)="onResultsPage($event)"
+                      (exportCsv)="onExportCsv()"
+                      (exportXlsx)="onExportXlsx()"
+                    />
+                  </mat-expansion-panel>
+
+                  <mat-expansion-panel class="explorer-page__panel-section">
+                    <mat-expansion-panel-header>
+                      <mat-panel-title>SQL</mat-panel-title>
+                    </mat-expansion-panel-header>
+
+                    @if (displaySql(); as sql) {
+                      <app-sql-highlight [sql]="sql" ariaLabel="Explore SQL" />
+                    } @else if (queryLoading()) {
+                      <div class="explorer-page__panel-loading">
+                        <mat-spinner diameter="24" />
+                        <span>Compiling query…</span>
+                      </div>
+                    } @else {
+                      <div class="explorer-page__panel-empty">
+                        <p>Select dimensions or metrics to generate SQL.</p>
+                      </div>
+                    }
+                  </mat-expansion-panel>
+                </mat-accordion>
+              </div>
             </div>
           </div>
         </div>

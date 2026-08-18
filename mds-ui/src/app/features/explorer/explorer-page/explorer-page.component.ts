@@ -1,23 +1,33 @@
 import { Component, computed, effect, inject, signal } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { Store } from '@ngrx/store';
-import { ActivatedRoute, RouterLink } from '@angular/router';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { MatButtonModule } from '@angular/material/button';
-import { MatChipsModule } from '@angular/material/chips';
+import { MatDialog } from '@angular/material/dialog';
 import { MatExpansionModule } from '@angular/material/expansion';
 import { MatIconModule } from '@angular/material/icon';
+import { MatMenuModule } from '@angular/material/menu';
+import { PageEvent } from '@angular/material/paginator';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
-import { MatTableModule } from '@angular/material/table';
+import { MatSnackBar } from '@angular/material/snack-bar';
 import { ActiveProjectService } from '../../../core/services/active-project.service';
+import { AppStateService } from '../../../core/services/app-state.service';
 import { apiErrorMessage } from '../../../core/api/lightdash-api.service';
+import { DashboardDimensionFilter } from '../../../core/models/dashboard.model';
 import {
   CompiledTable,
   Explore,
+  ExploreSummary,
   FieldId,
   QueryResults,
+  TimeTravelConfig,
   getFieldId,
 } from '../../../core/models/explore.model';
 import { ExplorerService } from '../explorer.service';
+import {
+  CREATE_FROM_EXPLORE_STATE_KEY,
+  CreateChartFromExploreState,
+} from '../create-chart-from-explore';
 import {
   ChartQueryActions,
   ChartQueryEntry,
@@ -25,7 +35,24 @@ import {
   chartQueryKey,
   selectEntries,
 } from '../../../core/store';
+import { mergeDashboardFiltersIntoMetricQuery } from '../../dashboards/dashboard-filters';
+import { mergeTimeTravelIntoMetricQuery } from '../time-travel.utils';
+import {
+  clampQueryLimit,
+  DEFAULT_QUERY_LIMIT,
+  resolveCsvMaxLimit,
+  resolveMaxQueryLimit,
+} from '../query-limit.utils';
+import { buildMetricQuerySql } from '../metric-query-sql.utils';
+import { TablesFiltersPanelComponent } from '../tables-filters-panel/tables-filters-panel.component';
+import { getFilterableDimensions } from '../tables-filters-panel/tables-filters.utils';
+import { QueryResultsPanelComponent } from '../../charts/query-results-panel/query-results-panel.component';
+import { ExportFormat } from '../../export/export.models';
+import { ExportService } from '../../export/export.service';
+import { startExport } from '../../export/start-export';
 import { ResizableSidebarDirective } from '../../../layout/resizable-sidebar/resizable-sidebar.directive';
+import { RunQueryButtonComponent } from '../../../shared/run-query-button/run-query-button.component';
+import { SqlHighlightComponent } from '../../../shared/sql-highlight/sql-highlight.component';
 
 type TableFieldGroup = {
   table: CompiledTable;
@@ -33,17 +60,23 @@ type TableFieldGroup = {
   metrics: { fieldId: FieldId; label: string }[];
 };
 
+const RESULTS_PAGE_SIZE_OPTIONS = [10, 25, 50, 100];
+const RESULTS_DEFAULT_PAGE_SIZE = 25;
+
 @Component({
   selector: 'app-explorer-page',
   imports: [
     RouterLink,
     MatButtonModule,
-    MatChipsModule,
     MatExpansionModule,
     MatIconModule,
+    MatMenuModule,
     MatProgressSpinnerModule,
-    MatTableModule,
+    QueryResultsPanelComponent,
+    TablesFiltersPanelComponent,
     ResizableSidebarDirective,
+    RunQueryButtonComponent,
+    SqlHighlightComponent,
   ],
   templateUrl: './explorer-page.component.html',
   styleUrl: './explorer-page.component.scss',
@@ -51,7 +84,12 @@ type TableFieldGroup = {
 export class ExplorerPageComponent {
   private readonly explorerService = inject(ExplorerService);
   private readonly route = inject(ActivatedRoute);
+  private readonly router = inject(Router);
   private readonly store = inject(Store);
+  private readonly dialog = inject(MatDialog);
+  private readonly exportService = inject(ExportService);
+  private readonly snackBar = inject(MatSnackBar);
+  private readonly appState = inject(AppStateService);
   protected readonly activeProjectService = inject(ActiveProjectService);
 
   private readonly cacheEntries = toSignal(this.store.select(selectEntries), {
@@ -61,14 +99,51 @@ export class ExplorerPageComponent {
   protected readonly projectUuid = signal<string | null>(null);
   protected readonly tableId = signal<string | null>(null);
   protected readonly explore = signal<Explore | null>(null);
+  protected readonly explores = signal<ExploreSummary[]>([]);
   protected readonly loading = signal(true);
   protected readonly error = signal<string | null>(null);
 
-  protected readonly selectedFields = signal<Set<FieldId>>(new Set());
+  protected readonly selectedDimensions = signal<Set<FieldId>>(new Set());
+  protected readonly selectedMetrics = signal<Set<FieldId>>(new Set());
+  protected readonly dimensionFilters = signal<DashboardDimensionFilter[]>([]);
+  protected readonly timeTravel = signal<TimeTravelConfig | null>(null);
+  protected readonly fieldSearch = signal('');
+  protected readonly rowLimit = signal(DEFAULT_QUERY_LIMIT);
+
   protected readonly queryLoading = signal(false);
   protected readonly queryError = signal<string | null>(null);
   protected readonly queryResults = signal<QueryResults | null>(null);
-  protected readonly hasRunQuery = signal(false);
+
+  protected readonly resultsPageSizeOptions = RESULTS_PAGE_SIZE_OPTIONS;
+  protected readonly resultsPageIndex = signal(0);
+  protected readonly resultsPageSize = signal(RESULTS_DEFAULT_PAGE_SIZE);
+  private loadGeneration = 0;
+
+  protected readonly maxQueryLimit = computed(() =>
+    resolveMaxQueryLimit(this.appState.health()?.query?.maxLimit),
+  );
+
+  protected readonly queryRowLimit = computed(() =>
+    clampQueryLimit(this.rowLimit(), this.maxQueryLimit()),
+  );
+
+  protected readonly selectedDimensionList = computed(() =>
+    Array.from(this.selectedDimensions()),
+  );
+
+  protected readonly selectedMetricList = computed(() =>
+    Array.from(this.selectedMetrics()),
+  );
+
+  protected readonly canRunQuery = computed(
+    () =>
+      this.selectedDimensionList().length > 0 ||
+      this.selectedMetricList().length > 0,
+  );
+
+  protected readonly canCreateChart = computed(() => this.canRunQuery());
+
+  protected readonly canExport = computed(() => !!this.queryResults());
 
   protected readonly tableGroups = computed<TableFieldGroup[]>(() => {
     const explore = this.explore();
@@ -93,9 +168,36 @@ export class ExplorerPageComponent {
     }));
   });
 
-  protected readonly selectedFieldList = computed(() =>
-    Array.from(this.selectedFields()),
-  );
+  protected readonly filteredTableGroups = computed(() => {
+    const query = this.fieldSearch().trim().toLowerCase();
+    const groups = this.tableGroups();
+
+    if (!query) {
+      return groups;
+    }
+
+    return groups
+      .map((group) => ({
+        ...group,
+        dimensions: group.dimensions.filter((field) =>
+          field.label.toLowerCase().includes(query),
+        ),
+        metrics: group.metrics.filter((field) =>
+          field.label.toLowerCase().includes(query),
+        ),
+      }))
+      .filter(
+        (group) => group.dimensions.length > 0 || group.metrics.length > 0,
+      );
+  });
+
+  protected readonly filterableDimensions = computed(() => {
+    const explore = this.explore();
+    if (!explore) {
+      return [];
+    }
+    return getFilterableDimensions(explore);
+  });
 
   protected readonly displayedColumns = computed(() => {
     const results = this.queryResults();
@@ -120,31 +222,55 @@ export class ExplorerPageComponent {
     });
   });
 
-  protected readonly columnLabels = computed(() => {
-    const results = this.queryResults();
-    if (!results) {
-      return {} as Record<FieldId, string>;
-    }
-
-    const labels: Record<FieldId, string> = {};
-    for (const [fieldId, field] of Object.entries(results.fields)) {
-      labels[fieldId] = field.label;
-    }
-    return labels;
+  protected readonly clampedResultsPageIndex = computed(() => {
+    const rows = this.resultRows();
+    const pageSize = this.resultsPageSize();
+    const maxPage = Math.max(0, Math.ceil(rows.length / pageSize) - 1);
+    return Math.min(this.resultsPageIndex(), maxPage);
   });
+
+  protected readonly compiledSql = computed(
+    () => this.queryResults()?.compiledSql?.trim() || null,
+  );
+
+  protected readonly generatedSql = computed(() => {
+    const explore = this.explore();
+    if (!explore) {
+      return null;
+    }
+    return buildMetricQuerySql(
+      explore,
+      this.selectedDimensionList(),
+      this.selectedMetricList(),
+      this.queryRowLimit(),
+      this.dimensionFilters(),
+      this.timeTravel(),
+    );
+  });
+
+  protected readonly displaySql = computed(
+    () => this.compiledSql() ?? this.generatedSql(),
+  );
 
   constructor() {
     this.route.paramMap.subscribe((params) => {
       const projectUuid = params.get('projectUuid');
       const tableId = params.get('tableId');
 
-      if (!projectUuid || !tableId) {
+      if (!projectUuid) {
         return;
       }
 
       this.projectUuid.set(projectUuid);
       this.tableId.set(tableId);
       this.activeProjectService.setActiveProject(projectUuid);
+
+      if (!tableId) {
+        this.resetWorkspace();
+        this.loadExplores(projectUuid);
+        return;
+      }
+
       this.loadExplore(projectUuid, tableId);
     });
 
@@ -161,7 +287,7 @@ export class ExplorerPageComponent {
 
       if (entry.snapshot?.queryResults) {
         this.queryResults.set(entry.snapshot.queryResults);
-        this.hasRunQuery.set(true);
+        this.resultsPageIndex.set(0);
       }
 
       if (entry.status === 'loading') {
@@ -177,90 +303,145 @@ export class ExplorerPageComponent {
     });
   }
 
-  private loadExplore(projectUuid: string, tableId: string): void {
+  private resetWorkspace(): void {
+    this.explore.set(null);
+    this.error.set(null);
+    this.selectedDimensions.set(new Set());
+    this.selectedMetrics.set(new Set());
+    this.dimensionFilters.set([]);
+    this.timeTravel.set(null);
+    this.fieldSearch.set('');
+    this.queryResults.set(null);
+    this.queryError.set(null);
+    this.queryLoading.set(false);
+    this.resultsPageIndex.set(0);
+  }
+
+  private loadExplores(projectUuid: string): void {
+    const generation = ++this.loadGeneration;
     this.loading.set(true);
     this.error.set(null);
-    this.queryResults.set(null);
-    this.hasRunQuery.set(false);
-    this.queryError.set(null);
+
+    this.explorerService.listExplores(projectUuid).subscribe({
+      next: (explores) => {
+        if (generation !== this.loadGeneration) {
+          return;
+        }
+        this.explores.set(explores);
+        this.loading.set(false);
+      },
+      error: (err) => {
+        if (generation !== this.loadGeneration) {
+          return;
+        }
+        this.error.set(apiErrorMessage(err, 'Failed to load explores.'));
+        this.loading.set(false);
+      },
+    });
+  }
+
+  private loadExplore(projectUuid: string, tableId: string): void {
+    const generation = ++this.loadGeneration;
+    this.loading.set(true);
+    this.error.set(null);
+    this.resetWorkspace();
 
     this.explorerService.getExplore(projectUuid, tableId).subscribe({
       next: (explore) => {
+        if (generation !== this.loadGeneration) {
+          return;
+        }
         this.explore.set(explore);
         this.loading.set(false);
-        this.setDefaultSelection(explore);
       },
       error: (err) => {
+        if (generation !== this.loadGeneration) {
+          return;
+        }
         this.error.set(apiErrorMessage(err, 'Failed to load explore.'));
         this.loading.set(false);
       },
     });
   }
 
-  private setDefaultSelection(explore: Explore): void {
-    const defaults = new Set<FieldId>();
-
-    const ordersDims = [
-      getFieldId('orders', 'order_id'),
-      getFieldId('orders', 'status'),
-      getFieldId('orders', 'order_date'),
-      getFieldId('customers', 'first_name'),
-      getFieldId('orders', 'amount'),
-    ];
-
-    for (const fieldId of ordersDims) {
-      if (this.fieldExistsInExplore(explore, fieldId)) {
-        defaults.add(fieldId);
-      }
+  protected openExplore(tableId: string): void {
+    const projectUuid = this.projectUuid();
+    if (!projectUuid) {
+      return;
     }
 
-    if (defaults.size === 0) {
-      const firstTable = Object.values(explore.tables)[0];
-      if (firstTable) {
-        const firstDim = Object.values(firstTable.dimensions)[0];
-        if (firstDim) {
-          defaults.add(getFieldId(firstTable.name, firstDim.name));
-        }
-      }
-    }
-
-    this.selectedFields.set(defaults);
+    void this.router.navigate(['/projects', projectUuid, 'explore', tableId]);
   }
 
-  private fieldExistsInExplore(explore: Explore, fieldId: FieldId): boolean {
-    for (const table of Object.values(explore.tables)) {
-      for (const dim of Object.values(table.dimensions)) {
-        if (getFieldId(table.name, dim.name) === fieldId) {
-          return true;
-        }
-      }
-      for (const metric of Object.values(table.metrics)) {
-        if (getFieldId(table.name, metric.name) === fieldId) {
-          return true;
-        }
-      }
-    }
-    return false;
+  protected onFieldSearch(value: string): void {
+    this.fieldSearch.set(value);
   }
 
-  protected isFieldSelected(fieldId: FieldId): boolean {
-    return this.selectedFields().has(fieldId);
+  protected isDimensionSelected(fieldId: FieldId): boolean {
+    return this.selectedDimensions().has(fieldId);
   }
 
-  protected toggleField(fieldId: FieldId): void {
-    const next = new Set(this.selectedFields());
+  protected isMetricSelected(fieldId: FieldId): boolean {
+    return this.selectedMetrics().has(fieldId);
+  }
+
+  protected toggleDimension(fieldId: FieldId): void {
+    const next = new Set(this.selectedDimensions());
     if (next.has(fieldId)) {
       next.delete(fieldId);
     } else {
       next.add(fieldId);
     }
-    this.selectedFields.set(next);
+    this.selectedDimensions.set(next);
   }
 
-  protected removeField(fieldId: FieldId): void {
-    const next = new Set(this.selectedFields());
-    next.delete(fieldId);
-    this.selectedFields.set(next);
+  protected toggleMetric(fieldId: FieldId): void {
+    const next = new Set(this.selectedMetrics());
+    if (next.has(fieldId)) {
+      next.delete(fieldId);
+    } else {
+      next.add(fieldId);
+    }
+    this.selectedMetrics.set(next);
+  }
+
+  protected onDimensionFiltersChange(filters: DashboardDimensionFilter[]): void {
+    this.dimensionFilters.set(filters);
+  }
+
+  protected setQueryRowLimit(limit: number): void {
+    this.rowLimit.set(clampQueryLimit(limit, this.maxQueryLimit()));
+  }
+
+  protected onResultsPage(event: PageEvent): void {
+    this.resultsPageIndex.set(event.pageIndex);
+    this.resultsPageSize.set(event.pageSize);
+  }
+
+  protected getColumnLabel(column: FieldId): string {
+    const results = this.queryResults();
+    return results?.fields[column]?.label ?? this.getFieldLabel(column);
+  }
+
+  protected readonly columnLabelFn = (column: string): string =>
+    this.getColumnLabel(column);
+
+  protected readonly isMetricFn = (column: string): boolean =>
+    this.isResultColumnMetric(column);
+
+  protected isResultColumnMetric(column: FieldId): boolean {
+    const results = this.queryResults();
+    if (!results) {
+      return false;
+    }
+    const field = results.fields[column];
+    if (field?.fieldType === 'metric') {
+      return true;
+    }
+    if (field?.fieldType === 'dimension') {
+      return false;
+    }
+    return results.metricQuery.metrics.includes(column);
   }
 
   protected getFieldLabel(fieldId: FieldId): string {
@@ -285,29 +466,10 @@ export class ExplorerPageComponent {
     return fieldId;
   }
 
-  protected isMetricField(fieldId: FieldId): boolean {
-    const explore = this.explore();
-    if (!explore) {
-      return false;
-    }
-
-    for (const table of Object.values(explore.tables)) {
-      for (const metric of Object.values(table.metrics)) {
-        if (getFieldId(table.name, metric.name) === fieldId) {
-          return true;
-        }
-      }
-    }
-    return false;
-  }
-
-  protected getColumnLabel(fieldId: FieldId): string {
-    return this.columnLabels()[fieldId] || fieldId;
-  }
-
   protected runQuery(): void {
     const input = this.queryCacheInput();
     if (!input) {
+      this.queryResults.set(null);
       return;
     }
 
@@ -315,7 +477,7 @@ export class ExplorerPageComponent {
     const cachedEntry = this.cacheEntries()[cacheKey];
     if (cachedEntry?.status === 'success' && cachedEntry.snapshot?.queryResults) {
       this.queryResults.set(cachedEntry.snapshot.queryResults);
-      this.hasRunQuery.set(true);
+      this.resultsPageIndex.set(0);
       this.queryLoading.set(false);
       this.queryError.set(null);
       return;
@@ -328,21 +490,83 @@ export class ExplorerPageComponent {
 
     this.queryLoading.set(!cachedEntry?.snapshot?.queryResults);
     this.queryError.set(null);
-    this.hasRunQuery.set(true);
     this.store.dispatch(ChartQueryActions.load({ key: cacheKey, input }));
+  }
+
+  protected onExportCsv(): void {
+    this.startExploreExport('csv');
+  }
+
+  protected onExportXlsx(): void {
+    this.startExploreExport('xlsx');
+  }
+
+  protected createChartFromData(): void {
+    const projectUuid = this.projectUuid();
+    const explore = this.explore();
+    if (!projectUuid || !explore || !this.canCreateChart()) {
+      return;
+    }
+
+    const state: CreateChartFromExploreState = {
+      exploreName: explore.name,
+      dimensions: this.selectedDimensionList(),
+      metrics: this.selectedMetricList(),
+      filters: {},
+      sorts: [],
+      additionalMetrics: [],
+      rowLimit: this.queryRowLimit(),
+      timeTravel: this.timeTravel(),
+      dimensionFilters: this.dimensionFilters(),
+    };
+
+    void this.router.navigate(['/projects', projectUuid, 'charts', 'new'], {
+      state: { [CREATE_FROM_EXPLORE_STATE_KEY]: state },
+    });
+  }
+
+  private startExploreExport(format: ExportFormat): void {
+    const projectUuid = this.projectUuid();
+    const explore = this.explore();
+    const input = this.queryCacheInput();
+    const base =
+      input?.kind === 'metricQuery'
+        ? input.metricQuery
+        : this.queryResults()?.metricQuery;
+    if (!projectUuid || !base) {
+      return;
+    }
+
+    const metricQuery = mergeTimeTravelIntoMetricQuery(
+      mergeDashboardFiltersIntoMetricQuery(
+        base,
+        this.dimensionFilters(),
+        explore ?? undefined,
+      ),
+      this.timeTravel(),
+    );
+
+    startExport({
+      dialog: this.dialog,
+      exportService: this.exportService,
+      snackBar: this.snackBar,
+      projectUuid,
+      metricQuery,
+      format,
+      csvMaxLimit: resolveCsvMaxLimit(this.appState.health()?.query?.csvMaxLimit),
+      filenameBase: explore?.label || explore?.name || 'export',
+    });
   }
 
   private queryCacheInput(): ChartQueryKeyInput | null {
     const projectUuid = this.projectUuid();
     const explore = this.explore();
-    const selected = this.selectedFieldList();
+    const dimensions = this.selectedDimensionList();
+    const metrics = this.selectedMetricList();
 
-    if (!projectUuid || !explore || selected.length === 0) {
+    if (!projectUuid || !explore || (dimensions.length === 0 && metrics.length === 0)) {
       return null;
     }
-
-    const dimensions = selected.filter((id) => !this.isMetricField(id));
-    const metrics = selected.filter((id) => this.isMetricField(id));
 
     return {
       kind: 'metricQuery',
@@ -353,12 +577,12 @@ export class ExplorerPageComponent {
         metrics,
         filters: {},
         sorts: [],
-        limit: 500,
+        limit: this.queryRowLimit(),
         tableCalculations: [],
         additionalMetrics: [],
       },
-      dimensionFilters: [],
-      timeTravel: null,
+      dimensionFilters: this.dimensionFilters(),
+      timeTravel: this.timeTravel(),
     };
   }
 }

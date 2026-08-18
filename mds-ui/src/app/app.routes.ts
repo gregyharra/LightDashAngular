@@ -157,6 +157,20 @@ export const routes: Routes = [
           ).then((m) => m.DashboardViewPageComponent),
       },
       {
+        path: 'projects/:projectUuid/explore',
+        loadComponent: () =>
+          import(
+            './features/explorer/explorer-page/explorer-page.component'
+          ).then((m) => m.ExplorerPageComponent),
+      },
+      {
+        path: 'projects/:projectUuid/explore/:tableId',
+        loadComponent: () =>
+          import(
+            './features/explorer/explorer-page/explorer-page.component'
+          ).then((m) => m.ExplorerPageComponent),
+      },
+      {
         path: 'projects/:projectUuid/charts/new',
         data: { createMode: true },
         loadComponent: () =>
