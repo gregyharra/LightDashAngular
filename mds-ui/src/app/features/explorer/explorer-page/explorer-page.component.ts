@@ -2,6 +2,7 @@ import { Component, computed, effect, inject, signal } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { Store } from '@ngrx/store';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
+import { forkJoin } from 'rxjs';
 import { MatButtonModule } from '@angular/material/button';
 import { MatDialog } from '@angular/material/dialog';
 import { MatExpansionModule } from '@angular/material/expansion';
@@ -15,7 +16,6 @@ import { AppStateService } from '../../../core/services/app-state.service';
 import { apiErrorMessage } from '../../../core/api/lightdash-api.service';
 import { DashboardDimensionFilter } from '../../../core/models/dashboard.model';
 import {
-  CompiledTable,
   Explore,
   ExploreSummary,
   FieldId,
@@ -23,7 +23,16 @@ import {
   TimeTravelConfig,
   getFieldId,
 } from '../../../core/models/explore.model';
+import { DbtTreeNode, LineageNode } from '../../../core/models/lineage.model';
 import { ExplorerService } from '../explorer.service';
+import { LineageService } from '../../lineage/lineage.service';
+import { FolderSearchPanelComponent } from '../../lineage/folder-search-panel/folder-search-panel.component';
+import { findTreeNodeByLineageId } from '../../lineage/dbt-tree-utils';
+import {
+  findExploreByName,
+  findExploreForLineageNode,
+} from '../explore-lineage.utils';
+import { resolveExploreNameForSelection } from '../explore-from-dbt.utils';
 import {
   CREATE_FROM_EXPLORE_STATE_KEY,
   CreateChartFromExploreState,
@@ -44,6 +53,11 @@ import {
 import { buildMetricQuerySql } from '../metric-query-sql.utils';
 import { TablesFiltersPanelComponent } from '../tables-filters-panel/tables-filters-panel.component';
 import { getFilterableDimensions } from '../tables-filters-panel/tables-filters.utils';
+import {
+  filterTablesFieldGroups,
+  TablesFieldGroup,
+  TablesFieldsPanelComponent,
+} from '../tables-fields-panel/tables-fields-panel.component';
 import { QueryResultsPanelComponent } from '../../charts/query-results-panel/query-results-panel.component';
 import { ExportFormat } from '../../export/export.models';
 import { ExportService } from '../../export/export.service';
@@ -51,12 +65,6 @@ import { startExport } from '../../export/start-export';
 import { ResizableSidebarDirective } from '../../../layout/resizable-sidebar/resizable-sidebar.directive';
 import { RunQueryButtonComponent } from '../../../shared/run-query-button/run-query-button.component';
 import { SqlHighlightComponent } from '../../../shared/sql-highlight/sql-highlight.component';
-
-type TableFieldGroup = {
-  table: CompiledTable;
-  dimensions: { fieldId: FieldId; label: string }[];
-  metrics: { fieldId: FieldId; label: string }[];
-};
 
 const RESULTS_PAGE_SIZE_OPTIONS = [10, 25, 50, 100];
 const RESULTS_DEFAULT_PAGE_SIZE = 25;
@@ -72,6 +80,8 @@ const RESULTS_DEFAULT_PAGE_SIZE = 25;
     MatProgressSpinnerModule,
     QueryResultsPanelComponent,
     TablesFiltersPanelComponent,
+    TablesFieldsPanelComponent,
+    FolderSearchPanelComponent,
     ResizableSidebarDirective,
     RunQueryButtonComponent,
     SqlHighlightComponent,
@@ -81,6 +91,7 @@ const RESULTS_DEFAULT_PAGE_SIZE = 25;
 })
 export class ExplorerPageComponent {
   private readonly explorerService = inject(ExplorerService);
+  private readonly lineageService = inject(LineageService);
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
   private readonly store = inject(Store);
@@ -98,6 +109,9 @@ export class ExplorerPageComponent {
   protected readonly tableId = signal<string | null>(null);
   protected readonly explore = signal<Explore | null>(null);
   protected readonly explores = signal<ExploreSummary[]>([]);
+  protected readonly dbtTree = signal<DbtTreeNode[]>([]);
+  protected readonly lineageNodes = signal<LineageNode[]>([]);
+  protected readonly projectTreeLoading = signal(false);
   protected readonly loading = signal(true);
   protected readonly error = signal<string | null>(null);
 
@@ -106,6 +120,7 @@ export class ExplorerPageComponent {
   protected readonly dimensionFilters = signal<DashboardDimensionFilter[]>([]);
   protected readonly timeTravel = signal<TimeTravelConfig | null>(null);
   protected readonly fieldSearch = signal('');
+  protected readonly modelSearch = signal('');
   protected readonly rowLimit = signal(DEFAULT_QUERY_LIMIT);
 
   protected readonly queryLoading = signal(false);
@@ -116,6 +131,7 @@ export class ExplorerPageComponent {
   protected readonly resultsPageIndex = signal(0);
   protected readonly resultsPageSize = signal(RESULTS_DEFAULT_PAGE_SIZE);
   private loadGeneration = 0;
+  private loadedTreeProjectUuid: string | null = null;
 
   protected readonly maxQueryLimit = computed(() =>
     resolveMaxQueryLimit(this.appState.health()?.query?.maxLimit),
@@ -143,19 +159,21 @@ export class ExplorerPageComponent {
 
   protected readonly canExport = computed(() => !!this.queryResults());
 
-  protected readonly tableGroups = computed<TableFieldGroup[]>(() => {
+  protected readonly tableGroups = computed<TablesFieldGroup[]>(() => {
     const explore = this.explore();
     if (!explore) {
       return [];
     }
 
     return Object.values(explore.tables).map((table) => ({
-      table,
+      trackKey: table.name,
+      table: { name: table.name, label: table.label },
       dimensions: Object.values(table.dimensions)
         .filter((dim) => !dim.hidden)
         .map((dim) => ({
           fieldId: getFieldId(table.name, dim.name),
           label: dim.label,
+          type: dim.type,
         })),
       metrics: Object.values(table.metrics)
         .filter((metric) => !metric.hidden)
@@ -166,27 +184,54 @@ export class ExplorerPageComponent {
     }));
   });
 
-  protected readonly filteredTableGroups = computed(() => {
-    const query = this.fieldSearch().trim().toLowerCase();
-    const groups = this.tableGroups();
-
+  protected readonly filteredExplores = computed(() => {
+    const query = this.modelSearch().trim().toLowerCase();
+    const explores = this.explores();
     if (!query) {
-      return groups;
+      return explores;
     }
 
-    return groups
-      .map((group) => ({
-        ...group,
-        dimensions: group.dimensions.filter((field) =>
-          field.label.toLowerCase().includes(query),
-        ),
-        metrics: group.metrics.filter((field) =>
-          field.label.toLowerCase().includes(query),
-        ),
-      }))
-      .filter(
-        (group) => group.dimensions.length > 0 || group.metrics.length > 0,
-      );
+    return explores.filter((explore) => {
+      const haystack = [
+        explore.label,
+        explore.name,
+        explore.description ?? '',
+        `${explore.databaseName}.${explore.schemaName}`,
+      ]
+        .join(' ')
+        .toLowerCase();
+      return haystack.includes(query);
+    });
+  });
+
+  protected readonly selectedNodeId = computed(() => {
+    const tableId = this.tableId();
+    if (!tableId) {
+      return null;
+    }
+    return findExploreByName(this.explores(), tableId)?.lineageNodeId ?? tableId;
+  });
+
+  protected readonly filteredTableGroups = computed(() =>
+    filterTablesFieldGroups(this.tableGroups(), this.fieldSearch()),
+  );
+
+  protected readonly selectedFieldIds = computed(() => {
+    const ids = new Set<FieldId>(this.selectedDimensions());
+    for (const fieldId of this.selectedMetrics()) {
+      ids.add(fieldId);
+    }
+    return ids;
+  });
+
+  protected readonly dimensionFieldIds = computed(() => {
+    const ids = new Set<FieldId>();
+    for (const group of this.tableGroups()) {
+      for (const field of group.dimensions) {
+        ids.add(field.fieldId);
+      }
+    }
+    return ids;
   });
 
   protected readonly filterableDimensions = computed(() => {
@@ -262,10 +307,10 @@ export class ExplorerPageComponent {
       this.projectUuid.set(projectUuid);
       this.tableId.set(tableId);
       this.activeProjectService.setActiveProject(projectUuid);
+      this.ensureProjectTreeLoaded(projectUuid);
 
       if (!tableId) {
         this.resetWorkspace();
-        this.loadExplores(projectUuid);
         return;
       }
 
@@ -315,26 +360,56 @@ export class ExplorerPageComponent {
     this.resultsPageIndex.set(0);
   }
 
-  private loadExplores(projectUuid: string): void {
-    const generation = ++this.loadGeneration;
-    this.loading.set(true);
-    this.error.set(null);
+  private ensureProjectTreeLoaded(projectUuid: string): void {
+    if (
+      this.loadedTreeProjectUuid === projectUuid &&
+      (this.projectTreeLoading() ||
+        this.dbtTree().length > 0 ||
+        this.explores().length > 0)
+    ) {
+      return;
+    }
+    this.loadProjectTree(projectUuid);
+  }
 
-    this.explorerService.listExplores(projectUuid).subscribe({
-      next: (explores) => {
-        if (generation !== this.loadGeneration) {
-          return;
+  private loadProjectTree(projectUuid: string): void {
+    this.loadedTreeProjectUuid = projectUuid;
+    this.projectTreeLoading.set(true);
+    if (!this.tableId()) {
+      this.loading.set(true);
+      this.error.set(null);
+      this.modelSearch.set('');
+    }
+
+    forkJoin({
+      tree: this.lineageService.getDbtTree(projectUuid),
+      explores: this.explorerService.listExplores(projectUuid),
+    }).subscribe({
+      next: ({ tree, explores }) => {
+        this.dbtTree.set(tree.root);
+        this.explores.set(
+          [...explores].sort((left, right) =>
+            left.label.localeCompare(right.label),
+          ),
+        );
+        this.projectTreeLoading.set(false);
+        if (!this.tableId()) {
+          this.loading.set(false);
         }
-        this.explores.set(explores);
-        this.loading.set(false);
       },
       error: (err) => {
-        if (generation !== this.loadGeneration) {
-          return;
+        this.projectTreeLoading.set(false);
+        this.dbtTree.set([]);
+        if (!this.tableId()) {
+          this.error.set(apiErrorMessage(err, 'Failed to load explores.'));
+          this.loading.set(false);
         }
-        this.error.set(apiErrorMessage(err, 'Failed to load explores.'));
-        this.loading.set(false);
       },
+    });
+
+    this.lineageService.getProjectLineage(projectUuid).subscribe({
+      next: (lineage) => this.lineageNodes.set(lineage.nodes),
+      error: () => this.lineageNodes.set([]),
     });
   }
 
@@ -371,16 +446,35 @@ export class ExplorerPageComponent {
     void this.router.navigate(['/projects', projectUuid, 'explore', tableId]);
   }
 
+  protected onProjectNodeSelected(lineageNodeId: string): void {
+    if (lineageNodeId === this.selectedNodeId()) {
+      return;
+    }
+
+    const treeNode = findTreeNodeByLineageId(this.dbtTree(), lineageNodeId);
+    const exploreSummary = findExploreForLineageNode(
+      this.explores(),
+      lineageNodeId,
+      treeNode,
+    );
+    const exploreName = resolveExploreNameForSelection(
+      exploreSummary?.name,
+      treeNode,
+      lineageNodeId,
+    );
+    if (!exploreName) {
+      return;
+    }
+
+    this.openExplore(exploreName);
+  }
+
   protected onFieldSearch(value: string): void {
     this.fieldSearch.set(value);
   }
 
-  protected isDimensionSelected(fieldId: FieldId): boolean {
-    return this.selectedDimensions().has(fieldId);
-  }
-
-  protected isMetricSelected(fieldId: FieldId): boolean {
-    return this.selectedMetrics().has(fieldId);
+  protected onModelSearch(value: string): void {
+    this.modelSearch.set(value);
   }
 
   protected toggleDimension(fieldId: FieldId): void {
@@ -401,6 +495,14 @@ export class ExplorerPageComponent {
       next.add(fieldId);
     }
     this.selectedMetrics.set(next);
+  }
+
+  protected onFieldToggled(fieldId: FieldId): void {
+    if (this.dimensionFieldIds().has(fieldId)) {
+      this.toggleDimension(fieldId);
+      return;
+    }
+    this.toggleMetric(fieldId);
   }
 
   protected onDimensionFiltersChange(filters: DashboardDimensionFilter[]): void {

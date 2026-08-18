@@ -1,23 +1,4 @@
 <div class="query-results-panel">
-  @if (showExport()) {
-    <div class="query-results-panel__toolbar">
-      <button
-        mat-stroked-button
-        type="button"
-        class="query-results-panel__export-btn"
-        [disabled]="exportDisabled()"
-        [matMenuTriggerFor]="exportMenu"
-      >
-        <mat-icon>download</mat-icon>
-        Export
-      </button>
-      <mat-menu #exportMenu="matMenu">
-        <button mat-menu-item type="button" (click)="exportCsv.emit()">CSV</button>
-        <button mat-menu-item type="button" (click)="exportXlsx.emit()">Excel</button>
-      </mat-menu>
-    </div>
-  }
-
   @if (loading()) {
     <div class="query-results-panel__loading">
       <mat-spinner diameter="28" />

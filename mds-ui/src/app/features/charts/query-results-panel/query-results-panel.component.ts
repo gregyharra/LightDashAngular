@@ -1,7 +1,5 @@
 import { Component, computed, input, output } from '@angular/core';
-import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
-import { MatMenuModule } from '@angular/material/menu';
 import { MatPaginatorModule, PageEvent } from '@angular/material/paginator';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatTableModule } from '@angular/material/table';
@@ -10,9 +8,7 @@ import { MatTooltipModule } from '@angular/material/tooltip';
 @Component({
   selector: 'app-query-results-panel',
   imports: [
-    MatButtonModule,
     MatIconModule,
-    MatMenuModule,
     MatPaginatorModule,
     MatProgressSpinnerModule,
     MatTableModule,
@@ -33,11 +29,8 @@ export class QueryResultsPanelComponent {
   readonly pageSize = input(25);
   readonly pageSizeOptions = input<number[]>([10, 25, 50, 100]);
   readonly showExport = input(false);
-  readonly exportDisabled = input(false);
 
   readonly page = output<PageEvent>();
-  readonly exportCsv = output<void>();
-  readonly exportXlsx = output<void>();
 
   protected readonly clampedPageIndex = computed(() => {
     const rows = this.rows();

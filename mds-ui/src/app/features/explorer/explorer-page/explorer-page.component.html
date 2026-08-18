@@ -11,6 +11,13 @@
       <nav class="page-sidebar__nav" aria-label="Browse navigation">
         <p class="page-sidebar__section-label">Content</p>
         <a
+          class="page-sidebar__link page-sidebar__link--active page-sidebar__link--clickable"
+          [routerLink]="['/projects', projectUuid(), 'explore']"
+        >
+          <mat-icon>search</mat-icon>
+          Explore
+        </a>
+        <a
           class="page-sidebar__link page-sidebar__link--clickable"
           [routerLink]="['/projects', projectUuid(), 'dashboards']"
         >
@@ -42,75 +49,37 @@
     </div>
   </aside>
 
-  @if (explore(); as exploreData) {
-    <aside
-      class="page-layout__sidebar page-layout__sidebar--fields explorer-page__fields"
-      aria-label="Dimensions and metrics"
-    >
-      <div class="explorer-page__fields-toolbar">
-        <div class="explorer-page__fields-search">
-          <mat-icon>search</mat-icon>
-          <input
-            type="search"
-            class="explorer-page__fields-search-input"
-            placeholder="Search metrics + dimensions"
-            [value]="fieldSearch()"
-            (input)="onFieldSearch($any($event.target).value)"
-          />
-        </div>
-      </div>
-      <div class="explorer-page__fields-scroll">
-        <mat-accordion multi>
-          @for (group of filteredTableGroups(); track group.table.name) {
-            <mat-expansion-panel [expanded]="true">
-              <mat-expansion-panel-header>
-                <mat-panel-title>{{ group.table.label }}</mat-panel-title>
-              </mat-expansion-panel-header>
+  <aside class="page-layout__sidebar page-layout__sidebar--project">
+    <app-folder-search-panel
+      [tree]="dbtTree()"
+      [lineageNodes]="lineageNodes()"
+      [projectUuid]="projectUuid()"
+      [selectedNodeId]="selectedNodeId()"
+      searchPlaceholder="Search models…"
+      emptyMessage="No models match your search"
+      collapsedStorageKey="lightdash-explore-folder-panel-collapsed"
+      treeAriaLabel="dbt project folder tree"
+      (nodeSelected)="onProjectNodeSelected($event)"
+    />
+  </aside>
 
-              @if (group.dimensions.length > 0) {
-                <p class="explorer-page__field-section">Dimensions</p>
-                <div class="explorer-page__field-list">
-                  @for (field of group.dimensions; track field.fieldId) {
-                    <button
-                      type="button"
-                      class="explorer-page__field-btn"
-                      [class.explorer-page__field-btn--selected]="
-                        isDimensionSelected(field.fieldId)
-                      "
-                      (click)="toggleDimension(field.fieldId)"
-                    >
-                      <mat-icon>straighten</mat-icon>
-                      {{ field.label }}
-                    </button>
-                  }
-                </div>
-              }
-
-              @if (group.metrics.length > 0) {
-                <p class="explorer-page__field-section">Metrics</p>
-                <div class="explorer-page__field-list">
-                  @for (field of group.metrics; track field.fieldId) {
-                    <button
-                      type="button"
-                      class="explorer-page__field-btn explorer-page__field-btn--metric"
-                      [class.explorer-page__field-btn--selected]="
-                        isMetricSelected(field.fieldId)
-                      "
-                      (click)="toggleMetric(field.fieldId)"
-                    >
-                      <mat-icon>functions</mat-icon>
-                      {{ field.label }}
-                    </button>
-                  }
-                </div>
-              }
-            </mat-expansion-panel>
-          }
-        </mat-accordion>
-        @if (fieldSearch().trim() && filteredTableGroups().length === 0) {
-          <p class="explorer-page__fields-empty">No matching fields</p>
-        }
-      </div>
+  @if (tableId(); as selectedTableId) {
+    <aside class="page-layout__sidebar page-layout__sidebar--fields">
+      <app-tables-fields-panel
+        [projectUuid]="projectUuid()!"
+        [tableId]="selectedTableId"
+        [tableLabel]="explore()?.label || selectedTableId"
+        [parentLabel]="'Explore'"
+        [parentLink]="['/projects', projectUuid()!, 'explore']"
+        [fieldSearch]="fieldSearch()"
+        [fieldGroups]="filteredTableGroups()"
+        [exploreLoading]="loading()"
+        [exploreError]="error()"
+        [hasExplore]="!!explore()"
+        [selectedFieldIds]="selectedFieldIds()"
+        (fieldSearchChange)="onFieldSearch($event)"
+        (fieldToggled)="onFieldToggled($event)"
+      />
     </aside>
   }
 
@@ -145,14 +114,33 @@
           <h1 class="explorer-page__title">Explore</h1>
           <p class="explorer-page__subtitle">Select a model to query</p>
 
+          @if (explores().length > 0) {
+            <div class="explorer-page__picker-search">
+              <mat-icon>search</mat-icon>
+              <input
+                type="search"
+                class="explorer-page__picker-search-input"
+                placeholder="Search models"
+                aria-label="Search models"
+                [value]="modelSearch()"
+                (input)="onModelSearch($any($event.target).value)"
+              />
+            </div>
+          }
+
           @if (explores().length === 0) {
             <div class="explorer-page__empty">
               <mat-icon>table_chart</mat-icon>
               <p>No explores available.</p>
             </div>
+          } @else if (filteredExplores().length === 0) {
+            <div class="explorer-page__empty">
+              <mat-icon>search</mat-icon>
+              <p>No models match your search.</p>
+            </div>
           } @else {
             <div class="explorer-page__grid">
-              @for (explore of explores(); track explore.name) {
+              @for (explore of filteredExplores(); track explore.name) {
                 <button
                   type="button"
                   class="explorer-page__card"
@@ -259,11 +247,40 @@
                   </mat-expansion-panel>
 
                   <mat-expansion-panel
-                    class="explorer-page__panel-section"
+                    class="explorer-page__panel-section explorer-page__panel-section--header-actions"
                     [expanded]="true"
                   >
                     <mat-expansion-panel-header>
                       <mat-panel-title>Results</mat-panel-title>
+                      <mat-panel-description>
+                        <button
+                          mat-stroked-button
+                          type="button"
+                          class="explorer-page__action-btn"
+                          [disabled]="!canExport()"
+                          [matMenuTriggerFor]="resultsExportMenu"
+                          (click)="$event.stopPropagation()"
+                        >
+                          <mat-icon>download</mat-icon>
+                          Export
+                        </button>
+                        <mat-menu #resultsExportMenu="matMenu">
+                          <button
+                            mat-menu-item
+                            type="button"
+                            (click)="onExportCsv()"
+                          >
+                            CSV
+                          </button>
+                          <button
+                            mat-menu-item
+                            type="button"
+                            (click)="onExportXlsx()"
+                          >
+                            Excel
+                          </button>
+                        </mat-menu>
+                      </mat-panel-description>
                     </mat-expansion-panel-header>
 
                     <app-query-results-panel
@@ -278,10 +295,7 @@
                       [pageSize]="resultsPageSize()"
                       [pageSizeOptions]="resultsPageSizeOptions"
                       [showExport]="true"
-                      [exportDisabled]="!canExport()"
                       (page)="onResultsPage($event)"
-                      (exportCsv)="onExportCsv()"
-                      (exportXlsx)="onExportXlsx()"
                     />
                   </mat-expansion-panel>
 

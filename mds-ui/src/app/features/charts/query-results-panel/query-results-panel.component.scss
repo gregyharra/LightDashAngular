@@ -5,25 +5,6 @@
   min-width: 0;
 }
 
-.query-results-panel__toolbar {
-  display: flex;
-  justify-content: flex-end;
-  align-items: center;
-  min-width: 0;
-}
-
-.query-results-panel__export-btn {
-  flex-shrink: 0;
-  white-space: nowrap;
-
-  mat-icon {
-    width: 16px;
-    height: 16px;
-    font-size: 16px;
-    margin-right: 4px;
-  }
-}
-
 .query-results-panel__loading {
   display: flex;
   flex-direction: column;

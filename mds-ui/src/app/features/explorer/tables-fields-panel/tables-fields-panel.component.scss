@@ -1,6 +1,8 @@
 :host.tables-fields-panel-host {
   display: block;
   flex-shrink: 0;
+  height: 100%;
+  min-height: 0;
 }
 
 .tables-fields-panel {

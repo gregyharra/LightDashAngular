@@ -12,6 +12,13 @@
         <p class="page-sidebar__section-label">Content</p>
         <a
           class="page-sidebar__link page-sidebar__link--clickable"
+          [routerLink]="['/projects', projectUuid(), 'explore']"
+        >
+          <mat-icon>search</mat-icon>
+          Explore
+        </a>
+        <a
+          class="page-sidebar__link page-sidebar__link--clickable"
           [routerLink]="['/projects', projectUuid(), 'dashboards']"
         >
           <mat-icon>dashboard</mat-icon>

@@ -12,6 +12,13 @@
         <p class="page-sidebar__section-label">Content</p>
         <a
           class="page-sidebar__link page-sidebar__link--clickable"
+          [routerLink]="['/projects', projectUuid(), 'explore']"
+        >
+          <mat-icon>search</mat-icon>
+          Explore
+        </a>
+        <a
+          class="page-sidebar__link page-sidebar__link--clickable"
           [routerLink]="['/projects', projectUuid(), 'dashboards']"
         >
           <mat-icon>dashboard</mat-icon>
@@ -447,9 +454,43 @@
                   </div>
                 </mat-expansion-panel>
 
-                <mat-expansion-panel class="chart-view__panel-section" [expanded]="true">
+                <mat-expansion-panel
+                  class="chart-view__panel-section chart-view__panel-section--header-actions"
+                  [expanded]="true"
+                >
                   <mat-expansion-panel-header>
                     <mat-panel-title>Results</mat-panel-title>
+                    @if (chartExportPlacement(editMode()) === 'results') {
+                      <mat-panel-description>
+                        <button
+                          mat-stroked-button
+                          type="button"
+                          class="chart-view__action-btn chart-view__export-btn"
+                          [disabled]="!queryResults()"
+                          [matMenuTriggerFor]="resultsExportMenu"
+                          (click)="$event.stopPropagation()"
+                        >
+                          <mat-icon>download</mat-icon>
+                          Export
+                        </button>
+                        <mat-menu #resultsExportMenu="matMenu">
+                          <button
+                            mat-menu-item
+                            type="button"
+                            (click)="onExportCsv()"
+                          >
+                            CSV
+                          </button>
+                          <button
+                            mat-menu-item
+                            type="button"
+                            (click)="onExportXlsx()"
+                          >
+                            Excel
+                          </button>
+                        </mat-menu>
+                      </mat-panel-description>
+                    }
                   </mat-expansion-panel-header>
 
                   <app-query-results-panel
@@ -464,10 +505,7 @@
                     [pageSize]="resultsPageSize()"
                     [pageSizeOptions]="resultsPageSizeOptions"
                     [showExport]="chartExportPlacement(editMode()) === 'results'"
-                    [exportDisabled]="!queryResults()"
                     (page)="onResultsPage($event)"
-                    (exportCsv)="onExportCsv()"
-                    (exportXlsx)="onExportXlsx()"
                   />
                 </mat-expansion-panel>
 

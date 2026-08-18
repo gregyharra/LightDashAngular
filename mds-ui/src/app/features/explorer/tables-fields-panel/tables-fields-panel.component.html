@@ -34,9 +34,9 @@
       <nav class="tables-fields-panel__breadcrumb" aria-label="Breadcrumb">
         <a
           class="tables-fields-panel__breadcrumb-link"
-          [routerLink]="['/projects', projectUuid(), 'tables']"
+          [routerLink]="parentLink() ?? ['/projects', projectUuid(), 'tables']"
         >
-          Tables
+          {{ parentLabel() }}
         </a>
         <mat-icon>chevron_right</mat-icon>
         <span class="tables-fields-panel__breadcrumb-current">{{ tableLabel() }}</span>

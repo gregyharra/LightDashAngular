@@ -89,6 +89,8 @@ export class TablesFieldsPanelComponent {
   readonly projectUuid = input.required<string>();
   readonly tableId = input.required<string>();
   readonly tableLabel = input.required<string>();
+  readonly parentLabel = input('Tables');
+  readonly parentLink = input<string[] | null>(null);
   readonly fieldSearch = input('');
   readonly fieldGroups = input<TablesFieldGroup[]>([]);
   readonly exploreLoading = input(false);
