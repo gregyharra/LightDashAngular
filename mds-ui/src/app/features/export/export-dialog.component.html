@@ -1,0 +1,41 @@
+<h2 mat-dialog-title>Export {{ formatLabel }}</h2>
+
+<mat-dialog-content class="export-dialog__content">
+  @if (!showOverrideWarning) {
+    <p class="export-dialog__message">
+      Exports are limited to the first {{ csvMaxLimitLabel }} rows.
+    </p>
+  } @else {
+    <p class="export-dialog__message export-dialog__message--warning">
+      This can be slow and heavy on the warehouse.
+    </p>
+  }
+</mat-dialog-content>
+
+<mat-dialog-actions align="end" class="export-dialog__actions">
+  <button mat-stroked-button type="button" mat-dialog-close>Cancel</button>
+
+  @if (!showOverrideWarning) {
+    <button
+      mat-stroked-button
+      type="button"
+      data-testid="export-all-rows"
+      (click)="startOverrideConfirm()"
+    >
+      Export all rows
+    </button>
+    <button mat-flat-button color="primary" type="button" (click)="confirmCapped()">
+      Export
+    </button>
+  } @else {
+    <button
+      mat-flat-button
+      color="primary"
+      type="button"
+      data-testid="confirm-export-all-rows"
+      (click)="confirmOverride()"
+    >
+      Export all rows
+    </button>
+  }
+</mat-dialog-actions>
