@@ -751,6 +751,18 @@ const routes: MockRoute[] = [
   { pattern: /^\/projects\/[^/]+\/explores$/, handler: exploresList },
   { pattern: /^\/projects\/[^/]+\/explores\/[^/]+$/, handler: exploreDetail },
   { pattern: /^\/projects\/[^/]+\/query\/metric-query$/, method: 'POST', handler: metricQuery },
+  { pattern: /^\/projects\/[^/]+\/exports$/, method: 'POST', handler: () => ({ exportUuid: 'export-1' }) },
+  { pattern: /^\/projects\/[^/]+\/exports\/[^/]+\/file$/, method: 'GET', handler: () => null },
+  {
+    pattern: /^\/projects\/[^/]+\/exports\/[^/]+$/,
+    method: 'GET',
+    handler: () => ({
+      status: 'ready',
+      truncated: false,
+      rowCount: 0,
+      format: 'csv',
+    }),
+  },
   { pattern: /^\/projects\/[^/]+\/field\/[^/]+\/search$/, handler: fieldSearch },
   { pattern: /^\/projects\/[^/]+\/catalog/, handler: () => mockCatalog },
   { pattern: /^\/projects\/[^/]+\/content-verification$/, handler: () => [] },

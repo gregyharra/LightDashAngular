@@ -27,6 +27,7 @@ export type HealthResults = {
     defaultLimit?: number;
     maxLimit?: number;
     maxPageSize?: number;
+    csvMaxLimit?: number;
   };
 };
 

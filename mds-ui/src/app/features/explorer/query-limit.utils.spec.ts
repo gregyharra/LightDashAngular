@@ -2,6 +2,7 @@ import {
   DEFAULT_QUERY_LIMIT,
   FALLBACK_MAX_QUERY_LIMIT,
   clampQueryLimit,
+  resolveCsvMaxLimit,
   resolveMaxQueryLimit,
 } from './query-limit.utils';
 
@@ -10,6 +11,12 @@ describe('query-limit.utils', () => {
     expect(resolveMaxQueryLimit(1_000_000)).toBe(1_000_000);
     expect(resolveMaxQueryLimit(undefined)).toBe(FALLBACK_MAX_QUERY_LIMIT);
     expect(resolveMaxQueryLimit(0)).toBe(FALLBACK_MAX_QUERY_LIMIT);
+  });
+
+  it('resolves csvMaxLimit from health or 5 million', () => {
+    expect(resolveCsvMaxLimit(5_000_000)).toBe(5_000_000);
+    expect(resolveCsvMaxLimit(undefined)).toBe(5_000_000);
+    expect(resolveCsvMaxLimit(0)).toBe(5_000_000);
   });
 
   it('clamps row limits to [1, max]', () => {
