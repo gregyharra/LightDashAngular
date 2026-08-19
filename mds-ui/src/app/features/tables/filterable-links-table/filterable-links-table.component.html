@@ -1,0 +1,135 @@
+<div class="filterable-links-table">
+  <div class="filterable-links-table__toolbar">
+    <p class="filterable-links-table__hint">
+      @if (variant() === 'hub') {
+        Joins available when exploring this model in Charts.
+      } @else {
+        All explore joins for this project — from dbt meta and custom overrides.
+      }
+    </p>
+    <button mat-flat-button type="button" [disabled]="saving()" (click)="addRequested.emit()">
+      <mat-icon>add</mat-icon>
+      Add link
+    </button>
+  </div>
+
+  @if (loading()) {
+    <p class="filterable-links-table__status">Loading links…</p>
+  } @else {
+    <div class="filterable-links-table__scroll">
+      <table class="filterable-links-table__table">
+        <thead>
+          <tr>
+            @if (showSourceModel()) {
+              <th scope="col">
+                <app-content-list-column-header
+                  label="Source model"
+                  filterType="text"
+                  textPlaceholder="Filter models…"
+                  [value]="filters().sourceModel"
+                  (valueChange)="updateFilter('sourceModel', $event)"
+                />
+              </th>
+            }
+            <th scope="col">
+              <app-content-list-column-header
+                label="Source column"
+                filterType="text"
+                textPlaceholder="Filter columns…"
+                [value]="filters().sourceColumn"
+                (valueChange)="updateFilter('sourceColumn', $event)"
+              />
+            </th>
+            <th scope="col">
+              <app-content-list-column-header
+                label="Target model"
+                filterType="text"
+                textPlaceholder="Filter models…"
+                [value]="filters().targetModel"
+                (valueChange)="updateFilter('targetModel', $event)"
+              />
+            </th>
+            <th scope="col">
+              <app-content-list-column-header
+                label="Target column"
+                filterType="text"
+                textPlaceholder="Filter columns…"
+                [value]="filters().targetColumn"
+                (valueChange)="updateFilter('targetColumn', $event)"
+              />
+            </th>
+            <th scope="col">
+              <app-content-list-column-header
+                label="Join"
+                filterType="select"
+                [options]="joinTypeOptions()"
+                [value]="filters().joinType"
+                (valueChange)="updateFilter('joinType', $event)"
+              />
+            </th>
+            <th scope="col">
+              <app-content-list-column-header
+                label="Relationship"
+                filterType="select"
+                [options]="relationshipOptions()"
+                [value]="filters().relationship"
+                (valueChange)="updateFilter('relationship', $event)"
+              />
+            </th>
+            <th scope="col">
+              <app-content-list-column-header
+                label="Origin"
+                filterType="select"
+                [options]="originOptions()"
+                [value]="filters().origin"
+                (valueChange)="updateFilter('origin', $event)"
+              />
+            </th>
+            <th scope="col" class="filterable-links-table__actions-header"></th>
+          </tr>
+        </thead>
+        <tbody>
+          @if (filteredLinks().length === 0) {
+            <tr>
+              <td [attr.colspan]="showSourceModel() ? 8 : 7">
+                <p class="filterable-links-table__empty">No links match your filters.</p>
+              </td>
+            </tr>
+          }
+          @for (link of filteredLinks(); track link.uuid ?? link.sqlOn) {
+            <tr>
+              @if (showSourceModel()) {
+                <td class="filterable-links-table__mono">{{ link.sourceModelName }}</td>
+              }
+              <td class="filterable-links-table__mono">{{ link.sourceColumn }}</td>
+              <td class="filterable-links-table__mono">{{ link.targetModelName }}</td>
+              <td class="filterable-links-table__mono">{{ link.targetColumn }}</td>
+              <td>{{ link.joinType }}</td>
+              <td>{{ link.relationship ?? '—' }}</td>
+              <td>
+                <span
+                  class="filterable-links-table__origin"
+                  [class.filterable-links-table__origin--custom]="link.origin === 'custom'"
+                >
+                  {{ originLabel(link.origin) }}
+                </span>
+              </td>
+              <td class="filterable-links-table__actions">
+                @if (link.origin === 'custom') {
+                  <button mat-button type="button" [disabled]="saving()" (click)="onEdit(link)">
+                    Edit
+                  </button>
+                  <button mat-button type="button" [disabled]="saving()" (click)="onDelete(link)">
+                    Delete
+                  </button>
+                } @else {
+                  <span class="filterable-links-table__readonly">—</span>
+                }
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  }
+</div>

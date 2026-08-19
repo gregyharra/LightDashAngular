@@ -1629,6 +1629,7 @@ def _suggest_join_target(name: str, candidates: list[str]) -> str | None:
 def build_explore_from_lineage_node(
     node: dict[str, Any],
     lineage: dict[str, Any] | None = None,
+    extra_joins: list[dict[str, Any]] | None = None,
 ) -> dict[str, Any]:
     table_name = node["name"]
     table_label = _format_words(table_name)
@@ -1639,8 +1640,12 @@ def build_explore_from_lineage_node(
     nodes = (lineage or {}).get("nodes") or []
     nodes_by_name = {candidate["name"]: candidate for candidate in nodes}
 
+    effective_joins: list[Any] = list(node.get("joins") or [])
+    if extra_joins:
+        effective_joins = effective_joins + list(extra_joins)
+
     if lineage is not None:
-        for raw in node.get("joins") or []:
+        for raw in effective_joins:
             if not isinstance(raw, dict):
                 join_issues.append(
                     {

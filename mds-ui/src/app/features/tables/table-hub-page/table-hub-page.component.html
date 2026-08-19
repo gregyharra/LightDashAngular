@@ -148,6 +148,15 @@
               <button
                 type="button"
                 class="table-hub__tab"
+                [class.table-hub__tab--active]="activeTab() === 'links'"
+                (click)="setTab('links')"
+              >
+                Links
+                <span class="table-hub__tab-count">{{ linksCount() }}</span>
+              </button>
+              <button
+                type="button"
+                class="table-hub__tab"
                 [class.table-hub__tab--active]="activeTab() === 'lineage'"
                 (click)="setTab('lineage')"
               >
@@ -390,6 +399,20 @@
               </section>
             }
 
+            @if (activeTab() === 'links') {
+              <section class="table-hub__panel table-hub__links-panel">
+                <app-filterable-links-table
+                  variant="hub"
+                  [links]="modelJoins()"
+                  [loading]="linksLoading()"
+                  [saving]="saving()"
+                  (addRequested)="openAddLinkDialog()"
+                  (editRequested)="onEditLink($event)"
+                  (deleteRequested)="onDeleteLink($event)"
+                />
+              </section>
+            }
+
             @if (activeTab() === 'lineage') {
               <section class="table-hub__panel table-hub__lineage">
                 <div class="table-hub__lineage-toolbar">
@@ -472,5 +495,16 @@
     [existingNames]="existingAttributeNames()"
     (saved)="onAddAttributeSaved($event)"
     (cancelled)="onAddAttributeCancelled()"
+  />
+}
+
+@if (showLinkDialog()) {
+  <app-link-dialog
+    mode="hub"
+    [models]="modelLinkOptions()"
+    [initialLink]="editingLink()"
+    [lockedSourceModelId]="entry()?.id ?? tableId()"
+    (saved)="onLinkDialogSaved($event)"
+    (cancelled)="onLinkDialogCancelled()"
   />
 }

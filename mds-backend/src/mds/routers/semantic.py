@@ -13,7 +13,6 @@ from mds.services.dbt.loader import (
     get_dbt_artifacts,
 )
 from mds.services.dbt.parse import (
-    build_explore_from_lineage_node,
     build_explores_map,
     build_project_dbt_tree,
     build_project_lineage,
@@ -21,6 +20,7 @@ from mds.services.dbt.parse import (
 )
 from mds.services.project.git import resolve_dbt_path_for_loading
 from mds.services import dictionary as dictionary_service
+from mds.services import model_joins as model_joins_service
 
 router = APIRouter(tags=["semantic"])
 
@@ -89,7 +89,9 @@ def get_explore(project_uuid: str, table_id: str, db: Session = Depends(get_db))
     node = find_lineage_node(lineage, table_id)
     if not node:
         raise HTTPException(status_code=404, detail=f"Explore not found: {table_id}")
-    explore = build_explore_from_lineage_node(node, lineage)
+    explore = model_joins_service.build_explore_with_join_overlays(
+        db, project_uuid, node, lineage
+    )
     overlay = dictionary_service.get_overlay_for_explore(db, project_uuid, node["id"])
     column_overlays = overlay.get("columns") or {}
     for table in (explore.get("tables") or {}).values():

@@ -40,7 +40,8 @@
 }
 
 .table-hub__main:has(.table-hub__lineage),
-.table-hub__main:has(.table-hub__columns-panel) {
+.table-hub__main:has(.table-hub__columns-panel),
+.table-hub__main:has(.table-hub__links-panel) {
   overflow: hidden;
   padding-bottom: 0;
 }
@@ -280,6 +281,14 @@
   dd {
     margin: 0;
   }
+}
+
+.table-hub__links-panel {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
 }
 
 .table-hub__columns-panel {

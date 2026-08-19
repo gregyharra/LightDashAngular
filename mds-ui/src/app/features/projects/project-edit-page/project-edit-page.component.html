@@ -17,7 +17,7 @@
             <div>
               <h1 class="project-edit__title">Project settings</h1>
               <p class="project-edit__subtitle">
-                Update the project name, warehouse connection, and Git repository settings.
+                Update the project name, warehouse connection, Git repository settings, and table links.
               </p>
             </div>
           </div>
@@ -40,6 +40,27 @@
             </div>
           }
 
+          <div class="project-edit__tabs" role="tablist">
+            <button
+              type="button"
+              class="project-edit__tab"
+              [class.project-edit__tab--active]="activeSettingsTab() === 'configuration'"
+              (click)="setSettingsTab('configuration')"
+            >
+              Configuration
+            </button>
+            <button
+              type="button"
+              class="project-edit__tab"
+              [class.project-edit__tab--active]="activeSettingsTab() === 'links'"
+              (click)="setSettingsTab('links')"
+            >
+              Table links
+              <span class="project-edit__tab-count">{{ linksCount() }}</span>
+            </button>
+          </div>
+
+          @if (activeSettingsTab() === 'configuration') {
           <form class="project-edit__form" (ngSubmit)="save()">
             <mat-form-field appearance="outline" class="project-edit__field">
               <mat-label>Project name</mat-label>
@@ -291,6 +312,31 @@
               }
             </button>
           </section>
+          }
+
+          @if (activeSettingsTab() === 'links') {
+            <section class="project-edit__links-panel">
+              <app-filterable-links-table
+                variant="project"
+                [links]="modelJoins()"
+                [loading]="linksLoading()"
+                [saving]="linksSaving()"
+                (addRequested)="openAddLinkDialog()"
+                (editRequested)="onEditLink($event)"
+                (deleteRequested)="onDeleteLink($event)"
+              />
+            </section>
+          }
         }
       </div>
 </section>
+
+@if (showLinkDialog()) {
+  <app-link-dialog
+    mode="project"
+    [models]="modelLinkOptions()"
+    [initialLink]="editingLink()"
+    (saved)="onLinkDialogSaved($event)"
+    (cancelled)="onLinkDialogCancelled()"
+  />
+}

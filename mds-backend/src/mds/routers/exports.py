@@ -12,11 +12,11 @@ from mds.db.session import get_db
 from mds.routers.query import (
     _build_fields,
     _load_lineage_context,
-    build_explore_from_lineage_node,
-    find_lineage_node,
     get_connection_for_project,
     snapshot_from_warehouse,
 )
+from mds.services import model_joins as model_joins_service
+from mds.services.dbt.parse import find_lineage_node
 from mds.schemas.export import ExportRequest
 from mds.services.query import export_store
 from mds.services.query.compile import build_metric_query_sql
@@ -60,7 +60,9 @@ def create_project_export(
             status_code=404, detail=f"Explore not found: {metric_query.explore_name}"
         )
 
-    explore = build_explore_from_lineage_node(node, lineage)
+    explore = model_joins_service.build_explore_with_join_overlays(
+        db, project_uuid, node, lineage
+    )
     apply_limit = not body.override_row_cap
     limit_override = None if body.override_row_cap else CSV_MAX_LIMIT
     try:

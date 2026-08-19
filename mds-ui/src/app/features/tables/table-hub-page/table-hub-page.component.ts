@@ -40,6 +40,14 @@ import { LineageService } from '../../lineage/lineage.service';
 import { TransformationChipComponent } from '../../lineage/transformation-chip/transformation-chip.component';
 import { ResizableSidebarDirective } from '../../../layout/resizable-sidebar/resizable-sidebar.directive';
 import { DictionaryService } from '../dictionary.service';
+import { FilterableLinksTableComponent } from '../filterable-links-table/filterable-links-table.component';
+import { LinkDialogComponent } from '../link-dialog/link-dialog.component';
+import { ModelJoinsService } from '../model-joins.service';
+import {
+  LinkDialogSavePayload,
+  ModelJoinView,
+  ModelLinkOption,
+} from '../../../core/models/model-join.model';
 import { SqlHighlightComponent } from '../../../shared/sql-highlight/sql-highlight.component';
 import {
   ModelSqlViewMode,
@@ -66,7 +74,7 @@ import {
   matchesTextFilter,
 } from '../../../ui/content-list-filter.utils';
 
-type HubTab = 'overview' | 'columns' | 'lineage' | 'sql';
+type HubTab = 'overview' | 'columns' | 'links' | 'lineage' | 'sql';
 
 type AttributeFilterValue = TextFilterValue | SelectFilterValue | NumberFilterValue;
 
@@ -112,8 +120,10 @@ const ENABLE_TABLE_HUB_TAG_EDITING = false;
     MatProgressSpinnerModule,
     AddAttributeDialogComponent,
     ContentListColumnHeaderComponent,
+    FilterableLinksTableComponent,
     FolderSearchPanelComponent,
     LineageGraphComponent,
+    LinkDialogComponent,
     ResizableSidebarDirective,
     SqlHighlightComponent,
     TransformationChipComponent,
@@ -125,6 +135,7 @@ export class TableHubPageComponent {
   protected readonly enableTagEditing = ENABLE_TABLE_HUB_TAG_EDITING;
 
   private readonly dictionaryService = inject(DictionaryService);
+  private readonly modelJoinsService = inject(ModelJoinsService);
   private readonly lineageService = inject(LineageService);
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
@@ -148,6 +159,10 @@ export class TableHubPageComponent {
   protected readonly lineageHopDepth = signal<LineageHopDepth>(0);
   protected readonly selectedColumn = signal<SelectedColumnRef | null>(null);
   protected readonly showAddAttribute = signal(false);
+  protected readonly showLinkDialog = signal(false);
+  protected readonly editingLink = signal<ModelJoinView | null>(null);
+  protected readonly modelJoins = signal<ModelJoinView[]>([]);
+  protected readonly linksLoading = signal(false);
   protected readonly columnFilters = signal<ColumnsTableFilters>(createEmptyColumnsTableFilters());
 
   protected readonly descriptionDraft = signal('');
@@ -212,6 +227,23 @@ export class TableHubPageComponent {
   protected readonly existingAttributeNames = computed(() =>
     this.attributeDefs().map((def) => def.name),
   );
+
+  protected readonly modelLinkOptions = computed<ModelLinkOption[]>(() => {
+    const lineage = this.lineage();
+    if (!lineage) {
+      return [];
+    }
+    return lineage.nodes.map((node) => ({
+      id: node.id,
+      name: node.name,
+      columns: (node.columns ?? []).map((column) => ({
+        name: column.name,
+        type: column.type,
+      })),
+    }));
+  });
+
+  protected readonly linksCount = computed(() => this.modelJoins().length);
 
   protected readonly columnTypeOptions = computed<SelectOption[]>(() => {
     const columns = this.entry()?.columns ?? [];
@@ -314,6 +346,9 @@ export class TableHubPageComponent {
         this.tagsDraft.set([...(entry.tags ?? [])]);
         this.sqlViewMode.set(preferredModelSqlViewMode(entry.sql, entry.compiledSql));
         this.entryLoading.set(false);
+        if (this.activeTab() === 'links') {
+          this.loadLinks(projectUuid, tableId);
+        }
       },
       error: (err) => {
         this.entryError.set(apiErrorMessage(err, 'Failed to load table details.'));
@@ -332,6 +367,85 @@ export class TableHubPageComponent {
 
   protected setTab(tab: HubTab): void {
     this.activeTab.set(tab);
+    if (tab === 'links') {
+      this.loadLinks(this.projectUuid(), this.tableId());
+    }
+  }
+
+  private loadLinks(projectUuid: string | null, tableId: string | null): void {
+    if (!projectUuid || !tableId) {
+      this.modelJoins.set([]);
+      return;
+    }
+    this.linksLoading.set(true);
+    this.modelJoinsService.list(projectUuid, tableId).subscribe({
+      next: (links) => {
+        this.modelJoins.set(links);
+        this.linksLoading.set(false);
+      },
+      error: () => {
+        this.modelJoins.set([]);
+        this.linksLoading.set(false);
+      },
+    });
+  }
+
+  protected openAddLinkDialog(): void {
+    this.editingLink.set(null);
+    this.showLinkDialog.set(true);
+  }
+
+  protected onEditLink(link: ModelJoinView): void {
+    this.editingLink.set(link);
+    this.showLinkDialog.set(true);
+  }
+
+  protected onDeleteLink(link: ModelJoinView): void {
+    const projectUuid = this.projectUuid();
+    if (!projectUuid || !link.uuid) {
+      return;
+    }
+    if (
+      !confirm(
+        `Delete the link to ${link.targetModelName} (${link.sourceColumn} → ${link.targetColumn})?`,
+      )
+    ) {
+      return;
+    }
+    this.saving.set(true);
+    this.modelJoinsService.delete(projectUuid, link.uuid).subscribe({
+      next: () => {
+        this.saving.set(false);
+        this.loadLinks(projectUuid, this.tableId());
+      },
+      error: () => this.saving.set(false),
+    });
+  }
+
+  protected onLinkDialogCancelled(): void {
+    this.showLinkDialog.set(false);
+    this.editingLink.set(null);
+  }
+
+  protected onLinkDialogSaved(payload: LinkDialogSavePayload): void {
+    const projectUuid = this.projectUuid();
+    const tableId = this.tableId();
+    if (!projectUuid) {
+      return;
+    }
+    this.saving.set(true);
+    const request$ = payload.uuid
+      ? this.modelJoinsService.update(projectUuid, payload.uuid, payload)
+      : this.modelJoinsService.create(projectUuid, payload);
+    request$.subscribe({
+      next: () => {
+        this.saving.set(false);
+        this.showLinkDialog.set(false);
+        this.editingLink.set(null);
+        this.loadLinks(projectUuid, tableId);
+      },
+      error: () => this.saving.set(false),
+    });
   }
 
   protected setSqlViewMode(mode: ModelSqlViewMode): void {

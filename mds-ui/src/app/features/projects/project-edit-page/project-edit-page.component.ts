@@ -1,5 +1,5 @@
 import { DatePipe } from '@angular/common';
-import { Component, inject, signal } from '@angular/core';
+import { Component, computed, inject, signal } from '@angular/core';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
@@ -17,6 +17,18 @@ import { ProjectDetail, ProjectsService } from '../projects.service';
 import { WarehouseService } from '../warehouse.service';
 import { WarehouseCreateDialogComponent } from '../../warehouses/warehouse-create-dialog/warehouse-create-dialog.component';
 import { detectGitProvider } from '../git-provider.utils';
+import { LineageService } from '../../lineage/lineage.service';
+import { ProjectLineage } from '../../../core/models/lineage.model';
+import { FilterableLinksTableComponent } from '../../tables/filterable-links-table/filterable-links-table.component';
+import { LinkDialogComponent } from '../../tables/link-dialog/link-dialog.component';
+import { ModelJoinsService } from '../../tables/model-joins.service';
+import {
+  LinkDialogSavePayload,
+  ModelJoinView,
+  ModelLinkOption,
+} from '../../../core/models/model-join.model';
+
+type ProjectSettingsTab = 'configuration' | 'links';
 
 @Component({
   selector: 'app-project-edit-page',
@@ -31,6 +43,8 @@ import { detectGitProvider } from '../git-provider.utils';
     MatInputModule,
     MatProgressSpinnerModule,
     MatSelectModule,
+    FilterableLinksTableComponent,
+    LinkDialogComponent,
   ],
   templateUrl: './project-edit-page.component.html',
   styleUrl: './project-edit-page.component.scss',
@@ -40,6 +54,8 @@ export class ProjectEditPageComponent {
   private readonly router = inject(Router);
   private readonly projectsService = inject(ProjectsService);
   private readonly warehouseService = inject(WarehouseService);
+  private readonly lineageService = inject(LineageService);
+  private readonly modelJoinsService = inject(ModelJoinsService);
   private readonly dialog = inject(MatDialog);
   protected readonly activeProjectService = inject(ActiveProjectService);
 
@@ -53,6 +69,13 @@ export class ProjectEditPageComponent {
   protected readonly success = signal<string | null>(null);
   protected readonly repoStatus = signal<ProjectRepoStatus | null>(null);
   protected readonly warehouses = signal<WarehouseListItem[]>([]);
+  protected readonly activeSettingsTab = signal<ProjectSettingsTab>('configuration');
+  protected readonly lineage = signal<ProjectLineage | null>(null);
+  protected readonly modelJoins = signal<ModelJoinView[]>([]);
+  protected readonly linksLoading = signal(false);
+  protected readonly showLinkDialog = signal(false);
+  protected readonly editingLink = signal<ModelJoinView | null>(null);
+  protected readonly linksSaving = signal(false);
 
   protected name = '';
   protected selectedWarehouseUuid: string | null = null;
@@ -74,6 +97,23 @@ export class ProjectEditPageComponent {
     { value: 'bitbucket', label: 'Bitbucket' },
     { value: 'generic', label: 'Generic HTTPS' },
   ];
+
+  protected readonly modelLinkOptions = computed<ModelLinkOption[]>(() => {
+    const lineage = this.lineage();
+    if (!lineage) {
+      return [];
+    }
+    return lineage.nodes.map((node) => ({
+      id: node.id,
+      name: node.name,
+      columns: (node.columns ?? []).map((column) => ({
+        name: column.name,
+        type: column.type,
+      })),
+    }));
+  });
+
+  protected readonly linksCount = computed(() => this.modelJoins().length);
 
   constructor() {
     this.route.paramMap.subscribe((params) => {
@@ -299,6 +339,104 @@ export class ProjectEditPageComponent {
         this.error.set(apiErrorMessage(err));
         this.desyncing.set(false);
       },
+    });
+  }
+
+  protected setSettingsTab(tab: ProjectSettingsTab): void {
+    this.activeSettingsTab.set(tab);
+    if (tab === 'links') {
+      this.loadProjectLinks();
+    }
+  }
+
+  private loadProjectLinks(): void {
+    const projectUuid = this.projectUuid();
+    if (!projectUuid) {
+      return;
+    }
+    this.linksLoading.set(true);
+    if (!this.lineage()) {
+      this.lineageService.getProjectLineage(projectUuid).subscribe({
+        next: (lineage) => {
+          this.lineage.set(lineage);
+          this.fetchModelJoins(projectUuid);
+        },
+        error: () => {
+          this.linksLoading.set(false);
+        },
+      });
+      return;
+    }
+    this.fetchModelJoins(projectUuid);
+  }
+
+  private fetchModelJoins(projectUuid: string): void {
+    this.modelJoinsService.list(projectUuid).subscribe({
+      next: (links) => {
+        this.modelJoins.set(links);
+        this.linksLoading.set(false);
+      },
+      error: () => {
+        this.modelJoins.set([]);
+        this.linksLoading.set(false);
+      },
+    });
+  }
+
+  protected openAddLinkDialog(): void {
+    this.editingLink.set(null);
+    this.showLinkDialog.set(true);
+  }
+
+  protected onEditLink(link: ModelJoinView): void {
+    this.editingLink.set(link);
+    this.showLinkDialog.set(true);
+  }
+
+  protected onDeleteLink(link: ModelJoinView): void {
+    const projectUuid = this.projectUuid();
+    if (!projectUuid || !link.uuid) {
+      return;
+    }
+    if (
+      !confirm(
+        `Delete the link from ${link.sourceModelName} to ${link.targetModelName}?`,
+      )
+    ) {
+      return;
+    }
+    this.linksSaving.set(true);
+    this.modelJoinsService.delete(projectUuid, link.uuid).subscribe({
+      next: () => {
+        this.linksSaving.set(false);
+        this.loadProjectLinks();
+      },
+      error: () => this.linksSaving.set(false),
+    });
+  }
+
+  protected onLinkDialogCancelled(): void {
+    this.showLinkDialog.set(false);
+    this.editingLink.set(null);
+  }
+
+  protected onLinkDialogSaved(payload: LinkDialogSavePayload): void {
+    const projectUuid = this.projectUuid();
+    if (!projectUuid) {
+      return;
+    }
+    this.linksSaving.set(true);
+    const request$ = payload.uuid
+      ? this.modelJoinsService.update(projectUuid, payload.uuid, payload)
+      : this.modelJoinsService.create(projectUuid, payload);
+    request$.subscribe({
+      next: () => {
+        this.linksSaving.set(false);
+        this.showLinkDialog.set(false);
+        this.editingLink.set(null);
+        this.loadProjectLinks();
+      },
+      error: () => this.linksSaving.set(false),
     });
   }
 

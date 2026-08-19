@@ -1,0 +1,167 @@
+<div
+  class="link-dialog"
+  role="presentation"
+  (click)="onBackdropClick($event)"
+  (keydown)="onKeydown($event)"
+>
+  <div
+    class="link-dialog__panel"
+    role="dialog"
+    aria-modal="true"
+    aria-labelledby="link-dialog-title"
+    tabindex="-1"
+  >
+    <h2 id="link-dialog-title" class="link-dialog__title">
+      @if (isEdit()) {
+        Edit table link
+      } @else {
+        Add table link
+      }
+    </h2>
+
+    <div class="link-dialog__content">
+      <div class="link-dialog__columns">
+        <section class="link-dialog__side">
+          @if (mode() === 'project') {
+            <mat-form-field appearance="outline" class="link-dialog__field">
+              <mat-label>Source model</mat-label>
+              <input
+                matInput
+                [ngModel]="sourceModelSearch()"
+                (ngModelChange)="onSourceModelSearchChange($event)"
+                [matAutocomplete]="sourceModelAuto"
+              />
+              <mat-autocomplete
+                #sourceModelAuto="matAutocomplete"
+                (optionSelected)="onSourceModelOptionSelected($event.option.value)"
+              >
+                @for (model of filteredSourceModels(); track model.id) {
+                  <mat-option [value]="model">{{ model.name }}</mat-option>
+                }
+              </mat-autocomplete>
+            </mat-form-field>
+          } @else {
+            @if (selectedSourceModel(); as source) {
+              <p class="link-dialog__side-title">Source — {{ source.name }}</p>
+              <p class="link-dialog__side-hint">Column on the current model</p>
+            }
+          }
+
+          <mat-form-field appearance="outline" class="link-dialog__field">
+            <mat-label>Filter source columns</mat-label>
+            <input
+              matInput
+              [ngModel]="sourceColumnFilter()"
+              (ngModelChange)="onSourceColumnFilterChange($event)"
+            />
+          </mat-form-field>
+
+          <ul class="link-dialog__column-list" aria-label="Source columns">
+            @for (column of filteredSourceColumns(); track column.name) {
+              <li>
+                <button
+                  type="button"
+                  class="link-dialog__column-item"
+                  [class.link-dialog__column-item--selected]="isSourceColumnSelected(column.name)"
+                  (click)="selectSourceColumn(column.name)"
+                >
+                  <span class="link-dialog__column-name">{{ column.name }}</span>
+                  <span class="link-dialog__column-type">{{ column.type }}</span>
+                </button>
+              </li>
+            }
+          </ul>
+        </section>
+
+        <section class="link-dialog__side">
+          <mat-form-field appearance="outline" class="link-dialog__field">
+            <mat-label>Target model</mat-label>
+            <input
+              matInput
+              [ngModel]="targetModelSearch()"
+              (ngModelChange)="onTargetModelSearchChange($event)"
+              [matAutocomplete]="targetModelAuto"
+            />
+            <mat-autocomplete
+              #targetModelAuto="matAutocomplete"
+              (optionSelected)="onTargetModelOptionSelected($event.option.value)"
+            >
+              @for (model of filteredTargetModels(); track model.id) {
+                <mat-option [value]="model">{{ model.name }}</mat-option>
+              }
+            </mat-autocomplete>
+          </mat-form-field>
+
+          <mat-form-field appearance="outline" class="link-dialog__field">
+            <mat-label>Filter target columns</mat-label>
+            <input
+              matInput
+              [ngModel]="targetColumnFilter()"
+              (ngModelChange)="onTargetColumnFilterChange($event)"
+            />
+          </mat-form-field>
+
+          <ul class="link-dialog__column-list" aria-label="Target columns">
+            @for (column of filteredTargetColumns(); track column.name) {
+              <li>
+                <button
+                  type="button"
+                  class="link-dialog__column-item"
+                  [class.link-dialog__column-item--selected]="isTargetColumnSelected(column.name)"
+                  (click)="selectTargetColumn(column.name)"
+                >
+                  <span class="link-dialog__column-name">{{ column.name }}</span>
+                  <span class="link-dialog__column-type">{{ column.type }}</span>
+                </button>
+              </li>
+            }
+          </ul>
+        </section>
+      </div>
+
+      <div class="link-dialog__meta">
+        <mat-form-field appearance="outline" class="link-dialog__field">
+          <mat-label>Join type</mat-label>
+          <mat-select [(ngModel)]="joinType">
+            @for (option of joinTypeOptions; track option.value) {
+              <mat-option [value]="option.value">{{ option.label }}</mat-option>
+            }
+          </mat-select>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="link-dialog__field">
+          <mat-label>Relationship</mat-label>
+          <mat-select [(ngModel)]="relationship">
+            @for (option of relationshipOptions; track option.value) {
+              <mat-option [value]="option.value">{{ option.label }}</mat-option>
+            }
+          </mat-select>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="link-dialog__field">
+          <mat-label>Label (optional)</mat-label>
+          <input matInput [(ngModel)]="label" />
+        </mat-form-field>
+      </div>
+
+      @if (sqlPreview()) {
+        <pre class="link-dialog__preview" aria-label="Join SQL preview">{{ sqlPreview() }}</pre>
+      }
+
+      @if (error()) {
+        <div class="link-dialog__error">{{ error() }}</div>
+      }
+    </div>
+
+    <div class="link-dialog__actions">
+      <button mat-stroked-button type="button" (click)="cancel()">Cancel</button>
+      <button mat-flat-button type="button" (click)="save()">
+        @if (isEdit()) {
+          Save changes
+        } @else {
+          Save link
+        }
+      </button>
+    </div>
+  </div>
+</div>

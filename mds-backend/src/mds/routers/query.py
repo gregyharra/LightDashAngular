@@ -6,7 +6,8 @@ from sqlalchemy.orm import Session
 from mds.api.envelope import ok
 from mds.db.session import get_db
 from mds.schemas.query import MetricQueryRequest, QueryWarning
-from mds.services.dbt.parse import build_explore_from_lineage_node, find_lineage_node
+from mds.services.dbt.parse import find_lineage_node
+from mds.services import model_joins as model_joins_service
 from mds.services.query.compile import build_metric_query_sql
 from mds.services.query.executor import schedule_metric_query
 from mds.services.query.store import create_query, get_query
@@ -67,7 +68,9 @@ def execute_metric_query(
     if not node:
         raise HTTPException(status_code=404, detail=f"Explore not found: {explore_name}")
 
-    explore = build_explore_from_lineage_node(node, lineage)
+    explore = model_joins_service.build_explore_with_join_overlays(
+        db, project_uuid, node, lineage
+    )
     try:
         compiled_sql, compile_warnings = build_metric_query_sql(explore, metric_query)
         time_travel_warnings = validate_time_travel_for_explore(

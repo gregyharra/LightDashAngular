@@ -1,0 +1,81 @@
+.filterable-links-table {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  min-width: 0;
+}
+
+.filterable-links-table__toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 0.75rem;
+}
+
+.filterable-links-table__hint {
+  margin: 0;
+  color: var(--ld-gray-7, #495057);
+  font-size: 0.875rem;
+  min-width: 0;
+}
+
+.filterable-links-table__scroll {
+  overflow-x: auto;
+  min-width: 0;
+}
+
+.filterable-links-table__table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.875rem;
+}
+
+.filterable-links-table__table th,
+.filterable-links-table__table td {
+  padding: 0.625rem 0.75rem;
+  border-bottom: 1px solid var(--ld-gray-3, #dee2e6);
+  text-align: left;
+  vertical-align: top;
+}
+
+.filterable-links-table__mono {
+  font-family: var(--ld-font-mono, ui-monospace, monospace);
+}
+
+.filterable-links-table__origin {
+  display: inline-block;
+  padding: 0.125rem 0.5rem;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  background: var(--ld-gray-2, #e9ecef);
+  color: var(--ld-gray-8, #343a40);
+}
+
+.filterable-links-table__origin--custom {
+  background: #e7f5ff;
+  color: #1864ab;
+}
+
+.filterable-links-table__actions {
+  white-space: nowrap;
+}
+
+.filterable-links-table__actions-header {
+  width: 8rem;
+}
+
+.filterable-links-table__readonly {
+  color: var(--ld-gray-6, #868e96);
+}
+
+.filterable-links-table__empty,
+.filterable-links-table__status {
+  margin: 0;
+  padding: 1rem 0;
+  color: var(--ld-gray-6, #868e96);
+}
+
+.filterable-links-table__toolbar button mat-icon {
+  margin-right: 0.25rem;
+}
