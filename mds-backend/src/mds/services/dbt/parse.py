@@ -1726,8 +1726,6 @@ def build_explore_from_lineage_node(
 def build_explores_map(lineage: dict[str, Any]) -> dict[str, dict[str, Any]]:
     explores: dict[str, dict[str, Any]] = {}
     for node in lineage["nodes"]:
-        if node["type"] not in {"mart", "staging", "source", "seed"}:
-            continue
         explores[node["name"]] = {
             "name": node["name"],
             "label": _format_words(node["name"]),
