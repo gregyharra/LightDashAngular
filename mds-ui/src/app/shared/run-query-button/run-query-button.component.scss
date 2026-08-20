@@ -18,17 +18,37 @@
   .mdc-button__label {
     display: inline-flex;
     align-items: center;
+    justify-content: center;
     gap: 4px;
     white-space: nowrap;
+    line-height: 1;
   }
 
   mat-icon,
-  mat-spinner {
+  .run-query-button__spinner {
     width: 16px;
     height: 16px;
-    font-size: 16px;
     margin: 0;
     flex-shrink: 0;
+  }
+
+  mat-icon {
+    font-size: 16px;
+    line-height: 16px;
+  }
+
+  .run-query-button__spinner {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    line-height: 0;
+
+    mat-spinner {
+      display: block;
+      width: 16px !important;
+      height: 16px !important;
+      margin: 0;
+    }
   }
 
   &[disabled] {

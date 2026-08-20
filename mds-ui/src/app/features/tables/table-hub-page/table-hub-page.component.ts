@@ -333,12 +333,14 @@ export class TableHubPageComponent {
       this.entryLoading.set(false);
       this.columnFilters.set(createEmptyColumnsTableFilters());
       this.sqlViewMode.set('compiled');
+      this.modelJoins.set([]);
       return;
     }
 
     this.entryLoading.set(true);
     this.entryError.set(null);
     this.columnFilters.set(createEmptyColumnsTableFilters());
+    this.modelJoins.set([]);
     this.dictionaryService.get(projectUuid, tableId).subscribe({
       next: (entry) => {
         this.entry.set(entry);
@@ -346,13 +348,12 @@ export class TableHubPageComponent {
         this.tagsDraft.set([...(entry.tags ?? [])]);
         this.sqlViewMode.set(preferredModelSqlViewMode(entry.sql, entry.compiledSql));
         this.entryLoading.set(false);
-        if (this.activeTab() === 'links') {
-          this.loadLinks(projectUuid, tableId);
-        }
+        this.loadLinks(projectUuid, tableId);
       },
       error: (err) => {
         this.entryError.set(apiErrorMessage(err, 'Failed to load table details.'));
         this.entryLoading.set(false);
+        this.modelJoins.set([]);
       },
     });
   }

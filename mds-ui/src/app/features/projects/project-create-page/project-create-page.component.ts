@@ -162,7 +162,7 @@ export class ProjectCreatePageComponent {
           const currentProjects = this.activeProjectService.projects();
           this.activeProjectService.setProjects([...currentProjects, project]);
           this.activeProjectService.setActiveProject(project.projectUuid);
-          void this.router.navigate(['/projects', project.projectUuid, 'dashboards']);
+          void this.router.navigate(['/projects', project.projectUuid, 'explore']);
         },
         error: (err) => {
           this.error.set(apiErrorMessage(err));

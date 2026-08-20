@@ -75,7 +75,8 @@
 .folder-panel__header {
   flex-shrink: 0;
   min-width: 0;
-  padding: var(--ld-spacing-md);
+  // Align with adjacent .page-sidebar__fold-btn (top: 10px).
+  padding: 10px var(--ld-spacing-md) var(--ld-spacing-md);
   border-bottom: 1px solid var(--ld-gray-2);
 }
 

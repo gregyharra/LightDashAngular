@@ -97,10 +97,12 @@
                 <div class="tables-fields-panel__group">
                   <div class="tables-fields-panel__group-label">
                     <span>Dimensions</span>
-                    <button type="button" class="tables-fields-panel__add-btn" disabled>
-                      <mat-icon>add</mat-icon>
-                      Add
-                    </button>
+                    @if (enableCustomFieldAdd) {
+                      <button type="button" class="tables-fields-panel__add-btn" disabled>
+                        <mat-icon>add</mat-icon>
+                        Add
+                      </button>
+                    }
                   </div>
                   <ul class="tables-fields-panel__list">
                     @for (field of group.dimensions; track field.fieldId) {
@@ -141,25 +143,27 @@
                 </div>
               }
 
-              @if (group.metrics.length > 0 || canCreateCustomMetric()) {
+              @if (group.metrics.length > 0 || (enableCustomFieldAdd && canCreateCustomMetric())) {
                 <div class="tables-fields-panel__group">
                   <div class="tables-fields-panel__group-label">
                     <span>Metrics</span>
-                    <button
-                      type="button"
-                      class="tables-fields-panel__add-btn"
-                      aria-label="Add custom metric"
-                      [title]="
-                        canCreateCustomMetric()
-                          ? 'Add custom metric'
-                          : 'No dimensions available for custom metrics'
-                      "
-                      [disabled]="!canCreateCustomMetric()"
-                      (click)="onCustomMetricAdd()"
-                    >
-                      <mat-icon>add</mat-icon>
-                      Add
-                    </button>
+                    @if (enableCustomFieldAdd) {
+                      <button
+                        type="button"
+                        class="tables-fields-panel__add-btn"
+                        aria-label="Add custom metric"
+                        [title]="
+                          canCreateCustomMetric()
+                            ? 'Add custom metric'
+                            : 'No dimensions available for custom metrics'
+                        "
+                        [disabled]="!canCreateCustomMetric()"
+                        (click)="onCustomMetricAdd()"
+                      >
+                        <mat-icon>add</mat-icon>
+                        Add
+                      </button>
+                    }
                   </div>
                   <ul class="tables-fields-panel__list">
                     @for (field of group.metrics; track field.fieldId) {

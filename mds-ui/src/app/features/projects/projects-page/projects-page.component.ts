@@ -86,7 +86,7 @@ export class ProjectsPageComponent {
 
   protected openProject(projectUuid: string): void {
     this.activeProjectService.setActiveProject(projectUuid);
-    void this.router.navigate(['/projects', projectUuid, 'dashboards']);
+    void this.router.navigate(['/projects', projectUuid, 'explore']);
   }
 
   protected openProjectEdit(projectUuid: string, event?: Event): void {

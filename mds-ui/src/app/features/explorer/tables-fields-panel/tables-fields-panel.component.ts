@@ -66,6 +66,13 @@ const MIN_WIDTH = 200;
 const MAX_WIDTH = 480;
 const COLLAPSED_WIDTH = 44;
 
+/**
+ * When false, Dimensions/Metrics "+ Add" buttons for custom fields are hidden.
+ * Flip to `true` to re-enable custom metric (and dimension placeholder) creation UI
+ * without removing any of the underlying wiring.
+ */
+const ENABLE_CUSTOM_FIELD_ADD = false;
+
 @Component({
   selector: 'app-tables-fields-panel',
   host: {
@@ -82,6 +89,8 @@ const COLLAPSED_WIDTH = 44;
   styleUrl: './tables-fields-panel.component.scss',
 })
 export class TablesFieldsPanelComponent {
+  protected readonly enableCustomFieldAdd = ENABLE_CUSTOM_FIELD_ADD;
+
   private readonly platformId = inject(PLATFORM_ID);
   private readonly renderer = inject(Renderer2);
   private readonly destroyRef = inject(DestroyRef);
@@ -221,7 +230,7 @@ export class TablesFieldsPanelComponent {
   }
 
   protected onCustomMetricAdd(): void {
-    if (!this.canCreateCustomMetric()) {
+    if (!this.enableCustomFieldAdd || !this.canCreateCustomMetric()) {
       return;
     }
     this.customMetricAdd.emit();

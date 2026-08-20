@@ -9,7 +9,9 @@
     (click)="onRun()"
   >
     @if (loading()) {
-      <mat-spinner diameter="18" />
+      <span class="run-query-button__spinner" aria-hidden="true">
+        <mat-spinner diameter="16" />
+      </span>
     } @else {
       <mat-icon>play_arrow</mat-icon>
     }
