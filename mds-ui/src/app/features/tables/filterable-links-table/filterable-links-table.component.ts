@@ -2,6 +2,7 @@ import { Component, computed, input, output, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
+import { MatTooltipModule } from '@angular/material/tooltip';
 import {
   LinkDialogMode,
   ModelJoinView,
@@ -10,7 +11,7 @@ import { filterModelJoinViews, originLabel } from '../model-links.utils';
 
 @Component({
   selector: 'app-filterable-links-table',
-  imports: [FormsModule, MatButtonModule, MatIconModule],
+  imports: [FormsModule, MatButtonModule, MatIconModule, MatTooltipModule],
   templateUrl: './filterable-links-table.component.html',
   styleUrl: './filterable-links-table.component.scss',
 })

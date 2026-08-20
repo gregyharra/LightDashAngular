@@ -5,6 +5,7 @@ import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { MatButtonModule } from '@angular/material/button';
 import { MatButtonToggleModule } from '@angular/material/button-toggle';
 import { MatChipInputEvent, MatChipsModule } from '@angular/material/chips';
+import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { Observable, forkJoin, of } from 'rxjs';
@@ -42,12 +43,14 @@ import { ResizableSidebarDirective } from '../../../layout/resizable-sidebar/res
 import { DictionaryService } from '../dictionary.service';
 import { FilterableLinksTableComponent } from '../filterable-links-table/filterable-links-table.component';
 import { LinkDialogComponent } from '../link-dialog/link-dialog.component';
+import { modelJoinDeleteMessage } from '../model-links.utils';
 import { ModelJoinsService } from '../model-joins.service';
 import {
   LinkDialogSavePayload,
   ModelJoinView,
   ModelLinkOption,
 } from '../../../core/models/model-join.model';
+import { ConfirmDialogComponent } from '../../../shared/confirm-dialog/confirm-dialog.component';
 import { SqlHighlightComponent } from '../../../shared/sql-highlight/sql-highlight.component';
 import {
   ModelSqlViewMode,
@@ -116,6 +119,7 @@ const ENABLE_TABLE_HUB_TAG_EDITING = false;
     MatButtonModule,
     MatButtonToggleModule,
     MatChipsModule,
+    MatDialogModule,
     MatIconModule,
     MatProgressSpinnerModule,
     AddAttributeDialogComponent,
@@ -137,6 +141,7 @@ export class TableHubPageComponent {
   private readonly dictionaryService = inject(DictionaryService);
   private readonly modelJoinsService = inject(ModelJoinsService);
   private readonly lineageService = inject(LineageService);
+  private readonly dialog = inject(MatDialog);
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
   protected readonly activeProjectService = inject(ActiveProjectService);
@@ -403,24 +408,33 @@ export class TableHubPageComponent {
 
   protected onDeleteLink(link: ModelJoinView): void {
     const projectUuid = this.projectUuid();
-    if (!projectUuid || !link.uuid) {
+    const linkUuid = link.uuid;
+    if (!projectUuid || !linkUuid) {
       return;
     }
-    if (
-      !confirm(
-        `Delete the link to ${link.targetModelName} (${link.sourceColumn} → ${link.targetColumn})?`,
-      )
-    ) {
-      return;
-    }
-    this.saving.set(true);
-    this.modelJoinsService.delete(projectUuid, link.uuid).subscribe({
-      next: () => {
-        this.saving.set(false);
-        this.loadLinks(projectUuid, this.tableId());
-      },
-      error: () => this.saving.set(false),
-    });
+    this.dialog
+      .open(ConfirmDialogComponent, {
+        width: '28rem',
+        data: {
+          title: 'Delete table link',
+          message: modelJoinDeleteMessage(link),
+          confirmLabel: 'Delete',
+        },
+      })
+      .afterClosed()
+      .subscribe((confirmed) => {
+        if (!confirmed) {
+          return;
+        }
+        this.saving.set(true);
+        this.modelJoinsService.delete(projectUuid, linkUuid).subscribe({
+          next: () => {
+            this.saving.set(false);
+            this.loadLinks(projectUuid, this.tableId());
+          },
+          error: () => this.saving.set(false),
+        });
+      });
   }
 
   protected onLinkDialogCancelled(): void {

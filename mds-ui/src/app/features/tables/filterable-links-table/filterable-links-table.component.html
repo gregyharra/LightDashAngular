@@ -51,6 +51,7 @@
             <th scope="col">Target column</th>
             <th scope="col">Join</th>
             <th scope="col">Relationship</th>
+            <th scope="col">Label</th>
             <th scope="col">Origin</th>
             <th scope="col" class="filterable-links-table__actions-header"></th>
           </tr>
@@ -58,7 +59,7 @@
         <tbody>
           @if (filteredLinks().length === 0) {
             <tr>
-              <td [attr.colspan]="showSourceModel() ? 8 : 7">
+              <td [attr.colspan]="showSourceModel() ? 9 : 8">
                 <p class="filterable-links-table__empty">
                   @if (searchQuery().trim()) {
                     No links match your search.
@@ -79,6 +80,7 @@
               <td class="filterable-links-table__mono">{{ link.targetColumn }}</td>
               <td>{{ link.joinType }}</td>
               <td>{{ link.relationship ?? '—' }}</td>
+              <td class="filterable-links-table__label">{{ link.label || '—' }}</td>
               <td>
                 <span
                   class="filterable-links-table__origin"
@@ -89,11 +91,27 @@
               </td>
               <td class="filterable-links-table__actions">
                 @if (link.origin === 'custom') {
-                  <button mat-button type="button" [disabled]="saving()" (click)="onEdit(link)">
-                    Edit
+                  <button
+                    mat-icon-button
+                    type="button"
+                    class="filterable-links-table__edit-btn"
+                    aria-label="Edit link"
+                    matTooltip="Edit"
+                    [disabled]="saving()"
+                    (click)="onEdit(link)"
+                  >
+                    <mat-icon>edit</mat-icon>
                   </button>
-                  <button mat-button type="button" [disabled]="saving()" (click)="onDelete(link)">
-                    Delete
+                  <button
+                    mat-icon-button
+                    type="button"
+                    class="filterable-links-table__delete-btn"
+                    aria-label="Delete link"
+                    matTooltip="Delete"
+                    [disabled]="saving()"
+                    (click)="onDelete(link)"
+                  >
+                    <mat-icon>delete_outline</mat-icon>
                   </button>
                 } @else {
                   <span class="filterable-links-table__readonly">—</span>

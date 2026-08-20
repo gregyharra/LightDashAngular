@@ -7,6 +7,11 @@ export function originLabel(origin: ModelJoinOrigin): string {
   return origin === 'dbt' ? 'dbt meta' : 'custom';
 }
 
+/** Confirm-dialog copy identifying a table link by source → target. */
+export function modelJoinDeleteMessage(link: ModelJoinView): string {
+  return `Delete the link ${link.sourceModelName}.${link.sourceColumn} → ${link.targetModelName}.${link.targetColumn}?`;
+}
+
 /** Case-insensitive substring match across visible link fields. */
 export function filterModelJoinViews(
   links: ModelJoinView[],

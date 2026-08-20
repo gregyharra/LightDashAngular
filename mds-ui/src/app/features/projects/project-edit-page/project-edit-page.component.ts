@@ -21,12 +21,14 @@ import { LineageService } from '../../lineage/lineage.service';
 import { ProjectLineage } from '../../../core/models/lineage.model';
 import { FilterableLinksTableComponent } from '../../tables/filterable-links-table/filterable-links-table.component';
 import { LinkDialogComponent } from '../../tables/link-dialog/link-dialog.component';
+import { modelJoinDeleteMessage } from '../../tables/model-links.utils';
 import { ModelJoinsService } from '../../tables/model-joins.service';
 import {
   LinkDialogSavePayload,
   ModelJoinView,
   ModelLinkOption,
 } from '../../../core/models/model-join.model';
+import { ConfirmDialogComponent } from '../../../shared/confirm-dialog/confirm-dialog.component';
 
 type ProjectSettingsTab = 'configuration' | 'links';
 
@@ -395,24 +397,33 @@ export class ProjectEditPageComponent {
 
   protected onDeleteLink(link: ModelJoinView): void {
     const projectUuid = this.projectUuid();
-    if (!projectUuid || !link.uuid) {
+    const linkUuid = link.uuid;
+    if (!projectUuid || !linkUuid) {
       return;
     }
-    if (
-      !confirm(
-        `Delete the link from ${link.sourceModelName} to ${link.targetModelName}?`,
-      )
-    ) {
-      return;
-    }
-    this.linksSaving.set(true);
-    this.modelJoinsService.delete(projectUuid, link.uuid).subscribe({
-      next: () => {
-        this.linksSaving.set(false);
-        this.loadProjectLinks();
-      },
-      error: () => this.linksSaving.set(false),
-    });
+    this.dialog
+      .open(ConfirmDialogComponent, {
+        width: '28rem',
+        data: {
+          title: 'Delete table link',
+          message: modelJoinDeleteMessage(link),
+          confirmLabel: 'Delete',
+        },
+      })
+      .afterClosed()
+      .subscribe((confirmed) => {
+        if (!confirmed) {
+          return;
+        }
+        this.linksSaving.set(true);
+        this.modelJoinsService.delete(projectUuid, linkUuid).subscribe({
+          next: () => {
+            this.linksSaving.set(false);
+            this.loadProjectLinks();
+          },
+          error: () => this.linksSaving.set(false),
+        });
+      });
   }
 
   protected onLinkDialogCancelled(): void {
