@@ -73,9 +73,13 @@ export class LinkDialogComponent {
     this.filterModels(this.models(), this.sourceModelSearch()),
   );
 
-  protected readonly filteredTargetModels = computed(() =>
-    this.filterModels(this.models(), this.targetModelSearch()),
-  );
+  protected readonly filteredTargetModels = computed(() => {
+    const sourceId = this.sourceModelId();
+    const models = sourceId
+      ? this.models().filter((model) => model.id !== sourceId)
+      : this.models();
+    return this.filterModels(models, this.targetModelSearch());
+  });
 
   protected readonly selectedSourceModel = computed(
     () => this.models().find((model) => model.id === this.sourceModelId()) ?? null,
@@ -165,6 +169,11 @@ export class LinkDialogComponent {
   protected onSourceModelChange(modelId: string): void {
     this.sourceModelId.set(modelId);
     this.sourceColumn.set('');
+    if (this.targetModelId() === modelId) {
+      this.targetModelId.set('');
+      this.targetModelSearch.set('');
+      this.targetColumn.set('');
+    }
     this.error.set(null);
   }
 

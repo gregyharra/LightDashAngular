@@ -1,16 +1,39 @@
 <div class="filterable-links-table">
   <div class="filterable-links-table__toolbar">
-    <p class="filterable-links-table__hint">
-      @if (variant() === 'hub') {
-        Joins available when exploring this model in Charts.
-      } @else {
-        All explore joins for this project — from dbt meta and custom overrides.
+    <div class="filterable-links-table__toolbar-row">
+      <p class="filterable-links-table__hint">
+        @if (variant() === 'hub') {
+          Joins available when exploring this model in Charts.
+        } @else {
+          All explore joins for this project — from dbt meta and custom overrides.
+        }
+      </p>
+      <button mat-flat-button type="button" [disabled]="saving()" (click)="addRequested.emit()">
+        <mat-icon>add</mat-icon>
+        Add link
+      </button>
+    </div>
+    <div class="filterable-links-table__search-wrap">
+      <mat-icon class="filterable-links-table__search-icon">search</mat-icon>
+      <input
+        class="filterable-links-table__search"
+        type="search"
+        placeholder="Search links…"
+        aria-label="Search links"
+        [ngModel]="searchQuery()"
+        (ngModelChange)="onSearchInput($event)"
+      />
+      @if (searchQuery().trim()) {
+        <button
+          type="button"
+          class="filterable-links-table__clear-search"
+          aria-label="Clear search"
+          (click)="clearSearch()"
+        >
+          <mat-icon>close</mat-icon>
+        </button>
       }
-    </p>
-    <button mat-flat-button type="button" [disabled]="saving()" (click)="addRequested.emit()">
-      <mat-icon>add</mat-icon>
-      Add link
-    </button>
+    </div>
   </div>
 
   @if (loading()) {
@@ -21,70 +44,14 @@
         <thead>
           <tr>
             @if (showSourceModel()) {
-              <th scope="col">
-                <app-content-list-column-header
-                  label="Source model"
-                  filterType="text"
-                  textPlaceholder="Filter models…"
-                  [value]="filters().sourceModel"
-                  (valueChange)="updateFilter('sourceModel', $event)"
-                />
-              </th>
+              <th scope="col">Source model</th>
             }
-            <th scope="col">
-              <app-content-list-column-header
-                label="Source column"
-                filterType="text"
-                textPlaceholder="Filter columns…"
-                [value]="filters().sourceColumn"
-                (valueChange)="updateFilter('sourceColumn', $event)"
-              />
-            </th>
-            <th scope="col">
-              <app-content-list-column-header
-                label="Target model"
-                filterType="text"
-                textPlaceholder="Filter models…"
-                [value]="filters().targetModel"
-                (valueChange)="updateFilter('targetModel', $event)"
-              />
-            </th>
-            <th scope="col">
-              <app-content-list-column-header
-                label="Target column"
-                filterType="text"
-                textPlaceholder="Filter columns…"
-                [value]="filters().targetColumn"
-                (valueChange)="updateFilter('targetColumn', $event)"
-              />
-            </th>
-            <th scope="col">
-              <app-content-list-column-header
-                label="Join"
-                filterType="select"
-                [options]="joinTypeOptions()"
-                [value]="filters().joinType"
-                (valueChange)="updateFilter('joinType', $event)"
-              />
-            </th>
-            <th scope="col">
-              <app-content-list-column-header
-                label="Relationship"
-                filterType="select"
-                [options]="relationshipOptions()"
-                [value]="filters().relationship"
-                (valueChange)="updateFilter('relationship', $event)"
-              />
-            </th>
-            <th scope="col">
-              <app-content-list-column-header
-                label="Origin"
-                filterType="select"
-                [options]="originOptions()"
-                [value]="filters().origin"
-                (valueChange)="updateFilter('origin', $event)"
-              />
-            </th>
+            <th scope="col">Source column</th>
+            <th scope="col">Target model</th>
+            <th scope="col">Target column</th>
+            <th scope="col">Join</th>
+            <th scope="col">Relationship</th>
+            <th scope="col">Origin</th>
             <th scope="col" class="filterable-links-table__actions-header"></th>
           </tr>
         </thead>
@@ -92,7 +59,13 @@
           @if (filteredLinks().length === 0) {
             <tr>
               <td [attr.colspan]="showSourceModel() ? 8 : 7">
-                <p class="filterable-links-table__empty">No links match your filters.</p>
+                <p class="filterable-links-table__empty">
+                  @if (searchQuery().trim()) {
+                    No links match your search.
+                  } @else {
+                    No links yet.
+                  }
+                </p>
               </td>
             </tr>
           }
