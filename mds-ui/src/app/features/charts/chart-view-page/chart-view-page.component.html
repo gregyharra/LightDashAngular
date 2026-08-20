@@ -171,56 +171,12 @@
           </div>
         } @else {
           <div class="chart-view__fields-scroll">
-            <mat-accordion multi>
-              @for (group of filteredTableGroups(); track group.table.name) {
-                <mat-expansion-panel [expanded]="true">
-                  <mat-expansion-panel-header>
-                    <mat-panel-title>{{ group.table.label }}</mat-panel-title>
-                  </mat-expansion-panel-header>
-
-                  @if (group.dimensions.length > 0) {
-                    <p class="chart-view__field-section">Dimensions</p>
-                    <div class="chart-view__field-list">
-                      @for (field of group.dimensions; track field.fieldId) {
-                        <button
-                          type="button"
-                          class="chart-view__field-btn"
-                          [class.chart-view__field-btn--selected]="
-                            isDimensionSelected(field.fieldId)
-                          "
-                          (click)="toggleDimension(field.fieldId)"
-                        >
-                          <mat-icon>straighten</mat-icon>
-                          {{ field.label }}
-                        </button>
-                      }
-                    </div>
-                  }
-
-                  @if (group.metrics.length > 0) {
-                    <p class="chart-view__field-section">Metrics</p>
-                    <div class="chart-view__field-list">
-                      @for (field of group.metrics; track field.fieldId) {
-                        <button
-                          type="button"
-                          class="chart-view__field-btn chart-view__field-btn--metric"
-                          [class.chart-view__field-btn--selected]="
-                            isMetricSelected(field.fieldId)
-                          "
-                          (click)="toggleMetric(field.fieldId)"
-                        >
-                          <mat-icon>functions</mat-icon>
-                          {{ field.label }}
-                        </button>
-                      }
-                    </div>
-                  }
-                </mat-expansion-panel>
-              }
-            </mat-accordion>
-            @if (fieldSearch().trim() && filteredTableGroups().length === 0) {
-              <p class="chart-view__fields-empty">No matching fields</p>
-            }
+            <app-chart-fields-accordion
+              [fieldGroups]="filteredTableGroups()"
+              [selectedFieldIds]="selectedFieldIds()"
+              [showEmpty]="!!fieldSearch().trim()"
+              (fieldToggled)="onAccordionFieldToggled($event)"
+            />
           </div>
         }
       </div>

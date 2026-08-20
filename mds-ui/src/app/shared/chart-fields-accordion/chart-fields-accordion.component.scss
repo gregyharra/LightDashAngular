@@ -1,0 +1,137 @@
+.chart-fields-accordion {
+  min-width: 0;
+}
+
+.chart-fields-accordion__panel {
+  &--issue {
+    opacity: 0.55;
+
+    .mat-expansion-panel-header {
+      pointer-events: auto;
+      cursor: default;
+    }
+  }
+}
+
+.chart-fields-accordion__issue-icon {
+  width: 16px;
+  height: 16px;
+  margin-right: 6px;
+  font-size: 16px;
+  vertical-align: middle;
+  color: var(--ld-gray-6);
+}
+
+.chart-fields-accordion__metrics-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--ld-spacing-xs);
+  min-width: 0;
+}
+
+.chart-fields-accordion__section {
+  margin: var(--ld-spacing-xs) 0 6px;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  color: var(--ld-gray-5);
+}
+
+.chart-fields-accordion__metrics-header .chart-fields-accordion__section {
+  margin-bottom: 0;
+}
+
+.chart-fields-accordion__add-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  flex-shrink: 0;
+  padding: 0;
+  border: none;
+  background: transparent;
+  color: var(--ld-gray-6);
+  font-family: inherit;
+  font-size: 11px;
+  font-weight: 500;
+  white-space: nowrap;
+  cursor: default;
+  opacity: 0.6;
+
+  mat-icon {
+    width: 14px;
+    height: 14px;
+    font-size: 14px;
+  }
+
+  &:not(:disabled) {
+    cursor: pointer;
+    opacity: 1;
+    color: var(--ld-gray-7);
+
+    &:hover {
+      color: var(--ld-blue-6);
+    }
+  }
+}
+
+.chart-fields-accordion__list {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  margin-bottom: var(--ld-spacing-xs);
+  min-width: 0;
+}
+
+.chart-fields-accordion__btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  width: 100%;
+  min-width: 0;
+  padding: 6px 8px;
+  border: none;
+  border-radius: var(--ld-radius-sm);
+  background: transparent;
+  color: var(--ld-gray-8);
+  font-family: inherit;
+  font-size: var(--ld-font-size-sm);
+  text-align: left;
+  cursor: pointer;
+  transition: background-color 0.15s ease;
+
+  mat-icon {
+    flex-shrink: 0;
+    width: 14px;
+    height: 14px;
+    font-size: 14px;
+    color: var(--ld-gray-5);
+  }
+
+  &:hover {
+    background: var(--ld-gray-0);
+  }
+
+  &--selected {
+    background: var(--ld-blue-0);
+    color: var(--ld-blue-6);
+    font-weight: 500;
+
+    mat-icon {
+      color: var(--ld-blue-6);
+    }
+  }
+
+  &--metric.chart-fields-accordion__btn--selected {
+    background: var(--ld-indigo-0);
+    color: #4263eb;
+  }
+}
+
+.chart-fields-accordion__empty {
+  margin: var(--ld-spacing-md) 0 0;
+  color: var(--ld-gray-6);
+  font-size: var(--ld-font-size-sm);
+  text-align: center;
+}

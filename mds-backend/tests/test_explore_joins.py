@@ -57,7 +57,33 @@ def test_valid_join_adds_table_and_joined_tables():
     ]
     assert "dim_customers" in explore["tables"]
     assert "first_name" in explore["tables"]["dim_customers"]["dimensions"]
+    # Join key on the target is kept for SQL but hidden — source already has it.
+    assert explore["tables"]["dim_customers"]["dimensions"]["customer_id"]["hidden"] is True
+    assert explore["tables"]["fct_orders"]["dimensions"]["customer_id"]["hidden"] is False
     assert explore.get("joinIssues") in (None, [])
+
+
+def test_join_target_key_hidden_when_also_on_source():
+    base = _node(
+        "fct_orders",
+        joins=[
+            {
+                "join": "dim_customers",
+                "sql_on": "${fct_orders.customer_id} = ${dim_customers.customer_id}",
+            }
+        ],
+    )
+    joined = _node(
+        "dim_customers",
+        columns=[
+            {"name": "customer_id", "type": "integer"},
+            {"name": "first_name", "type": "varchar"},
+        ],
+    )
+    explore = build_explore_from_lineage_node(base, {"nodes": [base, joined]})
+    dims = explore["tables"]["dim_customers"]["dimensions"]
+    assert dims["customer_id"]["hidden"] is True
+    assert dims["first_name"]["hidden"] is False
 
 
 def test_missing_join_target_emits_issue_with_suggestion():

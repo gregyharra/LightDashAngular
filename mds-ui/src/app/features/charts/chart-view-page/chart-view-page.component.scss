@@ -486,13 +486,6 @@
   }
 }
 
-.chart-view__fields-empty {
-  margin: var(--ld-spacing-md) 0 0;
-  color: var(--ld-gray-6);
-  font-size: var(--ld-font-size-sm);
-  text-align: center;
-}
-
 .chart-view__fields-scroll {
   flex: 1 1 auto;
   min-width: 0;
@@ -574,65 +567,6 @@
   letter-spacing: 0.02em;
   text-transform: uppercase;
   color: var(--ld-gray-6);
-}
-
-.chart-view__field-section {
-  margin: var(--ld-spacing-xs) 0 6px;
-  font-size: 11px;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.03em;
-  color: var(--ld-gray-5);
-}
-
-.chart-view__field-list {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-  margin-bottom: var(--ld-spacing-xs);
-}
-
-.chart-view__field-btn {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  width: 100%;
-  padding: 6px 8px;
-  border: none;
-  border-radius: var(--ld-radius-sm);
-  background: transparent;
-  color: var(--ld-gray-8);
-  font-family: inherit;
-  font-size: var(--ld-font-size-sm);
-  text-align: left;
-  cursor: pointer;
-  transition: background-color 0.15s ease;
-
-  mat-icon {
-    width: 14px;
-    height: 14px;
-    font-size: 14px;
-    color: var(--ld-gray-5);
-  }
-
-  &:hover {
-    background: var(--ld-gray-0);
-  }
-
-  &--selected {
-    background: var(--ld-blue-0);
-    color: var(--ld-blue-6);
-    font-weight: 500;
-
-    mat-icon {
-      color: var(--ld-blue-6);
-    }
-  }
-
-  &--metric.chart-view__field-btn--selected {
-    background: var(--ld-indigo-0);
-    color: #4263eb;
-  }
 }
 
 .chart-view__viz {

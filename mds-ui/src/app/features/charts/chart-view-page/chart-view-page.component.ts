@@ -41,7 +41,6 @@ import {
 } from '../../../core/models/chart-config.utils';
 import {
   AdditionalMetric,
-  CompiledTable,
   Explore,
   ExploreSummary,
   FieldId,
@@ -95,6 +94,7 @@ import { ResizableSidebarDirective } from '../../../layout/resizable-sidebar/res
 import { AppStateService } from '../../../core/services/app-state.service';
 import { SqlHighlightComponent } from '../../../shared/sql-highlight/sql-highlight.component';
 import { RunQueryButtonComponent } from '../../../shared/run-query-button/run-query-button.component';
+import { ChartFieldsAccordionComponent } from '../../../shared/chart-fields-accordion/chart-fields-accordion.component';
 import { TablesChartConfigPanelComponent } from '../../explorer/tables-chart-config-panel/tables-chart-config-panel.component';
 import { TablesChartDisplayConfig } from '../../explorer/tables-chart-config-panel/tables-chart-config.constants';
 import { TablesFiltersPanelComponent } from '../../explorer/tables-filters-panel/tables-filters-panel.component';
@@ -111,7 +111,8 @@ import {
 import { combineLatest, forkJoin } from 'rxjs';
 
 type TableFieldGroup = {
-  table: CompiledTable;
+  trackKey: string;
+  table: { name: string; label: string };
   dimensions: { fieldId: FieldId; label: string }[];
   metrics: { fieldId: FieldId; label: string }[];
 };
@@ -142,6 +143,7 @@ const RESULTS_DEFAULT_PAGE_SIZE = 25;
     TablesFiltersPanelComponent,
     ResizableSidebarDirective,
     RunQueryButtonComponent,
+    ChartFieldsAccordionComponent,
     SqlHighlightComponent,
   ],
   templateUrl: './chart-view-page.component.html',
@@ -311,7 +313,8 @@ export class ChartViewPageComponent {
     }
 
     return Object.values(explore.tables).map((table) => ({
-      table,
+      trackKey: `table:${table.name}`,
+      table: { name: table.name, label: table.label },
       dimensions: Object.values(table.dimensions)
         .filter((dim) => !dim.hidden)
         .map((dim) => ({
@@ -348,6 +351,14 @@ export class ChartViewPageComponent {
       .filter(
         (group) => group.dimensions.length > 0 || group.metrics.length > 0,
       );
+  });
+
+  protected readonly selectedFieldIds = computed(() => {
+    const ids = new Set<FieldId>(this.selectedDimensions());
+    for (const fieldId of this.selectedMetrics()) {
+      ids.add(fieldId);
+    }
+    return ids;
   });
 
   protected readonly selectedDimensionList = computed(() =>
@@ -1086,16 +1097,19 @@ export class ChartViewPageComponent {
     this.metricQueryFilters.set(state.filters);
   }
 
-  protected isDimensionSelected(fieldId: FieldId): boolean {
-    return this.selectedDimensions().has(fieldId);
-  }
-
-  protected isMetricSelected(fieldId: FieldId): boolean {
-    return this.selectedMetrics().has(fieldId);
-  }
-
   protected onFieldSearch(value: string): void {
     this.fieldSearch.set(value);
+  }
+
+  protected onAccordionFieldToggled(fieldId: FieldId): void {
+    const isDimension = this.tableGroups().some((group) =>
+      group.dimensions.some((field) => field.fieldId === fieldId),
+    );
+    if (isDimension) {
+      this.toggleDimension(fieldId);
+      return;
+    }
+    this.toggleMetric(fieldId);
   }
 
   protected toggleDimension(fieldId: FieldId): void {

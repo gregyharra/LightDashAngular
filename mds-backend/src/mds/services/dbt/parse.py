@@ -1626,6 +1626,53 @@ def _suggest_join_target(name: str, candidates: list[str]) -> str | None:
     return matches[0] if matches else None
 
 
+# Equality join keys in Lightdash-style sql_on: ${left.col} = ${right.col}
+_SQL_ON_EQ_PATTERN = re.compile(
+    r"\$\{([^.}]+)\.([^}]+)\}\s*=\s*\$\{([^.}]+)\.([^}]+)\}"
+)
+
+
+def _target_join_key_columns(sql_on: str, target_table: str) -> set[str]:
+    """Column names on ``target_table`` used as equality join keys in ``sql_on``.
+
+    These duplicate the source-side key already available on the base explore,
+    so they are hidden from the fields panel (same idea as chart-edit / Lightdash).
+    """
+    keys: set[str] = set()
+    for left_table, left_col, right_table, right_col in _SQL_ON_EQ_PATTERN.findall(
+        sql_on
+    ):
+        if left_table == target_table:
+            keys.add(left_col)
+        if right_table == target_table:
+            keys.add(right_col)
+    return keys
+
+
+def _hide_target_join_key_dimensions(
+    compiled_table: dict[str, Any],
+    sql_on: str,
+    target_table: str,
+) -> dict[str, Any]:
+    join_keys = _target_join_key_columns(sql_on, target_table)
+    if not join_keys:
+        return compiled_table
+
+    dimensions = compiled_table.get("dimensions") or {}
+    updated = False
+    next_dimensions = dict(dimensions)
+    for col in join_keys:
+        dim = next_dimensions.get(col)
+        if not isinstance(dim, dict) or dim.get("hidden"):
+            continue
+        next_dimensions[col] = {**dim, "hidden": True}
+        updated = True
+
+    if not updated:
+        return compiled_table
+    return {**compiled_table, "dimensions": next_dimensions}
+
+
 def build_explore_from_lineage_node(
     node: dict[str, Any],
     lineage: dict[str, Any] | None = None,
@@ -1701,7 +1748,12 @@ def build_explore_from_lineage_node(
 
             fields = raw.get("fields")
             field_whitelist = fields if isinstance(fields, list) else None
-            tables[target_name] = _compiled_table_from_node(target, field_whitelist)
+            compiled_target = _compiled_table_from_node(target, field_whitelist)
+            tables[target_name] = _hide_target_join_key_dimensions(
+                compiled_target,
+                sql_on,
+                target_name,
+            )
             joined_table: dict[str, Any] = {
                 "table": target_name,
                 "sqlOn": sql_on,

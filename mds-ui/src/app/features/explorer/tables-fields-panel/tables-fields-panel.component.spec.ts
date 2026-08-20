@@ -51,18 +51,17 @@ describe('TablesFieldsPanelComponent', () => {
 
     fixture.detectChanges();
 
-    const issueSection = fixture.debugElement.query(
-      By.css('.tables-fields-panel__section--issue'),
+    const issuePanel = fixture.debugElement.query(
+      By.css('.chart-fields-accordion__panel--issue'),
     );
-    expect(issueSection).withContext('issue section').not.toBeNull();
-    expect(issueSection.nativeElement.textContent).toContain('Customers');
+    expect(issuePanel).withContext('issue panel').not.toBeNull();
+    expect(issuePanel.nativeElement.textContent).toContain('Customers');
     expect(
-      issueSection.queryAll(By.css('.tables-fields-panel__item')).length,
+      issuePanel.queryAll(By.css('.chart-fields-accordion__btn')).length,
     ).toBe(0);
 
-    const tooltipTrigger = issueSection.query(By.directive(MatTooltip));
-    expect(tooltipTrigger.nativeElement.tagName).toBe('BUTTON');
-    expect(tooltipTrigger.nativeElement.tabIndex).toBe(0);
+    const tooltipTrigger = issuePanel.query(By.directive(MatTooltip));
+    expect(tooltipTrigger).not.toBeNull();
 
     const tooltip = tooltipTrigger.injector.get(MatTooltip);
     expect(tooltip.message).toContain(
@@ -95,14 +94,48 @@ describe('TablesFieldsPanelComponent', () => {
 
     fixture.detectChanges();
 
-    const sections = fixture.debugElement.queryAll(
-      By.css('.tables-fields-panel__section'),
+    const panels = fixture.debugElement.queryAll(
+      By.css('mat-expansion-panel'),
     );
-    expect(sections.length).toBe(2);
-    expect(sections[0].nativeElement.textContent).toContain('Customers');
-    expect(sections[1].nativeElement.textContent).toContain(
+    expect(panels.length).toBe(2);
+    expect(panels[0].nativeElement.textContent).toContain('Customers');
+    expect(panels[1].nativeElement.textContent).toContain(
       'Broken customers join',
     );
+  });
+
+  it('encapsulates model fields in collapsible expansion panels like chart edit', () => {
+    fixture.componentRef.setInput('fieldGroups', [
+      {
+        trackKey: 'table:orders',
+        table: { name: 'orders', label: 'Orders' },
+        dimensions: [
+          { fieldId: 'orders_id', label: 'Order ID', type: 'string' },
+        ],
+        metrics: [{ fieldId: 'orders_count', label: 'Order count' }],
+      },
+      {
+        trackKey: 'table:customers',
+        table: { name: 'customers', label: 'Dim Customers' },
+        dimensions: [
+          { fieldId: 'customers_id', label: 'Customer Id', type: 'string' },
+        ],
+        metrics: [],
+      },
+    ]);
+
+    fixture.detectChanges();
+
+    const panels = fixture.debugElement.queryAll(
+      By.css('mat-expansion-panel'),
+    );
+    expect(panels.length).toBe(2);
+    expect(panels[1].nativeElement.textContent).toContain('Dim Customers');
+    expect(panels[1].nativeElement.textContent).toContain('Dimensions');
+    expect(panels[1].nativeElement.textContent).toContain('Customer Id');
+    expect(
+      panels[0].queryAll(By.css('.chart-fields-accordion__btn')).length,
+    ).toBe(2);
   });
 
   it('preserves issue groups while filtering fields', () => {

@@ -1,0 +1,89 @@
+<div class="chart-fields-accordion">
+  <mat-accordion multi>
+    @for (group of fieldGroups(); track group.trackKey) {
+      <mat-expansion-panel
+        class="chart-fields-accordion__panel"
+        [class.chart-fields-accordion__panel--issue]="group.issue"
+        [expanded]="!group.issue"
+        [hideToggle]="!!group.issue"
+      >
+        <mat-expansion-panel-header
+          [matTooltip]="group.issue ? issueTooltip(group.issue) : ''"
+          [matTooltipDisabled]="!group.issue"
+        >
+          <mat-panel-title>
+            @if (group.issue) {
+              <mat-icon class="chart-fields-accordion__issue-icon">
+                {{ group.issue.severity === 'error' ? 'error' : 'warning' }}
+              </mat-icon>
+            }
+            {{ group.table.label }}
+          </mat-panel-title>
+        </mat-expansion-panel-header>
+
+        @if (!group.issue) {
+          @if (group.dimensions.length > 0) {
+            <p class="chart-fields-accordion__section">Dimensions</p>
+            <div class="chart-fields-accordion__list">
+              @for (field of group.dimensions; track field.fieldId) {
+                <button
+                  type="button"
+                  class="chart-fields-accordion__btn"
+                  [class.chart-fields-accordion__btn--selected]="
+                    isFieldSelected(field.fieldId)
+                  "
+                  (click)="toggleField(field.fieldId)"
+                >
+                  <mat-icon>straighten</mat-icon>
+                  {{ field.label }}
+                </button>
+              }
+            </div>
+          }
+
+          @if (group.metrics.length > 0 || showCustomMetricAdd()) {
+            <div class="chart-fields-accordion__metrics-header">
+              <p class="chart-fields-accordion__section">Metrics</p>
+              @if (showCustomMetricAdd()) {
+                <button
+                  type="button"
+                  class="chart-fields-accordion__add-btn"
+                  aria-label="Add custom metric"
+                  [title]="
+                    canCreateCustomMetric()
+                      ? 'Add custom metric'
+                      : 'No dimensions available for custom metrics'
+                  "
+                  [disabled]="!canCreateCustomMetric()"
+                  (click)="onCustomMetricAdd()"
+                >
+                  <mat-icon>add</mat-icon>
+                  Add
+                </button>
+              }
+            </div>
+            <div class="chart-fields-accordion__list">
+              @for (field of group.metrics; track field.fieldId) {
+                <button
+                  type="button"
+                  class="chart-fields-accordion__btn chart-fields-accordion__btn--metric"
+                  [class.chart-fields-accordion__btn--selected]="
+                    isFieldSelected(field.fieldId)
+                  "
+                  (click)="toggleField(field.fieldId)"
+                >
+                  <mat-icon>functions</mat-icon>
+                  {{ field.label }}
+                </button>
+              }
+            </div>
+          }
+        }
+      </mat-expansion-panel>
+    }
+  </mat-accordion>
+
+  @if (showEmpty() && fieldGroups().length === 0) {
+    <p class="chart-fields-accordion__empty">No matching fields</p>
+  }
+</div>
