@@ -46,6 +46,8 @@ class DbtArtifacts:
         return self.manifest.get("metadata") or {}
 
 
+from mds.services.dbt.lineage_cache import clear_lineage_cache
+
 _cache: dict[str, DbtArtifacts] = {}
 
 
@@ -145,3 +147,4 @@ def get_dbt_artifacts(
 
 def clear_dbt_artifacts_cache() -> None:
     _cache.clear()
+    clear_lineage_cache()

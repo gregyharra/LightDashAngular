@@ -7,7 +7,7 @@ from fastapi.testclient import TestClient
 
 from mds.main import app
 from mds.schemas.query import MetricQuery, MetricQueryRequest, QueryWarning
-from mds.services.query import executor, store
+from mds.services.query import executor, result_cache, store
 from mds.services.warehouse.trino_client import TrinoConnectionSnapshot
 
 
@@ -305,13 +305,14 @@ def test_metric_post_schedules_trino_without_running_it_synchronously(monkeypatc
     from mds.routers import query
 
     store.clear_queries()
+    result_cache.clear_result_cache()
     scheduled: dict[str, object] = {}
     explore = {
         "tables": {
             "orders": {
                 "name": "orders",
-                "dimensions": {"status": {"name": "status"}},
-                "metrics": {"count": {"name": "count"}},
+                "dimensions": {"status": {"name": "status", "fieldType": "dimension"}},
+                "metrics": {"count": {"name": "count", "fieldType": "metric"}},
             }
         }
     }
@@ -320,12 +321,17 @@ def test_metric_post_schedules_trino_without_running_it_synchronously(monkeypatc
     def sync_trino(*_args, **_kwargs):
         raise AssertionError("sync Trino execution must not run in POST")
 
-    def schedule(*args):
+    def schedule(*args, **kwargs):
         scheduled["args"] = args
+        scheduled["kwargs"] = kwargs
 
     monkeypatch.setattr(query, "_load_lineage_context", lambda *_args: (object(), {}))
     monkeypatch.setattr(query, "find_lineage_node", lambda *_args: object())
-    monkeypatch.setattr(query, "build_explore_from_lineage_node", lambda *_args: explore)
+    monkeypatch.setattr(
+        query.model_joins_service,
+        "build_explore_with_join_overlays",
+        lambda *_args: explore,
+    )
     monkeypatch.setattr(query, "build_metric_query_sql", lambda *_args: ("SELECT 1", []))
     monkeypatch.setattr(
         query, "validate_time_travel_for_explore", lambda *_args: []
@@ -343,6 +349,7 @@ def test_metric_post_schedules_trino_without_running_it_synchronously(monkeypatc
 
     query_uuid = response["results"]["queryUuid"]
     assert store.get_query(query_uuid).status == "pending"
+    assert response["results"]["cacheMetadata"]["cacheHit"] is False
     assert scheduled["args"] == (
         query_uuid,
         warehouse,
@@ -351,6 +358,69 @@ def test_metric_post_schedules_trino_without_running_it_synchronously(monkeypatc
         10,
         [],
     )
+    assert scheduled["kwargs"]["bypass_cache"] is False
+    assert scheduled["kwargs"]["cache_key"] is not None
+
+
+def test_metric_post_returns_cache_hit_without_scheduling(monkeypatch):
+    from mds.routers import query
+
+    store.clear_queries()
+    result_cache.clear_result_cache()
+    monkeypatch.setattr(result_cache.settings, "query_result_cache_ttl_seconds", 300)
+
+    explore = {
+        "tables": {
+            "orders": {
+                "name": "orders",
+                "dimensions": {"status": {"name": "status", "fieldType": "dimension"}},
+                "metrics": {"count": {"name": "count", "fieldType": "metric"}},
+            }
+        }
+    }
+    scheduled = {"n": 0}
+
+    def schedule(*_args, **_kwargs):
+        scheduled["n"] += 1
+
+    key = result_cache.make_result_cache_key(
+        project_uuid="project",
+        compiled_sql="SELECT 1",
+        field_ids=["orders_status", "orders_count"],
+        limit=10,
+        time_travel=None,
+    )
+    result_cache.put_cached_result(
+        key,
+        rows=[{"orders_status": {"value": {"raw": "open", "formatted": "open"}}}],
+        warnings=[],
+        fields={"orders_status": {"fieldId": "orders_status"}},
+        compiled_sql="SELECT 1",
+    )
+
+    monkeypatch.setattr(query, "_load_lineage_context", lambda *_args: (object(), {}))
+    monkeypatch.setattr(query, "find_lineage_node", lambda *_args: object())
+    monkeypatch.setattr(
+        query.model_joins_service,
+        "build_explore_with_join_overlays",
+        lambda *_args: explore,
+    )
+    monkeypatch.setattr(query, "build_metric_query_sql", lambda *_args: ("SELECT 1", []))
+    monkeypatch.setattr(query, "validate_time_travel_for_explore", lambda *_args: [])
+    monkeypatch.setattr(query, "schedule_metric_query", schedule, raising=False)
+
+    response = query.execute_metric_query(
+        "project",
+        MetricQueryRequest(query=_metric()),
+        object(),
+    )
+
+    assert response["results"]["cacheMetadata"]["cacheHit"] is True
+    assert scheduled["n"] == 0
+    query_uuid = response["results"]["queryUuid"]
+    ready = store.get_query(query_uuid)
+    assert ready.status == "ready"
+    assert ready.rows[0]["orders_status"]["value"]["raw"] == "open"
 
 
 def test_poll_returns_executing_without_rows():

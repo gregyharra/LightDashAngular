@@ -61,7 +61,10 @@ export class ExplorerService {
     const request$ = this.api
       .post<ExecuteAsyncMetricQueryResponse>(
         `/projects/${projectUuid}/query/metric-query`,
-        { query: metricQuery },
+        {
+          query: metricQuery,
+          ...(options?.bypassCache ? { bypassCache: true } : {}),
+        },
         { apiVersion: 'v2' },
       )
       .pipe(
@@ -88,7 +91,7 @@ export class ExplorerService {
   private pollQueryResults(
     projectUuid: string,
     response: ExecuteAsyncMetricQueryResponse,
-    backoffMs = 100,
+    backoffMs = 50,
   ): Observable<Extract<AsyncQueryPollResponse, { status: 'ready' }>> {
     return this.api
       .get<AsyncQueryPollResponse>(

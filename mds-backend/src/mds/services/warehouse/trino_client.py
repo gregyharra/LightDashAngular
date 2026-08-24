@@ -13,6 +13,7 @@ from mds.services.warehouse.connection import (
     get_decrypted_password,
     warehouse_to_trino_kwargs,
 )
+from mds.services.warehouse.trino_pool import trino_pool
 
 logger = logging.getLogger(__name__)
 
@@ -180,32 +181,34 @@ def _execute_trino_snapshot_raw(
     except ImportError:
         return [], "trino package is not installed", []
 
-    kwargs = dict(
-        credentials_to_trino_kwargs(
-            host=snapshot.host,
-            port=snapshot.port,
-            user=snapshot.user,
-            password=snapshot.password,
-            catalog=snapshot.catalog,
-            schema_name=snapshot.schema_name,
-            ssl=snapshot.ssl,
-        )
-    )
-    auth = kwargs.pop("auth", None)
     query_sql = _prepare_query_sql(sql, limit)
 
+    client = None
+    cursor = None
+    discard = False
     try:
         _log_sql_context(_snapshot_label(snapshot), query_sql)
-        client = trino.dbapi.connect(auth=auth, **kwargs)
+        client = trino_pool.acquire(snapshot)
         cursor = client.cursor()
         cursor.execute(query_sql)
         columns = [desc[0] for desc in cursor.description or []]
         raw_rows = cursor.fetchall()
-        cursor.close()
-        client.close()
         return raw_rows, None, columns
     except (TrinoQueryError, TrinoUserError, OSError) as exc:
+        discard = client is not None
         return [], format_trino_error(exc), []
+    except BaseException:
+        discard = client is not None
+        raise
+    finally:
+        if cursor is not None:
+            try:
+                cursor.close()
+            except Exception:
+                discard = True
+                logger.debug("Failed to close Trino cursor", exc_info=True)
+        if client is not None:
+            trino_pool.release(snapshot, client, discard=discard)
 
 
 def iter_trino_formatted_rows(
@@ -219,25 +222,14 @@ def iter_trino_formatted_rows(
     except ImportError as exc:
         raise RuntimeError("trino package is not installed") from exc
 
-    kwargs = dict(
-        credentials_to_trino_kwargs(
-            host=snapshot.host,
-            port=snapshot.port,
-            user=snapshot.user,
-            password=snapshot.password,
-            catalog=snapshot.catalog,
-            schema_name=snapshot.schema_name,
-            ssl=snapshot.ssl,
-        )
-    )
-    auth = kwargs.pop("auth", None)
     query_sql = _prepare_query_sql(sql, None)
 
     client = None
     cursor = None
+    discard = False
     try:
         _log_sql_context(_snapshot_label(snapshot), query_sql)
-        client = trino.dbapi.connect(auth=auth, **kwargs)
+        client = trino_pool.acquire(snapshot)
         cursor = client.cursor()
         cursor.execute(query_sql)
         columns = [desc[0] for desc in cursor.description or []]
@@ -254,12 +246,20 @@ def iter_trino_formatted_rows(
                     for field_id in field_ids
                 ]
     except (TrinoQueryError, TrinoUserError, OSError) as exc:
+        discard = client is not None
         raise RuntimeError(format_trino_error(exc)) from exc
+    except BaseException:
+        discard = client is not None
+        raise
     finally:
         if cursor is not None:
-            cursor.close()
+            try:
+                cursor.close()
+            except Exception:
+                discard = True
+                logger.debug("Failed to close Trino cursor", exc_info=True)
         if client is not None:
-            client.close()
+            trino_pool.release(snapshot, client, discard=discard)
 
 
 def execute_trino_query_snapshot(

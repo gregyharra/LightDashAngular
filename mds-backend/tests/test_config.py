@@ -49,6 +49,9 @@ def test_settings_defaults_without_env_file(clean_settings_env: None) -> None:
     assert settings.log_level is None
     assert settings.effective_log_level == "DEBUG"
     assert settings.log_sql_queries is False
+    assert settings.trino_pool_size == 4
+    assert settings.query_max_workers == 8
+    assert settings.query_result_cache_ttl_seconds == 300
     assert settings.ask_ai_enabled is False
     assert settings.effective_encryption_key == DEV_ENCRYPTION_KEY
     assert settings.cors_origin_list == ["http://localhost:4200"]

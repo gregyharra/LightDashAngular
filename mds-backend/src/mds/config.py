@@ -130,6 +130,24 @@ class Settings(BaseSettings):
             "Also logged at DEBUG when the mds logger level is DEBUG."
         ),
     )
+    trino_pool_size: int = Field(
+        default=4,
+        ge=1,
+        description="Maximum pooled Trino connections per connection identity.",
+    )
+    query_max_workers: int = Field(
+        default=8,
+        ge=1,
+        description="Thread pool size for async warehouse metric queries.",
+    )
+    query_result_cache_ttl_seconds: int = Field(
+        default=300,
+        ge=0,
+        description=(
+            "TTL for in-memory metric query result cache in seconds. "
+            "Set to 0 to disable caching."
+        ),
+    )
     ask_ai_enabled: bool = Field(
         default=False,
         description=(

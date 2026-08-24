@@ -10,6 +10,7 @@ from mds.services.dbt.parse import find_lineage_node
 from mds.services import model_joins as model_joins_service
 from mds.services.query.compile import build_metric_query_sql
 from mds.services.query.executor import schedule_metric_query
+from mds.services.query import result_cache
 from mds.services.query.store import create_query, get_query
 from mds.services.query.time_travel import validate_time_travel_for_explore
 from mds.services.warehouse.connection import get_connection_for_project
@@ -51,6 +52,12 @@ def _build_fields(explore: dict, metric_query) -> dict:
     return fields
 
 
+def _time_travel_payload(metric_query) -> dict | None:
+    if metric_query.time_travel is None:
+        return None
+    return metric_query.time_travel.model_dump(by_alias=True)
+
+
 @router.post("/projects/{project_uuid}/query/metric-query")
 def execute_metric_query(
     project_uuid: str,
@@ -62,6 +69,7 @@ def execute_metric_query(
     except ValueError as exc:
         raise HTTPException(status_code=400, detail=str(exc)) from exc
 
+    bypass_cache = body.bypass_cache
     _project, lineage = _load_lineage_context(db, project_uuid)
     explore_name = metric_query.explore_name
     node = find_lineage_node(lineage, explore_name)
@@ -94,18 +102,44 @@ def execute_metric_query(
         )
 
     fields = _build_fields(explore, metric_query)
-    warehouse = get_connection_for_project(db, _project) if compiled_sql else None
-    can_run = bool(compiled_sql and warehouse and warehouse.type == "trino")
+    field_ids = list(metric_query.dimensions) + list(metric_query.metrics)
+    cache_key = None
+    if compiled_sql:
+        cache_key = result_cache.make_result_cache_key(
+            project_uuid=project_uuid,
+            compiled_sql=compiled_sql,
+            field_ids=field_ids,
+            limit=metric_query.limit,
+            time_travel=_time_travel_payload(metric_query),
+        )
+
+    cache_hit = False
+    cached = None
+    if cache_key and not bypass_cache:
+        cached = result_cache.get_cached_result(cache_key)
+        if cached is not None:
+            cache_hit = True
+            warnings = list(cached.warnings)
+            fields = dict(cached.fields)
+            compiled_sql = cached.compiled_sql
+
+    warehouse = (
+        None
+        if cache_hit
+        else (get_connection_for_project(db, _project) if compiled_sql else None)
+    )
+    can_run = bool(
+        not cache_hit and compiled_sql and warehouse and warehouse.type == "trino"
+    )
     stored = create_query(
         metric_query=metric_query,
         compiled_sql=compiled_sql,
         fields=fields,
         warnings=warnings,
-        rows=[],
-        status="pending" if can_run else "ready",
+        rows=list(cached.rows) if cached is not None else [],
+        status="ready" if cache_hit or not can_run else "pending",
     )
     if can_run:
-        field_ids = list(metric_query.dimensions) + list(metric_query.metrics)
         schedule_metric_query(
             stored.query_uuid,
             snapshot_from_warehouse(warehouse),
@@ -113,6 +147,9 @@ def execute_metric_query(
             field_ids,
             metric_query.limit,
             warnings,
+            cache_key=cache_key,
+            fields=fields,
+            bypass_cache=bypass_cache,
         )
 
     return ok(
@@ -120,7 +157,7 @@ def execute_metric_query(
             "queryUuid": stored.query_uuid,
             "metricQuery": metric_query.model_dump(by_alias=True),
             "fields": fields,
-            "cacheMetadata": {"cacheHit": False},
+            "cacheMetadata": {"cacheHit": cache_hit},
             "parameterReferences": [],
             "usedParametersValues": {},
             "resolvedTimezone": metric_query.timezone or "UTC",

@@ -102,6 +102,7 @@ class QueryWarning(BaseModel):
 class MetricQueryRequest(BaseModel):
     query: MetricQuery | None = None
     metric_query: MetricQuery | None = Field(default=None, alias="metricQuery")
+    bypass_cache: bool = Field(default=False, alias="bypassCache")
 
     model_config = {"populate_by_name": True}
 

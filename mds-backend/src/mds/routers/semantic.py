@@ -6,6 +6,11 @@ from sqlalchemy.orm import Session
 from mds.api.envelope import ok
 from mds.db.models import Project
 from mds.db.session import get_db
+from mds.services.dbt.lineage_cache import (
+    get_cached_lineage,
+    make_lineage_cache_key,
+    set_cached_lineage,
+)
 from mds.services.dbt.loader import (
     DbtArtifactsNotFound,
     DbtProjectNotConfigured,
@@ -43,12 +48,30 @@ def _load_lineage_context(db: Session, project_uuid: str) -> tuple[Project, dict
     except DbtArtifactsNotFound as exc:
         raise HTTPException(status_code=503, detail=str(exc)) from exc
 
+    manifest_mtime = artifacts.manifest_path.stat().st_mtime
+    catalog_mtime = (
+        artifacts.catalog_path.stat().st_mtime
+        if artifacts.catalog_path and artifacts.catalog_path.is_file()
+        else 0.0
+    )
+    cache_key = make_lineage_cache_key(
+        project_uuid=str(project.uuid),
+        dbt_project_path=str(dbt_path),
+        manifest_mtime=manifest_mtime,
+        catalog_mtime=catalog_mtime,
+        warehouse_type=project.warehouse_type,
+    )
+    cached_lineage = get_cached_lineage(cache_key)
+    if cached_lineage is not None:
+        return project, cached_lineage
+
     lineage = build_project_lineage(
         artifacts,
         project_uuid=str(project.uuid),
         project_name=project.name,
         warehouse_type=project.warehouse_type,
     )
+    set_cached_lineage(cache_key, lineage)
     return project, lineage
 
 
