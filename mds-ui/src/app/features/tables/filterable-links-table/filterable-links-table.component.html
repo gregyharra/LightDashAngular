@@ -3,9 +3,9 @@
     <div class="filterable-links-table__toolbar-row">
       <p class="filterable-links-table__hint">
         @if (variant() === 'hub') {
-          Joins available when exploring this model in Charts.
+          Joins available when exploring this model in Charts. Custom links work from either model.
         } @else {
-          All explore joins for this project — from dbt meta and custom overrides.
+          All explore joins for this project — from dbt meta and custom overrides. Custom links work from either model.
         }
       </p>
       <button mat-flat-button type="button" [disabled]="saving()" (click)="addRequested.emit()">

@@ -5,6 +5,7 @@ import uuid
 from typing import Any
 
 from fastapi import HTTPException
+from sqlalchemy import or_
 from sqlalchemy.orm import Session
 
 from mds.db.models import ModelJoin, Project
@@ -79,6 +80,79 @@ def custom_join_to_raw(row: ModelJoin) -> dict[str, Any]:
     if row.relationship:
         raw["relationship"] = row.relationship
     return raw
+
+
+def invert_relationship(relationship: str | None) -> str | None:
+    """Invert cardinality for the synthesized reverse orientation of a join."""
+    if relationship == "many-to-one":
+        return "one-to-many"
+    if relationship == "one-to-many":
+        return "many-to-one"
+    return relationship
+
+
+def _reversed_custom_join_view(row: ModelJoin) -> dict[str, Any]:
+    """Present a stored A→B join as B→A for Table Hub on model B."""
+    return {
+        "uuid": str(row.uuid),
+        "sourceModelId": row.target_dbt_unique_id,
+        "sourceModelName": row.target_model_name,
+        "sourceColumn": row.target_column,
+        "targetModelId": row.source_dbt_unique_id,
+        "targetModelName": row.source_model_name,
+        "targetColumn": row.source_column,
+        "joinType": "left",
+        "relationship": invert_relationship(row.relationship),
+        "label": row.label,
+        "sqlOn": build_sql_on(
+            row.target_model_name,
+            row.target_column,
+            row.source_model_name,
+            row.source_column,
+        ),
+        "origin": "custom",
+    }
+
+
+def _reversed_custom_join_to_raw(row: ModelJoin) -> dict[str, Any]:
+    """Explore overlay for the reverse side of a stored A→B join (from B)."""
+    raw: dict[str, Any] = {
+        "join": row.source_model_name,
+        "sql_on": build_sql_on(
+            row.target_model_name,
+            row.target_column,
+            row.source_model_name,
+            row.source_column,
+        ),
+        "type": "left",
+    }
+    if row.label:
+        raw["label"] = row.label
+    inverted = invert_relationship(row.relationship)
+    if inverted:
+        raw["relationship"] = inverted
+    return raw
+
+
+def _row_matches_model(
+    dbt_unique_id: str,
+    model_name: str,
+    model_id: str,
+    nodes_by_id: dict[str, dict[str, Any]],
+) -> bool:
+    if dbt_unique_id == model_id or model_name == model_id:
+        return True
+    node = nodes_by_id.get(model_id)
+    return bool(node and model_name == node.get("name"))
+
+
+def _custom_edge_key(
+    source_id: str,
+    target_id: str,
+    source_column: str,
+    target_column: str,
+) -> tuple[str, str, str, str]:
+    return (source_id, target_id, source_column, target_column)
 
 
 def parse_sql_on_fields(sql_on: str) -> tuple[str, str, str, str] | None:
@@ -178,15 +252,56 @@ def list_model_joins(
         for v in views
     }
 
+    # Stored forward edges — used to dedupe synthesized reverse views.
+    stored_forward_edges = {
+        _custom_edge_key(
+            row.source_dbt_unique_id,
+            row.target_dbt_unique_id,
+            row.source_column,
+            row.target_column,
+        )
+        for row in custom_rows
+    }
+
     for row in custom_rows:
-        if source_model_id and row.source_dbt_unique_id != source_model_id:
-            source_node = nodes_by_id.get(source_model_id)
-            if not source_node or row.source_model_name != source_node.get("name"):
+        is_outgoing = (
+            not source_model_id
+            or _row_matches_model(
+                row.source_dbt_unique_id,
+                row.source_model_name,
+                source_model_id,
+                nodes_by_id,
+            )
+        )
+        is_incoming = bool(
+            source_model_id
+            and _row_matches_model(
+                row.target_dbt_unique_id,
+                row.target_model_name,
+                source_model_id,
+                nodes_by_id,
+            )
+        )
+
+        if is_outgoing:
+            key = (row.source_dbt_unique_id, row.target_model_name)
+            if key not in dbt_keys:
+                views.append(_custom_join_view(row))
+
+        if is_incoming:
+            reverse_edge = _custom_edge_key(
+                row.target_dbt_unique_id,
+                row.source_dbt_unique_id,
+                row.target_column,
+                row.source_column,
+            )
+            # Prefer an explicitly stored reverse over a synthesized one.
+            if reverse_edge in stored_forward_edges:
                 continue
-        key = (row.source_dbt_unique_id, row.target_model_name)
-        if key in dbt_keys:
-            continue
-        views.append(_custom_join_view(row))
+            reverse_dbt_key = (row.target_dbt_unique_id, row.source_model_name)
+            if reverse_dbt_key in dbt_keys:
+                continue
+            views.append(_reversed_custom_join_view(row))
 
     views.sort(key=lambda item: (item["sourceModelName"], item["targetModelName"], item["targetColumn"]))
     return views
@@ -226,16 +341,34 @@ def get_custom_joins_for_source(
         db.query(ModelJoin)
         .filter(
             ModelJoin.project_uuid == project_id,
-            ModelJoin.source_dbt_unique_id == source_dbt_unique_id,
+            or_(
+                ModelJoin.source_dbt_unique_id == source_dbt_unique_id,
+                ModelJoin.target_dbt_unique_id == source_dbt_unique_id,
+            ),
         )
         .all()
     )
     skip = dbt_target_names or set()
-    return [
-        custom_join_to_raw(row)
+    forward_target_names = {
+        row.target_model_name
         for row in rows
-        if row.target_model_name not in skip
-    ]
+        if row.source_dbt_unique_id == source_dbt_unique_id
+    }
+
+    overlays: list[dict[str, Any]] = []
+    for row in rows:
+        if row.source_dbt_unique_id == source_dbt_unique_id:
+            if row.target_model_name not in skip:
+                overlays.append(custom_join_to_raw(row))
+            continue
+
+        # Incoming stored join: synthesize reverse overlay (join back to original source).
+        if row.source_model_name in skip:
+            continue
+        if row.source_model_name in forward_target_names:
+            continue
+        overlays.append(_reversed_custom_join_to_raw(row))
+    return overlays
 
 
 def _validate_join_fields(
