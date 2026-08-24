@@ -250,6 +250,9 @@ export class TableHubPageComponent {
 
   protected readonly linksCount = computed(() => this.modelJoins().length);
 
+  /** Bumps on each links fetch so stale responses cannot overwrite a newer selection. */
+  private linksLoadGeneration = 0;
+
   protected readonly columnTypeOptions = computed<SelectOption[]>(() => {
     const columns = this.entry()?.columns ?? [];
     return collectUniqueValues(columns, (column) => column.type).map((type) => ({
@@ -300,6 +303,12 @@ export class TableHubPageComponent {
       this.tableId.set(tableId);
       this.activeProjectService.setActiveProject(projectUuid);
 
+      if (tableId) {
+        this.loadLinks(projectUuid, tableId);
+      } else {
+        this.modelJoins.set([]);
+      }
+
       if (prev !== projectUuid || this.dbtTree().length === 0) {
         this.loadProject(projectUuid, tableId);
       } else {
@@ -345,7 +354,6 @@ export class TableHubPageComponent {
     this.entryLoading.set(true);
     this.entryError.set(null);
     this.columnFilters.set(createEmptyColumnsTableFilters());
-    this.modelJoins.set([]);
     this.dictionaryService.get(projectUuid, tableId).subscribe({
       next: (entry) => {
         this.entry.set(entry);
@@ -353,12 +361,13 @@ export class TableHubPageComponent {
         this.tagsDraft.set([...(entry.tags ?? [])]);
         this.sqlViewMode.set(preferredModelSqlViewMode(entry.sql, entry.compiledSql));
         this.entryLoading.set(false);
-        this.loadLinks(projectUuid, tableId);
+        if (entry.id !== tableId) {
+          this.loadLinks(projectUuid, entry.id);
+        }
       },
       error: (err) => {
         this.entryError.set(apiErrorMessage(err, 'Failed to load table details.'));
         this.entryLoading.set(false);
-        this.modelJoins.set([]);
       },
     });
   }
@@ -378,18 +387,25 @@ export class TableHubPageComponent {
     }
   }
 
-  private loadLinks(projectUuid: string | null, tableId: string | null): void {
-    if (!projectUuid || !tableId) {
+  private loadLinks(projectUuid: string | null, sourceModelId: string | null): void {
+    if (!projectUuid || !sourceModelId) {
       this.modelJoins.set([]);
       return;
     }
+    const generation = ++this.linksLoadGeneration;
     this.linksLoading.set(true);
-    this.modelJoinsService.list(projectUuid, tableId).subscribe({
+    this.modelJoinsService.list(projectUuid, sourceModelId).subscribe({
       next: (links) => {
+        if (generation !== this.linksLoadGeneration) {
+          return;
+        }
         this.modelJoins.set(links);
         this.linksLoading.set(false);
       },
       error: () => {
+        if (generation !== this.linksLoadGeneration) {
+          return;
+        }
         this.modelJoins.set([]);
         this.linksLoading.set(false);
       },
