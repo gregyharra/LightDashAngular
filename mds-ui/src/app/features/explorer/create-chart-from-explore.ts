@@ -25,6 +25,6 @@ export function readCreateFromExploreState(
   router: Router,
 ): CreateChartFromExploreState | null {
   const value =
-    router.getCurrentNavigation()?.extras.state?.[CREATE_FROM_EXPLORE_STATE_KEY];
+    router.currentNavigation()?.extras.state?.[CREATE_FROM_EXPLORE_STATE_KEY];
   return (value as CreateChartFromExploreState | undefined) ?? null;
 }

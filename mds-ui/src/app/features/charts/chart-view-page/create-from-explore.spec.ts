@@ -3,7 +3,7 @@ import { readCreateFromExploreState } from '../../explorer/create-chart-from-exp
 
 describe('readCreateFromExploreState', () => {
   it('returns null when navigation has no extras', () => {
-    const router = { getCurrentNavigation: () => null } as Router;
+    const router = { currentNavigation: () => null } as unknown as Router;
     expect(readCreateFromExploreState(router)).toBeNull();
   });
 
@@ -19,7 +19,7 @@ describe('readCreateFromExploreState', () => {
       dimensionFilters: [],
     };
     const router = {
-      getCurrentNavigation: () => ({
+      currentNavigation: () => ({
         extras: { state: { createFromExplore: state } },
       }),
     } as unknown as Router;
