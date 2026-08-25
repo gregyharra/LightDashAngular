@@ -4,6 +4,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
+import { LanguageService } from '../../../core/i18n/language.service';
 import { ActiveProjectService } from '../../../core/services/active-project.service';
 import { ApiErrorService } from '../../../core/api/api-error.service';
 import { DashboardBasicDetailsWithTileTypes } from '../../../core/models/dashboard.model';
@@ -27,6 +28,8 @@ import {
   hasActiveDashboardColumnFilters,
 } from '../../../ui/content-list-filter.utils';
 
+const SHARED_SPACE_VALUE = '__shared__';
+
 @Component({
   selector: 'app-dashboards-list-page',
   imports: [
@@ -48,6 +51,7 @@ export class DashboardsListPageComponent {
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
   private readonly translate = inject(TranslateService);
+  private readonly languageService = inject(LanguageService);
   protected readonly activeProjectService = inject(ActiveProjectService);
 
   protected readonly projectUuid = signal<string | null>(null);
@@ -58,33 +62,46 @@ export class DashboardsListPageComponent {
     createEmptyDashboardColumnFilters(),
   );
 
+  private readonly sharedSpaceLabel = computed(() => {
+    this.languageService.language();
+    return this.translate.instant('dashboards.shared');
+  });
+
   protected readonly availableSpaces = computed(() =>
     collectUniqueSpaces(
       this.dashboards(),
-      (dashboard) => dashboard.spaceName ?? this.translate.instant('dashboards.shared'),
+      (dashboard) => dashboard.spaceName ?? SHARED_SPACE_VALUE,
     ),
   );
 
   protected readonly spaceOptions = computed(() =>
-    this.availableSpaces().map((space) => ({ value: space, label: space })),
+    this.availableSpaces().map((space) => ({
+      value: space,
+      label: space === SHARED_SPACE_VALUE ? this.sharedSpaceLabel() : space,
+    })),
   );
 
   protected readonly filteredDashboards = computed(() =>
     filterDashboards(
       this.dashboards(),
       this.columnFilters(),
-      this.translate.instant('dashboards.shared'),
+      SHARED_SPACE_VALUE,
     ),
   );
 
-  protected readonly activeFilterChips = computed(() =>
-    getDashboardActiveFilterChips(this.columnFilters(), {
-      name: this.translate.instant('dashboards.fields.name'),
-      space: this.translate.instant('dashboards.fields.space'),
-      lastEdited: this.translate.instant('dashboards.fields.lastEdited'),
-      views: this.translate.instant('dashboards.fields.views'),
-    }),
-  );
+  protected readonly activeFilterChips = computed(() => {
+    this.languageService.language();
+    return getDashboardActiveFilterChips(
+      this.columnFilters(),
+      {
+        name: this.translate.instant('dashboards.fields.name'),
+        space: this.translate.instant('dashboards.fields.space'),
+        lastEdited: this.translate.instant('dashboards.fields.lastEdited'),
+        views: this.translate.instant('dashboards.fields.views'),
+      },
+      this.spaceOptions(),
+    );
+  });
 
   protected readonly hasActiveFilters = computed(() =>
     hasActiveDashboardColumnFilters(this.columnFilters()),
@@ -162,7 +179,7 @@ export class DashboardsListPageComponent {
   }
 
   protected spaceName(spaceName: string | null | undefined): string {
-    return spaceName ?? this.translate.instant('dashboards.shared');
+    return spaceName ?? this.sharedSpaceLabel();
   }
 
   protected openDashboard(dashboardUuid: string): void {

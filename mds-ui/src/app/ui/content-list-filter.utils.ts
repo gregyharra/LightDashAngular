@@ -305,6 +305,7 @@ export function hasActiveDashboardColumnFilters(filters: DashboardColumnFilters)
 export function getDashboardActiveFilterChips(
   filters: DashboardColumnFilters,
   labels: Record<'name' | 'space' | 'lastEdited' | 'views', string>,
+  spaceOptions?: SelectOption[],
 ): ActiveFilterChip[] {
   const chips: ActiveFilterChip[] = [];
 
@@ -320,7 +321,7 @@ export function getDashboardActiveFilterChips(
     chips.push({
       key: 'space',
       label: labels.space,
-      displayValue: formatSelectFilterChip(filters.space),
+      displayValue: formatSelectFilterChip(filters.space, spaceOptions),
     });
   }
 

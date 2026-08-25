@@ -8,6 +8,7 @@ import { MatMenuModule } from '@angular/material/menu';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
+import { LanguageService } from '../../core/i18n/language.service';
 import {
   clampQueryLimit,
   resolveMaxQueryLimit,
@@ -31,6 +32,7 @@ import {
 })
 export class RunQueryButtonComponent {
   private readonly translate = inject(TranslateService);
+  protected readonly languageService = inject(LanguageService);
   readonly limit = input.required<number>();
   readonly maxLimit = input<number | null | undefined>(undefined);
   readonly disabled = input(false);

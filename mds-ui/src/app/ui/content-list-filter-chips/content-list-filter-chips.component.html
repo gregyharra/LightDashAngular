@@ -7,7 +7,7 @@
         <button
           type="button"
           class="content-list-filter-chips__chip-remove"
-          [attr.aria-label]="'Remove ' + chip.label + ' filter'"
+          [attr.aria-label]="'filters.removeFilter' | translate: { label: chip.label }"
           (click)="clearChip.emit(chip.key)"
         >
           <mat-icon>close</mat-icon>
@@ -16,7 +16,7 @@
     }
 
     <button type="button" class="content-list-filter-chips__clear-all" (click)="clearAll.emit()">
-      Clear all
+      {{ 'filters.clearAll' | translate }}
     </button>
   </div>
 }

@@ -132,7 +132,11 @@
                   class="dashboard-view__star-btn"
                   [class.dashboard-view__star-btn--active]="isFavorite()"
                   (click)="toggleFavorite()"
-                  [attr.aria-label]="isFavorite() ? 'Remove from favorites' : 'Add to favorites'"
+                  [attr.aria-label]="
+                    (isFavorite()
+                      ? 'dashboards.workspace.removeFavorite'
+                      : 'dashboards.workspace.addFavorite') | translate
+                  "
                 >
                   <mat-icon>{{ isFavorite() ? 'star' : 'star_border' }}</mat-icon>
                 </button>
@@ -261,18 +265,32 @@
 
               <mat-menu #viewsMenu="matMenu" class="dashboard-view__menu">
                 <button mat-menu-item disabled>
-                  <span>{{ dash.views }} total views</span>
+                  <span>
+                    {{ 'dashboards.workspace.totalViews' | translate: { count: dash.views } }}
+                  </span>
                 </button>
                 @if (dash.firstViewedAt) {
                   <button mat-menu-item disabled>
-                    <span>First viewed {{ formatDate(dash.firstViewedAt) }}</span>
+                    <span>
+                      {{
+                        'dashboards.workspace.firstViewed'
+                          | translate: { date: formatDate(dash.firstViewedAt) }
+                      }}
+                    </span>
                   </button>
                 }
                 <button mat-menu-item disabled>
-                  <span>Updated {{ formatDate(dash.updatedAt) }}</span>
+                  <span>
+                    {{
+                      'dashboards.workspace.updated'
+                        | translate: { date: formatDate(dash.updatedAt) }
+                    }}
+                  </span>
                 </button>
                 <button mat-menu-item disabled>
-                  <span>Space: {{ dash.spaceName }}</span>
+                  <span>
+                    {{ 'dashboards.workspace.space' | translate: { space: dash.spaceName } }}
+                  </span>
                 </button>
               </mat-menu>
 
@@ -281,8 +299,16 @@
                 mat-stroked-button
                 class="dashboard-view__icon-action"
                 (click)="toggleFullscreen()"
-                [attr.aria-label]="isFullscreen() ? 'Exit fullscreen' : 'Enter fullscreen'"
-                matTooltip="{{ isFullscreen() ? 'Exit fullscreen' : 'Fullscreen' }}"
+                [attr.aria-label]="
+                  (isFullscreen()
+                    ? 'dashboards.workspace.exitFullscreen'
+                    : 'dashboards.workspace.enterFullscreen') | translate
+                "
+                [matTooltip]="
+                  (isFullscreen()
+                    ? 'dashboards.workspace.exitFullscreen'
+                    : 'dashboards.workspace.fullscreen') | translate
+                "
               >
                 <mat-icon>{{ isFullscreen() ? 'fullscreen_exit' : 'fullscreen' }}</mat-icon>
               </button>
@@ -493,11 +519,11 @@
                   <mat-menu #tileMenu="matMenu" class="dashboard-edit__menu">
                     <button mat-menu-item type="button" (click)="openTileSettings(tile)">
                       <mat-icon>edit</mat-icon>
-                      Edit tile content
+                      {{ 'dashboards.workspace.editTileContent' | translate }}
                     </button>
                     <button mat-menu-item type="button" (click)="removeTile(tile.uuid)">
                       <mat-icon>delete</mat-icon>
-                      Remove tile
+                      {{ 'dashboards.workspace.removeTile' | translate }}
                     </button>
                   </mat-menu>
                 </div>
@@ -566,7 +592,7 @@
                           ></iframe>
                         } @else {
                           <div class="dashboard-tile__placeholder non-draggable">
-                            Enter a valid Loom share URL in tile settings.
+                            {{ 'dashboards.workspace.invalidLoomUrlPrompt' | translate }}
                           </div>
                         }
                       </div>
@@ -583,7 +609,10 @@
                       }
                       <div class="dashboard-tile__sql-chart-body non-draggable">
                         <div class="dashboard-tile__placeholder">
-                          SQL chart preview — {{ tile.properties.chartName }}
+                          {{
+                            'dashboards.workspace.sqlChartPreview'
+                              | translate: { chartName: tile.properties.chartName }
+                          }}
                         </div>
                       </div>
                     </div>
@@ -679,7 +708,10 @@
                     }
                     <div class="dashboard-tile__sql-chart-body">
                       <div class="dashboard-tile__placeholder">
-                        SQL chart preview — {{ tile.properties.chartName }}
+                        {{
+                          'dashboards.workspace.sqlChartPreview'
+                            | translate: { chartName: tile.properties.chartName }
+                        }}
                       </div>
                     </div>
                   </div>

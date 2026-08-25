@@ -4,6 +4,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
+import { LanguageService } from '../../../core/i18n/language.service';
 import { ActiveProjectService } from '../../../core/services/active-project.service';
 import { ApiErrorService } from '../../../core/api/api-error.service';
 import { SavedChartBasic } from '../../../core/models/chart.model';
@@ -57,6 +58,7 @@ export class ChartsListPageComponent {
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
   private readonly translate = inject(TranslateService);
+  private readonly languageService = inject(LanguageService);
   protected readonly activeProjectService = inject(ActiveProjectService);
 
   protected readonly projectUuid = signal<string | null>(null);
@@ -73,27 +75,29 @@ export class ChartsListPageComponent {
     this.availableSpaces().map((space) => ({ value: space, label: space })),
   );
 
-  protected readonly typeOptions = computed(() =>
-    collectUniqueValues(this.charts(), (chart) => chart.chartKind).map((kind) => ({
+  protected readonly typeOptions = computed(() => {
+    this.languageService.language();
+    return collectUniqueValues(this.charts(), (chart) => chart.chartKind).map((kind) => ({
       value: kind,
       label: this.chartKindLabel(kind),
-    })),
-  );
+    }));
+  });
 
   protected readonly filteredCharts = computed(() =>
     filterCharts(this.charts(), this.columnFilters()),
   );
 
-  protected readonly activeFilterChips = computed(() =>
-    getChartActiveFilterChips(this.columnFilters(), this.typeOptions(), {
+  protected readonly activeFilterChips = computed(() => {
+    this.languageService.language();
+    return getChartActiveFilterChips(this.columnFilters(), this.typeOptions(), {
       name: this.translate.instant('charts.fields.name'),
       type: this.translate.instant('charts.fields.type'),
       table: this.translate.instant('charts.fields.table'),
       space: this.translate.instant('charts.fields.space'),
       lastEdited: this.translate.instant('charts.fields.lastEdited'),
       views: this.translate.instant('charts.fields.views'),
-    }),
-  );
+    });
+  });
 
   protected readonly hasActiveFilters = computed(() =>
     hasActiveChartColumnFilters(this.columnFilters()),
