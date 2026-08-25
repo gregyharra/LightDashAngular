@@ -1,0 +1,35 @@
+{
+  "common": {
+    "cancel": "Cancel",
+    "save": "Save",
+    "delete": "Delete",
+    "confirm": "Confirm",
+    "dismiss": "Dismiss",
+    "loading": "Loading…",
+    "close": "Close"
+  },
+  "auth": {},
+  "nav": {},
+  "settings": {
+    "title": "Settings",
+    "language": {
+      "label": "Language",
+      "en": "English",
+      "fr": "Français"
+    },
+    "changePassword": "Change password",
+    "logout": "Logout",
+    "projects": "Projects",
+    "warehouses": "Warehouses",
+    "users": "Users"
+  },
+  "projects": {},
+  "warehouses": {},
+  "users": {},
+  "explorer": {},
+  "charts": {},
+  "dashboards": {},
+  "tables": {},
+  "lineage": {},
+  "export": {}
+}

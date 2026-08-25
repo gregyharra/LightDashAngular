@@ -1,0 +1,35 @@
+{
+  "common": {
+    "cancel": "Annuler",
+    "save": "Enregistrer",
+    "delete": "Supprimer",
+    "confirm": "Confirmer",
+    "dismiss": "Fermer",
+    "loading": "Chargement…",
+    "close": "Fermer"
+  },
+  "auth": {},
+  "nav": {},
+  "settings": {
+    "title": "Paramètres",
+    "language": {
+      "label": "Langue",
+      "en": "English",
+      "fr": "Français"
+    },
+    "changePassword": "Changer le mot de passe",
+    "logout": "Déconnexion",
+    "projects": "Projets",
+    "warehouses": "Entrepôts",
+    "users": "Utilisateurs"
+  },
+  "projects": {},
+  "warehouses": {},
+  "users": {},
+  "explorer": {},
+  "charts": {},
+  "dashboards": {},
+  "tables": {},
+  "lineage": {},
+  "export": {}
+}
