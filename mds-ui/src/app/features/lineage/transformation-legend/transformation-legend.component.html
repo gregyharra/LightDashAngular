@@ -39,12 +39,18 @@
           class="transformation-legend__filter-btn"
           [class.transformation-legend__filter-btn--active]="activeFilter() === type"
           [attr.aria-pressed]="activeFilter() === type"
-          [title]="'lineage.transformations.descriptions.' + type | translate"
+          [title]="
+            'lineage.transformations.descriptions.' + translationKey(type)
+              | translate
+          "
           (click)="toggleFilter(type)"
         >
           <app-transformation-chip [type]="type" [mode]="chipMode()" size="sm" />
           <span class="transformation-legend__label">
-            {{ 'lineage.transformations.labels.' + type | translate }}
+            {{
+              'lineage.transformations.labels.' + translationKey(type)
+                | translate
+            }}
           </span>
         </button>
       </li>

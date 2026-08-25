@@ -10,7 +10,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatTableModule } from '@angular/material/table';
 import { MatTooltipModule } from '@angular/material/tooltip';
-import { TranslatePipe } from '@ngx-translate/core';
+import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { DashboardDimensionFilter } from '../../../core/models/dashboard.model';
 import { DbtTreeNode, LineageNode } from '../../../core/models/lineage.model';
 import {
@@ -129,6 +129,7 @@ export class TablesWorkspacePageComponent {
   private readonly router = inject(Router);
   private readonly appState = inject(AppStateService);
   private readonly store = inject(Store);
+  private readonly translate = inject(TranslateService);
   protected readonly activeProjectService = inject(ActiveProjectService);
 
   private readonly cacheEntries = toSignal(this.store.select(selectEntries), {
@@ -507,7 +508,9 @@ export class TablesWorkspacePageComponent {
         this.queryError.set(null);
       } else if (entry.status === 'error') {
         this.queryWarnings.set([]);
-        this.queryError.set(entry.error ?? 'Failed to run query.');
+        this.queryError.set(
+          entry.error ?? this.translate.instant('common.queryFailed'),
+        );
         this.queryLoading.set(false);
       }
     });
@@ -536,7 +539,12 @@ export class TablesWorkspacePageComponent {
         this.syncSelectionFromRoute(projectUuid, tableId);
       },
       error: (err) => {
-        this.listError.set(apiErrorMessage(err, 'Failed to load project tree.'));
+        this.listError.set(
+          apiErrorMessage(
+            err,
+            this.translate.instant('charts.workspace.loadProjectTreeError'),
+          ),
+        );
         this.listLoading.set(false);
       },
     });
@@ -601,7 +609,9 @@ export class TablesWorkspacePageComponent {
       this.explore.set(null);
       this.exploreLoading.set(false);
       if (isExploreableDbtTreeNode(treeNode)) {
-        this.exploreError.set('Unable to load fields for this model.');
+        this.exploreError.set(
+          this.translate.instant('charts.workspace.fieldsUnavailable'),
+        );
       }
       return;
     }
@@ -612,7 +622,9 @@ export class TablesWorkspacePageComponent {
         next: (explore) => {
           if (!exploreHasFields(explore)) {
             this.explore.set(null);
-            this.exploreError.set('Unable to load fields for this model.');
+            this.exploreError.set(
+              this.translate.instant('charts.workspace.fieldsUnavailable'),
+            );
           } else {
             this.explore.set(explore);
             this.exploreError.set(null);
@@ -621,7 +633,12 @@ export class TablesWorkspacePageComponent {
           this.exploreLoading.set(false);
         },
         error: (err) => {
-          this.exploreError.set(apiErrorMessage(err, 'Failed to load table.'));
+          this.exploreError.set(
+            apiErrorMessage(
+              err,
+              this.translate.instant('charts.workspace.loadExploreFieldsError'),
+            ),
+          );
           this.exploreLoading.set(false);
         },
       });

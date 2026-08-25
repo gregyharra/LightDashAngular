@@ -92,6 +92,7 @@ import { ExportFormat } from '../../export/export.models';
 import { ExportService } from '../../export/export.service';
 import { startExport } from '../../export/start-export';
 import { chartExportPlacement } from './chart-export-placement';
+import { resolveChartDraftName } from './chart-draft-name';
 import { ResizableSidebarDirective } from '../../../layout/resizable-sidebar/resizable-sidebar.directive';
 import { AppStateService } from '../../../core/services/app-state.service';
 import { SqlHighlightComponent } from '../../../shared/sql-highlight/sql-highlight.component';
@@ -248,7 +249,19 @@ export class ChartViewPageComponent {
   protected readonly editMode = signal(false);
   protected readonly configureMode = signal(false);
   protected readonly draftName = signal('');
+  private readonly draftNameEdited = signal(false);
   protected readonly draftDescription = signal('');
+  private readonly translatedUntitledName = computed(() => {
+    this.language.language();
+    return this.translate.instant('charts.workspace.untitled');
+  });
+  private readonly effectiveDraftName = computed(() =>
+    resolveChartDraftName(
+      this.draftName(),
+      !this.isCreateMode() || this.draftNameEdited(),
+      this.translatedUntitledName(),
+    ),
+  );
 
   protected readonly maxQueryLimit = computed(() =>
     resolveMaxQueryLimit(this.appState.health()?.query?.maxLimit),
@@ -267,7 +280,7 @@ export class ChartViewPageComponent {
   protected readonly displayName = computed(() => {
     if (this.editMode()) {
       return (
-        this.draftName().trim() ||
+        this.effectiveDraftName().trim() ||
         this.chart()?.name ||
         this.translate.instant('charts.workspace.untitled')
       );
@@ -474,7 +487,7 @@ export class ChartViewPageComponent {
       (this.isCreateMode() || !!this.chart()) &&
       !!this.explore() &&
       this.editMode() &&
-      (this.isCreateMode() || this.draftName().trim().length > 0) &&
+      (this.isCreateMode() || this.effectiveDraftName().trim().length > 0) &&
       this.canRenderChart() &&
       !this.queryLoading() &&
       !this.queryError() &&
@@ -565,6 +578,7 @@ export class ChartViewPageComponent {
       return;
     }
     this.draftName.set(chart.name);
+    this.draftNameEdited.set(true);
     this.draftDescription.set(chart.description ?? '');
     this.editMode.set(true);
     this.configureMode.set(false);
@@ -622,7 +636,7 @@ export class ChartViewPageComponent {
       ChartDetailsDialogResult
     >(ChartDetailsDialogComponent, {
       data: {
-        name: this.draftName(),
+        name: this.effectiveDraftName(),
         description: this.draftDescription(),
       },
       width: '28rem',
@@ -635,6 +649,7 @@ export class ChartViewPageComponent {
         return;
       }
       this.draftName.set(result.name);
+      this.draftNameEdited.set(true);
       this.draftDescription.set(result.description);
     });
   }
@@ -808,7 +823,8 @@ export class ChartViewPageComponent {
     this.explore.set(null);
     this.editMode.set(true);
     this.configureMode.set(false);
-    this.draftName.set(this.translate.instant('charts.workspace.untitled'));
+    this.draftName.set('');
+    this.draftNameEdited.set(false);
     this.draftDescription.set('');
     this.chartConfig.set(defaultConfigForType('cartesian'));
     this.cachedChartConfigs.set({});
@@ -871,6 +887,7 @@ export class ChartViewPageComponent {
       next: (chart) => {
         this.chart.set(chart);
         this.draftName.set(chart.name);
+        this.draftNameEdited.set(true);
         this.draftDescription.set(chart.description ?? '');
         this.applySavedChartConfig(chart);
         this.applyMetricQuery(chart.metricQuery);
@@ -1327,7 +1344,7 @@ export class ChartViewPageComponent {
     }
 
     const suggestedName =
-      this.draftName().trim() || explore.label || explore.name;
+      this.effectiveDraftName().trim() || explore.label || explore.name;
 
     const dialogRef = this.dialog.open<
       SaveChartDialogComponent,
@@ -1455,6 +1472,7 @@ export class ChartViewPageComponent {
         next: (updated) => {
           this.chart.set(updated);
           this.draftName.set(updated.name);
+          this.draftNameEdited.set(true);
           this.draftDescription.set(updated.description ?? '');
           this.saveLoading.set(false);
           this.saveSuccess.set(true);

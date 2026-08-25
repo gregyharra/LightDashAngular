@@ -388,6 +388,7 @@
       "noSpaces": "No spaces available.",
       "loadSpacesError": "Failed to load spaces.",
       "loadChartError": "Failed to load chart.",
+      "loadChartDataError": "Failed to load chart data.",
       "fieldsUnavailable": "Unable to load fields for this model.",
       "loadExploreFieldsError": "Failed to load explore fields.",
       "loadProjectTreeError": "Failed to load project tree.",
@@ -500,6 +501,7 @@
       "name": "Dashboard name"
     },
     "workspace": {
+      "loadDashboardError": "Failed to load dashboard.",
       "dashboardName": "Dashboard name",
       "description": "Description",
       "addDescription": "Add a description",
@@ -802,23 +804,23 @@
       "fullLabels": "Full labels",
       "labels": {
         "source": "source",
-        "pass-through": "pass-through",
+        "passThrough": "pass-through",
         "rename": "rename",
         "cast": "cast",
         "derived": "derived",
         "coalesce": "coalesce",
         "aggregate": "aggregate",
-        "join-key": "join-key"
+        "joinKey": "join-key"
       },
       "descriptions": {
         "source": "Original column from a source or seed table",
-        "pass-through": "Unchanged from the upstream column",
+        "passThrough": "Unchanged from the upstream column",
         "rename": "Renamed from an upstream column with the same value",
         "cast": "Type cast or conversion from upstream",
         "derived": "Computed from one or more upstream columns",
         "coalesce": "First non-null value from multiple upstream columns",
         "aggregate": "Aggregated across rows (sum, count, etc.)",
-        "join-key": "Brought in via a join from another model"
+        "joinKey": "Brought in via a join from another model"
       }
     }
   },

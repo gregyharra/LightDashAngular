@@ -1,5 +1,6 @@
 import { inject, Injectable } from '@angular/core';
 import { Actions, createEffect, ofType } from '@ngrx/effects';
+import { TranslateService } from '@ngx-translate/core';
 import { catchError, concatMap, map, of } from 'rxjs';
 import { ChartQueryActions } from './chart-query.actions';
 import {
@@ -11,6 +12,7 @@ import {
 export class ChartQueryEffects {
   private readonly actions$ = inject(Actions);
   private readonly loader = inject(ChartQueryLoader);
+  private readonly translate = inject(TranslateService);
 
   readonly load$ = createEffect(() =>
     this.actions$.pipe(
@@ -27,7 +29,10 @@ export class ChartQueryEffects {
             of(
               ChartQueryActions.loadFailure({
                 key: action.key,
-                error: chartQueryErrorMessage(error),
+                error: chartQueryErrorMessage(
+                  error,
+                  this.translate.instant('charts.workspace.loadChartDataError'),
+                ),
               }),
             ),
           ),

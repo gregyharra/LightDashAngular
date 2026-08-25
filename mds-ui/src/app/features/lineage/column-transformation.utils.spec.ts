@@ -1,5 +1,8 @@
 import { ColumnLineageEdge, LineageColumn, LineageNode } from '../../core/models/lineage.model';
-import { inferColumnTransformation } from './column-transformation.utils';
+import {
+  inferColumnTransformation,
+  transformationTranslationKey,
+} from './column-transformation.utils';
 
 function makeNode(id: string, type: LineageNode['type'], columns: LineageColumn[]): LineageNode {
   return {
@@ -103,5 +106,12 @@ describe('inferColumnTransformation', () => {
     ];
     const result = inferColumnTransformation(target, target.columns![0], edges, [sourceNode, target]);
     expect(result).toBe('cast');
+  });
+});
+
+describe('transformationTranslationKey', () => {
+  it('maps hyphenated transformation values to camelCase catalog leaves', () => {
+    expect(transformationTranslationKey('pass-through')).toBe('passThrough');
+    expect(transformationTranslationKey('join-key')).toBe('joinKey');
   });
 });

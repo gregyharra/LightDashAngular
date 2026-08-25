@@ -31,6 +31,23 @@ export const TRANSFORMATION_SHORT_LABELS: Record<ColumnTransformationType, strin
   'join-key': 'J',
 };
 
+const TRANSFORMATION_TRANSLATION_KEYS: Record<ColumnTransformationType, string> = {
+  source: 'source',
+  'pass-through': 'passThrough',
+  rename: 'rename',
+  cast: 'cast',
+  derived: 'derived',
+  coalesce: 'coalesce',
+  aggregate: 'aggregate',
+  'join-key': 'joinKey',
+};
+
+export function transformationTranslationKey(
+  type: ColumnTransformationType,
+): string {
+  return TRANSFORMATION_TRANSLATION_KEYS[type];
+}
+
 /** CSS custom property names for SVG/HTML chip theming. */
 export function transformationCssVar(
   type: ColumnTransformationType,

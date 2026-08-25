@@ -238,7 +238,12 @@ export class DashboardViewPageComponent {
         this.loading.set(false);
       },
       error: (err) => {
-        this.error.set(apiErrorMessage(err, 'Failed to load dashboard.'));
+        this.error.set(
+          apiErrorMessage(
+            err,
+            this.translate.instant('dashboards.workspace.loadDashboardError'),
+          ),
+        );
         this.loading.set(false);
       },
     });

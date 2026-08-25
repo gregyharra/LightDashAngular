@@ -388,6 +388,7 @@
       "noSpaces": "Aucun espace disponible.",
       "loadSpacesError": "Impossible de charger les espaces.",
       "loadChartError": "Impossible de charger le graphique.",
+      "loadChartDataError": "Impossible de charger les données du graphique.",
       "fieldsUnavailable": "Impossible de charger les champs de ce modèle.",
       "loadExploreFieldsError": "Impossible de charger les champs de l’exploration.",
       "loadProjectTreeError": "Impossible de charger l’arborescence du projet.",
@@ -500,6 +501,7 @@
       "name": "Nom du tableau de bord"
     },
     "workspace": {
+      "loadDashboardError": "Impossible de charger le tableau de bord.",
       "dashboardName": "Nom du tableau de bord",
       "description": "Description",
       "addDescription": "Ajouter une description",
@@ -802,23 +804,23 @@
       "fullLabels": "Libellés complets",
       "labels": {
         "source": "source",
-        "pass-through": "inchangée",
+        "passThrough": "inchangée",
         "rename": "renommée",
         "cast": "convertie",
         "derived": "dérivée",
         "coalesce": "coalescence",
         "aggregate": "agrégée",
-        "join-key": "clé de jointure"
+        "joinKey": "clé de jointure"
       },
       "descriptions": {
         "source": "Colonne d'origine d'une table source ou graine",
-        "pass-through": "Inchangée par rapport à la colonne en amont",
+        "passThrough": "Inchangée par rapport à la colonne en amont",
         "rename": "Renommée à partir d'une colonne en amont ayant la même valeur",
         "cast": "Conversion du type de la colonne en amont",
         "derived": "Calculée à partir d'une ou plusieurs colonnes en amont",
         "coalesce": "Première valeur non nulle parmi plusieurs colonnes en amont",
         "aggregate": "Agrégée sur plusieurs lignes (somme, nombre, etc.)",
-        "join-key": "Ajoutée par une jointure depuis un autre modèle"
+        "joinKey": "Ajoutée par une jointure depuis un autre modèle"
       }
     }
   },

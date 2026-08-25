@@ -67,6 +67,7 @@ import {
 } from '../lineage-neighborhood-utils';
 import {
   inferColumnTransformation,
+  transformationTranslationKey,
   transformationCssVar,
   TRANSFORMATION_SHORT_LABELS,
   TransformationChipMode,
@@ -1262,11 +1263,15 @@ export class LineageGraphComponent implements AfterViewInit {
   protected transformationChipText(type: ColumnTransformationType): string {
     return this.transformationChipMode() === 'compact'
       ? TRANSFORMATION_SHORT_LABELS[type]
-      : this.translate.instant(`lineage.transformations.labels.${type}`);
+      : this.translate.instant(
+          `lineage.transformations.labels.${transformationTranslationKey(type)}`,
+        );
   }
 
   protected transformationChipTitle(type: ColumnTransformationType): string {
-    return this.translate.instant(`lineage.transformations.descriptions.${type}`);
+    return this.translate.instant(
+      `lineage.transformations.descriptions.${transformationTranslationKey(type)}`,
+    );
   }
 
   protected transformChipFill(type: ColumnTransformationType): string {

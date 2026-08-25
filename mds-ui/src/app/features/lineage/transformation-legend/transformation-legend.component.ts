@@ -4,6 +4,7 @@ import { ColumnTransformationType } from '../../../core/models/lineage.model';
 import {
   TRANSFORMATION_TYPES,
   TransformationChipMode,
+  transformationTranslationKey,
 } from '../column-transformation.utils';
 import { TransformationChipComponent } from '../transformation-chip/transformation-chip.component';
 
@@ -21,6 +22,8 @@ export class TransformationLegendComponent {
   readonly filterChange = output<ColumnTransformationType | null>();
 
   protected readonly types = TRANSFORMATION_TYPES;
+  protected readonly translationKey = transformationTranslationKey;
+
   protected setChipMode(mode: TransformationChipMode): void {
     this.chipModeChange.emit(mode);
   }

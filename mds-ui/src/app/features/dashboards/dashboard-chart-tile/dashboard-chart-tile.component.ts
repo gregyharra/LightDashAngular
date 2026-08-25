@@ -3,7 +3,7 @@ import { toSignal } from '@angular/core/rxjs-interop';
 import { Store } from '@ngrx/store';
 import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
-import { TranslatePipe } from '@ngx-translate/core';
+import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import {
   BigNumberComparison,
   ChartConfig,
@@ -36,6 +36,7 @@ import { ChartVisualizationComponent } from '../../charts/chart-visualization/ch
 })
 export class DashboardChartTileComponent {
   private readonly store = inject(Store);
+  private readonly translate = inject(TranslateService);
 
   readonly projectUuid = input.required<string>();
   readonly savedChartUuid = input<string | null>(null);
@@ -142,7 +143,9 @@ export class DashboardChartTileComponent {
 
       if (entry?.status === 'error') {
         this.loading.set(false);
-        this.error.set(entry.error ?? 'Failed to load chart.');
+        this.error.set(
+          entry.error ?? this.translate.instant('charts.workspace.loadChartError'),
+        );
         return;
       }
 
@@ -178,7 +181,9 @@ export class DashboardChartTileComponent {
         this.error.set(null);
       } else if (entry.status === 'error') {
         this.loading.set(false);
-        this.error.set(entry.error ?? 'Failed to load chart.');
+        this.error.set(
+          entry.error ?? this.translate.instant('charts.workspace.loadChartError'),
+        );
       } else if (entry.status === 'loading') {
         this.loading.set(!this.displayResults());
       }

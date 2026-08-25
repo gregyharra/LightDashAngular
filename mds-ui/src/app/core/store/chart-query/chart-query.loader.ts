@@ -199,8 +199,11 @@ export class ChartQueryLoader {
   }
 }
 
-export function chartQueryErrorMessage(error: unknown): string {
-  return apiErrorMessage(error, 'Failed to load chart data.');
+export function chartQueryErrorMessage(
+  error: unknown,
+  translatedFallback: string,
+): string {
+  return apiErrorMessage(error, translatedFallback);
 }
 
 const BIG_NUMBER_COMPARISONS: Record<string, BigNumberComparison> = {
