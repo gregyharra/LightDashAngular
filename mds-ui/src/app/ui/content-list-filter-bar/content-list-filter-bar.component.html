@@ -4,8 +4,8 @@
     <input
       class="content-list-filter-bar__search"
       type="search"
-      [placeholder]="searchPlaceholder()"
-      [attr.aria-label]="searchPlaceholder()"
+      [placeholder]="searchPlaceholder() ?? ('filters.searchByName' | translate)"
+      [attr.aria-label]="searchPlaceholder() ?? ('filters.searchByName' | translate)"
       [ngModel]="searchInput()"
       (ngModelChange)="onSearchInput($event)"
     />
@@ -13,7 +13,7 @@
       <button
         type="button"
         class="content-list-filter-bar__clear-search"
-        aria-label="Clear search"
+        [attr.aria-label]="'filters.clearSearch' | translate"
         (click)="clearSearch()"
       >
         <mat-icon>close</mat-icon>
@@ -27,12 +27,12 @@
       subscriptSizing="dynamic"
       class="content-list-filter-bar__space-field"
     >
-      <mat-label>{{ spaceFilterLabel() }}</mat-label>
+      <mat-label>{{ spaceFilterLabel() ?? ('filters.space' | translate) }}</mat-label>
       <mat-select
         [value]="spaceFilter()"
         (valueChange)="onSpaceChange($event)"
       >
-        <mat-option [value]="null">All spaces</mat-option>
+        <mat-option [value]="null">{{ 'filters.allSpaces' | translate }}</mat-option>
         @for (space of spaces(); track space) {
           <mat-option [value]="space">{{ space }}</mat-option>
         }
@@ -44,12 +44,12 @@
     <div class="content-list-filter-bar__active-filters">
       @if (searchInput().trim()) {
         <div class="content-list-filter-bar__chip">
-          <span class="content-list-filter-bar__chip-label">Name</span>
+          <span class="content-list-filter-bar__chip-label">{{ 'filters.name' | translate }}</span>
           <span class="content-list-filter-bar__chip-value">{{ searchInput().trim() }}</span>
           <button
             type="button"
             class="content-list-filter-bar__chip-remove"
-            aria-label="Remove name filter"
+            [attr.aria-label]="'filters.removeName' | translate"
             (click)="clearSearch()"
           >
             <mat-icon>close</mat-icon>
@@ -59,12 +59,14 @@
 
       @if (spaceFilter(); as space) {
         <div class="content-list-filter-bar__chip">
-          <span class="content-list-filter-bar__chip-label">{{ spaceFilterLabel() }}</span>
+          <span class="content-list-filter-bar__chip-label">
+            {{ spaceFilterLabel() ?? ('filters.space' | translate) }}
+          </span>
           <span class="content-list-filter-bar__chip-value">{{ space }}</span>
           <button
             type="button"
             class="content-list-filter-bar__chip-remove"
-            aria-label="Remove space filter"
+            [attr.aria-label]="'filters.removeSpace' | translate"
             (click)="clearSpace()"
           >
             <mat-icon>close</mat-icon>
@@ -77,7 +79,7 @@
         class="content-list-filter-bar__clear-all"
         (click)="clearAll()"
       >
-        Clear all
+        {{ 'filters.clearAll' | translate }}
       </button>
     </div>
   }

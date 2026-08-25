@@ -70,11 +70,20 @@ export class DashboardsListPageComponent {
   );
 
   protected readonly filteredDashboards = computed(() =>
-    filterDashboards(this.dashboards(), this.columnFilters()),
+    filterDashboards(
+      this.dashboards(),
+      this.columnFilters(),
+      this.translate.instant('dashboards.shared'),
+    ),
   );
 
   protected readonly activeFilterChips = computed(() =>
-    getDashboardActiveFilterChips(this.columnFilters()),
+    getDashboardActiveFilterChips(this.columnFilters(), {
+      name: this.translate.instant('dashboards.fields.name'),
+      space: this.translate.instant('dashboards.fields.space'),
+      lastEdited: this.translate.instant('dashboards.fields.lastEdited'),
+      views: this.translate.instant('dashboards.fields.views'),
+    }),
   );
 
   protected readonly hasActiveFilters = computed(() =>

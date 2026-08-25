@@ -5,6 +5,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatButtonToggleModule } from '@angular/material/button-toggle';
 import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { ActiveProjectService } from '../../../core/services/active-project.service';
 import { apiErrorMessage } from '../../../core/api/lightdash-api.service';
 import { AiChatMode } from '../../../core/models/ai.model';
@@ -19,6 +20,7 @@ import { AiAssistantUiService } from '../ai-assistant-ui.service';
     MatButtonToggleModule,
     MatIconModule,
     MatProgressSpinnerModule,
+    TranslatePipe,
   ],
   templateUrl: './ai-assistant-panel.component.html',
   styleUrl: './ai-assistant-panel.component.scss',
@@ -28,6 +30,7 @@ export class AiAssistantPanelComponent {
   private readonly aiService = inject(AiAssistantService);
   private readonly activeProjectService = inject(ActiveProjectService);
   private readonly router = inject(Router);
+  private readonly translate = inject(TranslateService);
 
   protected readonly draft = signal('');
 
@@ -75,7 +78,9 @@ export class AiAssistantPanelComponent {
           this.ui.loading.set(false);
         },
         error: (err) => {
-          this.ui.error.set(apiErrorMessage(err, 'AI request failed.'));
+          this.ui.error.set(
+            apiErrorMessage(err, this.translate.instant('ai.requestFailed')),
+          );
           this.ui.loading.set(false);
         },
       });

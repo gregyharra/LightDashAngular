@@ -150,7 +150,7 @@
           mat-button
           class="shell__nav-btn shell__nav-btn--icon shell__nav-overflow shell__nav-overflow--right"
           [matMenuTriggerFor]="rightOverflowMenu"
-          aria-label="More actions"
+          [attr.aria-label]="'common.moreActions' | translate"
         >
           <mat-icon>more_vert</mat-icon>
         </button>

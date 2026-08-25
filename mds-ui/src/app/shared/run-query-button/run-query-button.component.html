@@ -24,8 +24,8 @@
     mat-flat-button
     type="button"
     class="run-query-button__settings"
-    aria-label="Query settings"
-    matTooltip="Query settings"
+    [attr.aria-label]="'query.settings' | translate"
+    [matTooltip]="'query.settings' | translate"
     [disabled]="disabled() || loading()"
     [matMenuTriggerFor]="settingsMenu"
   >
@@ -39,7 +39,7 @@
       (keydown)="$event.stopPropagation()"
     >
       <mat-form-field appearance="outline" subscriptSizing="dynamic" class="run-query-button__field">
-        <mat-label>Row limit</mat-label>
+        <mat-label>{{ 'query.rowLimit' | translate }}</mat-label>
         <input
           matInput
           type="number"
@@ -52,7 +52,9 @@
           (keydown)="onLimitKeydown($event)"
         />
       </mat-form-field>
-      <p class="run-query-button__hint">Max {{ resolvedMaxLimit().toLocaleString() }}</p>
+      <p class="run-query-button__hint">
+        {{ 'query.max' | translate }} {{ resolvedMaxLimit().toLocaleString() }}
+      </p>
     </div>
   </mat-menu>
 </div>

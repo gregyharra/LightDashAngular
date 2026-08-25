@@ -2,6 +2,7 @@ import { Component, effect, input, output, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
+import { TranslatePipe } from '@ngx-translate/core';
 import { TimeTravelConfig } from '../../core/models/explore.model';
 import {
   formatTimeTravelLabel,
@@ -11,7 +12,7 @@ import {
 
 @Component({
   selector: 'app-time-travel-control',
-  imports: [FormsModule, MatButtonModule, MatIconModule],
+  imports: [FormsModule, MatButtonModule, MatIconModule, TranslatePipe],
   templateUrl: './time-travel-control.component.html',
   styleUrl: './time-travel-control.component.scss',
 })

@@ -122,7 +122,7 @@
                     type="button"
                     class="dashboard-view__info-btn"
                     [matTooltip]="dash.description"
-                    aria-label="Dashboard description"
+                    [attr.aria-label]="'dashboards.workspace.description' | translate"
                   >
                     <mat-icon>info_outline</mat-icon>
                   </button>
@@ -292,7 +292,7 @@
                 mat-stroked-button
                 class="dashboard-view__icon-action"
                 [matMenuTriggerFor]="moreMenu"
-                aria-label="More actions"
+                [attr.aria-label]="'dashboards.workspace.moreActions' | translate"
               >
                 <mat-icon>more_horiz</mat-icon>
               </button>
@@ -323,7 +323,7 @@
               cdkDropListOrientation="horizontal"
               (cdkDropListDropped)="reorderTabs($event)"
               role="tablist"
-              aria-label="Dashboard tabs"
+              [attr.aria-label]="'dashboards.workspace.tabsAria' | translate"
             >
               @for (tab of sortedTabs(); track tab.uuid) {
                 <div
@@ -336,7 +336,7 @@
                     type="button"
                     class="dashboard-edit__tab-drag non-draggable"
                     cdkDragHandle
-                    aria-label="Reorder tab"
+                    [attr.aria-label]="'dashboards.workspace.reorderTab' | translate"
                   >
                     <mat-icon>drag_indicator</mat-icon>
                   </button>
@@ -353,7 +353,7 @@
                   <button
                     type="button"
                     class="dashboard-edit__tab-edit non-draggable"
-                    aria-label="Edit tab"
+                    [attr.aria-label]="'dashboards.workspace.editTab' | translate"
                     [matMenuTriggerFor]="tabMenu"
                     (click)="openTabRenameMenu(tab)"
                   >
@@ -417,7 +417,11 @@
             <div class="dashboard-edit__error dashboard-edit__error--inline">{{ error() }}</div>
           }
         } @else if (visibleTabs().length > 1) {
-          <div class="dashboard-view__tabs" role="tablist" aria-label="Dashboard tabs">
+          <div
+            class="dashboard-view__tabs"
+            role="tablist"
+            [attr.aria-label]="'dashboards.workspace.tabsAria' | translate"
+          >
             @for (tab of visibleTabs(); track tab.uuid) {
               <button
                 type="button"
@@ -472,7 +476,7 @@
                   <button
                     type="button"
                     class="dashboard-edit__tile-drag-handle"
-                    aria-label="Move tile"
+                    [attr.aria-label]="'dashboards.workspace.moveTile' | translate"
                     (click)="$event.stopPropagation()"
                   >
                     <mat-icon>drag_indicator</mat-icon>
@@ -480,7 +484,7 @@
                   <button
                     type="button"
                     class="dashboard-edit__tile-menu-btn"
-                    aria-label="Tile actions"
+                    [attr.aria-label]="'dashboards.workspace.tileActions' | translate"
                     [matMenuTriggerFor]="tileMenu"
                     (click)="$event.stopPropagation()"
                   >
@@ -588,7 +592,7 @@
                 <button
                   type="button"
                   class="dashboard-edit__tile-resize-handle non-draggable"
-                  aria-label="Resize tile"
+                  [attr.aria-label]="'dashboards.workspace.resizeTile' | translate"
                   (click)="$event.stopPropagation()"
                 ></button>
               </div>
@@ -692,7 +696,7 @@
         type="button"
         class="dashboard-view__scroll-top"
         (click)="scrollToTop()"
-        aria-label="Scroll to top"
+        [attr.aria-label]="'dashboards.workspace.scrollTop' | translate"
       >
         <mat-icon>keyboard_arrow_up</mat-icon>
       </button>

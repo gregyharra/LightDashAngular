@@ -2,6 +2,7 @@ import { Component, input, output } from '@angular/core';
 import { MatExpansionModule } from '@angular/material/expansion';
 import { MatIconModule } from '@angular/material/icon';
 import { MatTooltipModule } from '@angular/material/tooltip';
+import { TranslatePipe } from '@ngx-translate/core';
 import {
   ExploreJoinIssue,
   FieldId,
@@ -22,7 +23,7 @@ export type ChartFieldsAccordionGroup = {
  */
 @Component({
   selector: 'app-chart-fields-accordion',
-  imports: [MatExpansionModule, MatIconModule, MatTooltipModule],
+  imports: [MatExpansionModule, MatIconModule, MatTooltipModule, TranslatePipe],
   templateUrl: './chart-fields-accordion.component.html',
   styleUrl: './chart-fields-accordion.component.scss',
 })

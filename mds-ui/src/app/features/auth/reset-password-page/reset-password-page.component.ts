@@ -4,7 +4,7 @@ import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { MatButtonModule } from '@angular/material/button';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
-import { TranslatePipe } from '@ngx-translate/core';
+import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { AuthService } from '../../../core/services/auth.service';
 import { AppStateService } from '../../../core/services/app-state.service';
 
@@ -27,6 +27,7 @@ export class ResetPasswordPageComponent {
   private readonly appState = inject(AppStateService);
   private readonly router = inject(Router);
   private readonly route = inject(ActivatedRoute);
+  private readonly translate = inject(TranslateService);
 
   private readonly token = this.route.snapshot.queryParamMap.get('token');
 
@@ -50,7 +51,7 @@ export class ResetPasswordPageComponent {
   protected submit(): void {
     this.error.set(null);
     if (this.missingCredential) {
-      this.error.set('This reset link is missing or invalid. Ask an admin to issue a new one.');
+      this.error.set(this.translate.instant('auth.errors.invalidResetLink'));
       return;
     }
     if (this.form.invalid) {
@@ -59,7 +60,7 @@ export class ResetPasswordPageComponent {
     }
     const value = this.form.getRawValue();
     if (value.password !== value.confirmPassword) {
-      this.error.set('Passwords do not match');
+      this.error.set(this.translate.instant('auth.errors.passwordsDoNotMatch'));
       return;
     }
 
@@ -91,6 +92,6 @@ export class ResetPasswordPageComponent {
     ) {
       return (err as { error: { message: string } }).error.message;
     }
-    return 'Could not set a new password';
+    return this.translate.instant('auth.errors.setPassword');
   }
 }

@@ -8,6 +8,8 @@
     "loading": "Loading…",
     "close": "Close",
     "admin": "Admin",
+    "breadcrumb": "Breadcrumb",
+    "moreActions": "More actions",
     "queryFailed": "Failed to run query."
   },
   "auth": {
@@ -31,7 +33,32 @@
     "resetSubmit": "Update password",
     "resetting": "Updating…",
     "currentPassword": "Current password",
-    "changePasswordTitle": "Change password"
+    "changePasswordTitle": "Change password",
+    "invalidResetLinkHelp": "This reset link is missing or invalid. Ask an admin to run the password reset CLI, or sign in with a temporary password if you were given one.",
+    "backToSignIn": "Back to sign in",
+    "errors": {
+      "passwordsDoNotMatch": "Passwords do not match",
+      "createAdmin": "Could not create admin account",
+      "invalidCredentials": "Invalid email or password",
+      "invalidResetLink": "This reset link is missing or invalid. Ask an admin to issue a new one.",
+      "setPassword": "Could not set a new password",
+      "changePassword": "Could not change password"
+    }
+  },
+  "ai": {
+    "title": "Ask AI",
+    "subtitle": "Grounded on the active project’s dbt models",
+    "clearChat": "Clear chat",
+    "mode": "AI mode",
+    "ask": "Ask",
+    "edit": "Edit",
+    "hint": "Try “describe fct_orders”, “sql for stg_payments”, or “create a bar chart of orders by status”.",
+    "proposed": "Proposed {{chartKind}} on {{tableName}}",
+    "openChartBuilder": "Open in chart builder",
+    "placeholder": "Ask about models, SQL, or charts…",
+    "message": "Message",
+    "send": "Send",
+    "requestFailed": "AI request failed."
   },
   "nav": {
     "home": "Home",
@@ -45,7 +72,14 @@
     "moreNavigation": "More navigation",
     "settings": "Settings",
     "logout": "Logout",
-    "noMatches": "No matches"
+    "noMatches": "No matches",
+    "search": "Search",
+    "searchProject": "Search project",
+    "searchProjectName": "Search {{projectName}}",
+    "closeSearch": "Close search",
+    "searching": "Searching…",
+    "switchProject": "Switch project: {{projectName}}",
+    "userMenu": "User menu"
   },
   "settings": {
     "title": "Settings",
@@ -295,6 +329,20 @@
     "selectFieldsForSql": "Select dimensions or metrics to generate SQL.",
     "exploreSqlAria": "Explore SQL",
     "chartSqlAria": "Chart SQL",
+    "dimensions": "Dimensions",
+    "metrics": "Metrics",
+    "noMatchingFields": "No matching fields",
+    "selectTableForFilters": "Select a table to add filters.",
+    "selectTableToConfigure": "To configure a chart, first select the table that you would like to explore.",
+    "pickMetricDimensions": "Pick a metric and select its dimensions",
+    "chartQuestionExamples": "For example: How many total signups per day? What is the total order count by location?",
+    "chartNeedsDimensionMetric": "Charts need at least one dimension and one metric.",
+    "adjustFieldsFilters": "Try adjusting your selected fields or filters.",
+    "tableCalculation": "Table calculation",
+    "selectTableToRun": "To run a query, first select the table that you would like to explore.",
+    "selectFieldsThenRun": "Select fields from the sidebar, then click Run query to see results.",
+    "selectTableForSql": "Select a table to view SQL.",
+    "selectDbtModelForSql": "Select a dbt model to view SQL.",
     "filter": {
       "remove": "Remove filter",
       "field": "Field",
@@ -314,6 +362,7 @@
       "aggregation": "Aggregation",
       "dimension": "Dimension",
       "create": "Create metric",
+      "noDimensions": "No dimensions available for custom metrics",
       "aggregations": {
         "sum": "Sum",
         "count": "Count",
@@ -467,6 +516,7 @@
       "selectFieldsSankey": "Select at least two dimensions and one metric to render a sankey.",
       "showNodeLabels": "Show node labels",
       "switchForConfiguration": "Switch to a bar, line, pie, or table chart for additional configuration options.",
+      "chartVisualization": "Chart visualization",
       "margin": {
         "top": "Top",
         "right": "Right",
@@ -556,7 +606,15 @@
       "loomUrlRequired": "Loom URL is required",
       "invalidLoomUrl": "Enter a valid Loom share URL",
       "newHeading": "New heading",
-      "notes": "Notes"
+      "notes": "Notes",
+      "markdownPlaceholder": "Add your markdown content here.",
+      "tabsAria": "Dashboard tabs",
+      "reorderTab": "Reorder tab",
+      "editTab": "Edit tab",
+      "moveTile": "Move tile",
+      "tileActions": "Tile actions",
+      "resizeTile": "Resize tile",
+      "scrollTop": "Scroll to top"
     }
   },
   "tables": {
@@ -822,6 +880,56 @@
         "aggregate": "Aggregated across rows (sum, count, etc.)",
         "joinKey": "Brought in via a join from another model"
       }
+    }
+  },
+  "query": {
+    "runWithLimit": "Run query ({{count}})",
+    "settings": "Query settings",
+    "rowLimit": "Row limit",
+    "max": "Max"
+  },
+  "timeTravel": {
+    "label": "View data as of",
+    "timestamp": "View data as of timestamp",
+    "clear": "Clear time travel"
+  },
+  "sidebar": {
+    "resize": "Resize sidebar",
+    "expandBrowse": "Expand browse sidebar",
+    "collapseBrowse": "Collapse browse sidebar"
+  },
+  "filters": {
+    "filterLabel": "Filter {{label}}",
+    "filterBy": "Filter by {{label}}",
+    "contains": "Contains",
+    "containsPlaceholder": "Contains…",
+    "from": "From",
+    "to": "To",
+    "operator": "Operator",
+    "min": "Min",
+    "max": "Max",
+    "any": "Any",
+    "value": "Value",
+    "enterNumber": "Enter a number",
+    "clear": "Clear",
+    "apply": "Apply",
+    "searchByName": "Search by name…",
+    "clearSearch": "Clear search",
+    "space": "Space",
+    "allSpaces": "All spaces",
+    "name": "Name",
+    "removeName": "Remove name filter",
+    "removeSpace": "Remove space filter",
+    "clearAll": "Clear all",
+    "operators": {
+      "equals": "Equals",
+      "notEquals": "Not equal",
+      "lessThan": "Less than",
+      "lessThanOrEqual": "Less than or equal",
+      "greaterThan": "Greater than",
+      "greaterThanOrEqual": "Greater than or equal",
+      "inBetween": "Between",
+      "notInBetween": "Not between"
     }
   },
   "export": {

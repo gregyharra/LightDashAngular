@@ -5,7 +5,7 @@
     class="content-list-column-header__filter-btn"
     [class.content-list-column-header__filter-btn--active]="isActive()"
     [matMenuTriggerFor]="filterMenu"
-    [attr.aria-label]="'Filter ' + label()"
+    [attr.aria-label]="'filters.filterLabel' | translate: { label: label() }"
     [attr.aria-pressed]="isActive()"
     (click)="$event.stopPropagation()"
     (menuOpened)="syncDraftFromValue()"
@@ -16,16 +16,20 @@
   <mat-menu #filterMenu="matMenu" class="content-list-column-header__menu">
     <ng-template matMenuContent>
       <div class="content-list-column-header__menu-panel" (click)="$event.stopPropagation()">
-      <p class="content-list-column-header__menu-title">Filter by {{ label() }}</p>
+      <p class="content-list-column-header__menu-title">
+        {{ 'filters.filterBy' | translate: { label: label() } }}
+      </p>
 
       @switch (filterType()) {
         @case ('text') {
           <label class="content-list-column-header__field">
-            <span class="content-list-column-header__field-label">Contains</span>
+            <span class="content-list-column-header__field-label">
+              {{ 'filters.contains' | translate }}
+            </span>
             <input
               class="content-list-column-header__input"
               type="search"
-              [placeholder]="textPlaceholder()"
+              [placeholder]="textPlaceholder() ?? ('filters.containsPlaceholder' | translate)"
               [ngModel]="draftText()"
               (ngModelChange)="draftText.set($event)"
               (keydown.enter)="applyFilter()"
@@ -47,7 +51,7 @@
         }
         @case ('date') {
           <label class="content-list-column-header__field">
-            <span class="content-list-column-header__field-label">From</span>
+            <span class="content-list-column-header__field-label">{{ 'filters.from' | translate }}</span>
             <input
               class="content-list-column-header__input"
               type="date"
@@ -56,7 +60,7 @@
             />
           </label>
           <label class="content-list-column-header__field">
-            <span class="content-list-column-header__field-label">To</span>
+            <span class="content-list-column-header__field-label">{{ 'filters.to' | translate }}</span>
             <input
               class="content-list-column-header__input"
               type="date"
@@ -67,36 +71,44 @@
         }
         @case ('number') {
           <label class="content-list-column-header__field">
-            <span class="content-list-column-header__field-label">Operator</span>
+            <span class="content-list-column-header__field-label">
+              {{ 'filters.operator' | translate }}
+            </span>
             <select
               class="content-list-column-header__input content-list-column-header__select"
               [ngModel]="draftNumberOperator()"
               (ngModelChange)="onNumberOperatorChange($event)"
             >
               @for (option of numberOperatorOptions; track option.value) {
-                <option [ngValue]="option.value">{{ option.label }}</option>
+                <option [ngValue]="option.value">
+                  {{ 'filters.operators.' + option.value | translate }}
+                </option>
               }
             </select>
           </label>
           @if (numberNeedsTwoValues()) {
             <div class="content-list-column-header__number-range">
               <label class="content-list-column-header__field">
-                <span class="content-list-column-header__field-label">Min</span>
+                <span class="content-list-column-header__field-label">
+                  {{ 'filters.min' | translate }}
+                </span>
                 <input
                   class="content-list-column-header__input"
                   type="number"
-                  placeholder="Any"
+                  [placeholder]="'filters.any' | translate"
                   [ngModel]="draftNumberValue()"
                   (ngModelChange)="setDraftNumberValue($event)"
                   (keydown.enter)="applyFilter()"
                 />
               </label>
               <label class="content-list-column-header__field">
-                <span class="content-list-column-header__field-label">Max</span>
+                <span class="content-list-column-header__field-label">
+                  {{ 'filters.max' | translate }}
+                </span>
                 <input
                   class="content-list-column-header__input"
                   type="number"
-                  placeholder="Any"
+                  [placeholder]="'filters.any' | translate"
                   [ngModel]="draftNumberValueTo()"
                   (ngModelChange)="setDraftNumberValueTo($event)"
                   (keydown.enter)="applyFilter()"
@@ -105,11 +117,13 @@
             </div>
           } @else {
             <label class="content-list-column-header__field">
-              <span class="content-list-column-header__field-label">Value</span>
+              <span class="content-list-column-header__field-label">
+                {{ 'filters.value' | translate }}
+              </span>
               <input
                 class="content-list-column-header__input"
                 type="number"
-                placeholder="Enter a number"
+                [placeholder]="'filters.enterNumber' | translate"
                 [ngModel]="draftNumberValue()"
                 (ngModelChange)="setDraftNumberValue($event)"
                 (keydown.enter)="applyFilter()"
@@ -125,14 +139,14 @@
           class="content-list-column-header__clear-btn"
           (click)="clearFilter()"
         >
-          Clear
+          {{ 'filters.clear' | translate }}
         </button>
         <button
           type="button"
           class="content-list-column-header__apply-btn"
           (click)="applyFilter()"
         >
-          Apply
+          {{ 'filters.apply' | translate }}
         </button>
       </div>
       </div>

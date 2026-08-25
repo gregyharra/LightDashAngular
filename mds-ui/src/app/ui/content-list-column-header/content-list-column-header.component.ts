@@ -4,6 +4,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatCheckboxModule } from '@angular/material/checkbox';
 import { MatIconModule } from '@angular/material/icon';
 import { MatMenuModule } from '@angular/material/menu';
+import { TranslatePipe } from '@ngx-translate/core';
 import {
   DateFilterValue,
   NUMBER_FILTER_OPERATOR_OPTIONS,
@@ -39,6 +40,7 @@ export type ColumnFilterValue =
     MatCheckboxModule,
     MatIconModule,
     MatMenuModule,
+    TranslatePipe,
   ],
   templateUrl: './content-list-column-header.component.html',
   styleUrl: './content-list-column-header.component.scss',
@@ -47,7 +49,7 @@ export class ContentListColumnHeaderComponent {
   readonly label = input.required<string>();
   readonly filterType = input.required<ColumnFilterType>();
   readonly options = input<SelectOption[]>([]);
-  readonly textPlaceholder = input('Contains…');
+  readonly textPlaceholder = input<string | null>(null);
   readonly value = input.required<ColumnFilterValue>();
 
   readonly valueChange = output<ColumnFilterValue>();

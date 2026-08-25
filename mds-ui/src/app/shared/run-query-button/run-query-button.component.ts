@@ -1,4 +1,4 @@
-import { Component, effect, input, output, signal } from '@angular/core';
+import { Component, effect, inject, input, output, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -7,6 +7,7 @@ import { MatInputModule } from '@angular/material/input';
 import { MatMenuModule } from '@angular/material/menu';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatTooltipModule } from '@angular/material/tooltip';
+import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import {
   clampQueryLimit,
   resolveMaxQueryLimit,
@@ -23,11 +24,13 @@ import {
     MatMenuModule,
     MatProgressSpinnerModule,
     MatTooltipModule,
+    TranslatePipe,
   ],
   templateUrl: './run-query-button.component.html',
   styleUrl: './run-query-button.component.scss',
 })
 export class RunQueryButtonComponent {
+  private readonly translate = inject(TranslateService);
   readonly limit = input.required<number>();
   readonly maxLimit = input<number | null | undefined>(undefined);
   readonly disabled = input(false);
@@ -48,7 +51,7 @@ export class RunQueryButtonComponent {
   protected readonly resolvedMaxLimit = () => resolveMaxQueryLimit(this.maxLimit());
 
   protected runLabel(): string {
-    return `Run query (${this.limit()})`;
+    return this.translate.instant('query.runWithLimit', { count: this.limit() });
   }
 
   protected onRun(): void {

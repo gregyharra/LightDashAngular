@@ -23,7 +23,9 @@
 
         @if (!group.issue) {
           @if (group.dimensions.length > 0) {
-            <p class="chart-fields-accordion__section">Dimensions</p>
+            <p class="chart-fields-accordion__section">
+              {{ 'explorer.dimensions' | translate }}
+            </p>
             <div class="chart-fields-accordion__list">
               @for (field of group.dimensions; track field.fieldId) {
                 <button
@@ -43,22 +45,24 @@
 
           @if (group.metrics.length > 0 || showCustomMetricAdd()) {
             <div class="chart-fields-accordion__metrics-header">
-              <p class="chart-fields-accordion__section">Metrics</p>
+              <p class="chart-fields-accordion__section">
+                {{ 'explorer.metrics' | translate }}
+              </p>
               @if (showCustomMetricAdd()) {
                 <button
                   type="button"
                   class="chart-fields-accordion__add-btn"
-                  aria-label="Add custom metric"
+                  [attr.aria-label]="'explorer.customMetric.title' | translate"
                   [title]="
                     canCreateCustomMetric()
-                      ? 'Add custom metric'
-                      : 'No dimensions available for custom metrics'
+                      ? ('explorer.customMetric.title' | translate)
+                      : ('explorer.customMetric.noDimensions' | translate)
                   "
                   [disabled]="!canCreateCustomMetric()"
                   (click)="onCustomMetricAdd()"
                 >
                   <mat-icon>add</mat-icon>
-                  Add
+                  {{ 'charts.workspace.add' | translate }}
                 </button>
               }
             </div>
@@ -84,6 +88,8 @@
   </mat-accordion>
 
   @if (showEmpty() && fieldGroups().length === 0) {
-    <p class="chart-fields-accordion__empty">No matching fields</p>
+    <p class="chart-fields-accordion__empty">
+      {{ 'explorer.noMatchingFields' | translate }}
+    </p>
   }
 </div>

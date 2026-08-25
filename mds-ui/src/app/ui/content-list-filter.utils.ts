@@ -304,13 +304,14 @@ export function hasActiveDashboardColumnFilters(filters: DashboardColumnFilters)
 
 export function getDashboardActiveFilterChips(
   filters: DashboardColumnFilters,
+  labels: Record<'name' | 'space' | 'lastEdited' | 'views', string>,
 ): ActiveFilterChip[] {
   const chips: ActiveFilterChip[] = [];
 
   if (isTextFilterActive(filters.name)) {
     chips.push({
       key: 'name',
-      label: 'Name',
+      label: labels.name,
       displayValue: formatTextFilterChip(filters.name),
     });
   }
@@ -318,7 +319,7 @@ export function getDashboardActiveFilterChips(
   if (isSelectFilterActive(filters.space)) {
     chips.push({
       key: 'space',
-      label: 'Space',
+      label: labels.space,
       displayValue: formatSelectFilterChip(filters.space),
     });
   }
@@ -326,7 +327,7 @@ export function getDashboardActiveFilterChips(
   if (isDateFilterActive(filters.lastEdited)) {
     chips.push({
       key: 'lastEdited',
-      label: 'Last edited',
+      label: labels.lastEdited,
       displayValue: formatDateFilterChip(filters.lastEdited),
     });
   }
@@ -334,7 +335,7 @@ export function getDashboardActiveFilterChips(
   if (isNumberFilterActive(filters.views)) {
     chips.push({
       key: 'views',
-      label: 'Views',
+      label: labels.views,
       displayValue: formatNumberFilterChip(filters.views),
     });
   }
@@ -345,13 +346,14 @@ export function getDashboardActiveFilterChips(
 export function filterDashboards<T extends { name: string; spaceName?: string; updatedAt: string; views: number }>(
   items: T[],
   filters: DashboardColumnFilters,
+  sharedLabel: string,
 ): T[] {
   return items.filter((item) => {
     if (!matchesTextFilter(item.name, filters.name)) {
       return false;
     }
 
-    if (!matchesSelectFilter(item.spaceName ?? 'Shared', filters.space)) {
+    if (!matchesSelectFilter(item.spaceName ?? sharedLabel, filters.space)) {
       return false;
     }
 
@@ -401,13 +403,14 @@ export function hasActiveChartColumnFilters(filters: ChartColumnFilters): boolea
 export function getChartActiveFilterChips(
   filters: ChartColumnFilters,
   typeOptions: SelectOption[],
+  labels: Record<'name' | 'type' | 'table' | 'space' | 'lastEdited' | 'views', string>,
 ): ActiveFilterChip[] {
   const chips: ActiveFilterChip[] = [];
 
   if (isTextFilterActive(filters.name)) {
     chips.push({
       key: 'name',
-      label: 'Name',
+      label: labels.name,
       displayValue: formatTextFilterChip(filters.name),
     });
   }
@@ -415,7 +418,7 @@ export function getChartActiveFilterChips(
   if (isSelectFilterActive(filters.type)) {
     chips.push({
       key: 'type',
-      label: 'Type',
+      label: labels.type,
       displayValue: formatSelectFilterChip(filters.type, typeOptions),
     });
   }
@@ -423,7 +426,7 @@ export function getChartActiveFilterChips(
   if (isTextFilterActive(filters.table)) {
     chips.push({
       key: 'table',
-      label: 'Table',
+      label: labels.table,
       displayValue: formatTextFilterChip(filters.table),
     });
   }
@@ -431,7 +434,7 @@ export function getChartActiveFilterChips(
   if (isSelectFilterActive(filters.space)) {
     chips.push({
       key: 'space',
-      label: 'Space',
+      label: labels.space,
       displayValue: formatSelectFilterChip(filters.space),
     });
   }
@@ -439,7 +442,7 @@ export function getChartActiveFilterChips(
   if (isDateFilterActive(filters.lastEdited)) {
     chips.push({
       key: 'lastEdited',
-      label: 'Last edited',
+      label: labels.lastEdited,
       displayValue: formatDateFilterChip(filters.lastEdited),
     });
   }
@@ -447,7 +450,7 @@ export function getChartActiveFilterChips(
   if (isNumberFilterActive(filters.views)) {
     chips.push({
       key: 'views',
-      label: 'Views',
+      label: labels.views,
       displayValue: formatNumberFilterChip(filters.views),
     });
   }

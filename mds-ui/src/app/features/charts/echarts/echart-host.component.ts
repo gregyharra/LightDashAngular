@@ -7,24 +7,26 @@ import {
   input,
   viewChild,
 } from '@angular/core';
+import { TranslatePipe } from '@ngx-translate/core';
 import { ECharts, EChartsOption, init } from 'echarts';
 
 @Component({
   selector: 'app-echart-host',
   standalone: true,
+  imports: [TranslatePipe],
   template: `
     <div
       #container
       class="echart-host"
       role="img"
-      [attr.aria-label]="ariaLabel()"
+      [attr.aria-label]="ariaLabel() ?? ('charts.workspace.chartVisualization' | translate)"
     ></div>
   `,
   styleUrl: './echart-host.component.scss',
 })
 export class EchartHostComponent implements AfterViewInit, OnDestroy {
   readonly option = input<EChartsOption | null>(null);
-  readonly ariaLabel = input('Chart visualization');
+  readonly ariaLabel = input<string | null>(null);
 
   private readonly container =
     viewChild<ElementRef<HTMLDivElement>>('container');

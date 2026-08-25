@@ -1,15 +1,25 @@
 @if (ui.open()) {
-  <aside class="ai-panel" aria-label="Ask AI">
+  <aside class="ai-panel" [attr.aria-label]="'ai.title' | translate">
     <header class="ai-panel__header">
       <div>
-        <h2 class="ai-panel__title">Ask AI</h2>
-        <p class="ai-panel__subtitle">Grounded on the active project’s dbt models</p>
+        <h2 class="ai-panel__title">{{ 'ai.title' | translate }}</h2>
+        <p class="ai-panel__subtitle">{{ 'ai.subtitle' | translate }}</p>
       </div>
       <div class="ai-panel__header-actions">
-        <button mat-icon-button type="button" aria-label="Clear chat" (click)="clear()">
+        <button
+          mat-icon-button
+          type="button"
+          [attr.aria-label]="'ai.clearChat' | translate"
+          (click)="clear()"
+        >
           <mat-icon>delete_outline</mat-icon>
         </button>
-        <button mat-icon-button type="button" aria-label="Close" (click)="close()">
+        <button
+          mat-icon-button
+          type="button"
+          [attr.aria-label]="'common.close' | translate"
+          (click)="close()"
+        >
           <mat-icon>close</mat-icon>
         </button>
       </div>
@@ -19,16 +29,16 @@
       class="ai-panel__mode"
       [value]="ui.mode()"
       (change)="setMode($event.value)"
-      aria-label="AI mode"
+      [attr.aria-label]="'ai.mode' | translate"
     >
-      <mat-button-toggle value="ask">Ask</mat-button-toggle>
-      <mat-button-toggle value="edit">Edit</mat-button-toggle>
+      <mat-button-toggle value="ask">{{ 'ai.ask' | translate }}</mat-button-toggle>
+      <mat-button-toggle value="edit">{{ 'ai.edit' | translate }}</mat-button-toggle>
     </mat-button-toggle-group>
 
     <div class="ai-panel__messages">
       @if (ui.messages().length === 0) {
         <p class="ai-panel__hint">
-          Try “describe fct_orders”, “sql for stg_payments”, or “create a bar chart of orders by status”.
+          {{ 'ai.hint' | translate }}
         </p>
       }
       @for (message of ui.messages(); track $index) {
@@ -51,11 +61,13 @@
       @if (ui.lastProposal(); as proposal) {
         <div class="ai-panel__proposal">
           <p>
-            Proposed <strong>{{ proposal.chartKind }}</strong> on
-            <code>{{ proposal.tableName }}</code>
+            {{
+              'ai.proposed'
+                | translate: { chartKind: proposal.chartKind, tableName: proposal.tableName }
+            }}
           </p>
           <button mat-stroked-button type="button" (click)="openProposedChart()">
-            Open in chart builder
+            {{ 'ai.openChartBuilder' | translate }}
           </button>
         </div>
       }
@@ -67,11 +79,11 @@
         [ngModel]="draft()"
         (ngModelChange)="draft.set($event)"
         name="aiDraft"
-        placeholder="Ask about models, SQL, or charts…"
-        aria-label="Message"
+        [placeholder]="'ai.placeholder' | translate"
+        [attr.aria-label]="'ai.message' | translate"
       ></textarea>
       <button mat-flat-button color="primary" type="submit" [disabled]="ui.loading()">
-        Send
+        {{ 'ai.send' | translate }}
       </button>
     </form>
   </aside>

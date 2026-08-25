@@ -8,6 +8,8 @@
     "loading": "Chargement…",
     "close": "Fermer",
     "admin": "Admin",
+    "breadcrumb": "Fil d’Ariane",
+    "moreActions": "Plus d’actions",
     "queryFailed": "Impossible d’exécuter la requête."
   },
   "auth": {
@@ -31,7 +33,32 @@
     "resetSubmit": "Mettre à jour le mot de passe",
     "resetting": "Mise à jour…",
     "currentPassword": "Mot de passe actuel",
-    "changePasswordTitle": "Changer le mot de passe"
+    "changePasswordTitle": "Changer le mot de passe",
+    "invalidResetLinkHelp": "Ce lien de réinitialisation est manquant ou invalide. Demandez à un administrateur d’exécuter la commande de réinitialisation du mot de passe, ou connectez-vous avec le mot de passe temporaire qui vous a été remis.",
+    "backToSignIn": "Retour à la connexion",
+    "errors": {
+      "passwordsDoNotMatch": "Les mots de passe ne correspondent pas",
+      "createAdmin": "Impossible de créer le compte administrateur",
+      "invalidCredentials": "E-mail ou mot de passe incorrect",
+      "invalidResetLink": "Ce lien de réinitialisation est manquant ou invalide. Demandez-en un nouveau à un administrateur.",
+      "setPassword": "Impossible de définir un nouveau mot de passe",
+      "changePassword": "Impossible de modifier le mot de passe"
+    }
+  },
+  "ai": {
+    "title": "Demander à l’IA",
+    "subtitle": "Basé sur les modèles dbt du projet actif",
+    "clearChat": "Effacer la conversation",
+    "mode": "Mode de l’IA",
+    "ask": "Demander",
+    "edit": "Modifier",
+    "hint": "Essayez « describe fct_orders », « sql for stg_payments » ou « create a bar chart of orders by status ».",
+    "proposed": "{{chartKind}} proposé sur {{tableName}}",
+    "openChartBuilder": "Ouvrir dans l’éditeur de graphiques",
+    "placeholder": "Posez une question sur les modèles, le SQL ou les graphiques…",
+    "message": "Message",
+    "send": "Envoyer",
+    "requestFailed": "Échec de la requête à l’IA."
   },
   "nav": {
     "home": "Accueil",
@@ -45,7 +72,14 @@
     "moreNavigation": "Plus de navigation",
     "settings": "Paramètres",
     "logout": "Déconnexion",
-    "noMatches": "Aucun résultat"
+    "noMatches": "Aucun résultat",
+    "search": "Rechercher",
+    "searchProject": "Rechercher dans le projet",
+    "searchProjectName": "Rechercher dans {{projectName}}",
+    "closeSearch": "Fermer la recherche",
+    "searching": "Recherche…",
+    "switchProject": "Changer de projet : {{projectName}}",
+    "userMenu": "Menu utilisateur"
   },
   "settings": {
     "title": "Paramètres",
@@ -295,6 +329,20 @@
     "selectFieldsForSql": "Sélectionnez des dimensions ou des métriques pour générer le SQL.",
     "exploreSqlAria": "SQL de l'exploration",
     "chartSqlAria": "SQL du graphique",
+    "dimensions": "Dimensions",
+    "metrics": "Métriques",
+    "noMatchingFields": "Aucun champ correspondant",
+    "selectTableForFilters": "Sélectionnez une table pour ajouter des filtres.",
+    "selectTableToConfigure": "Pour configurer un graphique, sélectionnez d’abord la table à explorer.",
+    "pickMetricDimensions": "Choisissez une métrique et sélectionnez ses dimensions",
+    "chartQuestionExamples": "Par exemple : combien d’inscriptions par jour ? Quel est le nombre total de commandes par lieu ?",
+    "chartNeedsDimensionMetric": "Les graphiques nécessitent au moins une dimension et une métrique.",
+    "adjustFieldsFilters": "Modifiez les champs sélectionnés ou les filtres.",
+    "tableCalculation": "Calcul de table",
+    "selectTableToRun": "Pour exécuter une requête, sélectionnez d’abord la table à explorer.",
+    "selectFieldsThenRun": "Sélectionnez des champs dans le panneau latéral, puis exécutez la requête pour afficher les résultats.",
+    "selectTableForSql": "Sélectionnez une table pour afficher le SQL.",
+    "selectDbtModelForSql": "Sélectionnez un modèle dbt pour afficher le SQL.",
     "filter": {
       "remove": "Supprimer le filtre",
       "field": "Champ",
@@ -314,6 +362,7 @@
       "aggregation": "Agrégation",
       "dimension": "Dimension",
       "create": "Créer la métrique",
+      "noDimensions": "Aucune dimension disponible pour les métriques personnalisées",
       "aggregations": {
         "sum": "Somme",
         "count": "Nombre",
@@ -467,6 +516,7 @@
       "selectFieldsSankey": "Sélectionnez au moins deux dimensions et une métrique pour afficher un diagramme de Sankey.",
       "showNodeLabels": "Afficher les libellés des nœuds",
       "switchForConfiguration": "Passez à un graphique en barres, en courbes, en secteurs ou à un tableau pour accéder à des options de configuration supplémentaires.",
+      "chartVisualization": "Visualisation du graphique",
       "margin": {
         "top": "Haut",
         "right": "Droite",
@@ -556,7 +606,15 @@
       "loomUrlRequired": "L'URL Loom est obligatoire",
       "invalidLoomUrl": "Saisissez une URL de partage Loom valide",
       "newHeading": "Nouveau titre",
-      "notes": "Notes"
+      "notes": "Notes",
+      "markdownPlaceholder": "Ajoutez votre contenu Markdown ici.",
+      "tabsAria": "Onglets du tableau de bord",
+      "reorderTab": "Réorganiser l’onglet",
+      "editTab": "Modifier l’onglet",
+      "moveTile": "Déplacer la tuile",
+      "tileActions": "Actions de la tuile",
+      "resizeTile": "Redimensionner la tuile",
+      "scrollTop": "Revenir en haut"
     }
   },
   "tables": {
@@ -822,6 +880,56 @@
         "aggregate": "Agrégée sur plusieurs lignes (somme, nombre, etc.)",
         "joinKey": "Ajoutée par une jointure depuis un autre modèle"
       }
+    }
+  },
+  "query": {
+    "runWithLimit": "Exécuter la requête ({{count}})",
+    "settings": "Paramètres de la requête",
+    "rowLimit": "Limite de lignes",
+    "max": "Max."
+  },
+  "timeTravel": {
+    "label": "Afficher les données à la date",
+    "timestamp": "Date et heure des données à afficher",
+    "clear": "Effacer le voyage temporel"
+  },
+  "sidebar": {
+    "resize": "Redimensionner le panneau latéral",
+    "expandBrowse": "Développer le panneau de navigation",
+    "collapseBrowse": "Réduire le panneau de navigation"
+  },
+  "filters": {
+    "filterLabel": "Filtrer {{label}}",
+    "filterBy": "Filtrer par {{label}}",
+    "contains": "Contient",
+    "containsPlaceholder": "Contient…",
+    "from": "De",
+    "to": "À",
+    "operator": "Opérateur",
+    "min": "Min.",
+    "max": "Max.",
+    "any": "Indifférent",
+    "value": "Valeur",
+    "enterNumber": "Saisissez un nombre",
+    "clear": "Effacer",
+    "apply": "Appliquer",
+    "searchByName": "Rechercher par nom…",
+    "clearSearch": "Effacer la recherche",
+    "space": "Espace",
+    "allSpaces": "Tous les espaces",
+    "name": "Nom",
+    "removeName": "Supprimer le filtre de nom",
+    "removeSpace": "Supprimer le filtre d’espace",
+    "clearAll": "Tout effacer",
+    "operators": {
+      "equals": "Égal à",
+      "notEquals": "Différent de",
+      "lessThan": "Inférieur à",
+      "lessThanOrEqual": "Inférieur ou égal à",
+      "greaterThan": "Supérieur à",
+      "greaterThanOrEqual": "Supérieur ou égal à",
+      "inBetween": "Entre",
+      "notInBetween": "Pas entre"
     }
   },
   "export": {

@@ -8,6 +8,7 @@ import {
   Renderer2,
   inject,
 } from '@angular/core';
+import { TranslateService } from '@ngx-translate/core';
 
 const WIDTH_STORAGE_KEY = 'lightdash-sidebar-width';
 const COLLAPSED_STORAGE_KEY = 'lightdash-page-sidebar-collapsed';
@@ -25,6 +26,7 @@ export class ResizableSidebarDirective implements OnInit {
   private readonly renderer = inject(Renderer2);
   private readonly platformId = inject(PLATFORM_ID);
   private readonly destroyRef = inject(DestroyRef);
+  private readonly translate = inject(TranslateService);
 
   private isDragging = false;
   private startX = 0;
@@ -67,7 +69,11 @@ export class ResizableSidebarDirective implements OnInit {
     this.renderer.addClass(this.resizeHandle, 'page-sidebar__resize-handle');
     this.renderer.setAttribute(this.resizeHandle, 'role', 'separator');
     this.renderer.setAttribute(this.resizeHandle, 'aria-orientation', 'vertical');
-    this.renderer.setAttribute(this.resizeHandle, 'aria-label', 'Resize sidebar');
+    this.renderer.setAttribute(
+      this.resizeHandle,
+      'aria-label',
+      this.translate.instant('sidebar.resize'),
+    );
     this.renderer.setAttribute(this.resizeHandle, 'tabindex', '0');
     this.renderer.listen(this.resizeHandle, 'pointerdown', (event: PointerEvent) =>
       this.onPointerDown(event, this.resizeHandle!),
@@ -137,7 +143,9 @@ export class ResizableSidebarDirective implements OnInit {
   }
 
   private foldAriaLabel(): string {
-    return this.collapsed ? 'Expand browse sidebar' : 'Collapse browse sidebar';
+    return this.translate.instant(
+      this.collapsed ? 'sidebar.expandBrowse' : 'sidebar.collapseBrowse',
+    );
   }
 
   private addLinkTitles(): void {

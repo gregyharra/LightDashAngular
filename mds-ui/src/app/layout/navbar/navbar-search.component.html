@@ -8,7 +8,7 @@
       class="navbar-search__mobile-toggle"
       (click)="toggleSearchExpanded()"
       [attr.aria-expanded]="searchExpanded()"
-      aria-label="Search project"
+      [attr.aria-label]="'nav.searchProject' | translate"
     >
       <mat-icon>search</mat-icon>
     </button>
@@ -24,7 +24,7 @@
         (focus)="onFocus()"
         (keydown)="onKeydown($event)"
         [placeholder]="searchPlaceholder(project.name)"
-        aria-label="Search project"
+        [attr.aria-label]="'nav.searchProject' | translate"
         autocomplete="off"
         role="combobox"
         [attr.aria-expanded]="open()"
@@ -44,7 +44,7 @@
         type="button"
         class="navbar-search__close"
         (click)="closeSearchExpanded()"
-        aria-label="Close search"
+        [attr.aria-label]="'nav.closeSearch' | translate"
       >
         <mat-icon>close</mat-icon>
       </button>
@@ -56,7 +56,7 @@
       type="button"
       class="navbar-search__backdrop"
       (click)="closeSearchExpanded()"
-      aria-label="Close search"
+      [attr.aria-label]="'nav.closeSearch' | translate"
     ></button>
   }
 
@@ -69,9 +69,9 @@
       [ngStyle]="panelStyle()"
     >
       @if (loading() && flatResults().length === 0) {
-        <div class="navbar-search__status">Searching…</div>
+        <div class="navbar-search__status">{{ 'nav.searching' | translate }}</div>
       } @else if (showEmpty()) {
-        <div class="navbar-search__status">No matches</div>
+        <div class="navbar-search__status">{{ 'nav.noMatches' | translate }}</div>
       } @else {
         @for (group of groups(); track group.kind) {
           <div class="navbar-search__group-label">{{ group.label }}</div>

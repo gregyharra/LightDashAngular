@@ -3,7 +3,7 @@
     mat-button
     class="shell__nav-btn project-switcher__trigger"
     [matMenuTriggerFor]="projectMenu"
-    [attr.aria-label]="'Switch project: ' + active.name"
+    [attr.aria-label]="'nav.switchProject' | translate: { projectName: active.name }"
     [attr.title]="active.name"
   >
     <mat-icon class="project-switcher__icon">folder</mat-icon>
@@ -18,7 +18,7 @@
   panelClass="ld-navbar-menu project-switcher__panel"
 >
   <div class="project-switcher__section-header" mat-menu-item disabled>
-    Projects
+    {{ 'settings.projects' | translate }}
     <span class="project-switcher__count">
       {{ activeProjectService.projects().length }}
     </span>
@@ -34,7 +34,7 @@
     >
       <span class="project-switcher__item-name">{{ project.name }}</span>
       @if (project.projectUuid === activeProjectService.activeProjectUuid()) {
-        <span class="project-switcher__current">current</span>
+        <span class="project-switcher__current">{{ 'projects.current' | translate }}</span>
       }
     </button>
   }

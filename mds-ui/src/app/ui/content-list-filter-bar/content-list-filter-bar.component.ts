@@ -11,12 +11,19 @@ import { FormsModule } from '@angular/forms';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
 import { MatSelectModule } from '@angular/material/select';
+import { TranslatePipe } from '@ngx-translate/core';
 import { Subject } from 'rxjs';
 import { debounceTime, distinctUntilChanged } from 'rxjs/operators';
 
 @Component({
   selector: 'app-content-list-filter-bar',
-  imports: [FormsModule, MatFormFieldModule, MatIconModule, MatSelectModule],
+  imports: [
+    FormsModule,
+    MatFormFieldModule,
+    MatIconModule,
+    MatSelectModule,
+    TranslatePipe,
+  ],
   templateUrl: './content-list-filter-bar.component.html',
   styleUrl: './content-list-filter-bar.component.scss',
 })
@@ -24,9 +31,9 @@ export class ContentListFilterBarComponent {
   private readonly destroyRef = inject(DestroyRef);
   private readonly searchInput$ = new Subject<string>();
 
-  readonly searchPlaceholder = input('Search by name…');
+  readonly searchPlaceholder = input<string | null>(null);
   readonly spaces = input<string[]>([]);
-  readonly spaceFilterLabel = input('Space');
+  readonly spaceFilterLabel = input<string | null>(null);
 
   readonly searchChange = output<string>();
   readonly spaceChange = output<string | null>();

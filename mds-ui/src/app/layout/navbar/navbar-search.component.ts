@@ -15,6 +15,7 @@ import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { Subject, Subscription, combineLatest, of } from 'rxjs';
 import {
   catchError,
@@ -39,6 +40,7 @@ import {
     MatIconModule,
     MatProgressSpinnerModule,
     NgStyle,
+    TranslatePipe,
     TransformationChipComponent,
   ],
   templateUrl: './navbar-search.component.html',
@@ -49,6 +51,7 @@ export class NavbarSearchComponent implements OnDestroy {
   private readonly searchService = inject(NavbarSearchService);
   private readonly router = inject(Router);
   private readonly host = inject(ElementRef<HTMLElement>);
+  private readonly translate = inject(TranslateService);
 
   @ViewChild('searchInput') private readonly searchInput?: ElementRef<HTMLInputElement>;
   @ViewChild('resultsPanel') private readonly resultsPanel?: ElementRef<HTMLElement>;
@@ -143,9 +146,9 @@ export class NavbarSearchComponent implements OnDestroy {
 
   protected searchPlaceholder(projectName: string): string {
     if (typeof window !== 'undefined' && window.matchMedia('(max-width: 720px)').matches) {
-      return 'Search';
+      return this.translate.instant('nav.search');
     }
-    return `Search ${projectName}`;
+    return this.translate.instant('nav.searchProjectName', { projectName });
   }
 
   protected toggleSearchExpanded(): void {

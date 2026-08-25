@@ -1,7 +1,10 @@
 <section class="project-edit">
   <div class="page__container">
     <header class="project-edit__header">
-      <nav class="project-edit__breadcrumbs" aria-label="Breadcrumb">
+      <nav
+        class="project-edit__breadcrumbs"
+        [attr.aria-label]="'common.breadcrumb' | translate"
+      >
         <a routerLink="/projects" class="project-edit__breadcrumb-link">{{ 'nav.home' | translate }}</a>
         <mat-icon>chevron_right</mat-icon>
         <a routerLink="/settings/projects" class="project-edit__breadcrumb-link">{{ 'projects.title' | translate }}</a>

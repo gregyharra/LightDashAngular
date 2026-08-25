@@ -1,7 +1,10 @@
 <section class="warehouse-edit">
   <div class="page__container">
     <header class="warehouse-edit__header">
-      <nav class="warehouse-edit__breadcrumbs" aria-label="Breadcrumb">
+      <nav
+        class="warehouse-edit__breadcrumbs"
+        [attr.aria-label]="'common.breadcrumb' | translate"
+      >
         <a routerLink="/projects" class="warehouse-edit__breadcrumb-link">{{ 'nav.home' | translate }}</a>
         <mat-icon>chevron_right</mat-icon>
         <a routerLink="/settings/warehouses" class="warehouse-edit__breadcrumb-link">{{ 'warehouses.title' | translate }}</a>

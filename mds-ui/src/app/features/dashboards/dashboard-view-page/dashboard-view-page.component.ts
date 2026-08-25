@@ -577,7 +577,7 @@ export class DashboardViewPageComponent {
       h: 6,
       properties: {
         title: this.translate.instant('dashboards.workspace.notes'),
-        content: 'Add your markdown content here.',
+        content: this.translate.instant('dashboards.workspace.markdownPlaceholder'),
       },
     });
   }

@@ -2,7 +2,7 @@
   mat-button
   class="user-menu__trigger"
   [matMenuTriggerFor]="userMenu"
-  aria-label="User menu"
+  [attr.aria-label]="'nav.userMenu' | translate"
 >
   <span class="user-menu__avatar">{{ initials() }}</span>
 </button>

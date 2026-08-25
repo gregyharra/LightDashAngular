@@ -1,4 +1,5 @@
 import { Injectable, inject } from '@angular/core';
+import { TranslateService } from '@ngx-translate/core';
 import { Observable, shareReplay, switchMap, tap, throwError, timer } from 'rxjs';
 import { map } from 'rxjs/operators';
 import { LightdashApiService, toApiError } from '../../core/api/lightdash-api.service';
@@ -19,6 +20,7 @@ export type RunQueryOptions = {
 @Injectable({ providedIn: 'root' })
 export class ExplorerService {
   private readonly api = inject(LightdashApiService);
+  private readonly translate = inject(TranslateService);
   private readonly exploreCache = new Map<string, Observable<Explore>>();
   private readonly queryCache = new Map<string, Observable<QueryResults>>();
 
@@ -119,7 +121,8 @@ export class ExplorerService {
                 error: {
                   name: 'QueryError',
                   statusCode: 400,
-                  message: poll.error ?? 'Query failed',
+                  message:
+                    poll.error ?? this.translate.instant('common.queryFailed'),
                 },
               }),
             );

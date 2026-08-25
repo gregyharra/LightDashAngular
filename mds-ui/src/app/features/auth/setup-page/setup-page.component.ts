@@ -4,7 +4,7 @@ import { Router } from '@angular/router';
 import { MatButtonModule } from '@angular/material/button';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
-import { TranslatePipe } from '@ngx-translate/core';
+import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { AuthService } from '../../../core/services/auth.service';
 
 @Component({
@@ -23,6 +23,7 @@ export class SetupPageComponent {
   private readonly fb = inject(FormBuilder);
   private readonly auth = inject(AuthService);
   private readonly router = inject(Router);
+  private readonly translate = inject(TranslateService);
 
   protected readonly submitting = signal(false);
   protected readonly error = signal<string | null>(null);
@@ -43,7 +44,7 @@ export class SetupPageComponent {
     }
     const value = this.form.getRawValue();
     if (value.password !== value.confirmPassword) {
-      this.error.set('Passwords do not match');
+      this.error.set(this.translate.instant('auth.errors.passwordsDoNotMatch'));
       return;
     }
 
@@ -76,6 +77,6 @@ export class SetupPageComponent {
     ) {
       return (err as { error: { message: string } }).error.message;
     }
-    return 'Could not create admin account';
+    return this.translate.instant('auth.errors.createAdmin');
   }
 }

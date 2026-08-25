@@ -38,7 +38,10 @@
     </header>
   } @else {
     <header class="tables-fields-panel__header">
-      <nav class="tables-fields-panel__breadcrumb" aria-label="Breadcrumb">
+      <nav
+        class="tables-fields-panel__breadcrumb"
+        [attr.aria-label]="'common.breadcrumb' | translate"
+      >
         <a
           class="tables-fields-panel__breadcrumb-link"
           [routerLink]="parentLink() ?? ['/projects', projectUuid(), 'tables']"

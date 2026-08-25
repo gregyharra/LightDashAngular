@@ -85,7 +85,14 @@ export class ChartsListPageComponent {
   );
 
   protected readonly activeFilterChips = computed(() =>
-    getChartActiveFilterChips(this.columnFilters(), this.typeOptions()),
+    getChartActiveFilterChips(this.columnFilters(), this.typeOptions(), {
+      name: this.translate.instant('charts.fields.name'),
+      type: this.translate.instant('charts.fields.type'),
+      table: this.translate.instant('charts.fields.table'),
+      space: this.translate.instant('charts.fields.space'),
+      lastEdited: this.translate.instant('charts.fields.lastEdited'),
+      views: this.translate.instant('charts.fields.views'),
+    }),
   );
 
   protected readonly hasActiveFilters = computed(() =>

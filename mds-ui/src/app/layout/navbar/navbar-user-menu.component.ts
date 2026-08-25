@@ -10,7 +10,7 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
 import { MatMenuModule } from '@angular/material/menu';
-import { TranslatePipe } from '@ngx-translate/core';
+import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { AppStateService } from '../../core/services/app-state.service';
 import { AuthService } from '../../core/services/auth.service';
 
@@ -73,6 +73,7 @@ export class ChangePasswordDialogComponent {
   private readonly fb = inject(FormBuilder);
   private readonly auth = inject(AuthService);
   private readonly dialogRef = inject(MatDialogRef<ChangePasswordDialogComponent>);
+  private readonly translate = inject(TranslateService);
 
   protected error: string | null = null;
   protected readonly form = this.fb.nonNullable.group({
@@ -89,7 +90,7 @@ export class ChangePasswordDialogComponent {
     }
     const value = this.form.getRawValue();
     if (value.newPassword !== value.confirmPassword) {
-      this.error = 'Passwords do not match';
+      this.error = this.translate.instant('auth.errors.passwordsDoNotMatch');
       return;
     }
     this.auth.changeOwnPassword(value.currentPassword, value.newPassword).subscribe({
@@ -103,7 +104,7 @@ export class ChangePasswordDialogComponent {
         ) {
           this.error = (err as { error: { message: string } }).error.message;
         } else {
-          this.error = 'Could not change password';
+          this.error = this.translate.instant('auth.errors.changePassword');
         }
       },
     });
