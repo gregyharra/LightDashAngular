@@ -55,7 +55,8 @@
       <input
         type="search"
         class="tables-fields-panel__search-input"
-        placeholder="Search metrics + dimensions"
+        [placeholder]="'explorer.searchDimensionsMetrics' | translate"
+        [attr.aria-label]="'explorer.searchDimensionsMetrics' | translate"
         [value]="fieldSearch()"
         (input)="onFieldSearch($any($event.target).value)"
       />
@@ -91,12 +92,12 @@
     } @else if (!isExploreableNode()) {
       <div class="tables-fields-panel__empty">
         <mat-icon>info</mat-icon>
-        <p>Select a dbt model to explore its fields.</p>
+        <p>{{ 'explorer.selectDbtModelFields' | translate }}</p>
       </div>
     } @else {
       <div class="tables-fields-panel__empty">
         <mat-icon>info</mat-icon>
-        <p>Unable to load fields for this selection.</p>
+        <p>{{ 'explorer.unableToLoadFields' | translate }}</p>
       </div>
     }
   }

@@ -3,7 +3,10 @@ import { By } from '@angular/platform-browser';
 import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 import { MatTooltip } from '@angular/material/tooltip';
 import { provideRouter } from '@angular/router';
-import { provideTranslateService } from '@ngx-translate/core';
+import {
+  provideTranslateService,
+  TranslateService,
+} from '@ngx-translate/core';
 import {
   filterTablesFieldGroups,
   TablesFieldGroup,
@@ -19,11 +22,37 @@ describe('TablesFieldsPanelComponent', () => {
       providers: [provideRouter([]), provideTranslateService()],
     }).compileComponents();
 
+    TestBed.inject(TranslateService).setTranslation('en', {
+      explorer: {
+        searchDimensionsMetrics: 'Find dimensions and metrics',
+        selectDbtModelFields: 'Choose a dbt model for fields.',
+        unableToLoadFields: 'Fields could not be loaded.',
+      },
+    });
+    TestBed.inject(TranslateService).use('en');
+
     fixture = TestBed.createComponent(TablesFieldsPanelComponent);
     fixture.componentRef.setInput('projectUuid', 'test-project');
     fixture.componentRef.setInput('tableId', 'orders');
     fixture.componentRef.setInput('tableLabel', 'Orders');
     fixture.componentRef.setInput('hasExplore', true);
+  });
+
+  it('translates the field search and empty states', () => {
+    fixture.componentRef.setInput('hasExplore', false);
+    fixture.componentRef.setInput('isExploreableNode', false);
+    fixture.detectChanges();
+
+    const element = fixture.nativeElement as HTMLElement;
+    expect(element.querySelector('input')?.placeholder).toBe(
+      'Find dimensions and metrics',
+    );
+    expect(element.textContent).toContain('Choose a dbt model for fields.');
+
+    fixture.componentRef.setInput('isExploreableNode', true);
+    fixture.detectChanges();
+
+    expect(element.textContent).toContain('Fields could not be loaded.');
   });
 
   it('renders join issues as disabled groups with a suggested target tooltip', () => {

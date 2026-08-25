@@ -208,10 +208,10 @@
               </button>
               <mat-menu #exportMenu="matMenu">
                 <button mat-menu-item type="button" (click)="onExportCsv()">
-                  CSV
+                  {{ 'export.csv' | translate }}
                 </button>
                 <button mat-menu-item type="button" (click)="onExportXlsx()">
-                  Excel
+                  {{ 'export.excel' | translate }}
                 </button>
               </mat-menu>
               <button
@@ -251,7 +251,7 @@
                     [expanded]="true"
                   >
                     <mat-expansion-panel-header>
-                      <mat-panel-title>Results</mat-panel-title>
+                      <mat-panel-title>{{ 'explorer.results' | translate }}</mat-panel-title>
                       <mat-panel-description>
                         <button
                           mat-stroked-button
@@ -262,7 +262,7 @@
                           (click)="$event.stopPropagation()"
                         >
                           <mat-icon>download</mat-icon>
-                          Export
+                          {{ 'export.action' | translate }}
                         </button>
                         <mat-menu #resultsExportMenu="matMenu">
                           <button
@@ -270,14 +270,14 @@
                             type="button"
                             (click)="onExportCsv()"
                           >
-                            CSV
+                            {{ 'export.csv' | translate }}
                           </button>
                           <button
                             mat-menu-item
                             type="button"
                             (click)="onExportXlsx()"
                           >
-                            Excel
+                            {{ 'export.excel' | translate }}
                           </button>
                         </mat-menu>
                       </mat-panel-description>
@@ -301,19 +301,22 @@
 
                   <mat-expansion-panel class="explorer-page__panel-section">
                     <mat-expansion-panel-header>
-                      <mat-panel-title>SQL</mat-panel-title>
+                      <mat-panel-title>{{ 'explorer.sql' | translate }}</mat-panel-title>
                     </mat-expansion-panel-header>
 
                     @if (displaySql(); as sql) {
-                      <app-sql-highlight [sql]="sql" ariaLabel="Explore SQL" />
+                      <app-sql-highlight
+                        [sql]="sql"
+                        [ariaLabel]="'explorer.exploreSqlAria' | translate"
+                      />
                     } @else if (queryLoading()) {
                       <div class="explorer-page__panel-loading">
                         <mat-spinner diameter="24" />
-                        <span>Compiling query…</span>
+                        <span>{{ 'explorer.compilingQuery' | translate }}</span>
                       </div>
                     } @else {
                       <div class="explorer-page__panel-empty">
-                        <p>Select dimensions or metrics to generate SQL.</p>
+                        <p>{{ 'explorer.selectFieldsForSql' | translate }}</p>
                       </div>
                     }
                   </mat-expansion-panel>

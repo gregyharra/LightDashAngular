@@ -76,7 +76,9 @@
         configCollapsed() ? configCollapsedWidth : configPanelWidth()
       "
       [attr.aria-label]="
-        configureMode() ? 'Chart configuration' : 'Dimensions and metrics'
+        (configureMode()
+          ? 'explorer.chartConfiguration'
+          : 'explorer.dimensionsAndMetrics') | translate
       "
     >
       @if (configureMode() || configCollapsed()) {
@@ -85,9 +87,9 @@
           class="chart-view__config-fold-btn"
           [attr.aria-expanded]="!configCollapsed()"
           [attr.aria-label]="
-            configCollapsed()
-              ? 'Expand chart configuration'
-              : 'Collapse chart configuration'
+            (configCollapsed()
+              ? 'explorer.expandChartConfiguration'
+              : 'explorer.collapseChartConfiguration') | translate
           "
           (click)="toggleConfigCollapsed()"
         >
@@ -104,7 +106,8 @@
             <input
               type="search"
               class="chart-view__fields-search-input"
-              placeholder="Search metrics + dimensions"
+              [placeholder]="'explorer.searchDimensionsMetrics' | translate"
+              [attr.aria-label]="'explorer.searchDimensionsMetrics' | translate"
               [value]="fieldSearch()"
               (input)="onFieldSearch($any($event.target).value)"
             />
@@ -113,7 +116,7 @@
             type="button"
             class="chart-view__config-fold-btn chart-view__config-fold-btn--inline"
             [attr.aria-expanded]="!configCollapsed()"
-            aria-label="Collapse chart configuration"
+            [attr.aria-label]="'explorer.collapseChartConfiguration' | translate"
             (click)="toggleConfigCollapsed()"
           >
             <mat-icon>chevron_left</mat-icon>
@@ -185,7 +188,7 @@
         class="chart-view__config-resize-handle"
         role="separator"
         aria-orientation="vertical"
-        aria-label="Resize chart configuration"
+        [attr.aria-label]="'explorer.resizeChartConfiguration' | translate"
         tabindex="0"
         (pointerdown)="onConfigResizeStart($event)"
       ></div>
@@ -220,8 +223,8 @@
                     mat-icon-button
                     type="button"
                     class="chart-view__breadcrumb-edit"
-                    aria-label="Edit chart name and description"
-                    matTooltip="Edit name and description"
+                    [attr.aria-label]="'charts.workspace.editNameDescriptionAria' | translate"
+                    [matTooltip]="'charts.workspace.editNameDescription' | translate"
                     (click)="openChartDetailsDialog()"
                   >
                     <mat-icon>edit</mat-icon>
@@ -250,7 +253,11 @@
                   (click)="toggleConfigureMode()"
                 >
                   <mat-icon>{{ configureMode() ? 'close' : 'tune' }}</mat-icon>
-                  {{ configureMode() ? 'Close configure' : 'Configure chart' }}
+                  {{
+                    (configureMode()
+                      ? 'explorer.closeConfigure'
+                      : 'explorer.configureChart') | translate
+                  }}
                 </button>
                 <button
                   mat-stroked-button
@@ -299,10 +306,10 @@
                   </button>
                   <mat-menu #headerExportMenu="matMenu">
                     <button mat-menu-item type="button" (click)="onExportCsv()">
-                      CSV
+                      {{ 'export.csv' | translate }}
                     </button>
                     <button mat-menu-item type="button" (click)="onExportXlsx()">
-                      Excel
+                      {{ 'export.excel' | translate }}
                     </button>
                   </mat-menu>
                 }
@@ -347,7 +354,7 @@
                     />
                   } @else {
                     <div class="chart-view__panel-empty">
-                      <p>Loading fields for filters…</p>
+                      <p>{{ 'explorer.loadingFilterFields' | translate }}</p>
                     </div>
                   }
                 </mat-expansion-panel>
@@ -365,7 +372,11 @@
                           class="chart-view__configure-inline"
                           (click)="toggleConfigureMode($event)"
                         >
-                          {{ configureMode() ? 'Close configure' : 'Configure' }}
+                          {{
+                            (configureMode()
+                              ? 'explorer.closeConfigure'
+                              : 'explorer.configure') | translate
+                          }}
                         </button>
                       </mat-panel-description>
                     }
@@ -375,7 +386,7 @@
                     @if (queryLoading()) {
                       <div class="chart-view__viz-loading">
                         <mat-spinner diameter="28" />
-                        <span>Running query…</span>
+                        <span>{{ 'charts.workspace.runningQuery' | translate }}</span>
                       </div>
                     } @else if (queryError()) {
                       <div class="chart-view__viz-error">{{ queryError() }}</div>
@@ -384,9 +395,9 @@
                         <mat-icon>bar_chart</mat-icon>
                         <p>
                           @if (editMode()) {
-                            Add a dimension and a metric, then configure axes to visualize.
+                            {{ 'charts.workspace.configureAxesToVisualize' | translate }}
                           } @else {
-                            This chart has no results to visualize.
+                            {{ 'charts.workspace.noResultsToVisualize' | translate }}
                           }
                         </p>
                       </div>
@@ -400,9 +411,9 @@
                         <mat-icon>bar_chart</mat-icon>
                         <p>
                           @if (editMode()) {
-                            Select fields, then click <strong>Run query</strong> to visualize.
+                            {{ 'charts.workspace.selectRunToVisualize' | translate }}
                           } @else {
-                            No chart data yet.
+                            {{ 'charts.workspace.noChartDataYet' | translate }}
                           }
                         </p>
                       </div>
@@ -427,7 +438,7 @@
                           (click)="$event.stopPropagation()"
                         >
                           <mat-icon>download</mat-icon>
-                          Export
+                          {{ 'export.action' | translate }}
                         </button>
                         <mat-menu #resultsExportMenu="matMenu">
                           <button
@@ -435,14 +446,14 @@
                             type="button"
                             (click)="onExportCsv()"
                           >
-                            CSV
+                            {{ 'export.csv' | translate }}
                           </button>
                           <button
                             mat-menu-item
                             type="button"
                             (click)="onExportXlsx()"
                           >
-                            Excel
+                            {{ 'export.excel' | translate }}
                           </button>
                         </mat-menu>
                       </mat-panel-description>
@@ -471,15 +482,18 @@
                   </mat-expansion-panel-header>
 
                   @if (displaySql(); as sql) {
-                    <app-sql-highlight [sql]="sql" ariaLabel="Chart SQL" />
+                    <app-sql-highlight
+                      [sql]="sql"
+                      [ariaLabel]="'explorer.chartSqlAria' | translate"
+                    />
                   } @else if (queryLoading()) {
                     <div class="chart-view__panel-loading">
                       <mat-spinner diameter="24" />
-                      <span>Compiling query…</span>
+                      <span>{{ 'explorer.compilingQuery' | translate }}</span>
                     </div>
                   } @else {
                     <div class="chart-view__panel-empty">
-                      <p>Select dimensions or metrics to generate SQL.</p>
+                      <p>{{ 'explorer.selectFieldsForSql' | translate }}</p>
                     </div>
                   }
                 </mat-expansion-panel>

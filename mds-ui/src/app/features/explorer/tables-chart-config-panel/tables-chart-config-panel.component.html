@@ -49,7 +49,8 @@
                       mat-icon-button
                       type="button"
                       class="tables-chart-config__icon-action"
-                      matTooltip="Flip axes"
+                      [attr.aria-label]="'charts.workspace.flipAxes' | translate"
+                      [matTooltip]="'charts.workspace.flipAxes' | translate"
                       (click)="toggleFlipAxes()"
                     >
                       <mat-icon>swap_horiz</mat-icon>
@@ -71,7 +72,9 @@
                       </mat-select>
                     </mat-form-field>
                   } @else {
-                    <p class="tables-chart-config__hint">Select a dimension to set the X-axis.</p>
+                    <p class="tables-chart-config__hint">
+                      {{ 'charts.workspace.selectDimensionXAxis' | translate }}
+                    </p>
                   }
                 </div>
 
@@ -86,7 +89,7 @@
                         (click)="addYField()"
                       >
                         <mat-icon>add</mat-icon>
-                        Add
+                        {{ 'charts.workspace.add' | translate }}
                       </button>
                     }
                   </div>
@@ -110,7 +113,7 @@
                             mat-icon-button
                             matSuffix
                             type="button"
-                            aria-label="Remove metric"
+                            [attr.aria-label]="'charts.workspace.removeMetric' | translate"
                             (click)="removeYField(index)"
                           >
                             <mat-icon>close</mat-icon>
@@ -119,7 +122,9 @@
                       </mat-form-field>
                     }
                   } @else {
-                    <p class="tables-chart-config__hint">Select a metric to set the Y-axis.</p>
+                    <p class="tables-chart-config__hint">
+                      {{ 'charts.workspace.selectMetricYAxis' | translate }}
+                    </p>
                   }
                 </div>
 
@@ -132,7 +137,7 @@
                       [class.tables-chart-config__segment--active]="displayConfig().stackMode === 'none'"
                       (click)="setStackMode('none')"
                     >
-                      None
+                      {{ 'charts.workspace.none' | translate }}
                     </button>
                     <button
                       type="button"
@@ -140,7 +145,7 @@
                       [class.tables-chart-config__segment--active]="displayConfig().stackMode === 'stack'"
                       (click)="setStackMode('stack')"
                     >
-                      Stack
+                      {{ 'charts.workspace.stack' | translate }}
                     </button>
                     <button
                       type="button"
@@ -148,7 +153,7 @@
                       [class.tables-chart-config__segment--active]="displayConfig().stackMode === 'percent'"
                       (click)="setStackMode('percent')"
                     >
-                      100%
+                      {{ 'charts.workspace.percent' | translate }}
                     </button>
                   </div>
                 </div>
@@ -183,13 +188,18 @@
                     </div>
                   }
                 } @else {
-                  <p class="tables-chart-config__hint">Add metrics in Layout to configure series.</p>
+                  <p class="tables-chart-config__hint">
+                    {{ 'charts.workspace.addMetricsForSeries' | translate }}
+                  </p>
                 }
               }
 
               @case ('axes') {
                 <div class="tables-chart-config__group">
-                  <span class="tables-chart-config__subheading">{{ xAxisHeading() }} label</span>
+                  <span class="tables-chart-config__subheading">{{
+                    'charts.workspace.axisLabel'
+                      | translate: { axis: xAxisHeading() }
+                  }}</span>
                   <mat-form-field appearance="outline" subscriptSizing="dynamic">
                     <mat-label>{{ 'charts.workspace.label' | translate }}</mat-label>
                     <input
@@ -201,7 +211,10 @@
                 </div>
 
                 <div class="tables-chart-config__group">
-                  <span class="tables-chart-config__subheading">{{ yAxisHeading() }} label</span>
+                  <span class="tables-chart-config__subheading">{{
+                    'charts.workspace.axisLabel'
+                      | translate: { axis: yAxisHeading() }
+                  }}</span>
                   <mat-form-field appearance="outline" subscriptSizing="dynamic">
                     <mat-label>{{ 'charts.workspace.label' | translate }}</mat-label>
                     <input
@@ -218,13 +231,13 @@
                     [checked]="displayConfig().showGridX"
                     (change)="patchDisplayConfig({ showGridX: $event.checked })"
                   >
-                    X-axis grid
+                    {{ 'charts.workspace.xAxisGrid' | translate }}
                   </mat-checkbox>
                   <mat-checkbox
                     [checked]="displayConfig().showGridY"
                     (change)="patchDisplayConfig({ showGridY: $event.checked })"
                   >
-                    Y-axis grid
+                    {{ 'charts.workspace.yAxisGrid' | translate }}
                   </mat-checkbox>
                 </div>
 
@@ -234,13 +247,13 @@
                     [checked]="displayConfig().showXAxis"
                     (change)="patchDisplayConfig({ showXAxis: $event.checked })"
                   >
-                    X-axis
+                    {{ 'charts.workspace.xAxis' | translate }}
                   </mat-checkbox>
                   <mat-checkbox
                     [checked]="displayConfig().showYAxis"
                     (change)="patchDisplayConfig({ showYAxis: $event.checked })"
                   >
-                    Y-axis
+                    {{ 'charts.workspace.yAxis' | translate }}
                   </mat-checkbox>
                 </div>
               }
@@ -252,7 +265,7 @@
                     [checked]="displayConfig().showLegend"
                     (change)="patchDisplayConfig({ showLegend: $event.checked })"
                   >
-                    Show legend
+                    {{ 'charts.workspace.showLegend' | translate }}
                   </mat-slide-toggle>
 
                   <span class="tables-chart-config__label">{{ 'charts.workspace.placement' | translate }}</span>
@@ -263,7 +276,7 @@
                       [class.tables-chart-config__segment--active]="displayConfig().legendPlacement === 'chart'"
                       (click)="setLegendPlacement('chart')"
                     >
-                      Chart area
+                      {{ 'charts.workspace.chartArea' | translate }}
                     </button>
                     <button
                       type="button"
@@ -271,7 +284,7 @@
                       [class.tables-chart-config__segment--active]="displayConfig().legendPlacement === 'outside-right'"
                       (click)="setLegendPlacement('outside-right')"
                     >
-                      Outside right
+                      {{ 'charts.workspace.outsideRight' | translate }}
                     </button>
                     <button
                       type="button"
@@ -279,7 +292,7 @@
                       [class.tables-chart-config__segment--active]="displayConfig().legendPlacement === 'outside-left'"
                       (click)="setLegendPlacement('outside-left')"
                     >
-                      Outside left
+                      {{ 'charts.workspace.outsideLeft' | translate }}
                     </button>
                   </div>
                 </div>
@@ -289,7 +302,9 @@
                 <div class="tables-chart-config__margins">
                   @for (side of marginSides; track side) {
                     <mat-form-field appearance="outline" subscriptSizing="dynamic">
-                      <mat-label>{{ side | titlecase }}</mat-label>
+                      <mat-label>{{
+                        ('charts.workspace.margin.' + side) | translate
+                      }}</mat-label>
                       <input
                         matInput
                         type="number"
@@ -335,7 +350,9 @@
                       </mat-select>
                     </mat-form-field>
                   } @else {
-                    <p class="tables-chart-config__hint">Select a dimension to group pie slices.</p>
+                    <p class="tables-chart-config__hint">
+                      {{ 'charts.workspace.selectDimensionPie' | translate }}
+                    </p>
                   }
                 </div>
 
@@ -356,7 +373,9 @@
                       </mat-select>
                     </mat-form-field>
                   } @else {
-                    <p class="tables-chart-config__hint">Select a metric for slice values.</p>
+                    <p class="tables-chart-config__hint">
+                      {{ 'charts.workspace.selectMetricPie' | translate }}
+                    </p>
                   }
                 </div>
 
@@ -386,7 +405,7 @@
                     [checked]="displayConfig().showLegend"
                     (change)="patchDisplayConfig({ showLegend: $event.checked })"
                   >
-                    Show legend
+                    {{ 'charts.workspace.showLegend' | translate }}
                   </mat-slide-toggle>
 
                   <span class="tables-chart-config__label">{{ 'charts.workspace.placement' | translate }}</span>
@@ -397,7 +416,7 @@
                       [class.tables-chart-config__segment--active]="displayConfig().legendPlacement === 'chart'"
                       (click)="setLegendPlacement('chart')"
                     >
-                      Chart area
+                      {{ 'charts.workspace.chartArea' | translate }}
                     </button>
                     <button
                       type="button"
@@ -405,7 +424,7 @@
                       [class.tables-chart-config__segment--active]="displayConfig().legendPlacement === 'outside-right'"
                       (click)="setLegendPlacement('outside-right')"
                     >
-                      Outside right
+                      {{ 'charts.workspace.outsideRight' | translate }}
                     </button>
                     <button
                       type="button"
@@ -413,7 +432,7 @@
                       [class.tables-chart-config__segment--active]="displayConfig().legendPlacement === 'outside-left'"
                       (click)="setLegendPlacement('outside-left')"
                     >
-                      Outside left
+                      {{ 'charts.workspace.outsideLeft' | translate }}
                     </button>
                   </div>
                 </div>
@@ -423,7 +442,9 @@
                 <div class="tables-chart-config__margins">
                   @for (side of marginSides; track side) {
                     <mat-form-field appearance="outline" subscriptSizing="dynamic">
-                      <mat-label>{{ side | titlecase }}</mat-label>
+                      <mat-label>{{
+                        ('charts.workspace.margin.' + side) | translate
+                      }}</mat-label>
                       <input
                         matInput
                         type="number"
@@ -458,13 +479,13 @@
                     [checked]="displayConfig().showTableNames"
                     (change)="patchDisplayConfig({ showTableNames: $event.checked })"
                   >
-                    Show table names
+                    {{ 'charts.workspace.showTableNames' | translate }}
                   </mat-slide-toggle>
                   <mat-slide-toggle
                     [checked]="displayConfig().showColumnTotals"
                     (change)="patchDisplayConfig({ showColumnTotals: $event.checked })"
                   >
-                    Show column totals
+                    {{ 'charts.workspace.showColumnTotals' | translate }}
                   </mat-slide-toggle>
                 </div>
 
@@ -488,7 +509,7 @@
               }
               @default {
                 <p class="tables-chart-config__hint tables-chart-config__hint--disabled">
-                  Available after saving a chart in Lightdash.
+                  {{ 'charts.workspace.availableAfterSave' | translate }}
                 </p>
               }
             }
@@ -514,7 +535,9 @@
           </mat-select>
         </mat-form-field>
       } @else {
-        <p class="tables-chart-config__hint">Select a metric to display as the big value.</p>
+        <p class="tables-chart-config__hint">
+          {{ 'charts.workspace.selectMetricBigValue' | translate }}
+        </p>
       }
     </section>
   } @else if (isFunnelChart()) {
@@ -546,12 +569,16 @@
                       </mat-select>
                     </mat-form-field>
                   } @else {
-                    <p class="tables-chart-config__hint">Select a metric for funnel values.</p>
+                    <p class="tables-chart-config__hint">
+                      {{ 'charts.workspace.selectMetricFunnel' | translate }}
+                    </p>
                   }
                 </div>
 
                 <div class="tables-chart-config__group">
-                  <span class="tables-chart-config__subheading">Label (optional)</span>
+                  <span class="tables-chart-config__subheading">{{
+                    'charts.workspace.optionalLabel' | translate
+                  }}</span>
                   @if (selectedDimensions().length > 0) {
                     <mat-form-field appearance="outline" subscriptSizing="dynamic">
                       <mat-label>{{ 'charts.workspace.dimension' | translate }}</mat-label>
@@ -568,7 +595,9 @@
                       </mat-select>
                     </mat-form-field>
                   } @else {
-                    <p class="tables-chart-config__hint">Select a dimension to label funnel steps.</p>
+                    <p class="tables-chart-config__hint">
+                      {{ 'charts.workspace.selectDimensionFunnel' | translate }}
+                    </p>
                   }
                 </div>
 
@@ -581,7 +610,7 @@
                       [class.tables-chart-config__segment--active]="funnelDataInput() === 'column'"
                       (click)="setFunnelDataInput('column')"
                     >
-                      Column
+                      {{ 'charts.workspace.column' | translate }}
                     </button>
                     <button
                       type="button"
@@ -589,7 +618,7 @@
                       [class.tables-chart-config__segment--active]="funnelDataInput() === 'row'"
                       (click)="setFunnelDataInput('row')"
                     >
-                      Row
+                      {{ 'charts.workspace.row' | translate }}
                     </button>
                   </div>
                 </div>
@@ -620,7 +649,7 @@
                     [checked]="displayConfig().showLegend"
                     (change)="patchDisplayConfig({ showLegend: $event.checked })"
                   >
-                    Show legend
+                    {{ 'charts.workspace.showLegend' | translate }}
                   </mat-slide-toggle>
 
                   <span class="tables-chart-config__label">{{ 'charts.workspace.placement' | translate }}</span>
@@ -631,7 +660,7 @@
                       [class.tables-chart-config__segment--active]="displayConfig().legendPlacement === 'chart'"
                       (click)="setLegendPlacement('chart')"
                     >
-                      Chart area
+                      {{ 'charts.workspace.chartArea' | translate }}
                     </button>
                     <button
                       type="button"
@@ -639,7 +668,7 @@
                       [class.tables-chart-config__segment--active]="displayConfig().legendPlacement === 'outside-right'"
                       (click)="setLegendPlacement('outside-right')"
                     >
-                      Outside right
+                      {{ 'charts.workspace.outsideRight' | translate }}
                     </button>
                     <button
                       type="button"
@@ -647,7 +676,7 @@
                       [class.tables-chart-config__segment--active]="displayConfig().legendPlacement === 'outside-left'"
                       (click)="setLegendPlacement('outside-left')"
                     >
-                      Outside left
+                      {{ 'charts.workspace.outsideLeft' | translate }}
                     </button>
                   </div>
                 </div>
@@ -657,7 +686,9 @@
                   <div class="tables-chart-config__margins">
                     @for (side of marginSides; track side) {
                       <mat-form-field appearance="outline" subscriptSizing="dynamic">
-                        <mat-label>{{ side | titlecase }}</mat-label>
+                        <mat-label>{{
+                          ('charts.workspace.margin.' + side) | translate
+                        }}</mat-label>
                         <input
                           matInput
                           type="number"
@@ -698,7 +729,7 @@
                         (click)="addTreemapDimension()"
                       >
                         <mat-icon>add</mat-icon>
-                        Add
+                        {{ 'charts.workspace.add' | translate }}
                       </button>
                     }
                   </div>
@@ -707,7 +738,10 @@
                     @for (fieldId of treemapDimensionFieldIds(); track fieldId; let index = $index) {
                       <div class="tables-chart-config__series-row">
                         <mat-form-field appearance="outline" subscriptSizing="dynamic">
-                          <mat-label>Dimension {{ index + 1 }}</mat-label>
+                          <mat-label>{{
+                            'charts.workspace.dimensionNumber'
+                              | translate: { number: index + 1 }
+                          }}</mat-label>
                           <mat-select
                             [value]="fieldId"
                             (valueChange)="setTreemapDimensionField(index, $event)"
@@ -722,7 +756,7 @@
                         <button
                           mat-icon-button
                           type="button"
-                          aria-label="Move dimension up"
+                          [attr.aria-label]="'charts.workspace.moveDimensionUp' | translate"
                           [disabled]="index === 0"
                           (click)="moveTreemapDimension(index, -1)"
                         >
@@ -731,7 +765,7 @@
                         <button
                           mat-icon-button
                           type="button"
-                          aria-label="Move dimension down"
+                          [attr.aria-label]="'charts.workspace.moveDimensionDown' | translate"
                           [disabled]="index === treemapDimensionFieldIds().length - 1"
                           (click)="moveTreemapDimension(index, 1)"
                         >
@@ -740,7 +774,7 @@
                         <button
                           mat-icon-button
                           type="button"
-                          aria-label="Remove dimension"
+                          [attr.aria-label]="'charts.workspace.removeDimension' | translate"
                           (click)="removeTreemapDimension(index)"
                         >
                           <mat-icon>close</mat-icon>
@@ -748,7 +782,9 @@
                       </div>
                     }
                   } @else {
-                    <p class="tables-chart-config__hint">Select dimensions to group treemap tiles.</p>
+                    <p class="tables-chart-config__hint">
+                      {{ 'charts.workspace.selectDimensionsTreemap' | translate }}
+                    </p>
                   }
                 </div>
 
@@ -769,7 +805,9 @@
                       </mat-select>
                     </mat-form-field>
                   } @else {
-                    <p class="tables-chart-config__hint">Select a metric for tile size.</p>
+                    <p class="tables-chart-config__hint">
+                      {{ 'charts.workspace.selectMetricTreemap' | translate }}
+                    </p>
                   }
                 </div>
 
@@ -799,7 +837,7 @@
                     [checked]="displayConfig().showLegend"
                     (change)="patchDisplayConfig({ showLegend: $event.checked })"
                   >
-                    Show legend
+                    {{ 'charts.workspace.showLegend' | translate }}
                   </mat-slide-toggle>
                 </div>
 
@@ -808,7 +846,9 @@
                   <div class="tables-chart-config__margins">
                     @for (side of marginSides; track side) {
                       <mat-form-field appearance="outline" subscriptSizing="dynamic">
-                        <mat-label>{{ side | titlecase }}</mat-label>
+                        <mat-label>{{
+                          ('charts.workspace.margin.' + side) | translate
+                        }}</mat-label>
                         <input
                           matInput
                           type="number"
@@ -855,7 +895,9 @@
                       </mat-select>
                     </mat-form-field>
                   } @else {
-                    <p class="tables-chart-config__hint">Select a metric for the gauge value.</p>
+                    <p class="tables-chart-config__hint">
+                      {{ 'charts.workspace.selectMetricGauge' | translate }}
+                    </p>
                   }
                 </div>
 
@@ -911,7 +953,7 @@
                     [checked]="showGaugeLabel()"
                     (change)="setShowGaugeLabel($event.checked)"
                   >
-                    Show label
+                    {{ 'charts.workspace.showLabel' | translate }}
                   </mat-slide-toggle>
                 </div>
 
@@ -920,7 +962,9 @@
                   <div class="tables-chart-config__margins">
                     @for (side of marginSides; track side) {
                       <mat-form-field appearance="outline" subscriptSizing="dynamic">
-                        <mat-label>{{ side | titlecase }}</mat-label>
+                        <mat-label>{{
+                          ('charts.workspace.margin.' + side) | translate
+                        }}</mat-label>
                         <input
                           matInput
                           type="number"
@@ -987,7 +1031,7 @@
                   </mat-form-field>
                   @if (selectedDimensions().length < 2 || selectedMetrics().length < 1) {
                     <p class="tables-chart-config__hint">
-                      Select at least two dimensions and one metric to render a sankey.
+                      {{ 'charts.workspace.selectFieldsSankey' | translate }}
                     </p>
                   }
                 </div>
@@ -1018,7 +1062,7 @@
                     [checked]="showNodeLabels()"
                     (change)="setShowNodeLabels($event.checked)"
                   >
-                    Show node labels
+                    {{ 'charts.workspace.showNodeLabels' | translate }}
                   </mat-slide-toggle>
                 </div>
 
@@ -1027,7 +1071,9 @@
                   <div class="tables-chart-config__margins">
                     @for (side of marginSides; track side) {
                       <mat-form-field appearance="outline" subscriptSizing="dynamic">
-                        <mat-label>{{ side | titlecase }}</mat-label>
+                        <mat-label>{{
+                          ('charts.workspace.margin.' + side) | translate
+                        }}</mat-label>
                         <input
                           matInput
                           type="number"
@@ -1048,7 +1094,7 @@
   } @else {
     <section class="tables-chart-config__section">
       <p class="tables-chart-config__hint">
-        Switch to a bar, line, pie, or table chart for additional configuration options.
+        {{ 'charts.workspace.switchForConfiguration' | translate }}
       </p>
     </section>
   }

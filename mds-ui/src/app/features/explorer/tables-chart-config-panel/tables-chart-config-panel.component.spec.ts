@@ -42,6 +42,7 @@ describe('TablesChartConfigPanelComponent', () => {
           group: 'Group',
           metric: 'Metric',
           dimension: 'Dimension',
+          optionalLabel: 'Optional label',
           orientation: 'Orientation',
           data: 'Data',
           rowLimit: 'Row limit',
@@ -108,7 +109,7 @@ describe('TablesChartConfigPanelComponent', () => {
 
     const text = (fixture.nativeElement as HTMLElement).textContent ?? '';
     expect(text).toContain('Metric');
-    expect(text).toContain('Label (optional)');
+    expect(text).toContain('Optional label');
     expect(text).toContain('Orientation');
     expect(text).toContain('Display');
     expect(text).not.toContain('Funnel field configuration is available in a future update.');

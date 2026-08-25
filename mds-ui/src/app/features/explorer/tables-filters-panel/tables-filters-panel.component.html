@@ -79,7 +79,7 @@
 
         @if (showDraftSecondValue()) {
           <mat-form-field appearance="outline" subscriptSizing="dynamic">
-            <mat-label>To</mat-label>
+            <mat-label>{{ 'explorer.filter.to' | translate }}</mat-label>
             <input
               matInput
               [ngModel]="draftValue2()"
