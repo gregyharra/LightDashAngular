@@ -1,5 +1,31 @@
-/** Internal filter value for dashboards without a space; not a display label. */
-export const SHARED_SPACE_SENTINEL = '\u0000mds.shared';
+export const SHARED_SPACE_FILTER_VALUE = 'mds:shared';
+const NAMED_SPACE_FILTER_VALUE_PREFIX = 'mds:space:';
+
+export function sharedSpaceFilterValue(): string {
+  return SHARED_SPACE_FILTER_VALUE;
+}
+
+export function spaceFilterValue(name: string): string {
+  return `${NAMED_SPACE_FILTER_VALUE_PREFIX}${encodeURIComponent(name)}`;
+}
+
+export function isSharedSpaceFilterValue(value: string): boolean {
+  return value === SHARED_SPACE_FILTER_VALUE;
+}
+
+export function parseSpaceFilterValue(value: string): string | null {
+  if (!value.startsWith(NAMED_SPACE_FILTER_VALUE_PREFIX)) {
+    return null;
+  }
+
+  try {
+    return decodeURIComponent(
+      value.slice(NAMED_SPACE_FILTER_VALUE_PREFIX.length),
+    );
+  } catch {
+    return null;
+  }
+}
 
 export interface TextFilterValue {
   query: string;
@@ -347,17 +373,23 @@ export function getDashboardActiveFilterChips(
   return chips;
 }
 
-export function filterDashboards<T extends { name: string; spaceName?: string; updatedAt: string; views: number }>(
-  items: T[],
-  filters: DashboardColumnFilters,
-  sharedLabel: string,
-): T[] {
+export function filterDashboards<
+  T extends {
+    name: string;
+    spaceName?: string;
+    updatedAt: string;
+    views: number;
+  },
+>(items: T[], filters: DashboardColumnFilters): T[] {
   return items.filter((item) => {
     if (!matchesTextFilter(item.name, filters.name)) {
       return false;
     }
 
-    if (!matchesSelectFilter(item.spaceName ?? sharedLabel, filters.space)) {
+    const spaceValue = item.spaceName
+      ? spaceFilterValue(item.spaceName)
+      : sharedSpaceFilterValue();
+    if (!matchesSelectFilter(spaceValue, filters.space)) {
       return false;
     }
 

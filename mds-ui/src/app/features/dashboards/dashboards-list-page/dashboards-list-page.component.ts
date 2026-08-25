@@ -26,7 +26,10 @@ import {
   filterDashboards,
   getDashboardActiveFilterChips,
   hasActiveDashboardColumnFilters,
-  SHARED_SPACE_SENTINEL,
+  isSharedSpaceFilterValue,
+  parseSpaceFilterValue,
+  sharedSpaceFilterValue,
+  spaceFilterValue,
 } from '../../../ui/content-list-filter.utils';
 
 @Component({
@@ -67,25 +70,24 @@ export class DashboardsListPageComponent {
   });
 
   protected readonly availableSpaces = computed(() =>
-    collectUniqueSpaces(
-      this.dashboards(),
-      (dashboard) => dashboard.spaceName ?? SHARED_SPACE_SENTINEL,
+    collectUniqueSpaces(this.dashboards(), (dashboard) =>
+      dashboard.spaceName
+        ? spaceFilterValue(dashboard.spaceName)
+        : sharedSpaceFilterValue(),
     ),
   );
 
   protected readonly spaceOptions = computed(() =>
     this.availableSpaces().map((space) => ({
       value: space,
-      label: space === SHARED_SPACE_SENTINEL ? this.sharedSpaceLabel() : space,
+      label: isSharedSpaceFilterValue(space)
+        ? this.sharedSpaceLabel()
+        : (parseSpaceFilterValue(space) ?? space),
     })),
   );
 
   protected readonly filteredDashboards = computed(() =>
-    filterDashboards(
-      this.dashboards(),
-      this.columnFilters(),
-      SHARED_SPACE_SENTINEL,
-    ),
+    filterDashboards(this.dashboards(), this.columnFilters()),
   );
 
   protected readonly activeFilterChips = computed(() => {
@@ -178,7 +180,7 @@ export class DashboardsListPageComponent {
   }
 
   protected spaceName(spaceName: string | null | undefined): string {
-    return spaceName ?? this.sharedSpaceLabel();
+    return spaceName || this.sharedSpaceLabel();
   }
 
   protected openDashboard(dashboardUuid: string): void {
