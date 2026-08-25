@@ -1,5 +1,5 @@
 import { COMMA, ENTER } from '@angular/cdk/keycodes';
-import { Component, input, output, signal } from '@angular/core';
+import { Component, inject, input, output, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { MatChipInputEvent, MatChipsModule } from '@angular/material/chips';
@@ -7,6 +7,7 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
+import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { CustomAttributeType } from '../../../../core/models/dictionary.model';
 
 export type AddAttributeDialogResult = {
@@ -16,10 +17,10 @@ export type AddAttributeDialogResult = {
 };
 
 const ATTRIBUTE_TYPE_OPTIONS: { value: CustomAttributeType; label: string }[] = [
-  { value: 'text', label: 'Text' },
-  { value: 'number', label: 'Number' },
-  { value: 'enum', label: 'Enum (fixed choices)' },
-  { value: 'boolean', label: 'Boolean' },
+  { value: 'text', label: 'tables.attributes.types.text' },
+  { value: 'number', label: 'tables.attributes.types.number' },
+  { value: 'enum', label: 'tables.attributes.types.enum' },
+  { value: 'boolean', label: 'tables.attributes.types.boolean' },
 ];
 
 @Component({
@@ -32,11 +33,13 @@ const ATTRIBUTE_TYPE_OPTIONS: { value: CustomAttributeType; label: string }[] = 
     MatIconModule,
     MatInputModule,
     MatSelectModule,
+    TranslatePipe,
   ],
   templateUrl: './add-attribute-dialog.component.html',
   styleUrl: './add-attribute-dialog.component.scss',
 })
 export class AddAttributeDialogComponent {
+  private readonly translate = inject(TranslateService);
   readonly existingNames = input<string[]>([]);
   readonly saved = output<AddAttributeDialogResult>();
   readonly cancelled = output<void>();
@@ -103,7 +106,7 @@ export class AddAttributeDialogComponent {
   protected save(): void {
     const trimmedName = this.name.trim();
     if (!trimmedName) {
-      this.error.set('Name is required.');
+      this.error.set(this.translate.instant('tables.attributes.errors.nameRequired'));
       return;
     }
 
@@ -111,12 +114,12 @@ export class AddAttributeDialogComponent {
       (existing) => existing.toLowerCase() === trimmedName.toLowerCase(),
     );
     if (isDuplicate) {
-      this.error.set('An attribute with this name already exists.');
+      this.error.set(this.translate.instant('tables.attributes.errors.duplicate'));
       return;
     }
 
     if (this.type === 'enum' && this.options.length === 0) {
-      this.error.set('Add at least one option for an enum attribute.');
+      this.error.set(this.translate.instant('tables.attributes.errors.optionRequired'));
       return;
     }
 

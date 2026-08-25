@@ -1,19 +1,21 @@
-<h2 mat-dialog-title>Export {{ formatLabel }}</h2>
+<h2 mat-dialog-title>{{ 'export.dialog.title' | translate: { format: formatLabel } }}</h2>
 
 <mat-dialog-content class="export-dialog__content">
   @if (!showOverrideWarning) {
     <p class="export-dialog__message">
-      Exports are limited to the first {{ csvMaxLimitLabel }} rows.
+      {{ 'export.dialog.limit' | translate: { count: csvMaxLimitLabel } }}
     </p>
   } @else {
     <p class="export-dialog__message export-dialog__message--warning">
-      This can be slow and heavy on the warehouse.
+      {{ 'export.dialog.warning' | translate }}
     </p>
   }
 </mat-dialog-content>
 
 <mat-dialog-actions align="end" class="export-dialog__actions">
-  <button mat-stroked-button type="button" mat-dialog-close>Cancel</button>
+  <button mat-stroked-button type="button" mat-dialog-close>
+    {{ 'common.cancel' | translate }}
+  </button>
 
   @if (!showOverrideWarning) {
     <button
@@ -22,10 +24,10 @@
       data-testid="export-all-rows"
       (click)="startOverrideConfirm()"
     >
-      Export all rows
+      {{ 'export.allRows' | translate }}
     </button>
     <button mat-flat-button color="primary" type="button" (click)="confirmCapped()">
-      Export
+      {{ 'export.action' | translate }}
     </button>
   } @else {
     <button
@@ -35,7 +37,7 @@
       data-testid="confirm-export-all-rows"
       (click)="confirmOverride()"
     >
-      Export all rows
+      {{ 'export.allRows' | translate }}
     </button>
   }
 </mat-dialog-actions>

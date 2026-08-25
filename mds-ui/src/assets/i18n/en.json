@@ -245,9 +245,207 @@
     }
   },
   "explorer": {},
-  "charts": {},
-  "dashboards": {},
-  "tables": {},
+  "charts": {
+    "title": "Charts",
+    "all": "All charts",
+    "create": "Create chart",
+    "empty": "No charts yet.",
+    "notFound": "No charts found.",
+    "noFilterMatches": "No charts match your filters.",
+    "search": "Search charts…",
+    "loadError": "Failed to load charts.",
+    "openError": "Unable to open this chart. Try refreshing the page.",
+    "browseNavigation": "Browse navigation",
+    "breadcrumb": "Breadcrumb",
+    "content": "Content",
+    "explore": "Explore",
+    "fields": {
+      "name": "Name",
+      "type": "Type",
+      "table": "Table",
+      "space": "Space",
+      "lastEdited": "Last edited",
+      "views": "Views"
+    },
+    "types": {
+      "bar": "Bar",
+      "horizontalBar": "Horizontal bar",
+      "line": "Line",
+      "pie": "Pie",
+      "table": "Table"
+    }
+  },
+  "dashboards": {
+    "title": "Dashboards",
+    "all": "All dashboards",
+    "empty": "No dashboards yet.",
+    "notFound": "No dashboards found.",
+    "noFilterMatches": "No dashboards match your filters.",
+    "search": "Search dashboards…",
+    "loadError": "Failed to load dashboards.",
+    "shared": "Shared",
+    "browseNavigation": "Browse navigation",
+    "breadcrumb": "Breadcrumb",
+    "content": "Content",
+    "explore": "Explore",
+    "fields": {
+      "name": "Name",
+      "description": "Description",
+      "space": "Space",
+      "lastEdited": "Last edited",
+      "views": "Views"
+    },
+    "create": {
+      "action": "Create dashboard",
+      "subtitle": "Add a new dashboard to organize charts and insights.",
+      "name": "Dashboard name"
+    }
+  },
+  "tables": {
+    "title": "Tables",
+    "lineage": "Lineage",
+    "content": "Content",
+    "explore": "Explore",
+    "exploreData": "Explore data",
+    "browseNavigation": "Browse navigation",
+    "search": "Search tables…",
+    "searchModels": "Search models…",
+    "noModelsMatch": "No models match your search",
+    "dbtTree": "dbt project folder tree",
+    "selectModel": "Select a model to view documentation, columns, lineage, and SQL.",
+    "loadError": "Failed to load tables.",
+    "detailsLoadError": "Failed to load table details.",
+    "docQuality": "Doc quality {{score}}%",
+    "quality": "quality {{score}}%",
+    "documentationSummary": "Models documented {{modelsDescribed}}/{{modelsTotal}} · Columns {{columnsDescribed}}/{{columnsTotal}}",
+    "unset": "Unset",
+    "removeTag": "Remove tag {{tag}}",
+    "addTagPlaceholder": "Add tag and press Enter",
+    "saveOverview": "Save overview",
+    "filterNames": "Filter names…",
+    "filterDescriptions": "Filter descriptions…",
+    "filterValues": "Filter values…",
+    "noColumnsMatch": "No columns match your filters.",
+    "descriptionFor": "Description for {{name}}",
+    "attributeFor": "{{attribute}} for {{column}}",
+    "lineageHint": "Focused lineage for this model. Expand hops or switch to columns view in the graph toolbar.",
+    "openFullLineage": "Open full project lineage",
+    "lineageUnavailable": "Lineage graph is unavailable for this project.",
+    "sqlView": "SQL view",
+    "compiled": "Compiled",
+    "uncompiled": "Uncompiled",
+    "compiledUnavailable": "Compiled SQL is unavailable for this model. Run",
+    "generateCompiled": "to generate it.",
+    "modelSql": "Model SQL",
+    "noSql": "No SQL available for this model.",
+    "tabs": {
+      "overview": "Overview",
+      "columns": "Columns",
+      "links": "Links",
+      "sql": "SQL"
+    },
+    "fields": {
+      "name": "Name",
+      "type": "Type",
+      "description": "Description",
+      "tags": "Tags",
+      "materialization": "Materialization",
+      "package": "Package",
+      "catalog": "Catalog",
+      "transformation": "Transformation"
+    },
+    "attributes": {
+      "add": "Add attribute",
+      "hint": "Add custom attributes to capture extra metadata per column.",
+      "options": "Options",
+      "enumOptions": "Enum options",
+      "removeOption": "Remove option {{option}}",
+      "optionPlaceholder": "Add option and press Enter",
+      "deleteLabel": "Delete attribute {{name}}",
+      "deleteConfirm": "Delete the \"{{name}}\" attribute? This removes its values from every column.",
+      "types": {
+        "text": "Text",
+        "number": "Number",
+        "enum": "Enum (fixed choices)",
+        "boolean": "Boolean"
+      },
+      "errors": {
+        "nameRequired": "Name is required.",
+        "duplicate": "An attribute with this name already exists.",
+        "optionRequired": "Add at least one option for an enum attribute."
+      }
+    },
+    "links": {
+      "hubHint": "Joins available when exploring this model in Charts. Custom links work from either model.",
+      "projectHint": "All explore joins for this project — from dbt meta and custom overrides. Custom links work from either model.",
+      "add": "Add link",
+      "addTitle": "Add table link",
+      "edit": "Edit",
+      "editTitle": "Edit table link",
+      "delete": "Delete",
+      "deleteTitle": "Delete table link",
+      "deleteMessage": "Delete the link {{source}} → {{target}}?",
+      "search": "Search links…",
+      "clearSearch": "Clear search",
+      "loading": "Loading links…",
+      "noMatches": "No links match your search.",
+      "empty": "No links yet.",
+      "sourceTitle": "Source — {{name}}",
+      "currentModelColumn": "Column on the current model",
+      "filterSourceColumns": "Filter source columns",
+      "filterTargetColumns": "Filter target columns",
+      "sourceColumns": "Source columns",
+      "targetColumns": "Target columns",
+      "joinType": "Join type",
+      "optionalLabel": "Label (optional)",
+      "sqlPreview": "Join SQL preview",
+      "saveChanges": "Save changes",
+      "save": "Save link",
+      "fields": {
+        "sourceModel": "Source model",
+        "sourceColumn": "Source column",
+        "targetModel": "Target model",
+        "targetColumn": "Target column",
+        "join": "Join",
+        "relationship": "Relationship",
+        "label": "Label",
+        "origin": "Origin"
+      },
+      "origins": {
+        "dbt": "dbt meta",
+        "custom": "custom"
+      },
+      "joinTypes": {
+        "left": "Left join",
+        "inner": "Inner join",
+        "right": "Right join",
+        "full": "Full join"
+      },
+      "relationships": {
+        "manyToOne": "Many to one",
+        "oneToMany": "One to many",
+        "oneToOne": "One to one"
+      },
+      "errors": {
+        "modelsRequired": "Select source and target models.",
+        "columnsRequired": "Select a column on each side.",
+        "modelsDiffer": "Source and target model must differ."
+      }
+    }
+  },
   "lineage": {},
-  "export": {}
+  "export": {
+    "action": "Export",
+    "allRows": "Export all rows",
+    "startError": "Failed to start export.",
+    "failed": "Export failed.",
+    "truncated": "File contains the first {{count}} rows.",
+    "downloadHint": "If the download did not start, try again.",
+    "downloadFile": "Download file",
+    "dialog": {
+      "title": "Export {{format}}",
+      "limit": "Exports are limited to the first {{count}} rows.",
+      "warning": "This can be slow and heavy on the warehouse."
+    }
+  }
 }

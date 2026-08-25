@@ -44,6 +44,8 @@ export type StartExportOptions = {
   format: ExportFormat;
   csvMaxLimit: number;
   filenameBase: string;
+  formatNumber: (value: number, options?: Intl.NumberFormatOptions) => string;
+  translate: (key: string, params?: Record<string, unknown>) => string;
   overrideRowCap?: boolean;
   skipDialog?: boolean;
 };
@@ -92,7 +94,11 @@ function runExportJob(opts: StartExportOptions, overrideRowCap: boolean): Observ
         );
       }),
       catchError((err) => {
-        openSnackbar(opts, apiErrorMessage(err, 'Failed to start export.'), 'Dismiss');
+        openSnackbar(
+          opts,
+          apiErrorMessage(err, opts.translate('export.startError')),
+          opts.translate('common.dismiss'),
+        );
         return EMPTY;
       }),
     );
@@ -104,7 +110,11 @@ function handlePollResult(
   fileUrl: string,
 ): void {
   if (poll.status === 'error') {
-    openSnackbar(opts, poll.error?.trim() || 'Export failed.', 'Dismiss');
+    openSnackbar(
+      opts,
+      poll.error?.trim() || opts.translate('export.failed'),
+      opts.translate('common.dismiss'),
+    );
     return;
   }
 
@@ -114,8 +124,12 @@ function handlePollResult(
 
   if (poll.truncated) {
     opts.exportService.startBrowserDownload(fileUrl);
-    const n = (poll.rowCount ?? opts.csvMaxLimit).toLocaleString('en-US');
-    openSnackbar(opts, `File contains the first ${n} rows.`, 'Export all rows')
+    const n = opts.formatNumber(poll.rowCount ?? opts.csvMaxLimit);
+    openSnackbar(
+      opts,
+      opts.translate('export.truncated', { count: n }),
+      opts.translate('export.allRows'),
+    )
       .onAction()
       .subscribe(() => {
         startExport({ ...opts, overrideRowCap: true, skipDialog: true });
@@ -123,7 +137,11 @@ function handlePollResult(
     return;
   }
 
-  openSnackbar(opts, 'If the download did not start, try again.', 'Download file')
+  openSnackbar(
+    opts,
+    opts.translate('export.downloadHint'),
+    opts.translate('export.downloadFile'),
+  )
     .onAction()
     .subscribe(() => {
       opts.exportService.startBrowserDownload(fileUrl);

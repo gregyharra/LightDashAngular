@@ -1,4 +1,3 @@
-import { DecimalPipe } from '@angular/common';
 import { Component, inject } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
 import {
@@ -6,6 +5,8 @@ import {
   MatDialogModule,
   MatDialogRef,
 } from '@angular/material/dialog';
+import { TranslatePipe } from '@ngx-translate/core';
+import { LanguageService } from '../../core/i18n/language.service';
 import { ExportFormat } from './export.models';
 
 export type ExportDialogData = {
@@ -18,11 +19,12 @@ export type ExportDialogResult = { overrideRowCap: boolean } | undefined;
 
 @Component({
   selector: 'app-export-dialog',
-  imports: [DecimalPipe, MatButtonModule, MatDialogModule],
+  imports: [MatButtonModule, MatDialogModule, TranslatePipe],
   templateUrl: './export-dialog.component.html',
   styleUrl: './export-dialog.component.scss',
 })
 export class ExportDialogComponent {
+  private readonly language = inject(LanguageService);
   private readonly dialogRef = inject(
     MatDialogRef<ExportDialogComponent, ExportDialogResult>,
   );
@@ -35,7 +37,7 @@ export class ExportDialogComponent {
   }
 
   protected get csvMaxLimitLabel(): string {
-    return this.data.csvMaxLimit.toLocaleString('en-US');
+    return this.language.formatNumber(this.data.csvMaxLimit);
   }
 
   protected startOverrideConfirm(): void {

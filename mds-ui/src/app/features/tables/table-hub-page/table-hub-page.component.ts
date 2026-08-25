@@ -8,6 +8,7 @@ import { MatChipInputEvent, MatChipsModule } from '@angular/material/chips';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { Observable, forkJoin, of } from 'rxjs';
 import { ActiveProjectService } from '../../../core/services/active-project.service';
 import { explorePath, isExploreableLineageNode } from '../../explorer/explore-routes';
@@ -43,7 +44,6 @@ import { ResizableSidebarDirective } from '../../../layout/resizable-sidebar/res
 import { DictionaryService } from '../dictionary.service';
 import { FilterableLinksTableComponent } from '../filterable-links-table/filterable-links-table.component';
 import { LinkDialogComponent } from '../link-dialog/link-dialog.component';
-import { modelJoinDeleteMessage } from '../model-links.utils';
 import { ModelJoinsService } from '../model-joins.service';
 import {
   LinkDialogSavePayload,
@@ -122,6 +122,7 @@ const ENABLE_TABLE_HUB_TAG_EDITING = false;
     MatDialogModule,
     MatIconModule,
     MatProgressSpinnerModule,
+    TranslatePipe,
     AddAttributeDialogComponent,
     ContentListColumnHeaderComponent,
     FilterableLinksTableComponent,
@@ -144,6 +145,7 @@ export class TableHubPageComponent {
   private readonly dialog = inject(MatDialog);
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
+  private readonly translate = inject(TranslateService);
   protected readonly activeProjectService = inject(ActiveProjectService);
 
   protected readonly projectUuid = signal<string | null>(null);
@@ -334,7 +336,7 @@ export class TableHubPageComponent {
         this.loadEntry(projectUuid, tableId);
       },
       error: (err) => {
-        this.error.set(apiErrorMessage(err, 'Failed to load tables.'));
+        this.error.set(apiErrorMessage(err, this.translate.instant('tables.loadError')));
         this.loading.set(false);
       },
     });
@@ -366,7 +368,7 @@ export class TableHubPageComponent {
         }
       },
       error: (err) => {
-        this.entryError.set(apiErrorMessage(err, 'Failed to load table details.'));
+        this.entryError.set(apiErrorMessage(err, this.translate.instant('tables.detailsLoadError')));
         this.entryLoading.set(false);
       },
     });
@@ -432,9 +434,12 @@ export class TableHubPageComponent {
       .open(ConfirmDialogComponent, {
         width: '28rem',
         data: {
-          title: 'Delete table link',
-          message: modelJoinDeleteMessage(link),
-          confirmLabel: 'Delete',
+          title: this.translate.instant('tables.links.deleteTitle'),
+          message: this.translate.instant('tables.links.deleteMessage', {
+            source: `${link.sourceModelName}.${link.sourceColumn}`,
+            target: `${link.targetModelName}.${link.targetColumn}`,
+          }),
+          confirmLabel: this.translate.instant('common.delete'),
         },
       })
       .afterClosed()
@@ -592,7 +597,10 @@ export class TableHubPageComponent {
 
   protected attributeFilterOptions(attr: CustomAttributeDef): SelectOption[] {
     if (attr.type === 'boolean') {
-      return BOOLEAN_ATTRIBUTE_FILTER_OPTIONS;
+      return BOOLEAN_ATTRIBUTE_FILTER_OPTIONS.map((option) => ({
+        ...option,
+        label: option.value === '' ? this.translate.instant('tables.unset') : option.label,
+      }));
     }
     if (attr.type === 'enum') {
       return (attr.options ?? []).map((option) => ({ value: option, label: option }));
@@ -722,7 +730,7 @@ export class TableHubPageComponent {
     }
     if (
       !confirm(
-        `Delete the "${def.name}" attribute? This removes its values from every column.`,
+        this.translate.instant('tables.attributes.deleteConfirm', { name: def.name }),
       )
     ) {
       return;

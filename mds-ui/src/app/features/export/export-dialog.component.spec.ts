@@ -6,15 +6,21 @@ import {
   MatDialogRef,
 } from '@angular/material/dialog';
 import {
+  provideTranslateService,
+  TranslateService,
+} from '@ngx-translate/core';
+import {
   ExportDialogComponent,
   ExportDialogData,
 } from './export-dialog.component';
+import { LanguageService } from '../../core/i18n/language.service';
 
 describe('ExportDialogComponent', () => {
   let fixture: ComponentFixture<ExportDialogComponent>;
   let dialogRef: jasmine.SpyObj<
     MatDialogRef<ExportDialogComponent, { overrideRowCap: boolean } | undefined>
   >;
+  let languageService: jasmine.SpyObj<LanguageService>;
 
   const dialogData: ExportDialogData = {
     format: 'csv',
@@ -24,22 +30,42 @@ describe('ExportDialogComponent', () => {
 
   beforeEach(async () => {
     dialogRef = jasmine.createSpyObj('MatDialogRef', ['close']);
+    languageService = jasmine.createSpyObj('LanguageService', ['formatNumber']);
+    languageService.formatNumber.and.returnValue('5\u202f000\u202f000');
 
     await TestBed.configureTestingModule({
       imports: [ExportDialogComponent, NoopAnimationsModule],
       providers: [
         { provide: MatDialogRef, useValue: dialogRef },
         { provide: MAT_DIALOG_DATA, useValue: dialogData },
+        { provide: LanguageService, useValue: languageService },
+        provideTranslateService(),
       ],
     }).compileComponents();
+
+    const translate = TestBed.inject(TranslateService);
+    translate.setTranslation('en', {
+      common: { cancel: 'Cancel' },
+      export: {
+        action: 'Export',
+        allRows: 'Export all rows',
+        dialog: {
+          title: 'Export {{format}}',
+          limit: 'Exports are limited to the first {{count}} rows.',
+          warning: 'This can be slow and heavy on the warehouse.',
+        },
+      },
+    });
+    translate.use('en');
 
     fixture = TestBed.createComponent(ExportDialogComponent);
     fixture.detectChanges();
   });
 
-  it('creates with csvMaxLimit from dialog data', () => {
+  it('formats csvMaxLimit with the LanguageService locale', () => {
     expect(fixture.componentInstance).toBeTruthy();
-    expect(fixture.nativeElement.textContent).toContain('5,000,000');
+    expect(languageService.formatNumber).toHaveBeenCalledWith(5_000_000);
+    expect(fixture.nativeElement.textContent).toContain('5\u202f000\u202f000');
   });
 
   it('confirmCapped closes with overrideRowCap false', () => {

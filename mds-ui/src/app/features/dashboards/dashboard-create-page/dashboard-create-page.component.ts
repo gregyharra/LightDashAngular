@@ -7,6 +7,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatSelectModule } from '@angular/material/select';
+import { TranslatePipe } from '@ngx-translate/core';
 import { apiErrorMessage } from '../../../core/api/lightdash-api.service';
 import { Space } from '../../../core/models/space.model';
 import { ActiveProjectService } from '../../../core/services/active-project.service';
@@ -25,6 +26,7 @@ import { ResizableSidebarDirective } from '../../../layout/resizable-sidebar/res
     MatInputModule,
     MatProgressSpinnerModule,
     MatSelectModule,
+    TranslatePipe,
     ResizableSidebarDirective,
   ],
   templateUrl: './dashboard-create-page.component.html',

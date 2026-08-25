@@ -13,9 +13,9 @@
   >
     <h2 id="link-dialog-title" class="link-dialog__title">
       @if (isEdit()) {
-        Edit table link
+        {{ 'tables.links.editTitle' | translate }}
       } @else {
-        Add table link
+        {{ 'tables.links.addTitle' | translate }}
       }
     </h2>
 
@@ -24,7 +24,7 @@
         <section class="link-dialog__side">
           @if (mode() === 'project') {
             <mat-form-field appearance="outline" class="link-dialog__field">
-              <mat-label>Source model</mat-label>
+              <mat-label>{{ 'tables.links.fields.sourceModel' | translate }}</mat-label>
               <input
                 matInput
                 [ngModel]="sourceModelSearch()"
@@ -42,13 +42,17 @@
             </mat-form-field>
           } @else {
             @if (selectedSourceModel(); as source) {
-              <p class="link-dialog__side-title">Source — {{ source.name }}</p>
-              <p class="link-dialog__side-hint">Column on the current model</p>
+              <p class="link-dialog__side-title">
+                {{ 'tables.links.sourceTitle' | translate: { name: source.name } }}
+              </p>
+              <p class="link-dialog__side-hint">
+                {{ 'tables.links.currentModelColumn' | translate }}
+              </p>
             }
           }
 
           <mat-form-field appearance="outline" class="link-dialog__field">
-            <mat-label>Filter source columns</mat-label>
+            <mat-label>{{ 'tables.links.filterSourceColumns' | translate }}</mat-label>
             <input
               matInput
               [ngModel]="sourceColumnFilter()"
@@ -56,7 +60,10 @@
             />
           </mat-form-field>
 
-          <ul class="link-dialog__column-list" aria-label="Source columns">
+          <ul
+            class="link-dialog__column-list"
+            [attr.aria-label]="'tables.links.sourceColumns' | translate"
+          >
             @for (column of filteredSourceColumns(); track column.name) {
               <li>
                 <button
@@ -75,7 +82,7 @@
 
         <section class="link-dialog__side">
           <mat-form-field appearance="outline" class="link-dialog__field">
-            <mat-label>Target model</mat-label>
+            <mat-label>{{ 'tables.links.fields.targetModel' | translate }}</mat-label>
             <input
               matInput
               [ngModel]="targetModelSearch()"
@@ -93,7 +100,7 @@
           </mat-form-field>
 
           <mat-form-field appearance="outline" class="link-dialog__field">
-            <mat-label>Filter target columns</mat-label>
+            <mat-label>{{ 'tables.links.filterTargetColumns' | translate }}</mat-label>
             <input
               matInput
               [ngModel]="targetColumnFilter()"
@@ -101,7 +108,10 @@
             />
           </mat-form-field>
 
-          <ul class="link-dialog__column-list" aria-label="Target columns">
+          <ul
+            class="link-dialog__column-list"
+            [attr.aria-label]="'tables.links.targetColumns' | translate"
+          >
             @for (column of filteredTargetColumns(); track column.name) {
               <li>
                 <button
@@ -121,31 +131,34 @@
 
       <div class="link-dialog__meta">
         <mat-form-field appearance="outline" class="link-dialog__field">
-          <mat-label>Join type</mat-label>
+          <mat-label>{{ 'tables.links.joinType' | translate }}</mat-label>
           <mat-select [(ngModel)]="joinType">
             @for (option of joinTypeOptions; track option.value) {
-              <mat-option [value]="option.value">{{ option.label }}</mat-option>
+              <mat-option [value]="option.value">{{ option.label | translate }}</mat-option>
             }
           </mat-select>
         </mat-form-field>
 
         <mat-form-field appearance="outline" class="link-dialog__field">
-          <mat-label>Relationship</mat-label>
+          <mat-label>{{ 'tables.links.fields.relationship' | translate }}</mat-label>
           <mat-select [(ngModel)]="relationship">
             @for (option of relationshipOptions; track option.value) {
-              <mat-option [value]="option.value">{{ option.label }}</mat-option>
+              <mat-option [value]="option.value">{{ option.label | translate }}</mat-option>
             }
           </mat-select>
         </mat-form-field>
 
         <mat-form-field appearance="outline" class="link-dialog__field">
-          <mat-label>Label (optional)</mat-label>
+          <mat-label>{{ 'tables.links.optionalLabel' | translate }}</mat-label>
           <input matInput [(ngModel)]="label" />
         </mat-form-field>
       </div>
 
       @if (sqlPreview()) {
-        <pre class="link-dialog__preview" aria-label="Join SQL preview">{{ sqlPreview() }}</pre>
+        <pre
+          class="link-dialog__preview"
+          [attr.aria-label]="'tables.links.sqlPreview' | translate"
+        >{{ sqlPreview() }}</pre>
       }
 
       @if (error()) {
@@ -154,12 +167,14 @@
     </div>
 
     <div class="link-dialog__actions">
-      <button mat-stroked-button type="button" (click)="cancel()">Cancel</button>
+      <button mat-stroked-button type="button" (click)="cancel()">
+        {{ 'common.cancel' | translate }}
+      </button>
       <button mat-flat-button type="button" (click)="save()">
         @if (isEdit()) {
-          Save changes
+          {{ 'tables.links.saveChanges' | translate }}
         } @else {
-          Save link
+          {{ 'tables.links.save' | translate }}
         }
       </button>
     </div>

@@ -3,6 +3,7 @@ import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { ActiveProjectService } from '../../../core/services/active-project.service';
 import { ApiErrorService } from '../../../core/api/api-error.service';
 import { DashboardBasicDetailsWithTileTypes } from '../../../core/models/dashboard.model';
@@ -33,6 +34,7 @@ import {
     MatButtonModule,
     MatIconModule,
     MatProgressSpinnerModule,
+    TranslatePipe,
     ResizableSidebarDirective,
     ContentListColumnHeaderComponent,
     ContentListFilterChipsComponent,
@@ -45,6 +47,7 @@ export class DashboardsListPageComponent {
   private readonly apiErrorService = inject(ApiErrorService);
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
+  private readonly translate = inject(TranslateService);
   protected readonly activeProjectService = inject(ActiveProjectService);
 
   protected readonly projectUuid = signal<string | null>(null);
@@ -56,7 +59,10 @@ export class DashboardsListPageComponent {
   );
 
   protected readonly availableSpaces = computed(() =>
-    collectUniqueSpaces(this.dashboards(), (dashboard) => dashboard.spaceName ?? 'Shared'),
+    collectUniqueSpaces(
+      this.dashboards(),
+      (dashboard) => dashboard.spaceName ?? this.translate.instant('dashboards.shared'),
+    ),
   );
 
   protected readonly spaceOptions = computed(() =>
@@ -99,7 +105,9 @@ export class DashboardsListPageComponent {
         this.loading.set(false);
       },
       error: (err) => {
-        this.error.set(this.apiErrorService.showTransient(err, 'Failed to load dashboards.'));
+        this.error.set(
+          this.apiErrorService.showTransient(err, this.translate.instant('dashboards.loadError')),
+        );
         this.loading.set(false);
       },
     });
@@ -142,6 +150,10 @@ export class DashboardsListPageComponent {
       month: 'short',
       day: 'numeric',
     });
+  }
+
+  protected spaceName(spaceName: string | null | undefined): string {
+    return spaceName ?? this.translate.instant('dashboards.shared');
   }
 
   protected openDashboard(dashboardUuid: string): void {

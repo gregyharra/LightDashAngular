@@ -2,48 +2,48 @@
   <aside class="page-layout__sidebar" appResizableSidebar>
     <div class="page-sidebar">
       <header class="page-sidebar__header">
-        <p class="page-sidebar__breadcrumb">Browse</p>
+        <p class="page-sidebar__breadcrumb">{{ 'nav.browse' | translate }}</p>
         @if (activeProjectService.activeProject(); as project) {
           <p class="page-sidebar__org">{{ project.name }}</p>
         }
       </header>
 
-      <nav class="page-sidebar__nav" aria-label="Browse navigation">
-        <p class="page-sidebar__section-label">Content</p>
+      <nav class="page-sidebar__nav" [attr.aria-label]="'dashboards.browseNavigation' | translate">
+        <p class="page-sidebar__section-label">{{ 'dashboards.content' | translate }}</p>
         <a
           class="page-sidebar__link page-sidebar__link--clickable"
           [routerLink]="['/projects', projectUuid(), 'explore']"
         >
           <mat-icon>search</mat-icon>
-          Explore
+          {{ 'dashboards.explore' | translate }}
         </a>
         <a
           class="page-sidebar__link page-sidebar__link--active page-sidebar__link--clickable"
           [routerLink]="['/projects', projectUuid(), 'dashboards']"
         >
           <mat-icon>dashboard</mat-icon>
-          Dashboards
+          {{ 'dashboards.title' | translate }}
         </a>
         <a
           class="page-sidebar__link page-sidebar__link--clickable"
           [routerLink]="['/projects', projectUuid(), 'charts']"
         >
           <mat-icon>bar_chart</mat-icon>
-          Charts
+          {{ 'charts.title' | translate }}
         </a>
         <a
           class="page-sidebar__link page-sidebar__link--clickable"
           [routerLink]="['/projects', projectUuid(), 'tables']"
         >
           <mat-icon>table_chart</mat-icon>
-          Tables
+          {{ 'tables.title' | translate }}
         </a>
         <a
           class="page-sidebar__link page-sidebar__link--clickable"
           [routerLink]="['/projects', projectUuid(), 'lineage']"
         >
           <mat-icon>account_tree</mat-icon>
-          Lineage
+          {{ 'tables.lineage' | translate }}
         </a>
       </nav>
     </div>
@@ -53,10 +53,17 @@
     <section class="dashboards-list">
       <div class="page__container page__container--wide">
         <header class="dashboards-list__header page-header__toolbar">
-          <nav class="dashboards-list__breadcrumbs" aria-label="Breadcrumb">
-            <a routerLink="/projects" class="dashboards-list__breadcrumb-link">Home</a>
+          <nav
+            class="dashboards-list__breadcrumbs"
+            [attr.aria-label]="'dashboards.breadcrumb' | translate"
+          >
+            <a routerLink="/projects" class="dashboards-list__breadcrumb-link">
+              {{ 'nav.home' | translate }}
+            </a>
             <mat-icon>chevron_right</mat-icon>
-            <span class="dashboards-list__breadcrumb-current">All dashboards</span>
+            <span class="dashboards-list__breadcrumb-current">
+              {{ 'dashboards.all' | translate }}
+            </span>
           </nav>
 
           <button
@@ -65,11 +72,11 @@
             (click)="openCreatePage()"
           >
             <mat-icon>add</mat-icon>
-            Create dashboard
+            {{ 'dashboards.create.action' | translate }}
           </button>
         </header>
 
-        <h1 class="dashboards-list__title">Dashboards</h1>
+        <h1 class="dashboards-list__title">{{ 'dashboards.title' | translate }}</h1>
 
         @if (loading()) {
           <div class="dashboards-list__loading">
@@ -80,10 +87,10 @@
         } @else if (dashboards().length === 0) {
           <div class="dashboards-list__empty">
             <mat-icon>dashboard</mat-icon>
-            <p>No dashboards yet.</p>
+            <p>{{ 'dashboards.empty' | translate }}</p>
             <button mat-flat-button class="dashboards-list__create-btn" (click)="openCreatePage()">
               <mat-icon>add</mat-icon>
-              Create dashboard
+              {{ 'dashboards.create.action' | translate }}
             </button>
           </div>
         } @else {
@@ -98,9 +105,9 @@
               <mat-icon>search_off</mat-icon>
               <p>
                 @if (hasActiveFilters()) {
-                  No dashboards match your filters.
+                  {{ 'dashboards.noFilterMatches' | translate }}
                 } @else {
-                  No dashboards found.
+                  {{ 'dashboards.notFound' | translate }}
                 }
               </p>
             </div>
@@ -111,16 +118,16 @@
                 <tr>
                   <th scope="col">
                     <app-content-list-column-header
-                      label="Name"
+                      [label]="'dashboards.fields.name' | translate"
                       filterType="text"
-                      textPlaceholder="Search dashboards…"
+                      [textPlaceholder]="'dashboards.search' | translate"
                       [value]="columnFilters().name"
                       (valueChange)="updateColumnFilter('name', $event)"
                     />
                   </th>
                   <th scope="col">
                     <app-content-list-column-header
-                      label="Space"
+                      [label]="'dashboards.fields.space' | translate"
                       filterType="select"
                       [options]="spaceOptions()"
                       [value]="columnFilters().space"
@@ -129,7 +136,7 @@
                   </th>
                   <th scope="col">
                     <app-content-list-column-header
-                      label="Last edited"
+                      [label]="'dashboards.fields.lastEdited' | translate"
                       filterType="date"
                       [value]="columnFilters().lastEdited"
                       (valueChange)="updateColumnFilter('lastEdited', $event)"
@@ -137,7 +144,7 @@
                   </th>
                   <th scope="col">
                     <app-content-list-column-header
-                      label="Views"
+                      [label]="'dashboards.fields.views' | translate"
                       filterType="number"
                       [value]="columnFilters().views"
                       (valueChange)="updateColumnFilter('views', $event)"
@@ -167,7 +174,7 @@
                         </div>
                       </div>
                     </td>
-                    <td>{{ dashboard.spaceName ?? 'Shared' }}</td>
+                    <td>{{ spaceName(dashboard.spaceName) }}</td>
                     <td>{{ formatDate(dashboard.updatedAt) }}</td>
                     <td>{{ dashboard.views }}</td>
                   </tr>

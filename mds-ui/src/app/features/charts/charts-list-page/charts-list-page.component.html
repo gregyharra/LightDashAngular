@@ -2,48 +2,48 @@
   <aside class="page-layout__sidebar" appResizableSidebar>
     <div class="page-sidebar">
       <header class="page-sidebar__header">
-        <p class="page-sidebar__breadcrumb">Browse</p>
+        <p class="page-sidebar__breadcrumb">{{ 'nav.browse' | translate }}</p>
         @if (activeProjectService.activeProject(); as project) {
           <p class="page-sidebar__org">{{ project.name }}</p>
         }
       </header>
 
-      <nav class="page-sidebar__nav" aria-label="Browse navigation">
-        <p class="page-sidebar__section-label">Content</p>
+      <nav class="page-sidebar__nav" [attr.aria-label]="'charts.browseNavigation' | translate">
+        <p class="page-sidebar__section-label">{{ 'charts.content' | translate }}</p>
         <a
           class="page-sidebar__link page-sidebar__link--clickable"
           [routerLink]="['/projects', projectUuid(), 'explore']"
         >
           <mat-icon>search</mat-icon>
-          Explore
+          {{ 'charts.explore' | translate }}
         </a>
         <a
           class="page-sidebar__link page-sidebar__link--clickable"
           [routerLink]="['/projects', projectUuid(), 'dashboards']"
         >
           <mat-icon>dashboard</mat-icon>
-          Dashboards
+          {{ 'dashboards.title' | translate }}
         </a>
         <a
           class="page-sidebar__link page-sidebar__link--active page-sidebar__link--clickable"
           [routerLink]="['/projects', projectUuid(), 'charts']"
         >
           <mat-icon>bar_chart</mat-icon>
-          Charts
+          {{ 'charts.title' | translate }}
         </a>
         <a
           class="page-sidebar__link page-sidebar__link--clickable"
           [routerLink]="['/projects', projectUuid(), 'tables']"
         >
           <mat-icon>table_chart</mat-icon>
-          Tables
+          {{ 'tables.title' | translate }}
         </a>
         <a
           class="page-sidebar__link page-sidebar__link--clickable"
           [routerLink]="['/projects', projectUuid(), 'lineage']"
         >
           <mat-icon>account_tree</mat-icon>
-          Lineage
+          {{ 'tables.lineage' | translate }}
         </a>
       </nav>
     </div>
@@ -53,10 +53,14 @@
     <section class="charts-list">
       <div class="page__container page__container--wide">
         <header class="charts-list__header page-header__toolbar">
-          <nav class="charts-list__breadcrumbs" aria-label="Breadcrumb">
-            <a routerLink="/projects" class="charts-list__breadcrumb-link">Home</a>
+          <nav class="charts-list__breadcrumbs" [attr.aria-label]="'charts.breadcrumb' | translate">
+            <a routerLink="/projects" class="charts-list__breadcrumb-link">
+              {{ 'nav.home' | translate }}
+            </a>
             <mat-icon>chevron_right</mat-icon>
-            <span class="charts-list__breadcrumb-current">All charts</span>
+            <span class="charts-list__breadcrumb-current">
+              {{ 'charts.all' | translate }}
+            </span>
           </nav>
 
           <a
@@ -65,11 +69,11 @@
             [routerLink]="['/projects', projectUuid(), 'charts', 'new']"
           >
             <mat-icon>add</mat-icon>
-            Create chart
+            {{ 'charts.create' | translate }}
           </a>
         </header>
 
-        <h1 class="charts-list__title">Charts</h1>
+        <h1 class="charts-list__title">{{ 'charts.title' | translate }}</h1>
 
         @if (loading()) {
           <div class="charts-list__loading">
@@ -80,14 +84,14 @@
         } @else if (charts().length === 0) {
           <div class="charts-list__empty">
             <mat-icon>bar_chart</mat-icon>
-            <p>No charts yet.</p>
+            <p>{{ 'charts.empty' | translate }}</p>
             <a
               mat-flat-button
               class="charts-list__create-btn"
               [routerLink]="['/projects', projectUuid(), 'charts', 'new']"
             >
               <mat-icon>add</mat-icon>
-              Create chart
+              {{ 'charts.create' | translate }}
             </a>
           </div>
         } @else {
@@ -102,9 +106,9 @@
               <mat-icon>search_off</mat-icon>
               <p>
                 @if (hasActiveFilters()) {
-                  No charts match your filters.
+                  {{ 'charts.noFilterMatches' | translate }}
                 } @else {
-                  No charts found.
+                  {{ 'charts.notFound' | translate }}
                 }
               </p>
             </div>
@@ -115,16 +119,16 @@
                 <tr>
                   <th scope="col">
                     <app-content-list-column-header
-                      label="Name"
+                      [label]="'charts.fields.name' | translate"
                       filterType="text"
-                      textPlaceholder="Search charts…"
+                      [textPlaceholder]="'charts.search' | translate"
                       [value]="columnFilters().name"
                       (valueChange)="updateColumnFilter('name', $event)"
                     />
                   </th>
                   <th scope="col">
                     <app-content-list-column-header
-                      label="Type"
+                      [label]="'charts.fields.type' | translate"
                       filterType="select"
                       [options]="typeOptions()"
                       [value]="columnFilters().type"
@@ -133,16 +137,16 @@
                   </th>
                   <th scope="col">
                     <app-content-list-column-header
-                      label="Table"
+                      [label]="'charts.fields.table' | translate"
                       filterType="text"
-                      textPlaceholder="Search tables…"
+                      [textPlaceholder]="'tables.search' | translate"
                       [value]="columnFilters().table"
                       (valueChange)="updateColumnFilter('table', $event)"
                     />
                   </th>
                   <th scope="col">
                     <app-content-list-column-header
-                      label="Space"
+                      [label]="'charts.fields.space' | translate"
                       filterType="select"
                       [options]="spaceOptions()"
                       [value]="columnFilters().space"
@@ -151,7 +155,7 @@
                   </th>
                   <th scope="col">
                     <app-content-list-column-header
-                      label="Last edited"
+                      [label]="'charts.fields.lastEdited' | translate"
                       filterType="date"
                       [value]="columnFilters().lastEdited"
                       (valueChange)="updateColumnFilter('lastEdited', $event)"
@@ -159,7 +163,7 @@
                   </th>
                   <th scope="col">
                     <app-content-list-column-header
-                      label="Views"
+                      [label]="'charts.fields.views' | translate"
                       filterType="number"
                       [value]="columnFilters().views"
                       (valueChange)="updateColumnFilter('views', $event)"

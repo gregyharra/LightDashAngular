@@ -3,14 +3,14 @@
     <div class="filterable-links-table__toolbar-row">
       <p class="filterable-links-table__hint">
         @if (variant() === 'hub') {
-          Joins available when exploring this model in Charts. Custom links work from either model.
+          {{ 'tables.links.hubHint' | translate }}
         } @else {
-          All explore joins for this project — from dbt meta and custom overrides. Custom links work from either model.
+          {{ 'tables.links.projectHint' | translate }}
         }
       </p>
       <button mat-flat-button type="button" [disabled]="saving()" (click)="addRequested.emit()">
         <mat-icon>add</mat-icon>
-        Add link
+        {{ 'tables.links.add' | translate }}
       </button>
     </div>
     <div class="filterable-links-table__search-wrap">
@@ -18,8 +18,8 @@
       <input
         class="filterable-links-table__search"
         type="search"
-        placeholder="Search links…"
-        aria-label="Search links"
+        [placeholder]="'tables.links.search' | translate"
+        [attr.aria-label]="'tables.links.search' | translate"
         [ngModel]="searchQuery()"
         (ngModelChange)="onSearchInput($event)"
       />
@@ -27,7 +27,7 @@
         <button
           type="button"
           class="filterable-links-table__clear-search"
-          aria-label="Clear search"
+          [attr.aria-label]="'tables.links.clearSearch' | translate"
           (click)="clearSearch()"
         >
           <mat-icon>close</mat-icon>
@@ -37,22 +37,22 @@
   </div>
 
   @if (loading()) {
-    <p class="filterable-links-table__status">Loading links…</p>
+    <p class="filterable-links-table__status">{{ 'tables.links.loading' | translate }}</p>
   } @else {
     <div class="filterable-links-table__scroll">
       <table class="filterable-links-table__table">
         <thead>
           <tr>
             @if (showSourceModel()) {
-              <th scope="col">Source model</th>
+              <th scope="col">{{ 'tables.links.fields.sourceModel' | translate }}</th>
             }
-            <th scope="col">Source column</th>
-            <th scope="col">Target model</th>
-            <th scope="col">Target column</th>
-            <th scope="col">Join</th>
-            <th scope="col">Relationship</th>
-            <th scope="col">Label</th>
-            <th scope="col">Origin</th>
+            <th scope="col">{{ 'tables.links.fields.sourceColumn' | translate }}</th>
+            <th scope="col">{{ 'tables.links.fields.targetModel' | translate }}</th>
+            <th scope="col">{{ 'tables.links.fields.targetColumn' | translate }}</th>
+            <th scope="col">{{ 'tables.links.fields.join' | translate }}</th>
+            <th scope="col">{{ 'tables.links.fields.relationship' | translate }}</th>
+            <th scope="col">{{ 'tables.links.fields.label' | translate }}</th>
+            <th scope="col">{{ 'tables.links.fields.origin' | translate }}</th>
             <th scope="col" class="filterable-links-table__actions-header"></th>
           </tr>
         </thead>
@@ -62,9 +62,9 @@
               <td [attr.colspan]="showSourceModel() ? 9 : 8">
                 <p class="filterable-links-table__empty">
                   @if (searchQuery().trim()) {
-                    No links match your search.
+                    {{ 'tables.links.noMatches' | translate }}
                   } @else {
-                    No links yet.
+                    {{ 'tables.links.empty' | translate }}
                   }
                 </p>
               </td>
@@ -86,7 +86,7 @@
                   class="filterable-links-table__origin"
                   [class.filterable-links-table__origin--custom]="link.origin === 'custom'"
                 >
-                  {{ originLabel(link.origin) }}
+                  {{ displayOriginLabel(link.origin) }}
                 </span>
               </td>
               <td class="filterable-links-table__actions">
@@ -95,8 +95,8 @@
                     mat-icon-button
                     type="button"
                     class="filterable-links-table__edit-btn"
-                    aria-label="Edit link"
-                    matTooltip="Edit"
+                    [attr.aria-label]="'tables.links.edit' | translate"
+                    [matTooltip]="'tables.links.edit' | translate"
                     [disabled]="saving()"
                     (click)="onEdit(link)"
                   >
@@ -106,8 +106,8 @@
                     mat-icon-button
                     type="button"
                     class="filterable-links-table__delete-btn"
-                    aria-label="Delete link"
-                    matTooltip="Delete"
+                    [attr.aria-label]="'tables.links.delete' | translate"
+                    [matTooltip]="'tables.links.delete' | translate"
                     [disabled]="saving()"
                     (click)="onDelete(link)"
                   >

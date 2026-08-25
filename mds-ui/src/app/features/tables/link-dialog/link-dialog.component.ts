@@ -1,4 +1,4 @@
-import { Component, computed, effect, input, output, signal } from '@angular/core';
+import { Component, computed, effect, inject, input, output, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { MatAutocompleteModule } from '@angular/material/autocomplete';
 import { MatButtonModule } from '@angular/material/button';
@@ -6,6 +6,7 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
+import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import {
   LinkDialogMode,
   LinkDialogSavePayload,
@@ -14,16 +15,16 @@ import {
 } from '../../../core/models/model-join.model';
 
 const JOIN_TYPE_OPTIONS = [
-  { value: 'left', label: 'Left join' },
-  { value: 'inner', label: 'Inner join' },
-  { value: 'right', label: 'Right join' },
-  { value: 'full', label: 'Full join' },
+  { value: 'left', label: 'tables.links.joinTypes.left' },
+  { value: 'inner', label: 'tables.links.joinTypes.inner' },
+  { value: 'right', label: 'tables.links.joinTypes.right' },
+  { value: 'full', label: 'tables.links.joinTypes.full' },
 ];
 
 const RELATIONSHIP_OPTIONS = [
-  { value: 'many-to-one', label: 'Many to one' },
-  { value: 'one-to-many', label: 'One to many' },
-  { value: 'one-to-one', label: 'One to one' },
+  { value: 'many-to-one', label: 'tables.links.relationships.manyToOne' },
+  { value: 'one-to-many', label: 'tables.links.relationships.oneToMany' },
+  { value: 'one-to-one', label: 'tables.links.relationships.oneToOne' },
 ];
 
 @Component({
@@ -36,11 +37,13 @@ const RELATIONSHIP_OPTIONS = [
     MatIconModule,
     MatInputModule,
     MatSelectModule,
+    TranslatePipe,
   ],
   templateUrl: './link-dialog.component.html',
   styleUrl: './link-dialog.component.scss',
 })
 export class LinkDialogComponent {
+  private readonly translate = inject(TranslateService);
   readonly mode = input.required<LinkDialogMode>();
   readonly models = input.required<ModelLinkOption[]>();
   readonly initialLink = input<ModelJoinView | null>(null);
@@ -216,15 +219,15 @@ export class LinkDialogComponent {
 
   protected save(): void {
     if (!this.sourceModelId() || !this.targetModelId()) {
-      this.error.set('Select source and target models.');
+      this.error.set(this.translate.instant('tables.links.errors.modelsRequired'));
       return;
     }
     if (!this.sourceColumn() || !this.targetColumn()) {
-      this.error.set('Select a column on each side.');
+      this.error.set(this.translate.instant('tables.links.errors.columnsRequired'));
       return;
     }
     if (this.sourceModelId() === this.targetModelId()) {
-      this.error.set('Source and target model must differ.');
+      this.error.set(this.translate.instant('tables.links.errors.modelsDiffer'));
       return;
     }
 

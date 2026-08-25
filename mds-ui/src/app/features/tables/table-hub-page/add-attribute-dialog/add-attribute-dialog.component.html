@@ -11,38 +11,48 @@
     aria-labelledby="add-attribute-title"
     tabindex="-1"
   >
-    <h2 id="add-attribute-title" class="add-attribute-modal__title">Add attribute</h2>
+    <h2 id="add-attribute-title" class="add-attribute-modal__title">
+      {{ 'tables.attributes.add' | translate }}
+    </h2>
 
     <div class="add-attribute-modal__content">
       <mat-form-field appearance="outline" class="add-attribute-modal__field">
-        <mat-label>Name</mat-label>
+        <mat-label>{{ 'tables.fields.name' | translate }}</mat-label>
         <input matInput [(ngModel)]="name" autofocus />
       </mat-form-field>
 
       <mat-form-field appearance="outline" class="add-attribute-modal__field">
-        <mat-label>Type</mat-label>
+        <mat-label>{{ 'tables.fields.type' | translate }}</mat-label>
         <mat-select [ngModel]="type" (ngModelChange)="onTypeChange($event)">
           @for (option of typeOptions; track option.value) {
-            <mat-option [value]="option.value">{{ option.label }}</mat-option>
+            <mat-option [value]="option.value">{{ option.label | translate }}</mat-option>
           }
         </mat-select>
       </mat-form-field>
 
       @if (showOptionsField) {
-        <label class="add-attribute-modal__label" id="add-attribute-options-label">Options</label>
+        <label class="add-attribute-modal__label" id="add-attribute-options-label">
+          {{ 'tables.attributes.options' | translate }}
+        </label>
         <div
           class="add-attribute-modal__options"
           role="group"
           aria-labelledby="add-attribute-options-label"
         >
-          <mat-chip-grid #optionsChipGrid aria-label="Enum options">
+          <mat-chip-grid
+            #optionsChipGrid
+            [attr.aria-label]="'tables.attributes.enumOptions' | translate"
+          >
             @for (option of options; track option) {
               <mat-chip-row
                 class="add-attribute-modal__option"
                 (removed)="removeOption(option)"
               >
                 {{ option }}
-                <button matChipRemove [attr.aria-label]="'Remove option ' + option">
+                <button
+                  matChipRemove
+                  [attr.aria-label]="'tables.attributes.removeOption' | translate: { option: option }"
+                >
                   <mat-icon>cancel</mat-icon>
                 </button>
               </mat-chip-row>
@@ -50,7 +60,7 @@
           </mat-chip-grid>
           <input
             class="add-attribute-modal__options-input"
-            placeholder="Add option and press Enter"
+            [placeholder]="'tables.attributes.optionPlaceholder' | translate"
             [matChipInputFor]="optionsChipGrid"
             [matChipInputSeparatorKeyCodes]="optionSeparatorKeys"
             (matChipInputTokenEnd)="addOptionFromInput($event)"
@@ -64,8 +74,12 @@
     </div>
 
     <div class="add-attribute-modal__actions">
-      <button mat-stroked-button type="button" (click)="cancel()">Cancel</button>
-      <button mat-flat-button type="button" (click)="save()">Add attribute</button>
+      <button mat-stroked-button type="button" (click)="cancel()">
+        {{ 'common.cancel' | translate }}
+      </button>
+      <button mat-flat-button type="button" (click)="save()">
+        {{ 'tables.attributes.add' | translate }}
+      </button>
     </div>
   </div>
 </div>

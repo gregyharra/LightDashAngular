@@ -2,48 +2,48 @@
   <aside class="page-layout__sidebar" appResizableSidebar>
     <div class="page-sidebar">
       <header class="page-sidebar__header">
-        <p class="page-sidebar__breadcrumb">Browse</p>
+        <p class="page-sidebar__breadcrumb">{{ 'nav.browse' | translate }}</p>
         @if (activeProjectService.activeProject(); as project) {
           <p class="page-sidebar__org">{{ project.name }}</p>
         }
       </header>
 
-      <nav class="page-sidebar__nav" aria-label="Browse navigation">
-        <p class="page-sidebar__section-label">Content</p>
+      <nav class="page-sidebar__nav" [attr.aria-label]="'dashboards.browseNavigation' | translate">
+        <p class="page-sidebar__section-label">{{ 'dashboards.content' | translate }}</p>
         <a
           class="page-sidebar__link page-sidebar__link--clickable"
           [routerLink]="['/projects', projectUuid(), 'explore']"
         >
           <mat-icon>search</mat-icon>
-          Explore
+          {{ 'dashboards.explore' | translate }}
         </a>
         <a
           class="page-sidebar__link page-sidebar__link--active page-sidebar__link--clickable"
           [routerLink]="['/projects', projectUuid(), 'dashboards']"
         >
           <mat-icon>dashboard</mat-icon>
-          Dashboards
+          {{ 'dashboards.title' | translate }}
         </a>
         <a
           class="page-sidebar__link page-sidebar__link--clickable"
           [routerLink]="['/projects', projectUuid(), 'charts']"
         >
           <mat-icon>bar_chart</mat-icon>
-          Charts
+          {{ 'charts.title' | translate }}
         </a>
         <a
           class="page-sidebar__link page-sidebar__link--clickable"
           [routerLink]="['/projects', projectUuid(), 'tables']"
         >
           <mat-icon>table_chart</mat-icon>
-          Tables
+          {{ 'tables.title' | translate }}
         </a>
         <a
           class="page-sidebar__link page-sidebar__link--clickable"
           [routerLink]="['/projects', projectUuid(), 'lineage']"
         >
           <mat-icon>account_tree</mat-icon>
-          Lineage
+          {{ 'tables.lineage' | translate }}
         </a>
       </nav>
     </div>
@@ -53,28 +53,35 @@
     <section class="dashboard-create">
       <div class="page__container">
         <header class="dashboard-create__header">
-          <nav class="dashboard-create__breadcrumbs" aria-label="Breadcrumb">
-            <a routerLink="/projects" class="dashboard-create__breadcrumb-link">Home</a>
+          <nav
+            class="dashboard-create__breadcrumbs"
+            [attr.aria-label]="'dashboards.breadcrumb' | translate"
+          >
+            <a routerLink="/projects" class="dashboard-create__breadcrumb-link">
+              {{ 'nav.home' | translate }}
+            </a>
             <mat-icon>chevron_right</mat-icon>
             <a
               class="dashboard-create__breadcrumb-link"
               [routerLink]="['/projects', projectUuid(), 'dashboards']"
             >
-              Dashboards
+              {{ 'dashboards.title' | translate }}
             </a>
             <mat-icon>chevron_right</mat-icon>
-            <span class="dashboard-create__breadcrumb-current">Create dashboard</span>
+            <span class="dashboard-create__breadcrumb-current">
+              {{ 'dashboards.create.action' | translate }}
+            </span>
           </nav>
         </header>
 
-        <h1 class="dashboard-create__title">Create dashboard</h1>
+        <h1 class="dashboard-create__title">{{ 'dashboards.create.action' | translate }}</h1>
         <p class="dashboard-create__subtitle">
-          Add a new dashboard to organize charts and insights.
+          {{ 'dashboards.create.subtitle' | translate }}
         </p>
 
         <form class="dashboard-create__form" (ngSubmit)="submit()">
           <mat-form-field appearance="outline" class="dashboard-create__field">
-            <mat-label>Dashboard name</mat-label>
+            <mat-label>{{ 'dashboards.create.name' | translate }}</mat-label>
             <input
               matInput
               name="name"
@@ -86,7 +93,7 @@
           </mat-form-field>
 
           <mat-form-field appearance="outline" class="dashboard-create__field">
-            <mat-label>Description</mat-label>
+            <mat-label>{{ 'dashboards.fields.description' | translate }}</mat-label>
             <textarea
               matInput
               name="description"
@@ -97,7 +104,7 @@
           </mat-form-field>
 
           <mat-form-field appearance="outline" class="dashboard-create__field">
-            <mat-label>Space</mat-label>
+            <mat-label>{{ 'dashboards.fields.space' | translate }}</mat-label>
             <mat-select
               name="spaceUuid"
               [(ngModel)]="spaceUuid"
@@ -121,7 +128,7 @@
               (click)="cancel()"
               [disabled]="submitting()"
             >
-              Cancel
+              {{ 'common.cancel' | translate }}
             </button>
             <button
               mat-flat-button
@@ -132,7 +139,7 @@
               @if (submitting()) {
                 <mat-spinner diameter="18" />
               } @else {
-                Create dashboard
+                {{ 'dashboards.create.action' | translate }}
               }
             </button>
           </div>

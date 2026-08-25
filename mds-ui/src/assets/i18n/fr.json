@@ -245,9 +245,207 @@
     }
   },
   "explorer": {},
-  "charts": {},
-  "dashboards": {},
-  "tables": {},
+  "charts": {
+    "title": "Graphiques",
+    "all": "Tous les graphiques",
+    "create": "Créer un graphique",
+    "empty": "Aucun graphique.",
+    "notFound": "Aucun graphique trouvé.",
+    "noFilterMatches": "Aucun graphique ne correspond à vos filtres.",
+    "search": "Rechercher des graphiques…",
+    "loadError": "Impossible de charger les graphiques.",
+    "openError": "Impossible d'ouvrir ce graphique. Actualisez la page.",
+    "browseNavigation": "Navigation du contenu",
+    "breadcrumb": "Fil d'Ariane",
+    "content": "Contenu",
+    "explore": "Explorer",
+    "fields": {
+      "name": "Nom",
+      "type": "Type",
+      "table": "Table",
+      "space": "Espace",
+      "lastEdited": "Dernière modification",
+      "views": "Vues"
+    },
+    "types": {
+      "bar": "Barres",
+      "horizontalBar": "Barres horizontales",
+      "line": "Courbes",
+      "pie": "Secteurs",
+      "table": "Tableau"
+    }
+  },
+  "dashboards": {
+    "title": "Tableaux de bord",
+    "all": "Tous les tableaux de bord",
+    "empty": "Aucun tableau de bord.",
+    "notFound": "Aucun tableau de bord trouvé.",
+    "noFilterMatches": "Aucun tableau de bord ne correspond à vos filtres.",
+    "search": "Rechercher des tableaux de bord…",
+    "loadError": "Impossible de charger les tableaux de bord.",
+    "shared": "Partagé",
+    "browseNavigation": "Navigation du contenu",
+    "breadcrumb": "Fil d'Ariane",
+    "content": "Contenu",
+    "explore": "Explorer",
+    "fields": {
+      "name": "Nom",
+      "description": "Description",
+      "space": "Espace",
+      "lastEdited": "Dernière modification",
+      "views": "Vues"
+    },
+    "create": {
+      "action": "Créer un tableau de bord",
+      "subtitle": "Ajoutez un tableau de bord pour organiser les graphiques et les analyses.",
+      "name": "Nom du tableau de bord"
+    }
+  },
+  "tables": {
+    "title": "Tables",
+    "lineage": "Lignage",
+    "content": "Contenu",
+    "explore": "Explorer",
+    "exploreData": "Explorer les données",
+    "browseNavigation": "Navigation du contenu",
+    "search": "Rechercher des tables…",
+    "searchModels": "Rechercher des modèles…",
+    "noModelsMatch": "Aucun modèle ne correspond à votre recherche",
+    "dbtTree": "Arborescence du projet dbt",
+    "selectModel": "Sélectionnez un modèle pour afficher sa documentation, ses colonnes, son lignage et son SQL.",
+    "loadError": "Impossible de charger les tables.",
+    "detailsLoadError": "Impossible de charger les détails de la table.",
+    "docQuality": "Qualité de la documentation : {{score}} %",
+    "quality": "qualité {{score}} %",
+    "documentationSummary": "Modèles documentés {{modelsDescribed}}/{{modelsTotal}} · Colonnes {{columnsDescribed}}/{{columnsTotal}}",
+    "unset": "Non défini",
+    "removeTag": "Supprimer l'étiquette {{tag}}",
+    "addTagPlaceholder": "Ajoutez une étiquette et appuyez sur Entrée",
+    "saveOverview": "Enregistrer la vue d'ensemble",
+    "filterNames": "Filtrer les noms…",
+    "filterDescriptions": "Filtrer les descriptions…",
+    "filterValues": "Filtrer les valeurs…",
+    "noColumnsMatch": "Aucune colonne ne correspond à vos filtres.",
+    "descriptionFor": "Description de {{name}}",
+    "attributeFor": "{{attribute}} de {{column}}",
+    "lineageHint": "Lignage centré sur ce modèle. Développez les niveaux ou passez à la vue des colonnes depuis la barre d'outils du graphique.",
+    "openFullLineage": "Ouvrir le lignage complet du projet",
+    "lineageUnavailable": "Le graphique de lignage n'est pas disponible pour ce projet.",
+    "sqlView": "Vue SQL",
+    "compiled": "Compilé",
+    "uncompiled": "Non compilé",
+    "compiledUnavailable": "Le SQL compilé n'est pas disponible pour ce modèle. Exécutez",
+    "generateCompiled": "pour le générer.",
+    "modelSql": "SQL du modèle",
+    "noSql": "Aucun SQL disponible pour ce modèle.",
+    "tabs": {
+      "overview": "Vue d'ensemble",
+      "columns": "Colonnes",
+      "links": "Liens",
+      "sql": "SQL"
+    },
+    "fields": {
+      "name": "Nom",
+      "type": "Type",
+      "description": "Description",
+      "tags": "Étiquettes",
+      "materialization": "Matérialisation",
+      "package": "Paquet",
+      "catalog": "Catalogue",
+      "transformation": "Transformation"
+    },
+    "attributes": {
+      "add": "Ajouter un attribut",
+      "hint": "Ajoutez des attributs personnalisés pour saisir des métadonnées supplémentaires par colonne.",
+      "options": "Options",
+      "enumOptions": "Options de l'énumération",
+      "removeOption": "Supprimer l'option {{option}}",
+      "optionPlaceholder": "Ajoutez une option et appuyez sur Entrée",
+      "deleteLabel": "Supprimer l'attribut {{name}}",
+      "deleteConfirm": "Supprimer l'attribut « {{name}} » ? Ses valeurs seront retirées de toutes les colonnes.",
+      "types": {
+        "text": "Texte",
+        "number": "Nombre",
+        "enum": "Énumération (choix fixes)",
+        "boolean": "Booléen"
+      },
+      "errors": {
+        "nameRequired": "Le nom est obligatoire.",
+        "duplicate": "Un attribut portant ce nom existe déjà.",
+        "optionRequired": "Ajoutez au moins une option à l'attribut d'énumération."
+      }
+    },
+    "links": {
+      "hubHint": "Jointures disponibles lors de l'exploration de ce modèle dans les graphiques. Les liens personnalisés fonctionnent depuis les deux modèles.",
+      "projectHint": "Toutes les jointures d'exploration du projet, issues des métadonnées dbt et des remplacements personnalisés. Les liens personnalisés fonctionnent depuis les deux modèles.",
+      "add": "Ajouter un lien",
+      "addTitle": "Ajouter un lien de table",
+      "edit": "Modifier",
+      "editTitle": "Modifier le lien de table",
+      "delete": "Supprimer",
+      "deleteTitle": "Supprimer le lien de table",
+      "deleteMessage": "Supprimer le lien {{source}} → {{target}} ?",
+      "search": "Rechercher des liens…",
+      "clearSearch": "Effacer la recherche",
+      "loading": "Chargement des liens…",
+      "noMatches": "Aucun lien ne correspond à votre recherche.",
+      "empty": "Aucun lien.",
+      "sourceTitle": "Source — {{name}}",
+      "currentModelColumn": "Colonne du modèle actuel",
+      "filterSourceColumns": "Filtrer les colonnes sources",
+      "filterTargetColumns": "Filtrer les colonnes cibles",
+      "sourceColumns": "Colonnes sources",
+      "targetColumns": "Colonnes cibles",
+      "joinType": "Type de jointure",
+      "optionalLabel": "Libellé (facultatif)",
+      "sqlPreview": "Aperçu SQL de la jointure",
+      "saveChanges": "Enregistrer les modifications",
+      "save": "Enregistrer le lien",
+      "fields": {
+        "sourceModel": "Modèle source",
+        "sourceColumn": "Colonne source",
+        "targetModel": "Modèle cible",
+        "targetColumn": "Colonne cible",
+        "join": "Jointure",
+        "relationship": "Relation",
+        "label": "Libellé",
+        "origin": "Origine"
+      },
+      "origins": {
+        "dbt": "métadonnées dbt",
+        "custom": "personnalisé"
+      },
+      "joinTypes": {
+        "left": "Jointure gauche",
+        "inner": "Jointure interne",
+        "right": "Jointure droite",
+        "full": "Jointure externe complète"
+      },
+      "relationships": {
+        "manyToOne": "Plusieurs à un",
+        "oneToMany": "Un à plusieurs",
+        "oneToOne": "Un à un"
+      },
+      "errors": {
+        "modelsRequired": "Sélectionnez les modèles source et cible.",
+        "columnsRequired": "Sélectionnez une colonne de chaque côté.",
+        "modelsDiffer": "Les modèles source et cible doivent être différents."
+      }
+    }
+  },
   "lineage": {},
-  "export": {}
+  "export": {
+    "action": "Exporter",
+    "allRows": "Exporter toutes les lignes",
+    "startError": "Impossible de lancer l'export.",
+    "failed": "Échec de l'export.",
+    "truncated": "Le fichier contient les {{count}} premières lignes.",
+    "downloadHint": "Si le téléchargement n'a pas démarré, réessayez.",
+    "downloadFile": "Télécharger le fichier",
+    "dialog": {
+      "title": "Exporter au format {{format}}",
+      "limit": "Les exports sont limités aux {{count}} premières lignes.",
+      "warning": "Cette opération peut être lente et solliciter fortement l'entrepôt."
+    }
+  }
 }

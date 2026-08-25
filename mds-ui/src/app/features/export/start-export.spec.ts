@@ -45,6 +45,21 @@ describe('startExport', () => {
     const snackBarOpen = jasmine.createSpy('open').and.returnValue({
       onAction: () => new Subject<void>().asObservable(),
     });
+    const formatNumber = jasmine
+      .createSpy('formatNumber')
+      .and.returnValue('5\u202f000\u202f000');
+    const translate = jasmine.createSpy('translate').and.callFake(
+      (key: string, params?: Record<string, unknown>) =>
+        ({
+          'common.dismiss': 'Dismiss',
+          'export.startError': 'Failed to start export.',
+          'export.failed': 'Export failed.',
+          'export.truncated': `File contains the first ${String(params?.['count'])} rows.`,
+          'export.allRows': 'Export all rows',
+          'export.downloadHint': 'If the download did not start, try again.',
+          'export.downloadFile': 'Download file',
+        })[key] ?? key,
+    );
 
     const opts: StartExportOptions = {
       dialog: { open },
@@ -61,9 +76,19 @@ describe('startExport', () => {
       format: 'csv',
       csvMaxLimit: 5_000_000,
       filenameBase: 'orders',
+      formatNumber,
+      translate,
     };
 
-    return { opts, create, poll, startBrowserDownload, open, snackBarOpen };
+    return {
+      opts,
+      create,
+      poll,
+      startBrowserDownload,
+      open,
+      snackBarOpen,
+      formatNumber,
+    };
   }
 
   it('creates an export then starts a browser download of the file URL', () => {
@@ -157,7 +182,7 @@ describe('startExport', () => {
     expect(startBrowserDownload).toHaveBeenCalledWith(fileUrl);
     expect(startBrowserDownload).toHaveBeenCalledTimes(2);
     expect(snackBarOpen).toHaveBeenCalledWith(
-      'File contains the first 5,000,000 rows.',
+      'File contains the first 5\u202f000\u202f000 rows.',
       'Export all rows',
       jasmine.objectContaining({ duration: 8000 }),
     );
@@ -168,6 +193,26 @@ describe('startExport', () => {
     expect(create).toHaveBeenCalledWith(
       'proj-1',
       jasmine.objectContaining({ overrideRowCap: true }),
+    );
+  });
+
+  it('formats a truncated row count with the active language locale', () => {
+    const { opts, snackBarOpen, formatNumber } = createHarness({
+      pollResult: of({
+        status: 'ready',
+        truncated: true,
+        rowCount: 5_000_000,
+        format: 'csv',
+      }),
+    });
+
+    startExport(opts);
+
+    expect(formatNumber).toHaveBeenCalledWith(5_000_000);
+    expect(snackBarOpen).toHaveBeenCalledWith(
+      'File contains the first 5\u202f000\u202f000 rows.',
+      'Export all rows',
+      jasmine.objectContaining({ duration: 8000 }),
     );
   });
 });

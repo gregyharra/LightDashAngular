@@ -21,6 +21,8 @@ import { PageEvent } from '@angular/material/paginator';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { MatTooltipModule } from '@angular/material/tooltip';
+import { TranslateService } from '@ngx-translate/core';
+import { LanguageService } from '../../../core/i18n/language.service';
 import { ActiveProjectService } from '../../../core/services/active-project.service';
 import { apiErrorMessage } from '../../../core/api/lightdash-api.service';
 import { DashboardDimensionFilter } from '../../../core/models/dashboard.model';
@@ -159,6 +161,8 @@ export class ChartViewPageComponent {
   private readonly dialog = inject(MatDialog);
   private readonly exportService = inject(ExportService);
   private readonly snackBar = inject(MatSnackBar);
+  private readonly language = inject(LanguageService);
+  private readonly translate = inject(TranslateService);
   private readonly platformId = inject(PLATFORM_ID);
   private readonly renderer = inject(Renderer2);
   private readonly destroyRef = inject(DestroyRef);
@@ -687,6 +691,8 @@ export class ChartViewPageComponent {
       format,
       csvMaxLimit: resolveCsvMaxLimit(this.appState.health()?.query?.csvMaxLimit),
       filenameBase: this.displayName() || this.displayTableLabel() || 'export',
+      formatNumber: (value, options) => this.language.formatNumber(value, options),
+      translate: (key, params) => this.translate.instant(key, params),
     });
   }
 

@@ -11,6 +11,8 @@ import { MatMenuModule } from '@angular/material/menu';
 import { PageEvent } from '@angular/material/paginator';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatSnackBar } from '@angular/material/snack-bar';
+import { TranslateService } from '@ngx-translate/core';
+import { LanguageService } from '../../../core/i18n/language.service';
 import { ActiveProjectService } from '../../../core/services/active-project.service';
 import { AppStateService } from '../../../core/services/app-state.service';
 import { apiErrorMessage } from '../../../core/api/lightdash-api.service';
@@ -99,6 +101,8 @@ export class ExplorerPageComponent {
   private readonly exportService = inject(ExportService);
   private readonly snackBar = inject(MatSnackBar);
   private readonly appState = inject(AppStateService);
+  private readonly language = inject(LanguageService);
+  private readonly translate = inject(TranslateService);
   protected readonly activeProjectService = inject(ActiveProjectService);
 
   private readonly cacheEntries = toSignal(this.store.select(selectEntries), {
@@ -642,6 +646,8 @@ export class ExplorerPageComponent {
       format,
       csvMaxLimit: resolveCsvMaxLimit(this.appState.health()?.query?.csvMaxLimit),
       filenameBase: explore?.label || explore?.name || 'export',
+      formatNumber: (value, options) => this.language.formatNumber(value, options),
+      translate: (key, params) => this.translate.instant(key, params),
     });
   }
 
