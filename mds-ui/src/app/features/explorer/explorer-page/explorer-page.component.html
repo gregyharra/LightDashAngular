@@ -36,14 +36,14 @@
           [routerLink]="['/projects', projectUuid(), 'tables']"
         >
           <mat-icon>table_chart</mat-icon>
-          Tables
+          {{ 'tables.title' | translate }}
         </a>
         <a
           class="page-sidebar__link page-sidebar__link--clickable"
           [routerLink]="['/projects', projectUuid(), 'lineage']"
         >
           <mat-icon>account_tree</mat-icon>
-          Lineage
+          {{ 'lineage.title' | translate }}
         </a>
       </nav>
     </div>

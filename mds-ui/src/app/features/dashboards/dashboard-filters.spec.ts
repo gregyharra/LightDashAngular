@@ -1,5 +1,7 @@
 import {
   applyDashboardContextToMetricQuery,
+  formatDashboardFilterSummary,
+  formatFilterOperator,
   mergeDashboardFiltersIntoMetricQuery,
 } from './dashboard-filters';
 import { Explore, MetricQuery } from '../../core/models/explore.model';
@@ -59,6 +61,33 @@ const tileExplore: Explore = {
 };
 
 describe('dashboard-filters', () => {
+  const translations: Record<string, string> = {
+    'dashboardFilters.anyValue': 'toute valeur',
+    'dashboardFilters.operators.equals': 'est',
+    'dashboardFilters.operators.inThePast': 'dans les derniers',
+    'dashboardFilters.units.days': 'jours',
+  };
+  const translate = (key: string): string => translations[key] ?? key;
+
+  it('resolves filter operator labels through translations', () => {
+    expect(formatFilterOperator('equals', translate)).toBe('est');
+    expect(
+      formatDashboardFilterSummary(
+        { ...activeFilter, operator: 'inThePast', values: [7], settings: { unitOfTime: 'days' } },
+        translate,
+      ),
+    ).toBe('Status dans les derniers 7 jours');
+  });
+
+  it('translates the empty filter value fallback', () => {
+    expect(
+      formatDashboardFilterSummary(
+        { ...activeFilter, values: [] },
+        translate,
+      ),
+    ).toBe('Status est toute valeur');
+  });
+
   it('merges active dimension filters into metric query', () => {
     const merged = mergeDashboardFiltersIntoMetricQuery(baseQuery, [activeFilter]);
 

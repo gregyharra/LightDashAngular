@@ -4,6 +4,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
+import { LanguageService } from '../../../core/i18n/language.service';
 import {
   WAREHOUSE_TYPE_LABELS,
   WarehouseListItem,
@@ -22,6 +23,7 @@ export class WarehousesPageComponent {
   private readonly apiErrorService = inject(ApiErrorService);
   private readonly router = inject(Router);
   private readonly translate = inject(TranslateService);
+  private readonly languageService = inject(LanguageService);
 
   protected readonly warehouses = signal<WarehouseListItem[]>([]);
   protected readonly loading = signal(true);
@@ -58,7 +60,7 @@ export class WarehousesPageComponent {
   }
 
   protected formatDate(iso: string): string {
-    return new Date(iso).toLocaleDateString(undefined, {
+    return this.languageService.formatDate(iso, {
       year: 'numeric',
       month: 'short',
       day: 'numeric',

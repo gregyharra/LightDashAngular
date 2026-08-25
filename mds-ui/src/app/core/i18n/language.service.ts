@@ -1,6 +1,6 @@
 import { DOCUMENT } from '@angular/common';
 import { Injectable, inject, signal } from '@angular/core';
-import { DateAdapter, MAT_DATE_LOCALE } from '@angular/material/core';
+import { DateAdapter } from '@angular/material/core';
 import { TranslateService } from '@ngx-translate/core';
 import { firstValueFrom } from 'rxjs';
 
@@ -35,7 +35,6 @@ export class LanguageService {
   private readonly translate = inject(TranslateService);
   private readonly document = inject(DOCUMENT);
   private readonly dateAdapter = inject(DateAdapter);
-  private readonly matDateLocale = inject(MAT_DATE_LOCALE, { optional: true });
 
   private readonly languageSignal = signal<AppLanguage>('en');
   private readonly localeSignal = signal<AppLocale>('en-US');
@@ -44,7 +43,12 @@ export class LanguageService {
   readonly locale = this.localeSignal.asReadonly();
 
   async init(): Promise<void> {
-    const stored = localStorage.getItem(MDS_LANG_STORAGE_KEY);
+    let stored: string | null = null;
+    try {
+      stored = localStorage.getItem(MDS_LANG_STORAGE_KEY);
+    } catch {
+      // Storage can be disabled by browser privacy settings.
+    }
     const lang = isAppLanguage(stored) ? stored : detectBrowserLanguage();
     await this.apply(lang);
   }
@@ -57,20 +61,41 @@ export class LanguageService {
     return new Intl.NumberFormat(this.localeSignal(), options).format(value);
   }
 
-  private async apply(lang: AppLanguage): Promise<void> {
-    const locale = localeFor(lang);
-    await firstValueFrom(this.translate.use(lang));
-    this.document.documentElement.lang = lang;
-    localStorage.setItem(MDS_LANG_STORAGE_KEY, lang);
-    this.dateAdapter.setLocale(locale);
-    if (
-      this.matDateLocale &&
-      typeof this.matDateLocale === 'object' &&
-      'set' in (this.matDateLocale as object)
-    ) {
-      // no-op for string token; locale string providers are replaced via setLocale
+  formatDate(
+    value: string | number | Date,
+    options?: Intl.DateTimeFormatOptions,
+  ): string {
+    const date = value instanceof Date ? value : new Date(value);
+    if (Number.isNaN(date.getTime())) {
+      return String(value);
     }
-    this.languageSignal.set(lang);
+    return new Intl.DateTimeFormat(this.localeSignal(), options).format(date);
+  }
+
+  private async apply(lang: AppLanguage): Promise<void> {
+    let appliedLanguage = lang;
+    try {
+      await firstValueFrom(this.translate.use(lang));
+    } catch {
+      appliedLanguage = 'en';
+      if (lang !== 'en') {
+        try {
+          await firstValueFrom(this.translate.use('en'));
+        } catch {
+          // Keep bootstrapping with ngx-translate's configured English fallback.
+        }
+      }
+    }
+
+    const locale = localeFor(appliedLanguage);
+    this.document.documentElement.lang = appliedLanguage;
+    try {
+      localStorage.setItem(MDS_LANG_STORAGE_KEY, appliedLanguage);
+    } catch {
+      // Language still applies when persistence is unavailable.
+    }
+    this.dateAdapter.setLocale(locale);
+    this.languageSignal.set(appliedLanguage);
     this.localeSignal.set(locale);
   }
 }

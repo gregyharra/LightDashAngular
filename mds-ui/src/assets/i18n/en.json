@@ -345,6 +345,8 @@
     "selectDbtModelForSql": "Select a dbt model to view SQL.",
     "filter": {
       "remove": "Remove filter",
+      "edit": "Edit filter: {{summary}}",
+      "empty": "No filters applied. Add a filter to narrow your results.",
       "field": "Field",
       "operator": "Operator",
       "from": "From",
@@ -622,6 +624,12 @@
       "tabsAria": "Dashboard tabs",
       "reorderTab": "Reorder tab",
       "editTab": "Edit tab",
+      "tabName": "Tab name",
+      "renameTab": "Rename",
+      "showTab": "Show tab",
+      "hideTab": "Hide tab",
+      "deleteTab": "Delete tab",
+      "loomUnavailable": "Loom video unavailable.",
       "moveTile": "Move tile",
       "tileActions": "Tile actions",
       "resizeTile": "Resize tile",
@@ -761,6 +769,7 @@
     }
   },
   "lineage": {
+    "title": "Lineage",
     "dbtLineage": "dbt Lineage",
     "loadError": "Failed to load lineage.",
     "project": "Project",
@@ -942,6 +951,37 @@
       "greaterThanOrEqual": "Greater than or equal",
       "inBetween": "Between",
       "notInBetween": "Not between"
+    }
+  },
+  "dashboardFilters": {
+    "anyValue": "any value",
+    "operators": {
+      "equals": "is",
+      "notEquals": "is not",
+      "isNull": "is null",
+      "notNull": "is not null",
+      "startsWith": "starts with",
+      "endsWith": "ends with",
+      "include": "includes",
+      "doesNotInclude": "does not include",
+      "lessThan": "is less than",
+      "lessThanOrEqual": "is less than or equal to",
+      "greaterThan": "is greater than",
+      "greaterThanOrEqual": "is greater than or equal to",
+      "inThePast": "in the last",
+      "notInThePast": "not in the last",
+      "inTheNext": "in the next",
+      "inTheCurrent": "in the current",
+      "notInTheCurrent": "not in the current",
+      "inBetween": "is between",
+      "notInBetween": "is not between"
+    },
+    "units": {
+      "days": "days",
+      "weeks": "weeks",
+      "months": "months",
+      "quarters": "quarters",
+      "years": "years"
     }
   },
   "export": {

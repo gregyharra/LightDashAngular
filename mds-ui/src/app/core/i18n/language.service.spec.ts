@@ -1,9 +1,9 @@
 import { TestBed } from '@angular/core/testing';
 import { DOCUMENT } from '@angular/common';
-import { DateAdapter, MAT_DATE_LOCALE } from '@angular/material/core';
+import { DateAdapter } from '@angular/material/core';
 import { provideNativeDateAdapter } from '@angular/material/core';
 import { provideTranslateService, TranslateService } from '@ngx-translate/core';
-import { firstValueFrom, of } from 'rxjs';
+import { of, throwError } from 'rxjs';
 import {
   LanguageService,
   MDS_LANG_STORAGE_KEY,
@@ -99,5 +99,41 @@ describe('LanguageService', () => {
       maximumFractionDigits: 1,
     });
     expect(formatted).toMatch(/1[\s\u00a0\u202f]?234,5/);
+  });
+
+  it('formatDate uses the active locale', async () => {
+    await service.setLanguage('fr');
+    expect(
+      service.formatDate('2024-01-02T12:00:00.000Z', {
+        year: 'numeric',
+        month: 'short',
+        day: 'numeric',
+        timeZone: 'UTC',
+      }),
+    ).toContain('janv.');
+  });
+
+  it('falls back to English when the selected catalog fails to load', async () => {
+    storage.setItem(MDS_LANG_STORAGE_KEY, 'fr');
+    translate.use.and.callFake((lang: string) =>
+      lang === 'fr' ? throwError(() => new Error('catalog unavailable')) : of(lang),
+    );
+
+    await expectAsync(service.init()).toBeResolved();
+
+    expect(translate.use).toHaveBeenCalledWith('en');
+    expect(service.language()).toBe('en');
+    expect(doc.documentElement.lang).toBe('en');
+  });
+
+  it('continues when localStorage access is blocked', async () => {
+    const getItem = spyOn(storage, 'getItem').and.throwError('storage blocked');
+    const setItem = spyOn(storage, 'setItem').and.throwError('storage blocked');
+
+    await expectAsync(service.init()).toBeResolved();
+
+    expect(service.language()).toBe('en');
+    getItem.and.callThrough();
+    setItem.and.callThrough();
   });
 });

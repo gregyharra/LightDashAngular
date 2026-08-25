@@ -1,11 +1,11 @@
-import { Component, computed, input, output, signal } from '@angular/core';
+import { Component, computed, inject, input, output, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
-import { TranslatePipe } from '@ngx-translate/core';
+import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import {
   DashboardDimensionFilter,
   DashboardFilterOperator,
@@ -41,6 +41,8 @@ import {
   styleUrl: './tables-filters-panel.component.scss',
 })
 export class TablesFiltersPanelComponent {
+  private readonly translate = inject(TranslateService);
+
   readonly dimensions = input<FilterableDimension[]>([]);
   readonly filters = input<DashboardDimensionFilter[]>([]);
 
@@ -103,11 +105,11 @@ export class TablesFiltersPanelComponent {
   });
 
   protected formatFilterSummary(filter: DashboardDimensionFilter): string {
-    return formatDashboardFilterSummary(filter);
+    return formatDashboardFilterSummary(filter, (key) => this.translate.instant(key));
   }
 
   protected formatOperator(operator: DashboardFilterOperator): string {
-    return formatFilterOperator(operator);
+    return formatFilterOperator(operator, (key) => this.translate.instant(key));
   }
 
   protected startAddFilter(): void {

@@ -1,4 +1,3 @@
-import { DatePipe } from '@angular/common';
 import { Component, computed, inject, signal } from '@angular/core';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { FormsModule } from '@angular/forms';
@@ -11,6 +10,7 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatSelectModule } from '@angular/material/select';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { apiErrorMessage } from '../../../core/api/lightdash-api.service';
+import { LanguageService } from '../../../core/i18n/language.service';
 import { GitProvider, ProjectRepoStatus } from '../../../core/models/project.model';
 import { WarehouseListItem } from '../../../core/models/warehouse.model';
 import { ActiveProjectService } from '../../../core/services/active-project.service';
@@ -35,7 +35,6 @@ type ProjectSettingsTab = 'configuration' | 'links';
 @Component({
   selector: 'app-project-edit-page',
   imports: [
-    DatePipe,
     RouterLink,
     FormsModule,
     MatButtonModule,
@@ -61,6 +60,7 @@ export class ProjectEditPageComponent {
   private readonly modelJoinsService = inject(ModelJoinsService);
   private readonly dialog = inject(MatDialog);
   private readonly translate = inject(TranslateService);
+  private readonly languageService = inject(LanguageService);
   protected readonly activeProjectService = inject(ActiveProjectService);
 
   protected readonly projectUuid = signal<string | null>(null);
@@ -94,6 +94,13 @@ export class ProjectEditPageComponent {
   protected dbtProjectPath = '';
   protected dbtTarget = '';
   private providerManuallySet = false;
+
+  protected formatDateTime(iso: string): string {
+    return this.languageService.formatDate(iso, {
+      dateStyle: 'medium',
+      timeStyle: 'medium',
+    });
+  }
 
   protected readonly gitProviders: { value: GitProvider; label: string }[] = [
     { value: 'github', label: 'GitHub' },
