@@ -4,7 +4,7 @@
   @switch (tile.type) {
     @case (DashboardTileTypes.HEADING) {
       <mat-form-field appearance="outline" class="dashboard-tile-settings-dialog__field">
-        <mat-label>Heading text</mat-label>
+        <mat-label>{{ 'dashboards.workspace.headingText' | translate }}</mat-label>
         <input
           matInput
           [ngModel]="tile.properties.text"
@@ -15,12 +15,12 @@
         [ngModel]="tile.properties.showDivider ?? false"
         (ngModelChange)="updateProperty('showDivider', $event)"
       >
-        Show divider
+        {{ 'dashboards.workspace.showDivider' | translate }}
       </mat-slide-toggle>
     }
     @case (DashboardTileTypes.MARKDOWN) {
       <mat-form-field appearance="outline" class="dashboard-tile-settings-dialog__field">
-        <mat-label>Title</mat-label>
+        <mat-label>{{ 'dashboards.workspace.title' | translate }}</mat-label>
         <input
           matInput
           [ngModel]="tile.properties.title"
@@ -28,7 +28,7 @@
         />
       </mat-form-field>
       <mat-form-field appearance="outline" class="dashboard-tile-settings-dialog__field">
-        <mat-label>Content</mat-label>
+        <mat-label>{{ 'dashboards.workspace.content' | translate }}</mat-label>
         <textarea
           matInput
           rows="6"
@@ -40,12 +40,12 @@
         [ngModel]="tile.properties.hideFrame ?? false"
         (ngModelChange)="updateProperty('hideFrame', $event)"
       >
-        Hide tile frame
+        {{ 'dashboards.workspace.hideTileFrame' | translate }}
       </mat-slide-toggle>
     }
     @case (DashboardTileTypes.SAVED_CHART) {
       <mat-form-field appearance="outline" class="dashboard-tile-settings-dialog__field">
-        <mat-label>Tile title</mat-label>
+        <mat-label>{{ 'dashboards.workspace.tileTitle' | translate }}</mat-label>
         <input
           matInput
           [ngModel]="tile.properties.title ?? ''"
@@ -56,12 +56,12 @@
         [ngModel]="tile.properties.hideTitle ?? false"
         (ngModelChange)="updateProperty('hideTitle', $event)"
       >
-        Hide tile title
+        {{ 'dashboards.workspace.hideTileTitle' | translate }}
       </mat-slide-toggle>
     }
     @case (DashboardTileTypes.LOOM) {
       <mat-form-field appearance="outline" class="dashboard-tile-settings-dialog__field">
-        <mat-label>Title</mat-label>
+        <mat-label>{{ 'dashboards.workspace.title' | translate }}</mat-label>
         <input
           matInput
           [ngModel]="tile.properties.title"
@@ -69,7 +69,7 @@
         />
       </mat-form-field>
       <mat-form-field appearance="outline" class="dashboard-tile-settings-dialog__field">
-        <mat-label>Loom URL</mat-label>
+        <mat-label>{{ 'dashboards.workspace.loomUrl' | translate }}</mat-label>
         <input
           matInput
           placeholder="https://www.loom.com/share/..."
@@ -84,12 +84,12 @@
         [ngModel]="tile.properties.hideTitle ?? false"
         (ngModelChange)="updateProperty('hideTitle', $event)"
       >
-        Hide tile title
+        {{ 'dashboards.workspace.hideTileTitle' | translate }}
       </mat-slide-toggle>
     }
     @case (DashboardTileTypes.SQL_CHART) {
       <mat-form-field appearance="outline" class="dashboard-tile-settings-dialog__field">
-        <mat-label>Tile title</mat-label>
+        <mat-label>{{ 'dashboards.workspace.tileTitle' | translate }}</mat-label>
         <input
           matInput
           [ngModel]="tile.properties.title ?? tile.properties.chartName"
@@ -100,14 +100,14 @@
         [ngModel]="tile.properties.hideTitle ?? false"
         (ngModelChange)="updateProperty('hideTitle', $event)"
       >
-        Hide tile title
+        {{ 'dashboards.workspace.hideTileTitle' | translate }}
       </mat-slide-toggle>
     }
   }
 
   @if (tabs.length > 1) {
     <mat-form-field appearance="outline" class="dashboard-tile-settings-dialog__field">
-      <mat-label>Tab</mat-label>
+      <mat-label>{{ 'dashboards.workspace.tab' | translate }}</mat-label>
       <mat-select [(ngModel)]="moveToTabUuid">
         @for (tab of tabs; track tab.uuid) {
           <mat-option [value]="tab.uuid">{{ tab.name }}</mat-option>
@@ -118,7 +118,7 @@
 </mat-dialog-content>
 
 <mat-dialog-actions align="end">
-  <button mat-stroked-button type="button" (click)="cancel()">Cancel</button>
+  <button mat-stroked-button type="button" (click)="cancel()">{{ 'common.cancel' | translate }}</button>
   <button
     mat-flat-button
     type="button"
@@ -126,6 +126,6 @@
     [disabled]="!canSave"
     (click)="save()"
   >
-    Apply
+    {{ 'charts.workspace.apply' | translate }}
   </button>
 </mat-dialog-actions>

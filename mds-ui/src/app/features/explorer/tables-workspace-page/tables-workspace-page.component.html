@@ -2,14 +2,14 @@
   <aside class="page-layout__sidebar" appResizableSidebar>
     <div class="page-sidebar">
       <header class="page-sidebar__header">
-        <p class="page-sidebar__breadcrumb">Browse</p>
+        <p class="page-sidebar__breadcrumb">{{ 'explorer.browse' | translate }}</p>
         @if (activeProjectService.activeProject(); as project) {
           <p class="page-sidebar__org">{{ project.name }}</p>
         }
       </header>
 
-      <nav class="page-sidebar__nav" aria-label="Browse navigation">
-        <p class="page-sidebar__section-label">Content</p>
+      <nav class="page-sidebar__nav" [attr.aria-label]="'charts.browseNavigation' | translate">
+        <p class="page-sidebar__section-label">{{ 'explorer.content' | translate }}</p>
         <a
           class="page-sidebar__link page-sidebar__link--clickable"
           [routerLink]="['/projects', projectUuid(), 'explore']"
@@ -64,7 +64,7 @@
           [projectUuid]="projectUuid()"
           [selectedNodeId]="tableId()"
           searchPlaceholder="Search models…"
-          emptyMessage="No models match your search"
+          [emptyMessage]="'explorer.noModelsMatch' | translate"
           collapsedStorageKey="lightdash-tables-folder-panel-collapsed"
           treeAriaLabel="dbt project folder tree"
           (nodeSelected)="onNodeSelected($event)"
@@ -134,12 +134,12 @@
               mat-stroked-button
               class="tables-workspace__toolbar-btn"
               type="button"
-              aria-label="Refresh dbt"
-              matTooltip="Refresh dbt"
+              [attr.aria-label]="'explorer.refreshDbt' | translate"
+              [matTooltip]="'explorer.refreshDbt' | translate"
               disabled
             >
               <mat-icon>sync</mat-icon>
-              <span class="tables-workspace__toolbar-btn-label">Refresh dbt</span>
+              <span class="tables-workspace__toolbar-btn-label">{{ 'explorer.refreshDbt' | translate }}</span>
             </button>
 
             <div class="tables-workspace__toolbar-actions">
@@ -160,8 +160,8 @@
                   mat-stroked-button
                   class="tables-workspace__toolbar-btn"
                   type="button"
-                  aria-label="Save chart"
-                  matTooltip="Save chart"
+                  [attr.aria-label]="'explorer.saveChart' | translate"
+                  [matTooltip]="'explorer.saveChart' | translate"
                   [disabled]="!canSaveChart()"
                   (click)="openSaveChartDialog()"
                 >
@@ -170,7 +170,7 @@
                   } @else {
                     <mat-icon>save</mat-icon>
                   }
-                  <span class="tables-workspace__toolbar-btn-label">Save chart</span>
+                  <span class="tables-workspace__toolbar-btn-label">{{ 'explorer.saveChart' | translate }}</span>
                 </button>
               }
               <button
@@ -205,7 +205,7 @@
             <mat-accordion class="tables-workspace__accordion" multi>
               <mat-expansion-panel class="tables-workspace__panel">
                 <mat-expansion-panel-header>
-                  <mat-panel-title>Filters</mat-panel-title>
+                  <mat-panel-title>{{ 'explorer.filters' | translate }}</mat-panel-title>
                 </mat-expansion-panel-header>
                 @if (explore()) {
                   <app-tables-filters-panel
@@ -228,7 +228,9 @@
 
               <mat-expansion-panel class="tables-workspace__panel tables-workspace__panel--header-actions">
                 <mat-expansion-panel-header>
-                  <mat-panel-title>{{ tableId() ? 'Chart' : 'Charts' }}</mat-panel-title>
+                  <mat-panel-title>{{
+                    (tableId() ? 'explorer.chart' : 'explorer.charts') | translate
+                  }}</mat-panel-title>
                   @if (explore()) {
                     <mat-panel-description>
                       <button
@@ -319,7 +321,7 @@
                 [expanded]="true"
               >
                 <mat-expansion-panel-header>
-                  <mat-panel-title>Results</mat-panel-title>
+                  <mat-panel-title>{{ 'explorer.results' | translate }}</mat-panel-title>
                   @if (explore()) {
                     <mat-panel-description>
                       <button
@@ -399,7 +401,7 @@
 
               <mat-expansion-panel class="tables-workspace__panel">
                 <mat-expansion-panel-header>
-                  <mat-panel-title>SQL</mat-panel-title>
+                  <mat-panel-title>{{ 'explorer.sql' | translate }}</mat-panel-title>
                 </mat-expansion-panel-header>
                 @if (!tableId()) {
                   <div class="tables-workspace__panel-empty">

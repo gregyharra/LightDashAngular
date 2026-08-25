@@ -10,6 +10,7 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatSelectModule } from '@angular/material/select';
+import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { apiErrorMessage } from '../../../core/api/lightdash-api.service';
 import { Space } from '../../../core/models/space.model';
 import { SpaceService } from '../../spaces/space.service';
@@ -36,6 +37,7 @@ export type SaveChartDialogResult =
     MatInputModule,
     MatProgressSpinnerModule,
     MatSelectModule,
+    TranslatePipe,
   ],
   templateUrl: './save-chart-dialog.component.html',
   styleUrl: './save-chart-dialog.component.scss',
@@ -45,6 +47,7 @@ export class SaveChartDialogComponent {
     MatDialogRef<SaveChartDialogComponent, SaveChartDialogResult>,
   );
   private readonly spaceService = inject(SpaceService);
+  private readonly translate = inject(TranslateService);
   readonly data = inject<SaveChartDialogData>(MAT_DIALOG_DATA);
 
   protected readonly spaces = signal<Space[]>([]);
@@ -62,7 +65,7 @@ export class SaveChartDialogComponent {
         this.spacesLoading.set(false);
       },
       error: (err) => {
-        this.error.set(apiErrorMessage(err, 'Failed to load spaces.'));
+        this.error.set(apiErrorMessage(err, this.translate.instant('charts.workspace.loadSpacesError')));
         this.spaces.set([]);
         this.spacesLoading.set(false);
       },

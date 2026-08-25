@@ -12,7 +12,7 @@
               (click)="onAddFilter()"
             >
               <mat-icon>add</mat-icon>
-              Add filter
+              {{ 'dashboards.workspace.addFilter' | translate }}
             </button>
           }
 
@@ -33,7 +33,7 @@
                 <button
                   type="button"
                   class="dashboard-filters-bar__pill-remove"
-                  aria-label="Remove filter"
+                  [attr.aria-label]="'explorer.filter.remove' | translate"
                   (click)="$event.stopPropagation(); onRemoveFilter(filter.id)"
                 >
                   <mat-icon>close</mat-icon>
@@ -59,7 +59,7 @@
                 @if (filter.values.length > 0) {
                   <button mat-menu-item (click)="clearFilter(filter.id)">
                     <mat-icon>close</mat-icon>
-                    Clear filter
+                    {{ 'dashboards.workspace.clearFilter' | translate }}
                   </button>
                 }
               </mat-menu>
@@ -81,7 +81,7 @@
               [matMenuTriggerFor]="dateZoomMenu"
             >
               <mat-icon>calendar_month</mat-icon>
-              <span>Default zoom</span>
+              <span>{{ 'dashboards.workspace.defaultZoom' | translate }}</span>
               <span class="dashboard-filters-bar__pill-value">
                 {{ formatDateZoom(dateZoomGranularity()) }}
               </span>
@@ -112,7 +112,10 @@
       (click)="toggleHidden()"
     >
       <mat-icon>{{ hidden() ? 'expand_more' : 'expand_less' }}</mat-icon>
-      {{ hidden() ? 'Show' : 'Hide' }}
+      {{
+        (hidden() ? 'dashboards.workspace.show' : 'dashboards.workspace.hide')
+          | translate
+      }}
     </button>
   </div>
 </div>

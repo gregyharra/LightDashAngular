@@ -3,6 +3,7 @@ import { toSignal } from '@angular/core/rxjs-interop';
 import { Store } from '@ngrx/store';
 import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { TranslatePipe } from '@ngx-translate/core';
 import {
   BigNumberComparison,
   ChartConfig,
@@ -27,6 +28,7 @@ import { ChartVisualizationComponent } from '../../charts/chart-visualization/ch
   imports: [
     MatIconModule,
     MatProgressSpinnerModule,
+    TranslatePipe,
     ChartVisualizationComponent,
   ],
   templateUrl: './dashboard-chart-tile.component.html',

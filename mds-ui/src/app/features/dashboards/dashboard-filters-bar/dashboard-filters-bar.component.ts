@@ -3,6 +3,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatDialog } from '@angular/material/dialog';
 import { MatIconModule } from '@angular/material/icon';
 import { MatMenuModule } from '@angular/material/menu';
+import { TranslatePipe } from '@ngx-translate/core';
 import {
   DashboardConfig,
   DashboardDimensionFilter,
@@ -22,7 +23,13 @@ import {
 
 @Component({
   selector: 'app-dashboard-filters-bar',
-  imports: [MatButtonModule, MatIconModule, MatMenuModule, TimeTravelControlComponent],
+  imports: [
+    MatButtonModule,
+    MatIconModule,
+    MatMenuModule,
+    TranslatePipe,
+    TimeTravelControlComponent,
+  ],
   templateUrl: './dashboard-filters-bar.component.html',
   styleUrl: './dashboard-filters-bar.component.scss',
 })

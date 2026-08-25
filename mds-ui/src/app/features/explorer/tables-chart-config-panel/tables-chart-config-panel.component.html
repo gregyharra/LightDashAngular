@@ -1,17 +1,17 @@
 <div class="tables-chart-config">
   <section class="tables-chart-config__section">
-    <h3 class="tables-chart-config__heading">Chart type</h3>
+    <h3 class="tables-chart-config__heading">{{ 'charts.workspace.chartType' | translate }}</h3>
     <button
       mat-stroked-button
       type="button"
       class="tables-chart-config__type-trigger"
       [matMenuTriggerFor]="chartTypeMenu"
       [disabled]="!hasQueryResults()"
-      matTooltip="Run a query to change chart type"
+      [matTooltip]="'charts.workspace.runQueryToChangeType' | translate"
       [matTooltipDisabled]="hasQueryResults()"
     >
       <mat-icon>{{ selectedChartType().icon }}</mat-icon>
-      <span>{{ selectedChartType().label }}</span>
+      <span>{{ selectedChartType().labelKey | translate }}</span>
       <mat-icon class="tables-chart-config__type-chevron">expand_more</mat-icon>
     </button>
 
@@ -24,7 +24,7 @@
           (click)="setChartKind(option.value)"
         >
           <mat-icon>{{ option.icon }}</mat-icon>
-          <span>{{ option.label }}</span>
+          <span>{{ option.labelKey | translate }}</span>
         </button>
       }
     </mat-menu>
@@ -38,7 +38,7 @@
       animationDuration="0ms"
     >
       @for (section of cartesianSections; track section.id) {
-        <mat-tab [label]="section.label">
+        <mat-tab [label]="section.labelKey | translate">
           <div class="tables-chart-config__tab-body">
             @switch (section.id) {
               @case ('layout') {
@@ -58,7 +58,7 @@
 
                   @if (selectedDimensions().length > 0) {
                     <mat-form-field appearance="outline" subscriptSizing="dynamic">
-                      <mat-label>Field</mat-label>
+                      <mat-label>{{ 'charts.workspace.field' | translate }}</mat-label>
                       <mat-select
                         [value]="chartXField()"
                         (valueChange)="setChartXField($event)"
@@ -94,7 +94,7 @@
                   @if (chartYFields().length > 0) {
                     @for (fieldId of chartYFields(); track fieldId; let index = $index) {
                       <mat-form-field appearance="outline" subscriptSizing="dynamic">
-                        <mat-label>Metric</mat-label>
+                        <mat-label>{{ 'charts.workspace.metric' | translate }}</mat-label>
                         <mat-select
                           [value]="fieldId"
                           (valueChange)="setChartYField(index, $event)"
@@ -124,7 +124,7 @@
                 </div>
 
                 <div class="tables-chart-config__group">
-                  <span class="tables-chart-config__subheading">Stacking</span>
+                  <span class="tables-chart-config__subheading">{{ 'charts.workspace.stacking' | translate }}</span>
                   <div class="tables-chart-config__segmented">
                     <button
                       type="button"
@@ -154,9 +154,9 @@
                 </div>
 
                 <div class="tables-chart-config__group">
-                  <span class="tables-chart-config__subheading">Data</span>
+                  <span class="tables-chart-config__subheading">{{ 'charts.workspace.data' | translate }}</span>
                   <mat-form-field appearance="outline" subscriptSizing="dynamic">
-                    <mat-label>Row limit</mat-label>
+                    <mat-label>{{ 'charts.workspace.rowLimit' | translate }}</mat-label>
                     <input
                       matInput
                       type="number"
@@ -191,7 +191,7 @@
                 <div class="tables-chart-config__group">
                   <span class="tables-chart-config__subheading">{{ xAxisHeading() }} label</span>
                   <mat-form-field appearance="outline" subscriptSizing="dynamic">
-                    <mat-label>Label</mat-label>
+                    <mat-label>{{ 'charts.workspace.label' | translate }}</mat-label>
                     <input
                       matInput
                       [ngModel]="displayConfig().xAxisLabel"
@@ -203,7 +203,7 @@
                 <div class="tables-chart-config__group">
                   <span class="tables-chart-config__subheading">{{ yAxisHeading() }} label</span>
                   <mat-form-field appearance="outline" subscriptSizing="dynamic">
-                    <mat-label>Label</mat-label>
+                    <mat-label>{{ 'charts.workspace.label' | translate }}</mat-label>
                     <input
                       matInput
                       [ngModel]="displayConfig().yAxisLabel"
@@ -213,7 +213,7 @@
                 </div>
 
                 <div class="tables-chart-config__group">
-                  <span class="tables-chart-config__subheading">Show grid</span>
+                  <span class="tables-chart-config__subheading">{{ 'charts.workspace.showGrid' | translate }}</span>
                   <mat-checkbox
                     [checked]="displayConfig().showGridX"
                     (change)="patchDisplayConfig({ showGridX: $event.checked })"
@@ -229,7 +229,7 @@
                 </div>
 
                 <div class="tables-chart-config__group">
-                  <span class="tables-chart-config__subheading">Show axis</span>
+                  <span class="tables-chart-config__subheading">{{ 'charts.workspace.showAxis' | translate }}</span>
                   <mat-checkbox
                     [checked]="displayConfig().showXAxis"
                     (change)="patchDisplayConfig({ showXAxis: $event.checked })"
@@ -247,7 +247,7 @@
 
               @case ('display') {
                 <div class="tables-chart-config__group">
-                  <span class="tables-chart-config__subheading">Legend</span>
+                  <span class="tables-chart-config__subheading">{{ 'charts.workspace.legend' | translate }}</span>
                   <mat-slide-toggle
                     [checked]="displayConfig().showLegend"
                     (change)="patchDisplayConfig({ showLegend: $event.checked })"
@@ -255,7 +255,7 @@
                     Show legend
                   </mat-slide-toggle>
 
-                  <span class="tables-chart-config__label">Placement</span>
+                  <span class="tables-chart-config__label">{{ 'charts.workspace.placement' | translate }}</span>
                   <div class="tables-chart-config__segmented tables-chart-config__segmented--wrap">
                     <button
                       type="button"
@@ -314,15 +314,15 @@
       animationDuration="0ms"
     >
       @for (section of pieSections; track section.id) {
-        <mat-tab [label]="section.label">
+        <mat-tab [label]="section.labelKey | translate">
           <div class="tables-chart-config__tab-body">
             @switch (section.id) {
               @case ('layout') {
                 <div class="tables-chart-config__group">
-                  <span class="tables-chart-config__subheading">Group</span>
+                  <span class="tables-chart-config__subheading">{{ 'charts.workspace.group' | translate }}</span>
                   @if (selectedDimensions().length > 0) {
                     <mat-form-field appearance="outline" subscriptSizing="dynamic">
-                      <mat-label>Dimension</mat-label>
+                      <mat-label>{{ 'charts.workspace.dimension' | translate }}</mat-label>
                       <mat-select
                         [value]="chartXField()"
                         (valueChange)="setChartXField($event)"
@@ -340,10 +340,10 @@
                 </div>
 
                 <div class="tables-chart-config__group">
-                  <span class="tables-chart-config__subheading">Metric</span>
+                  <span class="tables-chart-config__subheading">{{ 'charts.workspace.metric' | translate }}</span>
                   @if (selectedMetrics().length > 0) {
                     <mat-form-field appearance="outline" subscriptSizing="dynamic">
-                      <mat-label>Metric</mat-label>
+                      <mat-label>{{ 'charts.workspace.metric' | translate }}</mat-label>
                       <mat-select
                         [value]="pieMetric()"
                         (valueChange)="setPieMetric($event)"
@@ -361,9 +361,9 @@
                 </div>
 
                 <div class="tables-chart-config__group">
-                  <span class="tables-chart-config__subheading">Data</span>
+                  <span class="tables-chart-config__subheading">{{ 'charts.workspace.data' | translate }}</span>
                   <mat-form-field appearance="outline" subscriptSizing="dynamic">
-                    <mat-label>Row limit</mat-label>
+                    <mat-label>{{ 'charts.workspace.rowLimit' | translate }}</mat-label>
                     <input
                       matInput
                       type="number"
@@ -381,7 +381,7 @@
 
               @case ('display') {
                 <div class="tables-chart-config__group">
-                  <span class="tables-chart-config__subheading">Legend</span>
+                  <span class="tables-chart-config__subheading">{{ 'charts.workspace.legend' | translate }}</span>
                   <mat-slide-toggle
                     [checked]="displayConfig().showLegend"
                     (change)="patchDisplayConfig({ showLegend: $event.checked })"
@@ -389,7 +389,7 @@
                     Show legend
                   </mat-slide-toggle>
 
-                  <span class="tables-chart-config__label">Placement</span>
+                  <span class="tables-chart-config__label">{{ 'charts.workspace.placement' | translate }}</span>
                   <div class="tables-chart-config__segmented tables-chart-config__segmented--wrap">
                     <button
                       type="button"
@@ -448,12 +448,12 @@
       animationDuration="0ms"
     >
       @for (section of tableSections; track section.id) {
-        <mat-tab [label]="section.label">
+        <mat-tab [label]="section.labelKey | translate">
           <div class="tables-chart-config__tab-body">
             @switch (section.id) {
               @case ('general') {
                 <div class="tables-chart-config__group">
-                  <span class="tables-chart-config__subheading">Display</span>
+                  <span class="tables-chart-config__subheading">{{ 'charts.sections.display' | translate }}</span>
                   <mat-slide-toggle
                     [checked]="displayConfig().showTableNames"
                     (change)="patchDisplayConfig({ showTableNames: $event.checked })"
@@ -469,9 +469,9 @@
                 </div>
 
                 <div class="tables-chart-config__group">
-                  <span class="tables-chart-config__subheading">Data</span>
+                  <span class="tables-chart-config__subheading">{{ 'charts.workspace.data' | translate }}</span>
                   <mat-form-field appearance="outline" subscriptSizing="dynamic">
-                    <mat-label>Row limit</mat-label>
+                    <mat-label>{{ 'charts.workspace.rowLimit' | translate }}</mat-label>
                     <input
                       matInput
                       type="number"
@@ -498,10 +498,10 @@
     </mat-tab-group>
   } @else if (isBigNumberChart()) {
     <section class="tables-chart-config__section">
-      <h3 class="tables-chart-config__heading">Fields</h3>
+      <h3 class="tables-chart-config__heading">{{ 'explorer.fields' | translate }}</h3>
       @if (selectedMetrics().length > 0) {
         <mat-form-field appearance="outline" subscriptSizing="dynamic">
-          <mat-label>Metric</mat-label>
+          <mat-label>{{ 'charts.workspace.metric' | translate }}</mat-label>
           <mat-select
             [value]="bigNumberMetric()"
             (valueChange)="setBigNumberMetric($event)"
@@ -525,15 +525,15 @@
       animationDuration="0ms"
     >
       @for (section of funnelSections; track section.id) {
-        <mat-tab [label]="section.label">
+        <mat-tab [label]="section.labelKey | translate">
           <div class="tables-chart-config__tab-body">
             @switch (section.id) {
               @case ('layout') {
                 <div class="tables-chart-config__group">
-                  <span class="tables-chart-config__subheading">Metric</span>
+                  <span class="tables-chart-config__subheading">{{ 'charts.workspace.metric' | translate }}</span>
                   @if (selectedMetrics().length > 0) {
                     <mat-form-field appearance="outline" subscriptSizing="dynamic">
-                      <mat-label>Metric</mat-label>
+                      <mat-label>{{ 'charts.workspace.metric' | translate }}</mat-label>
                       <mat-select
                         [value]="funnelMetric()"
                         (valueChange)="setFunnelMetric($event)"
@@ -554,12 +554,12 @@
                   <span class="tables-chart-config__subheading">Label (optional)</span>
                   @if (selectedDimensions().length > 0) {
                     <mat-form-field appearance="outline" subscriptSizing="dynamic">
-                      <mat-label>Dimension</mat-label>
+                      <mat-label>{{ 'charts.workspace.dimension' | translate }}</mat-label>
                       <mat-select
                         [value]="funnelLabelField()"
                         (valueChange)="setFunnelLabelField($event)"
                       >
-                        <mat-option [value]="null">None</mat-option>
+                        <mat-option [value]="null">{{ 'charts.workspace.none' | translate }}</mat-option>
                         @for (fieldId of selectedDimensions(); track fieldId) {
                           <mat-option [value]="fieldId">
                             {{ getFieldLabel()(fieldId) }}
@@ -573,7 +573,7 @@
                 </div>
 
                 <div class="tables-chart-config__group">
-                  <span class="tables-chart-config__subheading">Orientation</span>
+                  <span class="tables-chart-config__subheading">{{ 'charts.workspace.orientation' | translate }}</span>
                   <div class="tables-chart-config__segmented">
                     <button
                       type="button"
@@ -595,9 +595,9 @@
                 </div>
 
                 <div class="tables-chart-config__group">
-                  <span class="tables-chart-config__subheading">Data</span>
+                  <span class="tables-chart-config__subheading">{{ 'charts.workspace.data' | translate }}</span>
                   <mat-form-field appearance="outline" subscriptSizing="dynamic">
-                    <mat-label>Row limit</mat-label>
+                    <mat-label>{{ 'charts.workspace.rowLimit' | translate }}</mat-label>
                     <input
                       matInput
                       type="number"
@@ -615,7 +615,7 @@
 
               @case ('display') {
                 <div class="tables-chart-config__group">
-                  <span class="tables-chart-config__subheading">Legend</span>
+                  <span class="tables-chart-config__subheading">{{ 'charts.workspace.legend' | translate }}</span>
                   <mat-slide-toggle
                     [checked]="displayConfig().showLegend"
                     (change)="patchDisplayConfig({ showLegend: $event.checked })"
@@ -623,7 +623,7 @@
                     Show legend
                   </mat-slide-toggle>
 
-                  <span class="tables-chart-config__label">Placement</span>
+                  <span class="tables-chart-config__label">{{ 'charts.workspace.placement' | translate }}</span>
                   <div class="tables-chart-config__segmented tables-chart-config__segmented--wrap">
                     <button
                       type="button"
@@ -653,7 +653,7 @@
                 </div>
 
                 <div class="tables-chart-config__group">
-                  <span class="tables-chart-config__subheading">Margins</span>
+                  <span class="tables-chart-config__subheading">{{ 'charts.sections.margins' | translate }}</span>
                   <div class="tables-chart-config__margins">
                     @for (side of marginSides; track side) {
                       <mat-form-field appearance="outline" subscriptSizing="dynamic">
@@ -683,13 +683,13 @@
       animationDuration="0ms"
     >
       @for (section of treemapSections; track section.id) {
-        <mat-tab [label]="section.label">
+        <mat-tab [label]="section.labelKey | translate">
           <div class="tables-chart-config__tab-body">
             @switch (section.id) {
               @case ('layout') {
                 <div class="tables-chart-config__group">
                   <div class="tables-chart-config__group-header">
-                    <span class="tables-chart-config__subheading">Dimensions</span>
+                    <span class="tables-chart-config__subheading">{{ 'explorer.dimensionsAndMetrics' | translate }}</span>
                     @if (availableTreemapDimensions().length > 0) {
                       <button
                         mat-button
@@ -753,10 +753,10 @@
                 </div>
 
                 <div class="tables-chart-config__group">
-                  <span class="tables-chart-config__subheading">Metric</span>
+                  <span class="tables-chart-config__subheading">{{ 'charts.workspace.metric' | translate }}</span>
                   @if (selectedMetrics().length > 0) {
                     <mat-form-field appearance="outline" subscriptSizing="dynamic">
-                      <mat-label>Metric</mat-label>
+                      <mat-label>{{ 'charts.workspace.metric' | translate }}</mat-label>
                       <mat-select
                         [value]="treemapMetric()"
                         (valueChange)="setTreemapMetric($event)"
@@ -774,9 +774,9 @@
                 </div>
 
                 <div class="tables-chart-config__group">
-                  <span class="tables-chart-config__subheading">Data</span>
+                  <span class="tables-chart-config__subheading">{{ 'charts.workspace.data' | translate }}</span>
                   <mat-form-field appearance="outline" subscriptSizing="dynamic">
-                    <mat-label>Row limit</mat-label>
+                    <mat-label>{{ 'charts.workspace.rowLimit' | translate }}</mat-label>
                     <input
                       matInput
                       type="number"
@@ -794,7 +794,7 @@
 
               @case ('display') {
                 <div class="tables-chart-config__group">
-                  <span class="tables-chart-config__subheading">Legend</span>
+                  <span class="tables-chart-config__subheading">{{ 'charts.workspace.legend' | translate }}</span>
                   <mat-slide-toggle
                     [checked]="displayConfig().showLegend"
                     (change)="patchDisplayConfig({ showLegend: $event.checked })"
@@ -804,7 +804,7 @@
                 </div>
 
                 <div class="tables-chart-config__group">
-                  <span class="tables-chart-config__subheading">Margins</span>
+                  <span class="tables-chart-config__subheading">{{ 'charts.sections.margins' | translate }}</span>
                   <div class="tables-chart-config__margins">
                     @for (side of marginSides; track side) {
                       <mat-form-field appearance="outline" subscriptSizing="dynamic">
@@ -834,15 +834,15 @@
       animationDuration="0ms"
     >
       @for (section of gaugeSections; track section.id) {
-        <mat-tab [label]="section.label">
+        <mat-tab [label]="section.labelKey | translate">
           <div class="tables-chart-config__tab-body">
             @switch (section.id) {
               @case ('layout') {
                 <div class="tables-chart-config__group">
-                  <span class="tables-chart-config__subheading">Metric</span>
+                  <span class="tables-chart-config__subheading">{{ 'charts.workspace.metric' | translate }}</span>
                   @if (selectedMetrics().length > 0) {
                     <mat-form-field appearance="outline" subscriptSizing="dynamic">
-                      <mat-label>Metric</mat-label>
+                      <mat-label>{{ 'charts.workspace.metric' | translate }}</mat-label>
                       <mat-select
                         [value]="gaugeMetric()"
                         (valueChange)="setGaugeMetric($event)"
@@ -860,10 +860,10 @@
                 </div>
 
                 <div class="tables-chart-config__group">
-                  <span class="tables-chart-config__subheading">Range</span>
+                  <span class="tables-chart-config__subheading">{{ 'charts.workspace.range' | translate }}</span>
                   <div class="tables-chart-config__margins">
                     <mat-form-field appearance="outline" subscriptSizing="dynamic">
-                      <mat-label>Min</mat-label>
+                      <mat-label>{{ 'charts.workspace.min' | translate }}</mat-label>
                       <input
                         matInput
                         type="number"
@@ -873,7 +873,7 @@
                       />
                     </mat-form-field>
                     <mat-form-field appearance="outline" subscriptSizing="dynamic">
-                      <mat-label>Max</mat-label>
+                      <mat-label>{{ 'charts.workspace.max' | translate }}</mat-label>
                       <input
                         matInput
                         type="number"
@@ -886,9 +886,9 @@
                 </div>
 
                 <div class="tables-chart-config__group">
-                  <span class="tables-chart-config__subheading">Data</span>
+                  <span class="tables-chart-config__subheading">{{ 'charts.workspace.data' | translate }}</span>
                   <mat-form-field appearance="outline" subscriptSizing="dynamic">
-                    <mat-label>Row limit</mat-label>
+                    <mat-label>{{ 'charts.workspace.rowLimit' | translate }}</mat-label>
                     <input
                       matInput
                       type="number"
@@ -906,7 +906,7 @@
 
               @case ('display') {
                 <div class="tables-chart-config__group">
-                  <span class="tables-chart-config__subheading">Label</span>
+                  <span class="tables-chart-config__subheading">{{ 'charts.workspace.label' | translate }}</span>
                   <mat-slide-toggle
                     [checked]="showGaugeLabel()"
                     (change)="setShowGaugeLabel($event.checked)"
@@ -916,7 +916,7 @@
                 </div>
 
                 <div class="tables-chart-config__group">
-                  <span class="tables-chart-config__subheading">Margins</span>
+                  <span class="tables-chart-config__subheading">{{ 'charts.sections.margins' | translate }}</span>
                   <div class="tables-chart-config__margins">
                     @for (side of marginSides; track side) {
                       <mat-form-field appearance="outline" subscriptSizing="dynamic">
@@ -946,14 +946,14 @@
       animationDuration="0ms"
     >
       @for (section of sankeySections; track section.id) {
-        <mat-tab [label]="section.label">
+        <mat-tab [label]="section.labelKey | translate">
           <div class="tables-chart-config__tab-body">
             @switch (section.id) {
               @case ('layout') {
                 <div class="tables-chart-config__group">
-                  <span class="tables-chart-config__subheading">Fields</span>
+                  <span class="tables-chart-config__subheading">{{ 'explorer.fields' | translate }}</span>
                   <mat-form-field appearance="outline" subscriptSizing="dynamic">
-                    <mat-label>Source</mat-label>
+                    <mat-label>{{ 'charts.workspace.source' | translate }}</mat-label>
                     <mat-select
                       [value]="sankeySourceFieldId()"
                       (selectionChange)="setSankeySourceFieldId($event.value)"
@@ -964,7 +964,7 @@
                     </mat-select>
                   </mat-form-field>
                   <mat-form-field appearance="outline" subscriptSizing="dynamic">
-                    <mat-label>Target</mat-label>
+                    <mat-label>{{ 'charts.workspace.target' | translate }}</mat-label>
                     <mat-select
                       [value]="sankeyTargetFieldId()"
                       (selectionChange)="setSankeyTargetFieldId($event.value)"
@@ -975,7 +975,7 @@
                     </mat-select>
                   </mat-form-field>
                   <mat-form-field appearance="outline" subscriptSizing="dynamic">
-                    <mat-label>Weight</mat-label>
+                    <mat-label>{{ 'charts.workspace.weight' | translate }}</mat-label>
                     <mat-select
                       [value]="sankeyWeightFieldId()"
                       (selectionChange)="setSankeyWeightFieldId($event.value)"
@@ -993,9 +993,9 @@
                 </div>
 
                 <div class="tables-chart-config__group">
-                  <span class="tables-chart-config__subheading">Data</span>
+                  <span class="tables-chart-config__subheading">{{ 'charts.workspace.data' | translate }}</span>
                   <mat-form-field appearance="outline" subscriptSizing="dynamic">
-                    <mat-label>Row limit</mat-label>
+                    <mat-label>{{ 'charts.workspace.rowLimit' | translate }}</mat-label>
                     <input
                       matInput
                       type="number"
@@ -1013,7 +1013,7 @@
 
               @case ('display') {
                 <div class="tables-chart-config__group">
-                  <span class="tables-chart-config__subheading">Labels</span>
+                  <span class="tables-chart-config__subheading">{{ 'charts.workspace.labels' | translate }}</span>
                   <mat-slide-toggle
                     [checked]="showNodeLabels()"
                     (change)="setShowNodeLabels($event.checked)"
@@ -1023,7 +1023,7 @@
                 </div>
 
                 <div class="tables-chart-config__group">
-                  <span class="tables-chart-config__subheading">Margins</span>
+                  <span class="tables-chart-config__subheading">{{ 'charts.sections.margins' | translate }}</span>
                   <div class="tables-chart-config__margins">
                     @for (side of marginSides; track side) {
                       <mat-form-field appearance="outline" subscriptSizing="dynamic">

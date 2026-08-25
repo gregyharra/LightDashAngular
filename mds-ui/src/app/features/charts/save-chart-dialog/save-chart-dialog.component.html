@@ -1,8 +1,8 @@
-<h2 mat-dialog-title>Save chart</h2>
+<h2 mat-dialog-title>{{ 'charts.workspace.saveChart' | translate }}</h2>
 
 <mat-dialog-content class="save-chart-dialog__content">
   <mat-form-field appearance="outline" class="save-chart-dialog__field">
-    <mat-label>Name</mat-label>
+    <mat-label>{{ 'charts.workspace.name' | translate }}</mat-label>
     <input
       matInput
       [(ngModel)]="name"
@@ -12,7 +12,7 @@
   </mat-form-field>
 
   <mat-form-field appearance="outline" class="save-chart-dialog__field">
-    <mat-label>Space</mat-label>
+    <mat-label>{{ 'charts.workspace.space' | translate }}</mat-label>
     <mat-select
       [(ngModel)]="spaceUuid"
       [disabled]="spacesLoading()"
@@ -29,13 +29,13 @@
 </mat-dialog-content>
 
 <mat-dialog-actions align="end">
-  <button mat-stroked-button type="button" (click)="cancel()">Cancel</button>
+  <button mat-stroked-button type="button" (click)="cancel()">{{ 'common.cancel' | translate }}</button>
   <button
     mat-flat-button
     type="button"
     [disabled]="spacesLoading() || !name.trim() || !spaceUuid"
     (click)="save()"
   >
-    Save
+    {{ 'common.save' | translate }}
   </button>
 </mat-dialog-actions>

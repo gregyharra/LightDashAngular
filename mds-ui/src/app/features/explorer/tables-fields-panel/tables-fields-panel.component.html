@@ -4,13 +4,20 @@
   [class.tables-fields-panel--resizing]="resizing()"
   [class.tables-fields-panel--chart-config]="chartConfigOpen()"
   [style.width.px]="collapsed() ? collapsedWidth : panelWidth()"
-  [attr.aria-label]="chartConfigOpen() ? 'Chart configuration' : 'Dimensions and metrics'"
+  [attr.aria-label]="
+    (chartConfigOpen()
+      ? 'explorer.chartConfiguration'
+      : 'explorer.dimensionsAndMetrics') | translate
+  "
 >
   <button
     type="button"
     class="tables-fields-panel__fold-btn"
     [attr.aria-expanded]="!collapsed()"
-    [attr.aria-label]="collapsed() ? 'Expand fields panel' : 'Collapse fields panel'"
+    [attr.aria-label]="
+      (collapsed() ? 'explorer.expandFields' : 'explorer.collapseFields')
+        | translate
+    "
     (click)="toggleCollapsed()"
   >
     <mat-icon>{{ collapsed() ? 'chevron_right' : 'chevron_left' }}</mat-icon>
@@ -18,12 +25,12 @@
 
   @if (chartConfigOpen()) {
     <header class="tables-fields-panel__header tables-fields-panel__header--configure">
-      <h2 class="tables-fields-panel__configure-title">Configure</h2>
+      <h2 class="tables-fields-panel__configure-title">{{ 'explorer.configure' | translate }}</h2>
       <button
         mat-icon-button
         type="button"
         class="tables-fields-panel__configure-close"
-        aria-label="Close configure"
+        [attr.aria-label]="'explorer.closeConfigureAria' | translate"
         (click)="onChartConfigClose()"
       >
         <mat-icon>close</mat-icon>
@@ -99,7 +106,7 @@
       class="tables-fields-panel__resize-handle"
       role="separator"
       aria-orientation="vertical"
-      aria-label="Resize fields panel"
+      [attr.aria-label]="'explorer.resizeFields' | translate"
       tabindex="0"
       (pointerdown)="onResizeStart($event)"
     ></div>

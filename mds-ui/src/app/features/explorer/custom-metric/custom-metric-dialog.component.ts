@@ -9,6 +9,7 @@ import {
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
+import { TranslatePipe } from '@ngx-translate/core';
 import {
   AdditionalMetric,
   FieldId,
@@ -34,16 +35,16 @@ export type CustomMetricDialogResult = AdditionalMetric | undefined;
 
 type AggregationOption = {
   value: MetricAggregation;
-  label: string;
+  labelKey: string;
 };
 
 const AGGREGATIONS: AggregationOption[] = [
-  { value: 'sum', label: 'Sum' },
-  { value: 'count', label: 'Count' },
-  { value: 'count_distinct', label: 'Count distinct' },
-  { value: 'avg', label: 'Average' },
-  { value: 'min', label: 'Minimum' },
-  { value: 'max', label: 'Maximum' },
+  { value: 'sum', labelKey: 'explorer.customMetric.aggregations.sum' },
+  { value: 'count', labelKey: 'explorer.customMetric.aggregations.count' },
+  { value: 'count_distinct', labelKey: 'explorer.customMetric.aggregations.countDistinct' },
+  { value: 'avg', labelKey: 'explorer.customMetric.aggregations.average' },
+  { value: 'min', labelKey: 'explorer.customMetric.aggregations.minimum' },
+  { value: 'max', labelKey: 'explorer.customMetric.aggregations.maximum' },
 ];
 
 @Component({
@@ -55,6 +56,7 @@ const AGGREGATIONS: AggregationOption[] = [
     MatFormFieldModule,
     MatInputModule,
     MatSelectModule,
+    TranslatePipe,
   ],
   templateUrl: './custom-metric-dialog.component.html',
   styleUrl: './custom-metric-dialog.component.scss',

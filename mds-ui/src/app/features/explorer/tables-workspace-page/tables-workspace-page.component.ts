@@ -10,6 +10,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatTableModule } from '@angular/material/table';
 import { MatTooltipModule } from '@angular/material/tooltip';
+import { TranslatePipe } from '@ngx-translate/core';
 import { DashboardDimensionFilter } from '../../../core/models/dashboard.model';
 import { DbtTreeNode, LineageNode } from '../../../core/models/lineage.model';
 import {
@@ -102,6 +103,7 @@ import {
     MatProgressSpinnerModule,
     MatTableModule,
     MatTooltipModule,
+    TranslatePipe,
     FolderSearchPanelComponent,
     TablesFieldsPanelComponent,
     TablesChartConfigPanelComponent,

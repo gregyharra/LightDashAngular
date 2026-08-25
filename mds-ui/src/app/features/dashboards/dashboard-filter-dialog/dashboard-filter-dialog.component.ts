@@ -9,6 +9,7 @@ import {
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
+import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import {
   DashboardDimensionFilter,
   DashboardFilterOperator,
@@ -47,6 +48,7 @@ export type DashboardFilterDialogResult =
     MatFormFieldModule,
     MatInputModule,
     MatSelectModule,
+    TranslatePipe,
   ],
   templateUrl: './dashboard-filter-dialog.component.html',
   styleUrl: './dashboard-filter-dialog.component.scss',
@@ -56,6 +58,7 @@ export class DashboardFilterDialogComponent {
     MatDialogRef<DashboardFilterDialogComponent, DashboardFilterDialogResult>,
   );
   readonly data = inject<DashboardFilterDialogData>(MAT_DIALOG_DATA);
+  private readonly translate = inject(TranslateService);
 
   protected readonly dimensions = this.data.dimensions;
   protected readonly isEditing = !!this.data.filter;
@@ -97,7 +100,11 @@ export class DashboardFilterDialogComponent {
   }
 
   protected get dialogTitle(): string {
-    return this.isEditing ? 'Edit dashboard filter' : 'Add dashboard filter';
+    return this.translate.instant(
+      this.isEditing
+        ? 'dashboards.workspace.editFilter'
+        : 'dashboards.workspace.addFilter',
+    );
   }
 
   protected formatOperator(operator: DashboardFilterOperator): string {

@@ -11,7 +11,7 @@ import { MatMenuModule } from '@angular/material/menu';
 import { PageEvent } from '@angular/material/paginator';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatSnackBar } from '@angular/material/snack-bar';
-import { TranslateService } from '@ngx-translate/core';
+import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { LanguageService } from '../../../core/i18n/language.service';
 import { ActiveProjectService } from '../../../core/services/active-project.service';
 import { AppStateService } from '../../../core/services/app-state.service';
@@ -80,6 +80,7 @@ const RESULTS_DEFAULT_PAGE_SIZE = 25;
     MatIconModule,
     MatMenuModule,
     MatProgressSpinnerModule,
+    TranslatePipe,
     QueryResultsPanelComponent,
     TablesFiltersPanelComponent,
     TablesFieldsPanelComponent,

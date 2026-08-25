@@ -1,6 +1,7 @@
 import { Component, computed, input } from '@angular/core';
 import { MatTableModule } from '@angular/material/table';
 import { EChartsOption } from 'echarts';
+import { TranslatePipe } from '@ngx-translate/core';
 import {
   BigNumberComparison,
   ChartConfig,
@@ -17,7 +18,7 @@ import { EchartHostComponent } from '../echarts/echart-host.component';
 
 @Component({
   selector: 'app-chart-visualization',
-  imports: [MatTableModule, EchartHostComponent],
+  imports: [MatTableModule, EchartHostComponent, TranslatePipe],
   templateUrl: './chart-visualization.component.html',
   styleUrl: './chart-visualization.component.scss',
 })

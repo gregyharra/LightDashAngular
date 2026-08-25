@@ -8,6 +8,7 @@ import {
 } from '@angular/material/dialog';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
+import { TranslatePipe } from '@ngx-translate/core';
 
 export type ChartDetailsDialogData = {
   name: string;
@@ -29,6 +30,7 @@ export type ChartDetailsDialogResult =
     MatDialogModule,
     MatFormFieldModule,
     MatInputModule,
+    TranslatePipe,
   ],
   templateUrl: './chart-details-dialog.component.html',
   styleUrl: './chart-details-dialog.component.scss',

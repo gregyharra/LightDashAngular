@@ -20,6 +20,7 @@ import { MatInputModule } from '@angular/material/input';
 import { MatMenuModule } from '@angular/material/menu';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatTooltipModule } from '@angular/material/tooltip';
+import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { ActiveProjectService } from '../../../core/services/active-project.service';
 import { apiErrorMessage } from '../../../core/api/lightdash-api.service';
 import { SavedChartBasic } from '../../../core/models/chart.model';
@@ -82,6 +83,7 @@ type DraftState = {
     MatMenuModule,
     MatProgressSpinnerModule,
     MatTooltipModule,
+    TranslatePipe,
     DashboardChartTileComponent,
     DashboardFiltersBarComponent,
     DashboardMarkdownComponent,
@@ -98,6 +100,7 @@ export class DashboardViewPageComponent {
   private readonly explorerService = inject(ExplorerService);
   private readonly route = inject(ActivatedRoute);
   private readonly dialog = inject(MatDialog);
+  private readonly translate = inject(TranslateService);
   private readonly sanitizer = inject(DomSanitizer);
   protected readonly activeProjectService = inject(ActiveProjectService);
 
@@ -556,7 +559,7 @@ export class DashboardViewPageComponent {
       w: 36,
       h: 2,
       properties: {
-        text: 'New heading',
+        text: this.translate.instant('dashboards.workspace.newHeading'),
         showDivider: true,
       },
     });
@@ -568,7 +571,7 @@ export class DashboardViewPageComponent {
       w: 18,
       h: 6,
       properties: {
-        title: 'Notes',
+        title: this.translate.instant('dashboards.workspace.notes'),
         content: 'Add your markdown content here.',
       },
     });
@@ -580,7 +583,7 @@ export class DashboardViewPageComponent {
       w: 18,
       h: 9,
       properties: {
-        title: 'Loom video',
+        title: this.translate.instant('dashboards.workspace.loomVideo'),
         url: 'https://www.loom.com/share/example',
       },
     });

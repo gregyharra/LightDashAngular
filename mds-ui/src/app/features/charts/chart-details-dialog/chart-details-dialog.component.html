@@ -1,4 +1,4 @@
-<h2 mat-dialog-title>Edit chart details</h2>
+<h2 mat-dialog-title>{{ 'charts.workspace.editDetails' | translate }}</h2>
 
 <mat-dialog-content class="chart-details-dialog__content">
   <mat-form-field
@@ -6,7 +6,7 @@
     class="chart-details-dialog__field"
     subscriptSizing="dynamic"
   >
-    <mat-label>Chart name</mat-label>
+    <mat-label>{{ 'charts.workspace.chartName' | translate }}</mat-label>
     <input matInput [(ngModel)]="name" maxlength="120" autofocus />
   </mat-form-field>
 
@@ -15,7 +15,7 @@
     class="chart-details-dialog__field"
     subscriptSizing="dynamic"
   >
-    <mat-label>Description</mat-label>
+    <mat-label>{{ 'charts.workspace.description' | translate }}</mat-label>
     <textarea
       matInput
       [(ngModel)]="description"
@@ -26,7 +26,7 @@
 </mat-dialog-content>
 
 <mat-dialog-actions align="end">
-  <button mat-stroked-button type="button" (click)="cancel()">Cancel</button>
+  <button mat-stroked-button type="button" (click)="cancel()">{{ 'common.cancel' | translate }}</button>
   <button
     mat-flat-button
     color="primary"
@@ -34,6 +34,6 @@
     [disabled]="!canApply"
     (click)="apply()"
   >
-    Apply
+    {{ 'charts.workspace.apply' | translate }}
   </button>
 </mat-dialog-actions>

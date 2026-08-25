@@ -21,7 +21,7 @@ import { PageEvent } from '@angular/material/paginator';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { MatTooltipModule } from '@angular/material/tooltip';
-import { TranslateService } from '@ngx-translate/core';
+import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { LanguageService } from '../../../core/i18n/language.service';
 import { ActiveProjectService } from '../../../core/services/active-project.service';
 import { apiErrorMessage } from '../../../core/api/lightdash-api.service';
@@ -138,6 +138,7 @@ const RESULTS_DEFAULT_PAGE_SIZE = 25;
     MatIconModule,
     MatProgressSpinnerModule,
     MatTooltipModule,
+    TranslatePipe,
     ChartVisualizationComponent,
     QueryResultsPanelComponent,
     FolderSearchPanelComponent,

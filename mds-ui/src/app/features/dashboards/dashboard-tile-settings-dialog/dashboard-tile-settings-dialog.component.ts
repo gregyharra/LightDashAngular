@@ -11,6 +11,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
 import { MatSlideToggleModule } from '@angular/material/slide-toggle';
+import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import {
   DashboardTab,
   DashboardTile,
@@ -39,6 +40,7 @@ export type DashboardTileSettingsDialogResult = {
     MatInputModule,
     MatSelectModule,
     MatSlideToggleModule,
+    TranslatePipe,
   ],
   templateUrl: './dashboard-tile-settings-dialog.component.html',
   styleUrl: './dashboard-tile-settings-dialog.component.scss',
@@ -51,6 +53,7 @@ export class DashboardTileSettingsDialogComponent {
     >,
   );
   readonly data = inject<DashboardTileSettingsDialogData>(MAT_DIALOG_DATA);
+  private readonly translate = inject(TranslateService);
 
   protected tile: DashboardTile = structuredClone(this.data.tile);
   protected moveToTabUuid = this.tile.tabUuid ?? '';
@@ -60,17 +63,17 @@ export class DashboardTileSettingsDialogComponent {
   protected get dialogTitle(): string {
     switch (this.tile.type) {
       case DashboardTileTypes.HEADING:
-        return 'Edit heading tile';
+        return this.translate.instant('dashboards.workspace.editHeadingTile');
       case DashboardTileTypes.MARKDOWN:
-        return 'Edit markdown tile';
+        return this.translate.instant('dashboards.workspace.editMarkdownTile');
       case DashboardTileTypes.SAVED_CHART:
-        return 'Edit chart tile';
+        return this.translate.instant('dashboards.workspace.editChartTile');
       case DashboardTileTypes.LOOM:
-        return 'Edit loom tile';
+        return this.translate.instant('dashboards.workspace.editLoomTile');
       case DashboardTileTypes.SQL_CHART:
-        return 'Edit SQL chart tile';
+        return this.translate.instant('dashboards.workspace.editSqlChartTile');
       default:
-        return 'Edit tile';
+        return this.translate.instant('dashboards.workspace.editTile');
     }
   }
 
@@ -81,10 +84,12 @@ export class DashboardTileSettingsDialogComponent {
 
     const url = this.tile.properties.url?.trim();
     if (!url) {
-      return 'Loom URL is required';
+      return this.translate.instant('dashboards.workspace.loomUrlRequired');
     }
 
-    return isValidLoomUrl(url) ? null : 'Enter a valid Loom share URL';
+    return isValidLoomUrl(url)
+      ? null
+      : this.translate.instant('dashboards.workspace.invalidLoomUrl');
   }
 
   protected get canSave(): boolean {

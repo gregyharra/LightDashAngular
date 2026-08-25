@@ -11,6 +11,7 @@ import { MatSelectModule } from '@angular/material/select';
 import { MatSlideToggleModule } from '@angular/material/slide-toggle';
 import { MatTabsModule } from '@angular/material/tabs';
 import { MatTooltipModule } from '@angular/material/tooltip';
+import { TranslatePipe } from '@ngx-translate/core';
 import { ChartKind } from '../../../core/models/chart.model';
 import { FieldId } from '../../../core/models/explore.model';
 import {
@@ -47,6 +48,7 @@ import {
     MatSlideToggleModule,
     MatTabsModule,
     MatTooltipModule,
+    TranslatePipe,
   ],
   templateUrl: './tables-chart-config-panel.component.html',
   styleUrl: './tables-chart-config-panel.component.scss',

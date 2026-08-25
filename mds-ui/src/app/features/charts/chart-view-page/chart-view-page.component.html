@@ -2,34 +2,34 @@
   <aside class="page-layout__sidebar" appResizableSidebar>
     <div class="page-sidebar">
       <header class="page-sidebar__header">
-        <p class="page-sidebar__breadcrumb">Browse</p>
+        <p class="page-sidebar__breadcrumb">{{ 'explorer.browse' | translate }}</p>
         @if (activeProjectService.activeProject(); as project) {
           <p class="page-sidebar__org">{{ project.name }}</p>
         }
       </header>
 
-      <nav class="page-sidebar__nav" aria-label="Browse navigation">
-        <p class="page-sidebar__section-label">Content</p>
+      <nav class="page-sidebar__nav" [attr.aria-label]="'charts.browseNavigation' | translate">
+        <p class="page-sidebar__section-label">{{ 'explorer.content' | translate }}</p>
         <a
           class="page-sidebar__link page-sidebar__link--clickable"
           [routerLink]="['/projects', projectUuid(), 'explore']"
         >
           <mat-icon>search</mat-icon>
-          Explore
+          {{ 'explorer.title' | translate }}
         </a>
         <a
           class="page-sidebar__link page-sidebar__link--clickable"
           [routerLink]="['/projects', projectUuid(), 'dashboards']"
         >
           <mat-icon>dashboard</mat-icon>
-          Dashboards
+          {{ 'dashboards.title' | translate }}
         </a>
         <a
           class="page-sidebar__link page-sidebar__link--active page-sidebar__link--clickable"
           [routerLink]="['/projects', projectUuid(), 'charts']"
         >
           <mat-icon>bar_chart</mat-icon>
-          Charts
+          {{ 'charts.title' | translate }}
         </a>
         <a
           class="page-sidebar__link page-sidebar__link--clickable"
@@ -56,8 +56,8 @@
         [lineageNodes]="lineageNodes()"
         [projectUuid]="projectUuid()"
         [selectedNodeId]="selectedTableId()"
-        searchPlaceholder="Search models…"
-        emptyMessage="No models match your search"
+        [searchPlaceholder]="'explorer.searchModels' | translate"
+        [emptyMessage]="'explorer.noModelsMatch' | translate"
         collapsedStorageKey="lightdash-chart-view-folder-panel-collapsed"
         treeAriaLabel="dbt project folder tree"
         (nodeSelected)="onProjectNodeSelected($event)"
@@ -124,11 +124,11 @@
       <div class="chart-view__config-body">
         @if (configureMode()) {
           <header class="chart-view__config-mode-header">
-            <h2 class="chart-view__panel-title">Configure</h2>
+            <h2 class="chart-view__panel-title">{{ 'explorer.configure' | translate }}</h2>
             <button
               mat-icon-button
               type="button"
-              aria-label="Close configure"
+              [attr.aria-label]="'explorer.closeConfigureAria' | translate"
               (click)="closeConfigureMode()"
             >
               <mat-icon>close</mat-icon>
@@ -203,14 +203,14 @@
       <section class="chart-view">
         <div class="page__container page__container--wide">
           <header class="chart-view__header">
-            <nav class="chart-view__breadcrumbs" aria-label="Breadcrumb">
-              <a routerLink="/projects" class="chart-view__breadcrumb-link">Home</a>
+            <nav class="chart-view__breadcrumbs" [attr.aria-label]="'charts.breadcrumb' | translate">
+              <a routerLink="/projects" class="chart-view__breadcrumb-link">{{ 'nav.home' | translate }}</a>
               <mat-icon>chevron_right</mat-icon>
               <a
                 class="chart-view__breadcrumb-link"
                 [routerLink]="['/projects', projectUuid(), 'charts']"
               >
-                Charts
+                {{ 'charts.title' | translate }}
               </a>
               <mat-icon>chevron_right</mat-icon>
               <span class="chart-view__breadcrumb-current-wrap">
@@ -264,7 +264,7 @@
                   } @else {
                     <mat-icon>save</mat-icon>
                   }
-                  Save
+                  {{ 'common.save' | translate }}
                 </button>
                 <button
                   mat-flat-button
@@ -273,7 +273,7 @@
                   class="chart-view__action-btn"
                   (click)="onDoneClick()"
                 >
-                  Done
+                  {{ 'charts.workspace.done' | translate }}
                 </button>
               } @else {
                 <button
@@ -284,7 +284,7 @@
                   (click)="enterEditMode()"
                 >
                   <mat-icon>edit</mat-icon>
-                  Edit
+                  {{ 'dashboards.workspace.edit' | translate }}
                 </button>
                 @if (chartExportPlacement(editMode()) === 'header') {
                   <button
@@ -295,7 +295,7 @@
                     [matMenuTriggerFor]="headerExportMenu"
                   >
                     <mat-icon>download</mat-icon>
-                    Export
+                    {{ 'export.action' | translate }}
                   </button>
                   <mat-menu #headerExportMenu="matMenu">
                     <button mat-menu-item type="button" (click)="onExportCsv()">
@@ -329,7 +329,7 @@
               @if (saveError()) {
                 <div class="chart-view__banner chart-view__banner--error">{{ saveError() }}</div>
               } @else if (saveSuccess()) {
-                <div class="chart-view__banner chart-view__banner--success">Chart saved.</div>
+                <div class="chart-view__banner chart-view__banner--success">{{ 'charts.workspace.saved' | translate }}</div>
               }
 
               <div class="chart-view__workspace">
@@ -337,7 +337,7 @@
               <mat-accordion class="chart-view__accordion" multi>
                 <mat-expansion-panel class="chart-view__panel-section" [expanded]="true">
                   <mat-expansion-panel-header>
-                    <mat-panel-title>Filters</mat-panel-title>
+                    <mat-panel-title>{{ 'explorer.filters' | translate }}</mat-panel-title>
                   </mat-expansion-panel-header>
                   @if (explore()) {
                     <app-tables-filters-panel
@@ -357,7 +357,7 @@
                   [expanded]="true"
                 >
                   <mat-expansion-panel-header>
-                    <mat-panel-title>Chart</mat-panel-title>
+                    <mat-panel-title>{{ 'explorer.chart' | translate }}</mat-panel-title>
                     @if (editMode()) {
                       <mat-panel-description>
                         <button
@@ -415,7 +415,7 @@
                   [expanded]="true"
                 >
                   <mat-expansion-panel-header>
-                    <mat-panel-title>Results</mat-panel-title>
+                    <mat-panel-title>{{ 'explorer.results' | translate }}</mat-panel-title>
                     @if (chartExportPlacement(editMode()) === 'results') {
                       <mat-panel-description>
                         <button
@@ -467,7 +467,7 @@
 
                 <mat-expansion-panel class="chart-view__panel-section">
                   <mat-expansion-panel-header>
-                    <mat-panel-title>SQL</mat-panel-title>
+                    <mat-panel-title>{{ 'explorer.sql' | translate }}</mat-panel-title>
                   </mat-expansion-panel-header>
 
                   @if (displaySql(); as sql) {

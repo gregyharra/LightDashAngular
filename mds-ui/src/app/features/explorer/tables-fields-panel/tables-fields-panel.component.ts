@@ -14,6 +14,7 @@ import { RouterLink } from '@angular/router';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { TranslatePipe } from '@ngx-translate/core';
 import {
   FieldId,
 } from '../../../core/models/explore.model';
@@ -81,6 +82,7 @@ const ENABLE_CUSTOM_FIELD_ADD = false;
     MatButtonModule,
     MatIconModule,
     MatProgressSpinnerModule,
+    TranslatePipe,
     ChartFieldsAccordionComponent,
   ],
   templateUrl: './tables-fields-panel.component.html',

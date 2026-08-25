@@ -2,27 +2,27 @@
   @if (loading()) {
     <div class="query-results-panel__loading">
       <mat-spinner diameter="28" />
-      <p>Running query…</p>
+      <p>{{ 'charts.workspace.runningQuery' | translate }}</p>
     </div>
   } @else if (error()) {
     <div class="query-results-panel__error">{{ error() }}</div>
   } @else if (!hasResultsObject()) {
     <div class="query-results-panel__empty query-results-panel__empty--centered">
       <mat-icon>table_view</mat-icon>
-      <h2>No results yet</h2>
+      <h2>{{ 'charts.workspace.noResultsYet' | translate }}</h2>
       <p>
         @if (showExport()) {
-          Select fields and click <strong>Run query</strong> to see results.
+          {{ 'charts.workspace.selectAndRun' | translate }}
         } @else {
-          Results appear after the chart query runs.
+          {{ 'charts.workspace.resultsAfterRun' | translate }}
         }
       </p>
     </div>
   } @else if (rows().length === 0) {
     <div class="query-results-panel__empty query-results-panel__empty--centered">
       <mat-icon>search_off</mat-icon>
-      <h2>No results</h2>
-      <p>Try adjusting filters or selected fields.</p>
+      <h2>{{ 'charts.workspace.noResults' | translate }}</h2>
+      <p>{{ 'charts.workspace.adjustFilters' | translate }}</p>
     </div>
   } @else {
     <div class="query-results-panel__results">
@@ -40,7 +40,11 @@
                   [class.query-results-panel__header--metric]="isMetric()(column)"
                 >
                   <mat-icon
-                    [matTooltip]="isMetric()(column) ? 'Metric' : 'Dimension'"
+                    [matTooltip]="
+                      (isMetric()(column)
+                        ? 'charts.workspace.metric'
+                        : 'charts.workspace.dimension') | translate
+                    "
                   >
                     {{ isMetric()(column) ? 'functions' : 'straighten' }}
                   </mat-icon>
@@ -68,7 +72,7 @@
         [pageSize]="pageSize()"
         [pageSizeOptions]="pageSizeOptions()"
         (page)="page.emit($event)"
-        aria-label="Results pagination"
+        [attr.aria-label]="'charts.workspace.resultsPagination' | translate"
       />
     </div>
   }

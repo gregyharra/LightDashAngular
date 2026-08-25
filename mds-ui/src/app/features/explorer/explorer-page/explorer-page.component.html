@@ -2,34 +2,34 @@
   <aside class="page-layout__sidebar" appResizableSidebar>
     <div class="page-sidebar">
       <header class="page-sidebar__header">
-        <p class="page-sidebar__breadcrumb">Browse</p>
+        <p class="page-sidebar__breadcrumb">{{ 'explorer.browse' | translate }}</p>
         @if (activeProjectService.activeProject(); as project) {
           <p class="page-sidebar__org">{{ project.name }}</p>
         }
       </header>
 
-      <nav class="page-sidebar__nav" aria-label="Browse navigation">
-        <p class="page-sidebar__section-label">Content</p>
+      <nav class="page-sidebar__nav" [attr.aria-label]="'charts.browseNavigation' | translate">
+        <p class="page-sidebar__section-label">{{ 'explorer.content' | translate }}</p>
         <a
           class="page-sidebar__link page-sidebar__link--active page-sidebar__link--clickable"
           [routerLink]="['/projects', projectUuid(), 'explore']"
         >
           <mat-icon>search</mat-icon>
-          Explore
+          {{ 'explorer.title' | translate }}
         </a>
         <a
           class="page-sidebar__link page-sidebar__link--clickable"
           [routerLink]="['/projects', projectUuid(), 'dashboards']"
         >
           <mat-icon>dashboard</mat-icon>
-          Dashboards
+          {{ 'dashboards.title' | translate }}
         </a>
         <a
           class="page-sidebar__link page-sidebar__link--clickable"
           [routerLink]="['/projects', projectUuid(), 'charts']"
         >
           <mat-icon>bar_chart</mat-icon>
-          Charts
+          {{ 'charts.title' | translate }}
         </a>
         <a
           class="page-sidebar__link page-sidebar__link--clickable"
@@ -55,8 +55,8 @@
       [lineageNodes]="lineageNodes()"
       [projectUuid]="projectUuid()"
       [selectedNodeId]="selectedNodeId()"
-      searchPlaceholder="Search models…"
-      emptyMessage="No models match your search"
+      [searchPlaceholder]="'explorer.searchModels' | translate"
+      [emptyMessage]="'explorer.noModelsMatch' | translate"
       collapsedStorageKey="lightdash-explore-folder-panel-collapsed"
       treeAriaLabel="dbt project folder tree"
       (nodeSelected)="onProjectNodeSelected($event)"
@@ -96,7 +96,7 @@
             class="explorer-page__error-link"
             [routerLink]="['/projects', projectUuid(), 'explore']"
           >
-            Back to Explore
+            {{ 'explorer.back' | translate }}
           </a>
         }
       </div>
@@ -105,14 +105,14 @@
         <div class="page__container page__container--wide">
           <header class="explorer-page__header">
             <nav class="explorer-page__breadcrumbs" aria-label="Breadcrumb">
-              <a routerLink="/projects" class="explorer-page__breadcrumb-link">Home</a>
+              <a routerLink="/projects" class="explorer-page__breadcrumb-link">{{ 'nav.home' | translate }}</a>
               <mat-icon>chevron_right</mat-icon>
-              <span class="explorer-page__breadcrumb-current">Explore</span>
+              <span class="explorer-page__breadcrumb-current">{{ 'explorer.title' | translate }}</span>
             </nav>
           </header>
 
-          <h1 class="explorer-page__title">Explore</h1>
-          <p class="explorer-page__subtitle">Select a model to query</p>
+          <h1 class="explorer-page__title">{{ 'explorer.title' | translate }}</h1>
+          <p class="explorer-page__subtitle">{{ 'explorer.selectModelToQuery' | translate }}</p>
 
           @if (explores().length > 0) {
             <div class="explorer-page__picker-search">
@@ -120,8 +120,8 @@
               <input
                 type="search"
                 class="explorer-page__picker-search-input"
-                placeholder="Search models"
-                aria-label="Search models"
+                [placeholder]="'explorer.searchModels' | translate"
+                [attr.aria-label]="'explorer.searchModels' | translate"
                 [value]="modelSearch()"
                 (input)="onModelSearch($any($event.target).value)"
               />
@@ -131,12 +131,12 @@
           @if (explores().length === 0) {
             <div class="explorer-page__empty">
               <mat-icon>table_chart</mat-icon>
-              <p>No explores available.</p>
+              <p>{{ 'explorer.noExplores' | translate }}</p>
             </div>
           } @else if (filteredExplores().length === 0) {
             <div class="explorer-page__empty">
               <mat-icon>search</mat-icon>
-              <p>No models match your search.</p>
+              <p>{{ 'explorer.noModelsMatch' | translate }}</p>
             </div>
           } @else {
             <div class="explorer-page__grid">
@@ -204,7 +204,7 @@
                 [matMenuTriggerFor]="exportMenu"
               >
                 <mat-icon>download</mat-icon>
-                Export
+                {{ 'export.action' | translate }}
               </button>
               <mat-menu #exportMenu="matMenu">
                 <button mat-menu-item type="button" (click)="onExportCsv()">
@@ -223,7 +223,7 @@
                 (click)="createChartFromData()"
               >
                 <mat-icon>insert_chart</mat-icon>
-                Create chart from data
+                {{ 'explorer.createChartFromData' | translate }}
               </button>
             </div>
           </header>
@@ -237,7 +237,7 @@
                     [expanded]="true"
                   >
                     <mat-expansion-panel-header>
-                      <mat-panel-title>Filters</mat-panel-title>
+                      <mat-panel-title>{{ 'explorer.filters' | translate }}</mat-panel-title>
                     </mat-expansion-panel-header>
                     <app-tables-filters-panel
                       [dimensions]="filterableDimensions()"

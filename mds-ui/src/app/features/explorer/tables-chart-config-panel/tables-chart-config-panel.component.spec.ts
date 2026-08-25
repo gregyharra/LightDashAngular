@@ -1,15 +1,54 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { NoopAnimationsModule } from '@angular/platform-browser/animations';
-import { DEFAULT_CHART_DISPLAY_CONFIG } from './tables-chart-config.constants';
+import {
+  provideTranslateService,
+  TranslateService,
+} from '@ngx-translate/core';
+import {
+  DEFAULT_CHART_DISPLAY_CONFIG,
+  TABLES_CHART_TYPE_OPTIONS,
+} from './tables-chart-config.constants';
 import { TablesChartConfigPanelComponent } from './tables-chart-config-panel.component';
 
 describe('TablesChartConfigPanelComponent', () => {
   let fixture: ComponentFixture<TablesChartConfigPanelComponent>;
 
+  it('stores chart type labels as translation keys', () => {
+    expect(TABLES_CHART_TYPE_OPTIONS[0].labelKey).toBe(
+      'charts.types.verticalBar',
+    );
+  });
+
   beforeEach(async () => {
     await TestBed.configureTestingModule({
       imports: [TablesChartConfigPanelComponent, NoopAnimationsModule],
+      providers: [provideTranslateService()],
     }).compileComponents();
+
+    TestBed.inject(TranslateService).setTranslation('en', {
+      charts: {
+        types: {
+          verticalBar: 'Bar chart',
+          pie: 'Pie chart',
+          funnel: 'Funnel chart',
+        },
+        sections: {
+          layout: 'Layout',
+          display: 'Display',
+          margins: 'Margins',
+        },
+        workspace: {
+          chartType: 'Chart type',
+          group: 'Group',
+          metric: 'Metric',
+          dimension: 'Dimension',
+          orientation: 'Orientation',
+          data: 'Data',
+          rowLimit: 'Row limit',
+        },
+      },
+    });
+    TestBed.inject(TranslateService).use('en');
 
     fixture = TestBed.createComponent(TablesChartConfigPanelComponent);
     fixture.componentRef.setInput('chartKind', 'pie');
@@ -26,6 +65,7 @@ describe('TablesChartConfigPanelComponent', () => {
     fixture.detectChanges();
 
     const text = (fixture.nativeElement as HTMLElement).textContent ?? '';
+    expect(text).toContain('Pie chart');
     expect(text).not.toContain(
       'Switch to a bar, line, or table chart for additional configuration options.',
     );

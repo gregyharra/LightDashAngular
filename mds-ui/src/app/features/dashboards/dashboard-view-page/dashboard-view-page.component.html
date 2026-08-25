@@ -2,34 +2,34 @@
   <aside class="page-layout__sidebar" appResizableSidebar>
     <div class="page-sidebar">
       <header class="page-sidebar__header">
-        <p class="page-sidebar__breadcrumb">Browse</p>
+        <p class="page-sidebar__breadcrumb">{{ 'explorer.browse' | translate }}</p>
         @if (activeProjectService.activeProject(); as project) {
           <p class="page-sidebar__org">{{ project.name }}</p>
         }
       </header>
 
-      <nav class="page-sidebar__nav" aria-label="Browse navigation">
-        <p class="page-sidebar__section-label">Content</p>
+      <nav class="page-sidebar__nav" [attr.aria-label]="'dashboards.browseNavigation' | translate">
+        <p class="page-sidebar__section-label">{{ 'explorer.content' | translate }}</p>
         <a
           class="page-sidebar__link page-sidebar__link--clickable"
           [routerLink]="['/projects', projectUuid(), 'explore']"
         >
           <mat-icon>search</mat-icon>
-          Explore
+          {{ 'explorer.title' | translate }}
         </a>
         <a
           class="page-sidebar__link page-sidebar__link--active page-sidebar__link--clickable"
           [routerLink]="['/projects', projectUuid(), 'dashboards']"
         >
           <mat-icon>dashboard</mat-icon>
-          Dashboards
+          {{ 'dashboards.title' | translate }}
         </a>
         <a
           class="page-sidebar__link page-sidebar__link--clickable"
           [routerLink]="['/projects', projectUuid(), 'charts']"
         >
           <mat-icon>bar_chart</mat-icon>
-          Charts
+          {{ 'charts.title' | translate }}
         </a>
         <a
           class="page-sidebar__link page-sidebar__link--clickable"
@@ -84,15 +84,15 @@
                   [ngModel]="state.name"
                   (ngModelChange)="updateDraft({ name: $event })"
                   [disabled]="saving()"
-                  aria-label="Dashboard name"
-                  placeholder="Dashboard name"
+                  [attr.aria-label]="'dashboards.workspace.dashboardName' | translate"
+                  [placeholder]="'dashboards.workspace.dashboardName' | translate"
                 />
                 <button
                   type="button"
                   class="dashboard-edit__description-btn"
                   [matMenuTriggerFor]="descriptionMenu"
-                  aria-label="Edit description"
-                  matTooltip="Edit description"
+                  [attr.aria-label]="'dashboards.workspace.editDescription' | translate"
+                  [matTooltip]="'dashboards.workspace.editDescription' | translate"
                 >
                   <mat-icon>info_outline</mat-icon>
                 </button>
@@ -102,7 +102,7 @@
                     (click)="$event.stopPropagation()"
                   >
                     <label class="dashboard-edit__description-label" for="dashboard-description">
-                      Description
+                      {{ 'dashboards.workspace.description' | translate }}
                     </label>
                     <textarea
                       id="dashboard-description"
@@ -111,7 +111,7 @@
                       [ngModel]="state.description"
                       (ngModelChange)="updateDraft({ description: $event })"
                       [disabled]="saving()"
-                      placeholder="Add a description"
+                      [placeholder]="'dashboards.workspace.addDescription' | translate"
                     ></textarea>
                   </div>
                 </mat-menu>
@@ -150,32 +150,32 @@
                 [disabled]="saving()"
               >
                 <mat-icon>add</mat-icon>
-                <span class="page-header__action-label">Add tile</span>
+                <span class="page-header__action-label">{{ 'dashboards.workspace.addTile' | translate }}</span>
               </button>
               <mat-menu #addTileMenu="matMenu" panelClass="ld-navbar-menu">
                 <button mat-menu-item type="button" (click)="addHeadingTile()">
                   <mat-icon>title</mat-icon>
-                  Heading
+                  {{ 'dashboards.workspace.heading' | translate }}
                 </button>
                 <button mat-menu-item type="button" (click)="addMarkdownTile()">
                   <mat-icon>notes</mat-icon>
-                  Markdown
+                  {{ 'dashboards.workspace.markdown' | translate }}
                 </button>
                 <button mat-menu-item type="button" (click)="addLoomTile()">
                   <mat-icon>videocam</mat-icon>
-                  Loom video
+                  {{ 'dashboards.workspace.loomVideo' | translate }}
                 </button>
                 <button mat-menu-item type="button" [matMenuTriggerFor]="chartMenu">
                   <mat-icon>bar_chart</mat-icon>
-                  Saved chart
+                  {{ 'dashboards.workspace.savedChart' | translate }}
                 </button>
                 <button mat-menu-item type="button" [matMenuTriggerFor]="sqlChartMenu">
                   <mat-icon>query_stats</mat-icon>
-                  SQL chart
+                  {{ 'dashboards.workspace.sqlChart' | translate }}
                 </button>
                 <button mat-menu-item type="button" (click)="addTab()">
                   <mat-icon>tab</mat-icon>
-                  Add tab
+                  {{ 'dashboards.workspace.addTab' | translate }}
                 </button>
               </mat-menu>
               <mat-menu #chartMenu="matMenu" panelClass="ld-navbar-menu">
@@ -184,7 +184,7 @@
                     {{ chart.name }}
                   </button>
                 } @empty {
-                  <button mat-menu-item disabled>No charts available</button>
+                  <button mat-menu-item disabled>{{ 'dashboards.workspace.noCharts' | translate }}</button>
                 }
               </mat-menu>
               <mat-menu #sqlChartMenu="matMenu" panelClass="ld-navbar-menu">
@@ -193,7 +193,7 @@
                     {{ chart.name }}
                   </button>
                 } @empty {
-                  <button mat-menu-item disabled>No SQL charts available</button>
+                  <button mat-menu-item disabled>{{ 'dashboards.workspace.noSqlCharts' | translate }}</button>
                 }
               </mat-menu>
 
@@ -203,10 +203,10 @@
                 class="dashboard-edit__action-btn page-header__action-btn--labeled page-header__action-btn--cancel"
                 (click)="cancelEdit()"
                 [disabled]="saving()"
-                aria-label="Cancel"
+                [attr.aria-label]="'common.cancel' | translate"
               >
                 <mat-icon>close</mat-icon>
-                <span class="page-header__action-label page-header__action-btn--cancel-label">Cancel</span>
+                <span class="page-header__action-label page-header__action-btn--cancel-label">{{ 'common.cancel' | translate }}</span>
               </button>
               <button
                 mat-flat-button
@@ -221,7 +221,7 @@
                   <mat-icon>save</mat-icon>
                 }
                 @if (!saving()) {
-                  <span class="page-header__action-label">Save</span>
+                  <span class="page-header__action-label">{{ 'common.save' | translate }}</span>
                 }
               </button>
             } @else {
@@ -232,7 +232,7 @@
                 (click)="enterEditMode()"
               >
                 <mat-icon>edit</mat-icon>
-                <span class="page-header__action-label">Edit</span>
+                <span class="page-header__action-label">{{ 'dashboards.workspace.edit' | translate }}</span>
               </button>
 
               <button
@@ -241,8 +241,8 @@
                 class="dashboard-view__icon-action"
                 [disabled]="refreshing()"
                 (click)="refreshDashboard()"
-                aria-label="Refresh dashboard"
-                matTooltip="Refresh"
+                [attr.aria-label]="'dashboards.workspace.refresh' | translate"
+                [matTooltip]="'dashboards.workspace.refresh' | translate"
               >
                 <mat-icon [class.dashboard-view__spin]="refreshing()">refresh</mat-icon>
               </button>
@@ -252,10 +252,10 @@
                 mat-stroked-button
                 class="dashboard-view__icon-action dashboard-view__views-btn page-header__action-btn--labeled"
                 [matMenuTriggerFor]="viewsMenu"
-                aria-label="Views"
+                [attr.aria-label]="'dashboards.workspace.views' | translate"
               >
                 <mat-icon>visibility</mat-icon>
-                <span class="page-header__action-label">Views</span>
+                <span class="page-header__action-label">{{ 'dashboards.workspace.views' | translate }}</span>
                 <mat-icon class="dashboard-view__chevron page-header__views-chevron">expand_more</mat-icon>
               </button>
 
@@ -300,15 +300,15 @@
               <mat-menu #moreMenu="matMenu" class="dashboard-view__menu">
                 <button mat-menu-item disabled>
                   <mat-icon>share</mat-icon>
-                  Share
+                  {{ 'dashboards.workspace.share' | translate }}
                 </button>
                 <button mat-menu-item disabled>
                   <mat-icon>content_copy</mat-icon>
-                  Duplicate
+                  {{ 'dashboards.workspace.duplicate' | translate }}
                 </button>
                 <button mat-menu-item disabled>
                   <mat-icon>download</mat-icon>
-                  Export
+                  {{ 'dashboards.workspace.export' | translate }}
                 </button>
               </mat-menu>
             }

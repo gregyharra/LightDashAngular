@@ -5,6 +5,7 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
+import { TranslatePipe } from '@ngx-translate/core';
 import {
   DashboardDimensionFilter,
   DashboardFilterOperator,
@@ -34,6 +35,7 @@ import {
     MatIconModule,
     MatInputModule,
     MatSelectModule,
+    TranslatePipe,
   ],
   templateUrl: './tables-filters-panel.component.html',
   styleUrl: './tables-filters-panel.component.scss',

@@ -4,6 +4,7 @@ import { MatPaginatorModule, PageEvent } from '@angular/material/paginator';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatTableModule } from '@angular/material/table';
 import { MatTooltipModule } from '@angular/material/tooltip';
+import { TranslatePipe } from '@ngx-translate/core';
 
 @Component({
   selector: 'app-query-results-panel',
@@ -13,6 +14,7 @@ import { MatTooltipModule } from '@angular/material/tooltip';
     MatProgressSpinnerModule,
     MatTableModule,
     MatTooltipModule,
+    TranslatePipe,
   ],
   templateUrl: './query-results-panel.component.html',
   styleUrl: './query-results-panel.component.scss',

@@ -23,7 +23,7 @@
           <button
             type="button"
             class="tables-filters-panel__chip-remove"
-            aria-label="Remove filter"
+            [attr.aria-label]="'explorer.filter.remove' | translate"
             (click)="removeFilter($event, filter.id)"
           >
             <mat-icon>close</mat-icon>
@@ -35,7 +35,7 @@
     @if (draftOpen()) {
       <div class="tables-filters-panel__draft">
         <mat-form-field appearance="outline" subscriptSizing="dynamic">
-          <mat-label>Field</mat-label>
+          <mat-label>{{ 'explorer.filter.field' | translate }}</mat-label>
           <mat-select
             [value]="draftFieldId()"
             (valueChange)="onDraftFieldChange($event)"
@@ -49,7 +49,7 @@
         </mat-form-field>
 
         <mat-form-field appearance="outline" subscriptSizing="dynamic">
-          <mat-label>Operator</mat-label>
+          <mat-label>{{ 'explorer.filter.operator' | translate }}</mat-label>
           <mat-select
             [value]="draftOperator()"
             (valueChange)="onDraftOperatorChange($event)"
@@ -64,7 +64,11 @@
 
         @if (showDraftValue()) {
           <mat-form-field appearance="outline" subscriptSizing="dynamic">
-            <mat-label>{{ showDraftSecondValue() ? 'From' : 'Value' }}</mat-label>
+            <mat-label>{{
+              (showDraftSecondValue()
+                ? 'explorer.filter.from'
+                : 'explorer.filter.value') | translate
+            }}</mat-label>
             <input
               matInput
               [ngModel]="draftValue()"
@@ -86,7 +90,7 @@
 
         @if (showDraftUnitOfTime()) {
           <mat-form-field appearance="outline" subscriptSizing="dynamic">
-            <mat-label>Unit</mat-label>
+            <mat-label>{{ 'explorer.filter.unit' | translate }}</mat-label>
             <mat-select
               [value]="draftUnitOfTime()"
               (valueChange)="draftUnitOfTime.set($event)"

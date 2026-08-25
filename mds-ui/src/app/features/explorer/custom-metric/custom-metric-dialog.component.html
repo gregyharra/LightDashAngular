@@ -1,39 +1,38 @@
-<h2 mat-dialog-title>Create custom metric</h2>
+<h2 mat-dialog-title>{{ 'explorer.customMetric.title' | translate }}</h2>
 
 <mat-dialog-content class="custom-metric-dialog__content">
   <p class="custom-metric-dialog__hint">
-    Build a metric from a dimension using a safe aggregation.
+    {{ 'explorer.customMetric.hint' | translate }}
   </p>
 
   <mat-form-field appearance="outline" class="custom-metric-dialog__field">
-    <mat-label>Name</mat-label>
+    <mat-label>{{ 'explorer.customMetric.name' | translate }}</mat-label>
     <input matInput [(ngModel)]="name" autocomplete="off" autofocus />
     @if (name.trim() && !isNameValid()) {
       <mat-error>
-        Start with a letter or underscore; use only letters, numbers, and
-        underscores.
+        {{ 'explorer.customMetric.nameError' | translate }}
       </mat-error>
     } @else {
-      <mat-hint>Use letters, numbers, and underscores.</mat-hint>
+      <mat-hint>{{ 'explorer.customMetric.nameHint' | translate }}</mat-hint>
     }
   </mat-form-field>
 
   <mat-form-field appearance="outline" class="custom-metric-dialog__field">
-    <mat-label>Label</mat-label>
+    <mat-label>{{ 'explorer.customMetric.label' | translate }}</mat-label>
     <input matInput [(ngModel)]="label" autocomplete="off" />
   </mat-form-field>
 
   <mat-form-field appearance="outline" class="custom-metric-dialog__field">
-    <mat-label>Aggregation</mat-label>
+    <mat-label>{{ 'explorer.customMetric.aggregation' | translate }}</mat-label>
     <mat-select [(ngModel)]="aggregation">
       @for (option of aggregations; track option.value) {
-        <mat-option [value]="option.value">{{ option.label }}</mat-option>
+        <mat-option [value]="option.value">{{ option.labelKey | translate }}</mat-option>
       }
     </mat-select>
   </mat-form-field>
 
   <mat-form-field appearance="outline" class="custom-metric-dialog__field">
-    <mat-label>Dimension</mat-label>
+    <mat-label>{{ 'explorer.customMetric.dimension' | translate }}</mat-label>
     <mat-select [(ngModel)]="dimensionFieldId">
       @for (dimension of data.dimensions; track dimension.fieldId) {
         <mat-option [value]="dimension.fieldId">
@@ -45,13 +44,13 @@
 </mat-dialog-content>
 
 <mat-dialog-actions align="end">
-  <button mat-stroked-button type="button" (click)="cancel()">Cancel</button>
+  <button mat-stroked-button type="button" (click)="cancel()">{{ 'common.cancel' | translate }}</button>
   <button
     mat-flat-button
     type="button"
     [disabled]="!canSave()"
     (click)="save()"
   >
-    Create metric
+    {{ 'explorer.customMetric.create' | translate }}
   </button>
 </mat-dialog-actions>
