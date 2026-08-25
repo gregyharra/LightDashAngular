@@ -1,11 +1,12 @@
 import { Component, inject, signal } from '@angular/core';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { MatIconModule } from '@angular/material/icon';
+import { TranslatePipe } from '@ngx-translate/core';
 import { WarehouseFormComponent } from '../warehouse-form/warehouse-form.component';
 
 @Component({
   selector: 'app-warehouse-edit-page',
-  imports: [RouterLink, MatIconModule, WarehouseFormComponent],
+  imports: [RouterLink, MatIconModule, WarehouseFormComponent, TranslatePipe],
   templateUrl: './warehouse-edit-page.component.html',
   styleUrl: './warehouse-edit-page.component.scss',
 })

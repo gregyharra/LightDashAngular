@@ -1,21 +1,40 @@
 import { Component, inject } from '@angular/core';
+import { FormsModule } from '@angular/forms';
 import { Router, RouterLink, RouterLinkActive } from '@angular/router';
 import { MatDialog } from '@angular/material/dialog';
+import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
+import { MatSelectModule } from '@angular/material/select';
+import { TranslatePipe } from '@ngx-translate/core';
+import {
+  AppLanguage,
+  LanguageService,
+} from '../../core/i18n/language.service';
 import { AppStateService } from '../../core/services/app-state.service';
 import { AuthService } from '../../core/services/auth.service';
 import { ChangePasswordDialogComponent } from '../navbar/navbar-user-menu.component';
 
 @Component({
   selector: 'app-settings-sidebar-nav',
-  imports: [RouterLink, RouterLinkActive, MatIconModule],
+  imports: [
+    FormsModule,
+    RouterLink,
+    RouterLinkActive,
+    MatFormFieldModule,
+    MatIconModule,
+    MatSelectModule,
+    TranslatePipe,
+  ],
   template: `
     <header class="settings-nav__header">
       <p class="settings-nav__email">{{ appState.user()?.email }}</p>
-      <p class="settings-nav__label">Settings</p>
+      <p class="settings-nav__label">{{ 'settings.title' | translate }}</p>
     </header>
 
-    <nav class="page-sidebar__nav settings-nav" aria-label="Settings navigation">
+    <nav
+      class="page-sidebar__nav settings-nav"
+      [attr.aria-label]="'settings.navigation' | translate"
+    >
       <a
         class="page-sidebar__link page-sidebar__link--clickable"
         routerLink="/settings/projects"
@@ -23,7 +42,7 @@ import { ChangePasswordDialogComponent } from '../navbar/navbar-user-menu.compon
         [routerLinkActiveOptions]="{ exact: false }"
       >
         <mat-icon fontIcon="folder" aria-hidden="true"></mat-icon>
-        <span class="settings-nav__item-label">Projects</span>
+        <span class="settings-nav__item-label">{{ 'settings.projects' | translate }}</span>
       </a>
       @if (appState.isAdmin()) {
         <a
@@ -33,7 +52,7 @@ import { ChangePasswordDialogComponent } from '../navbar/navbar-user-menu.compon
           [routerLinkActiveOptions]="{ exact: false }"
         >
           <mat-icon fontIcon="storage" aria-hidden="true"></mat-icon>
-          <span class="settings-nav__item-label">Warehouses</span>
+          <span class="settings-nav__item-label">{{ 'settings.warehouses' | translate }}</span>
         </a>
         <a
           class="page-sidebar__link page-sidebar__link--clickable"
@@ -42,16 +61,37 @@ import { ChangePasswordDialogComponent } from '../navbar/navbar-user-menu.compon
           [routerLinkActiveOptions]="{ exact: false }"
         >
           <mat-icon fontIcon="group" aria-hidden="true"></mat-icon>
-          <span class="settings-nav__item-label">Users</span>
+          <span class="settings-nav__item-label">{{ 'settings.users' | translate }}</span>
         </a>
       }
+      <div
+        class="settings-nav__language"
+        [attr.title]="'settings.language.label' | translate"
+      >
+        <mat-icon fontIcon="language" aria-hidden="true"></mat-icon>
+        <mat-form-field
+          appearance="outline"
+          class="settings-nav__language-field"
+          subscriptSizing="dynamic"
+        >
+          <mat-label>{{ 'settings.language.label' | translate }}</mat-label>
+          <mat-select
+            data-testid="settings-language-select"
+            [ngModel]="languageService.language()"
+            (ngModelChange)="onLanguageChange($event)"
+          >
+            <mat-option value="en">{{ 'settings.language.en' | translate }}</mat-option>
+            <mat-option value="fr">{{ 'settings.language.fr' | translate }}</mat-option>
+          </mat-select>
+        </mat-form-field>
+      </div>
       <button
         type="button"
         class="page-sidebar__link page-sidebar__link--clickable"
         (click)="changePassword()"
       >
         <mat-icon fontIcon="lock" aria-hidden="true"></mat-icon>
-        <span class="settings-nav__item-label">Change password</span>
+        <span class="settings-nav__item-label">{{ 'settings.changePassword' | translate }}</span>
       </button>
       <button
         type="button"
@@ -59,7 +99,7 @@ import { ChangePasswordDialogComponent } from '../navbar/navbar-user-menu.compon
         (click)="logout()"
       >
         <mat-icon fontIcon="logout" aria-hidden="true"></mat-icon>
-        <span class="settings-nav__item-label">Logout</span>
+        <span class="settings-nav__item-label">{{ 'settings.logout' | translate }}</span>
       </button>
     </nav>
   `,
@@ -136,6 +176,32 @@ import { ChangePasswordDialogComponent } from '../navbar/navbar-user-menu.compon
       text-overflow: ellipsis;
     }
 
+    .settings-nav__language {
+      display: flex;
+      align-items: center;
+      gap: var(--ld-spacing-xs);
+      box-sizing: border-box;
+      width: 100%;
+      min-width: 0;
+      padding: 4px var(--ld-spacing-xs);
+      overflow: hidden;
+    }
+
+    .settings-nav__language > mat-icon {
+      flex: 0 0 16px;
+      width: 16px;
+      height: 16px;
+      font-size: 16px;
+      line-height: 16px;
+      color: var(--ld-gray-6);
+    }
+
+    .settings-nav__language-field {
+      flex: 1 1 auto;
+      width: auto;
+      min-width: 0;
+    }
+
     :host-context(.page-sidebar--collapsed) .settings-nav__header {
       height: 0;
       margin: 0;
@@ -156,16 +222,36 @@ import { ChangePasswordDialogComponent } from '../navbar/navbar-user-menu.compon
       white-space: nowrap;
       border: 0;
     }
+
+    :host-context(.page-sidebar--collapsed) .settings-nav__language {
+      position: relative;
+      justify-content: center;
+      max-width: 100%;
+      padding-inline: 0;
+    }
+
+    :host-context(.page-sidebar--collapsed) .settings-nav__language-field {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      max-width: 100%;
+      opacity: 0;
+    }
   `,
 })
 export class SettingsSidebarNavComponent {
   protected readonly appState = inject(AppStateService);
+  protected readonly languageService = inject(LanguageService);
   private readonly auth = inject(AuthService);
   private readonly router = inject(Router);
   private readonly dialog = inject(MatDialog);
 
   protected changePassword(): void {
     this.dialog.open(ChangePasswordDialogComponent, { width: '24rem' });
+  }
+
+  protected onLanguageChange(lang: AppLanguage): void {
+    void this.languageService.setLanguage(lang);
   }
 
   protected logout(): void {

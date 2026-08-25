@@ -3,6 +3,7 @@ import { Router } from '@angular/router';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import {
   WAREHOUSE_TYPE_LABELS,
   WarehouseListItem,
@@ -12,7 +13,7 @@ import { WarehouseService } from '../../projects/warehouse.service';
 
 @Component({
   selector: 'app-warehouses-page',
-  imports: [MatButtonModule, MatIconModule, MatProgressSpinnerModule],
+  imports: [MatButtonModule, MatIconModule, MatProgressSpinnerModule, TranslatePipe],
   templateUrl: './warehouses-page.component.html',
   styleUrl: './warehouses-page.component.scss',
 })
@@ -20,6 +21,7 @@ export class WarehousesPageComponent {
   private readonly warehouseService = inject(WarehouseService);
   private readonly apiErrorService = inject(ApiErrorService);
   private readonly router = inject(Router);
+  private readonly translate = inject(TranslateService);
 
   protected readonly warehouses = signal<WarehouseListItem[]>([]);
   protected readonly loading = signal(true);
@@ -38,7 +40,9 @@ export class WarehousesPageComponent {
         this.loading.set(false);
       },
       error: (err) => {
-        this.error.set(this.apiErrorService.showTransient(err, 'Failed to load warehouses.'));
+        this.error.set(
+          this.apiErrorService.showTransient(err, this.translate.instant('warehouses.loadError')),
+        );
         this.loading.set(false);
       },
     });
@@ -71,7 +75,7 @@ export class WarehousesPageComponent {
 
   protected deleteWarehouse(event: Event, warehouseUuid: string): void {
     event.stopPropagation();
-    if (!confirm('Delete this warehouse connection? Projects using it will be unassigned.')) {
+    if (!confirm(this.translate.instant('warehouses.deleteConfirm'))) {
       return;
     }
 
@@ -84,7 +88,9 @@ export class WarehousesPageComponent {
         this.deletingUuid.set(null);
       },
       error: (err) => {
-        this.error.set(this.apiErrorService.showTransient(err, 'Failed to delete warehouse.'));
+        this.error.set(
+          this.apiErrorService.showTransient(err, this.translate.instant('warehouses.deleteError')),
+        );
         this.deletingUuid.set(null);
       },
     });

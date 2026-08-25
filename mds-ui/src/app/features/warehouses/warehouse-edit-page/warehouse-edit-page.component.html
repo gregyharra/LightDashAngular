@@ -2,15 +2,15 @@
   <div class="page__container">
     <header class="warehouse-edit__header">
       <nav class="warehouse-edit__breadcrumbs" aria-label="Breadcrumb">
-        <a routerLink="/projects" class="warehouse-edit__breadcrumb-link">Home</a>
+        <a routerLink="/projects" class="warehouse-edit__breadcrumb-link">{{ 'nav.home' | translate }}</a>
         <mat-icon>chevron_right</mat-icon>
-        <a routerLink="/settings/warehouses" class="warehouse-edit__breadcrumb-link">Warehouses</a>
+        <a routerLink="/settings/warehouses" class="warehouse-edit__breadcrumb-link">{{ 'warehouses.title' | translate }}</a>
         <mat-icon>chevron_right</mat-icon>
         <span class="warehouse-edit__breadcrumb-current">
           @if (isCreateMode()) {
-            Create
+            {{ 'warehouses.createVerb' | translate }}
           } @else {
-            Edit
+            {{ 'warehouses.editVerb' | translate }}
           }
         </span>
       </nav>
@@ -19,13 +19,13 @@
         <div>
           <h1 class="warehouse-edit__title">
             @if (isCreateMode()) {
-              Create warehouse
+              {{ 'warehouses.create' | translate }}
             } @else {
-              Edit warehouse
+              {{ 'warehouses.edit' | translate }}
             }
           </h1>
           <p class="warehouse-edit__subtitle">
-            Configure a reusable Trino connection for your projects.
+            {{ 'warehouses.editSubtitle' | translate }}
           </p>
         </div>
       </div>

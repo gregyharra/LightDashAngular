@@ -13,6 +13,7 @@ import { MatInputModule } from '@angular/material/input';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatSelectModule } from '@angular/material/select';
 import { MatTableModule } from '@angular/material/table';
+import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { apiErrorMessage } from '../../../core/api/lightdash-api.service';
 import {
   AuthService,
@@ -37,40 +38,40 @@ type UserFormValue = {
     MatFormFieldModule,
     MatInputModule,
     MatSelectModule,
+    TranslatePipe,
   ],
   template: `
-    <h2 mat-dialog-title>Create user</h2>
+    <h2 mat-dialog-title>{{ 'users.create.title' | translate }}</h2>
     <mat-dialog-content>
       <p class="dialog-note">
-        A temporary password will be generated. Share it with the user — they must change it on first
-        sign-in.
+        {{ 'users.create.note' | translate }}
       </p>
       <form class="dialog-form" [formGroup]="form">
         <mat-form-field appearance="outline">
-          <mat-label>Email</mat-label>
+          <mat-label>{{ 'users.fields.email' | translate }}</mat-label>
           <input matInput type="email" formControlName="email" />
         </mat-form-field>
         <mat-form-field appearance="outline">
-          <mat-label>First name</mat-label>
+          <mat-label>{{ 'users.fields.firstName' | translate }}</mat-label>
           <input matInput formControlName="firstName" />
         </mat-form-field>
         <mat-form-field appearance="outline">
-          <mat-label>Last name</mat-label>
+          <mat-label>{{ 'users.fields.lastName' | translate }}</mat-label>
           <input matInput formControlName="lastName" />
         </mat-form-field>
         <mat-form-field appearance="outline">
-          <mat-label>Role</mat-label>
+          <mat-label>{{ 'users.fields.role' | translate }}</mat-label>
           <mat-select formControlName="role">
-            <mat-option value="member">Member</mat-option>
-            <mat-option value="admin">Admin</mat-option>
+            <mat-option value="member">{{ 'users.roles.member' | translate }}</mat-option>
+            <mat-option value="admin">{{ 'users.roles.admin' | translate }}</mat-option>
           </mat-select>
         </mat-form-field>
       </form>
     </mat-dialog-content>
     <mat-dialog-actions align="end">
-      <button mat-button type="button" mat-dialog-close>Cancel</button>
+      <button mat-button type="button" mat-dialog-close>{{ 'common.cancel' | translate }}</button>
       <button mat-flat-button color="primary" type="button" (click)="save()" [disabled]="form.invalid">
-        Create
+        {{ 'users.create.submit' | translate }}
       </button>
     </mat-dialog-actions>
   `,
@@ -118,36 +119,37 @@ export class CreateUserDialogComponent {
     MatFormFieldModule,
     MatInputModule,
     MatSelectModule,
+    TranslatePipe,
   ],
   template: `
-    <h2 mat-dialog-title>Edit user</h2>
+    <h2 mat-dialog-title>{{ 'users.edit.title' | translate }}</h2>
     <mat-dialog-content>
       <form class="dialog-form" [formGroup]="form">
         <mat-form-field appearance="outline">
-          <mat-label>Email</mat-label>
+          <mat-label>{{ 'users.fields.email' | translate }}</mat-label>
           <input matInput type="email" formControlName="email" />
         </mat-form-field>
         <mat-form-field appearance="outline">
-          <mat-label>First name</mat-label>
+          <mat-label>{{ 'users.fields.firstName' | translate }}</mat-label>
           <input matInput formControlName="firstName" />
         </mat-form-field>
         <mat-form-field appearance="outline">
-          <mat-label>Last name</mat-label>
+          <mat-label>{{ 'users.fields.lastName' | translate }}</mat-label>
           <input matInput formControlName="lastName" />
         </mat-form-field>
         <mat-form-field appearance="outline">
-          <mat-label>Role</mat-label>
+          <mat-label>{{ 'users.fields.role' | translate }}</mat-label>
           <mat-select formControlName="role">
-            <mat-option value="member">Member</mat-option>
-            <mat-option value="admin">Admin</mat-option>
+            <mat-option value="member">{{ 'users.roles.member' | translate }}</mat-option>
+            <mat-option value="admin">{{ 'users.roles.admin' | translate }}</mat-option>
           </mat-select>
         </mat-form-field>
       </form>
     </mat-dialog-content>
     <mat-dialog-actions align="end">
-      <button mat-button type="button" mat-dialog-close>Cancel</button>
+      <button mat-button type="button" mat-dialog-close>{{ 'common.cancel' | translate }}</button>
       <button mat-flat-button color="primary" type="button" (click)="save()" [disabled]="form.invalid">
-        Save
+        {{ 'common.save' | translate }}
       </button>
     </mat-dialog-actions>
   `,
@@ -185,7 +187,7 @@ export class EditUserDialogComponent {
 
 @Component({
   selector: 'app-temporary-password-dialog',
-  imports: [MatButtonModule, MatDialogModule, MatIconModule],
+  imports: [MatButtonModule, MatDialogModule, MatIconModule, TranslatePipe],
   template: `
     <h2 mat-dialog-title>{{ data.title }}</h2>
     <mat-dialog-content>
@@ -197,15 +199,19 @@ export class EditUserDialogComponent {
           type="button"
           class="temp-copy-btn"
           (click)="copy()"
-          [attr.aria-label]="copied() ? 'Copied' : 'Copy password'"
+          [attr.aria-label]="
+            (copied() ? 'users.password.copied' : 'users.password.copyPassword') | translate
+          "
         >
           <mat-icon>{{ copied() ? 'check' : 'content_copy' }}</mat-icon>
-          {{ copied() ? 'Copied' : 'Copy' }}
+          {{ (copied() ? 'users.password.copied' : 'users.password.copy') | translate }}
         </button>
       </div>
     </mat-dialog-content>
     <mat-dialog-actions align="end">
-      <button mat-flat-button color="primary" type="button" mat-dialog-close>Done</button>
+      <button mat-flat-button color="primary" type="button" mat-dialog-close>
+        {{ 'users.password.done' | translate }}
+      </button>
     </mat-dialog-actions>
   `,
   styles: `
@@ -271,6 +277,7 @@ export class TemporaryPasswordDialogComponent {
     MatProgressSpinnerModule,
     MatTableModule,
     MatDialogModule,
+    TranslatePipe,
   ],
   templateUrl: './users-page.component.html',
   styleUrl: './users-page.component.scss',
@@ -278,6 +285,7 @@ export class TemporaryPasswordDialogComponent {
 export class UsersPageComponent implements OnInit {
   private readonly auth = inject(AuthService);
   private readonly dialog = inject(MatDialog);
+  private readonly translate = inject(TranslateService);
 
   protected readonly loading = signal(true);
   protected readonly error = signal<string | null>(null);
@@ -298,7 +306,7 @@ export class UsersPageComponent implements OnInit {
       },
       error: (err: unknown) => {
         this.loading.set(false);
-        this.error.set(apiErrorMessage(err, 'Failed to load users'));
+        this.error.set(apiErrorMessage(err, this.translate.instant('users.loadError')));
       },
     });
   }
@@ -316,13 +324,13 @@ export class UsersPageComponent implements OnInit {
         next: (created) => {
           this.reload();
           this.showTemporaryPassword({
-            title: 'User created',
-            message:
-              'Copy this temporary password and send it to the user. They must change it on first sign-in.',
+            title: this.translate.instant('users.password.userCreated'),
+            message: this.translate.instant('users.password.firstSignInMessage'),
             temporaryPassword: created.temporaryPassword ?? '',
           });
         },
-        error: (err: unknown) => this.error.set(apiErrorMessage(err, 'Failed to create user')),
+        error: (err: unknown) =>
+          this.error.set(apiErrorMessage(err, this.translate.instant('users.createError'))),
       });
     });
   }
@@ -348,7 +356,8 @@ export class UsersPageComponent implements OnInit {
           this.error.set(null);
           this.reload();
         },
-        error: (err: unknown) => this.error.set(apiErrorMessage(err, 'Failed to update user')),
+        error: (err: unknown) =>
+          this.error.set(apiErrorMessage(err, this.translate.instant('users.updateError'))),
       });
     });
   }
@@ -356,7 +365,7 @@ export class UsersPageComponent implements OnInit {
   protected resetPassword(user: ManagedUser): void {
     if (
       !confirm(
-        `Reset password for ${user.email}? A new temporary password will be generated for you to copy.`,
+        this.translate.instant('users.password.resetConfirm', { email: user.email }),
       )
     ) {
       return;
@@ -365,23 +374,24 @@ export class UsersPageComponent implements OnInit {
       next: (updated) => {
         this.reload();
         this.showTemporaryPassword({
-          title: 'Password reset',
-          message:
-            'Copy this temporary password and send it to the user. They must change it on next sign-in.',
+          title: this.translate.instant('users.password.resetTitle'),
+          message: this.translate.instant('users.password.nextSignInMessage'),
           temporaryPassword: updated.temporaryPassword ?? '',
         });
       },
-      error: (err: unknown) => this.error.set(apiErrorMessage(err, 'Failed to reset password')),
+      error: (err: unknown) =>
+        this.error.set(apiErrorMessage(err, this.translate.instant('users.password.resetError'))),
     });
   }
 
   protected deactivate(user: ManagedUser): void {
-    if (!confirm(`Deactivate ${user.email}?`)) {
+    if (!confirm(this.translate.instant('users.deactivateConfirm', { email: user.email }))) {
       return;
     }
     this.auth.deactivateUser(user.userUuid).subscribe({
       next: () => this.reload(),
-      error: (err: unknown) => this.error.set(apiErrorMessage(err, 'Failed to deactivate user')),
+      error: (err: unknown) =>
+        this.error.set(apiErrorMessage(err, this.translate.instant('users.deactivateError'))),
     });
   }
 
@@ -391,7 +401,7 @@ export class UsersPageComponent implements OnInit {
     temporaryPassword: string;
   }): void {
     if (!data.temporaryPassword) {
-      this.error.set('User saved, but no temporary password was returned.');
+      this.error.set(this.translate.instant('users.password.missing'));
       return;
     }
     this.dialog.open(TemporaryPasswordDialogComponent, {

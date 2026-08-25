@@ -2,12 +2,12 @@
   <div class="page__container">
     <header class="users__header">
       <div class="users__title-block">
-        <h1 class="users__title">Users</h1>
-        <p class="users__subtitle">Create and manage workspace users.</p>
+        <h1 class="users__title">{{ 'users.title' | translate }}</h1>
+        <p class="users__subtitle">{{ 'users.subtitle' | translate }}</p>
       </div>
       <button mat-flat-button class="users__create-btn" type="button" (click)="openCreate()">
         <mat-icon>person_add</mat-icon>
-        Create user
+        {{ 'users.create.button' | translate }}
       </button>
     </header>
 
@@ -23,21 +23,21 @@
         <div class="users__table-wrap">
           <table mat-table [dataSource]="users()" class="users__table">
             <ng-container matColumnDef="name">
-              <th mat-header-cell *matHeaderCellDef>Name</th>
+              <th mat-header-cell *matHeaderCellDef>{{ 'users.fields.name' | translate }}</th>
               <td mat-cell *matCellDef="let user">{{ user.firstName }} {{ user.lastName }}</td>
             </ng-container>
             <ng-container matColumnDef="email">
-              <th mat-header-cell *matHeaderCellDef>Email</th>
+              <th mat-header-cell *matHeaderCellDef>{{ 'users.fields.email' | translate }}</th>
               <td mat-cell *matCellDef="let user">{{ user.email }}</td>
             </ng-container>
             <ng-container matColumnDef="role">
-              <th mat-header-cell *matHeaderCellDef>Role</th>
+              <th mat-header-cell *matHeaderCellDef>{{ 'users.fields.role' | translate }}</th>
               <td mat-cell *matCellDef="let user">{{ user.role }}</td>
             </ng-container>
             <ng-container matColumnDef="status">
-              <th mat-header-cell *matHeaderCellDef>Status</th>
+              <th mat-header-cell *matHeaderCellDef>{{ 'users.fields.status' | translate }}</th>
               <td mat-cell *matCellDef="let user">
-                {{ user.isActive ? 'Active' : 'Inactive' }}
+                {{ (user.isActive ? 'users.status.active' : 'users.status.inactive') | translate }}
               </td>
             </ng-container>
             <ng-container matColumnDef="actions">
@@ -51,7 +51,7 @@
                     (click)="openEdit(user)"
                   >
                     <mat-icon>edit</mat-icon>
-                    Edit
+                    {{ 'users.edit.button' | translate }}
                   </button>
                   <button
                     mat-stroked-button
@@ -60,7 +60,7 @@
                     (click)="resetPassword(user)"
                   >
                     <mat-icon>lock_reset</mat-icon>
-                    Reset password
+                    {{ 'users.password.resetButton' | translate }}
                   </button>
                   @if (user.isActive) {
                     <button
@@ -70,7 +70,7 @@
                       (click)="deactivate(user)"
                     >
                       <mat-icon>person_off</mat-icon>
-                      Deactivate
+                      {{ 'users.deactivate' | translate }}
                     </button>
                   }
                 </div>
@@ -81,7 +81,7 @@
           </table>
         </div>
       } @else if (!error()) {
-        <p class="users__empty">No users found.</p>
+        <p class="users__empty">{{ 'users.empty' | translate }}</p>
       }
     }
   </div>

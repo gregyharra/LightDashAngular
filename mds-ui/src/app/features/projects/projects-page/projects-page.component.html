@@ -16,8 +16,8 @@
   <div class="page__container">
     <header class="projects__header">
       <div class="projects__title-block">
-        <h1 class="projects__title">Projects</h1>
-        <p class="projects__subtitle">{{ subtitle() }}</p>
+        <h1 class="projects__title">{{ 'projects.title' | translate }}</h1>
+        <p class="projects__subtitle">{{ subtitleKey() | translate }}</p>
       </div>
       @if (managementMode() && appState.isAdmin()) {
         <button
@@ -27,7 +27,7 @@
           (click)="createProject()"
         >
           <mat-icon>add</mat-icon>
-          Create new
+          {{ 'projects.createNew' | translate }}
         </button>
       }
     </header>
@@ -41,7 +41,7 @@
     } @else if (projects().length === 0) {
       <div class="projects__empty">
         <mat-icon>folder_open</mat-icon>
-        <p>No projects available.</p>
+        <p>{{ 'projects.empty' | translate }}</p>
       </div>
     } @else {
       <div class="projects__grid">
@@ -63,7 +63,7 @@
               <div class="project-card__header-main">
                 <h2 class="project-card__name">{{ project.name }}</h2>
                 @if (project.projectUuid === activeProjectService.activeProjectUuid()) {
-                  <span class="project-card__badge">Current</span>
+                  <span class="project-card__badge">{{ 'projects.current' | translate }}</span>
                 }
               </div>
               @if (managementMode() && appState.isAdmin()) {
@@ -71,8 +71,8 @@
                   mat-icon-button
                   type="button"
                   class="project-card__settings-btn"
-                  aria-label="Edit project settings"
-                  title="Edit project settings"
+                  [attr.aria-label]="'projects.editSettings' | translate"
+                  [attr.title]="'projects.editSettings' | translate"
                   (click)="openProjectEdit(project.projectUuid, $event)"
                 >
                   <mat-icon>settings</mat-icon>
@@ -97,10 +97,10 @@
 
             <div class="project-card__footer">
               <span class="project-card__date">
-                Created {{ formatDate(project.createdAt) }}
+                {{ 'projects.created' | translate }} {{ formatDate(project.createdAt) }}
               </span>
               <span class="project-card__action">
-                Open
+                {{ 'projects.open' | translate }}
                 <mat-icon>arrow_forward</mat-icon>
               </span>
             </div>

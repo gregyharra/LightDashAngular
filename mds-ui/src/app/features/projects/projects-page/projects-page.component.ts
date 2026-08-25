@@ -5,6 +5,7 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { map } from 'rxjs';
 import { ActiveProjectService } from '../../../core/services/active-project.service';
 import { AppStateService } from '../../../core/services/app-state.service';
@@ -23,7 +24,13 @@ const WAREHOUSE_LABELS: Record<string, string> = {
 
 @Component({
   selector: 'app-projects-page',
-  imports: [NgTemplateOutlet, MatButtonModule, MatIconModule, MatProgressSpinnerModule],
+  imports: [
+    NgTemplateOutlet,
+    MatButtonModule,
+    MatIconModule,
+    MatProgressSpinnerModule,
+    TranslatePipe,
+  ],
   templateUrl: './projects-page.component.html',
   styleUrl: './projects-page.component.scss',
 })
@@ -32,6 +39,7 @@ export class ProjectsPageComponent {
   private readonly apiErrorService = inject(ApiErrorService);
   private readonly router = inject(Router);
   private readonly route = inject(ActivatedRoute);
+  private readonly translate = inject(TranslateService);
   protected readonly activeProjectService = inject(ActiveProjectService);
   protected readonly appState = inject(AppStateService);
 
@@ -40,10 +48,10 @@ export class ProjectsPageComponent {
     { initialValue: !!this.route.snapshot.data['management'] },
   );
 
-  protected readonly subtitle = computed(() =>
+  protected readonly subtitleKey = computed(() =>
     this.managementMode()
-      ? 'Create projects and manage their settings.'
-      : 'Select a project to explore metrics, charts, and dashboards.',
+      ? 'projects.managementSubtitle'
+      : 'projects.exploreSubtitle',
   );
 
   protected readonly projects = signal<ProjectSummary[]>([]);
@@ -58,7 +66,9 @@ export class ProjectsPageComponent {
         this.loading.set(false);
       },
       error: (err) => {
-        this.error.set(this.apiErrorService.showTransient(err, 'Failed to load projects.'));
+        this.error.set(
+          this.apiErrorService.showTransient(err, this.translate.instant('projects.loadError')),
+        );
         this.loading.set(false);
       },
     });

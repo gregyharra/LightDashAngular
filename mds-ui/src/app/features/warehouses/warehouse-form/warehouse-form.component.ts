@@ -6,6 +6,7 @@ import { MatInputModule } from '@angular/material/input';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatSelectModule } from '@angular/material/select';
 import { MatSlideToggleModule } from '@angular/material/slide-toggle';
+import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { apiErrorMessage } from '../../../core/api/lightdash-api.service';
 import {
   defaultPortForWarehouseType,
@@ -28,12 +29,14 @@ import { WarehouseService } from '../../projects/warehouse.service';
     MatProgressSpinnerModule,
     MatSelectModule,
     MatSlideToggleModule,
+    TranslatePipe,
   ],
   templateUrl: './warehouse-form.component.html',
   styleUrl: './warehouse-form.component.scss',
 })
 export class WarehouseFormComponent {
   private readonly warehouseService = inject(WarehouseService);
+  private readonly translate = inject(TranslateService);
 
   readonly mode = input.required<'create' | 'edit'>();
   readonly warehouseUuid = input<string | null>(null);
@@ -140,17 +143,19 @@ export class WarehouseFormComponent {
   }
 
   protected catalogLabel(): string {
-    return this.type === 'oracle' ? 'Service name' : 'Catalog';
+    return this.translate.instant(
+      this.type === 'oracle' ? 'warehouses.fields.serviceName' : 'warehouses.fields.catalog',
+    );
   }
 
   protected catalogHint(): string | null {
     if (this.type === 'oracle') {
-      return 'Optional. Oracle service name or SID.';
+      return this.translate.instant('warehouses.hints.oracleService');
     }
     if (this.type === 'trino') {
-      return 'Optional. Default catalog for queries.';
+      return this.translate.instant('warehouses.hints.defaultCatalog');
     }
-    return 'Optional.';
+    return this.translate.instant('warehouses.optional');
   }
 
   protected supportsConnectionTest(): boolean {
@@ -188,9 +193,11 @@ export class WarehouseFormComponent {
 
   protected connectionStatusLabel(): string {
     if (this.loading()) {
-      return 'Loading…';
+      return this.translate.instant('common.loading');
     }
-    return this.isEditing() ? 'Configured' : 'New connection';
+    return this.translate.instant(
+      this.isEditing() ? 'warehouses.configured' : 'warehouses.newConnection',
+    );
   }
 
   protected connectionStatusClass(): string {
@@ -227,7 +234,7 @@ export class WarehouseFormComponent {
         next: (warehouse) => {
           this.applyWarehouse(warehouse);
           this.saving.set(false);
-          this.success.set('Warehouse created.');
+          this.success.set(this.translate.instant('warehouses.created'));
           this.saved.emit(warehouse);
         },
         error: (err) => {
@@ -240,7 +247,7 @@ export class WarehouseFormComponent {
 
     const uuid = this.warehouseUuid();
     if (!uuid) {
-      this.error.set('Missing warehouse identifier.');
+      this.error.set(this.translate.instant('warehouses.missingIdentifier'));
       this.saving.set(false);
       return;
     }
@@ -256,7 +263,7 @@ export class WarehouseFormComponent {
       next: (warehouse) => {
         this.applyWarehouse(warehouse);
         this.saving.set(false);
-        this.success.set('Warehouse saved.');
+        this.success.set(this.translate.instant('warehouses.saved'));
         this.saved.emit(warehouse);
       },
       error: (err) => {
@@ -268,14 +275,14 @@ export class WarehouseFormComponent {
 
   protected testConnection(): void {
     if (!this.canTestConnection()) {
-      this.error.set('Host, port, and username are required to test the connection.');
+      this.error.set(this.translate.instant('warehouses.testRequired'));
       return;
     }
 
     if (!this.supportsConnectionTest()) {
       this.testResult.set({
         success: false,
-        message: 'Connection testing is only available for Trino warehouses.',
+        message: this.translate.instant('warehouses.testTrinoOnly'),
       });
       return;
     }

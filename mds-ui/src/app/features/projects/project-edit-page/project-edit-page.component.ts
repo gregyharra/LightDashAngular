@@ -9,6 +9,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatSelectModule } from '@angular/material/select';
+import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { apiErrorMessage } from '../../../core/api/lightdash-api.service';
 import { GitProvider, ProjectRepoStatus } from '../../../core/models/project.model';
 import { WarehouseListItem } from '../../../core/models/warehouse.model';
@@ -45,6 +46,7 @@ type ProjectSettingsTab = 'configuration' | 'links';
     MatInputModule,
     MatProgressSpinnerModule,
     MatSelectModule,
+    TranslatePipe,
     FilterableLinksTableComponent,
     LinkDialogComponent,
   ],
@@ -59,6 +61,7 @@ export class ProjectEditPageComponent {
   private readonly lineageService = inject(LineageService);
   private readonly modelJoinsService = inject(ModelJoinsService);
   private readonly dialog = inject(MatDialog);
+  private readonly translate = inject(TranslateService);
   protected readonly activeProjectService = inject(ActiveProjectService);
 
   protected readonly projectUuid = signal<string | null>(null);
@@ -280,7 +283,7 @@ export class ProjectEditPageComponent {
             ),
           );
           this.saving.set(false);
-          this.success.set('Project settings saved.');
+          this.success.set(this.translate.instant('projects.edit.saved'));
           this.loadRepoStatus(projectUuid);
         },
         error: (err) => {
@@ -304,7 +307,7 @@ export class ProjectEditPageComponent {
       next: (status) => {
         this.repoStatus.set(status);
         this.syncing.set(false);
-        this.success.set('Repository synced successfully.');
+        this.success.set(this.translate.instant('projects.git.synced'));
       },
       error: (err) => {
         this.error.set(apiErrorMessage(err));
@@ -320,9 +323,7 @@ export class ProjectEditPageComponent {
       return;
     }
 
-    const confirmed = confirm(
-      'Remove the local clone for this project? Git settings are kept so you can sync again later.',
-    );
+    const confirmed = confirm(this.translate.instant('projects.git.removeConfirm'));
     if (!confirmed) {
       return;
     }
@@ -335,7 +336,7 @@ export class ProjectEditPageComponent {
       next: (status) => {
         this.repoStatus.set(status);
         this.desyncing.set(false);
-        this.success.set('Local clone removed.');
+        this.success.set(this.translate.instant('projects.git.removed'));
       },
       error: (err) => {
         this.error.set(apiErrorMessage(err));
@@ -461,9 +462,7 @@ export class ProjectEditPageComponent {
       return;
     }
 
-    const confirmed = confirm(
-      'Delete this project permanently? All spaces, dashboards, and saved charts will be removed. This cannot be undone.',
-    );
+    const confirmed = confirm(this.translate.instant('projects.edit.deleteConfirm'));
     if (!confirmed) {
       return;
     }

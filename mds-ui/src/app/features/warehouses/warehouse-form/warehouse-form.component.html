@@ -8,13 +8,13 @@
       <div>
         <h2 class="warehouse-form__title">
           @if (mode() === 'create') {
-            New warehouse connection
+            {{ 'warehouses.newConnection' | translate }}
           } @else {
-            Warehouse connection
+            {{ 'warehouses.connection' | translate }}
           }
         </h2>
         <p class="warehouse-form__subtitle">
-          Configure a database connection for projects to fetch live data.
+          {{ 'warehouses.formSubtitle' | translate }}
         </p>
       </div>
       <span class="warehouse-form__status" [class]="connectionStatusClass()">
@@ -48,12 +48,12 @@
   <form class="warehouse-form__form" (ngSubmit)="save()">
     <div class="warehouse-form__grid">
       <mat-form-field appearance="outline" class="warehouse-form__field--full">
-        <mat-label>Name</mat-label>
+        <mat-label>{{ 'warehouses.fields.name' | translate }}</mat-label>
         <input matInput name="name" [(ngModel)]="name" required autocomplete="off" />
       </mat-form-field>
 
       <mat-form-field appearance="outline" class="warehouse-form__field--full">
-        <mat-label>Type</mat-label>
+        <mat-label>{{ 'warehouses.fields.type' | translate }}</mat-label>
         <mat-select name="type" [(ngModel)]="type" required (ngModelChange)="onTypeChange()">
           @for (option of warehouseTypeOptions; track option.value) {
             <mat-option [value]="option.value">{{ option.label }}</mat-option>
@@ -62,12 +62,12 @@
       </mat-form-field>
 
       <mat-form-field appearance="outline">
-        <mat-label>Host</mat-label>
+        <mat-label>{{ 'warehouses.fields.host' | translate }}</mat-label>
         <input matInput name="host" [(ngModel)]="host" required autocomplete="off" />
       </mat-form-field>
 
       <mat-form-field appearance="outline">
-        <mat-label>Port</mat-label>
+        <mat-label>{{ 'warehouses.fields.port' | translate }}</mat-label>
         <input
           matInput
           name="port"
@@ -80,22 +80,25 @@
       </mat-form-field>
 
       <mat-form-field appearance="outline">
-        <mat-label>Username</mat-label>
+        <mat-label>{{ 'warehouses.fields.username' | translate }}</mat-label>
         <input matInput name="user" [(ngModel)]="user" required autocomplete="username" />
       </mat-form-field>
 
       <mat-form-field appearance="outline">
-        <mat-label>Password</mat-label>
+        <mat-label>{{ 'warehouses.fields.password' | translate }}</mat-label>
         <input
           matInput
           name="password"
           type="password"
           [(ngModel)]="password"
-          [placeholder]="isEditing() ? 'Leave blank to keep existing' : 'Optional'"
+          [placeholder]="
+            (isEditing() ? 'warehouses.keepPasswordPlaceholder' : 'warehouses.optional')
+              | translate
+          "
           autocomplete="new-password"
         />
         @if (isEditing() && hasExistingPassword) {
-          <mat-hint>A password is stored for this connection.</mat-hint>
+          <mat-hint>{{ 'warehouses.passwordStored' | translate }}</mat-hint>
         }
       </mat-form-field>
 
@@ -108,25 +111,27 @@
       </mat-form-field>
 
       <mat-form-field appearance="outline">
-        <mat-label>Schema</mat-label>
+        <mat-label>{{ 'warehouses.fields.schema' | translate }}</mat-label>
         <input matInput name="schema" [(ngModel)]="schema" autocomplete="off" />
-        <mat-hint>Optional.</mat-hint>
+        <mat-hint>{{ 'warehouses.optional' | translate }}</mat-hint>
       </mat-form-field>
     </div>
 
     <div class="warehouse-form__toggles">
-      <mat-slide-toggle name="ssl" [(ngModel)]="ssl">Use SSL (HTTPS)</mat-slide-toggle>
+      <mat-slide-toggle name="ssl" [(ngModel)]="ssl">
+        {{ 'warehouses.useSsl' | translate }}
+      </mat-slide-toggle>
 
       @if (isEditing() && hasExistingPassword) {
         <mat-slide-toggle name="clearPassword" [(ngModel)]="clearPassword">
-          Remove stored password
+          {{ 'warehouses.removePassword' | translate }}
         </mat-slide-toggle>
       }
     </div>
 
     @if (!supportsConnectionTest()) {
       <p class="warehouse-form__note">
-        Connection testing is only available for Trino warehouses.
+        {{ 'warehouses.testTrinoOnly' | translate }}
       </p>
     }
 
@@ -139,23 +144,23 @@
           [disabled]="testing() || saving() || !supportsConnectionTest() || !canTestConnection()"
         >
           @if (testing()) {
-            Testing…
+            {{ 'warehouses.testing' | translate }}
           } @else {
-            Test connection
+            {{ 'warehouses.testConnection' | translate }}
           }
         </button>
 
         <button mat-stroked-button type="button" (click)="cancel()" [disabled]="saving() || testing()">
-          Cancel
+          {{ 'common.cancel' | translate }}
         </button>
 
         <button mat-flat-button type="submit" [disabled]="saving() || testing()">
           @if (saving()) {
-            Saving…
+            {{ 'warehouses.saving' | translate }}
           } @else if (mode() === 'create') {
-            Create warehouse
+            {{ 'warehouses.create' | translate }}
           } @else {
-            Save changes
+            {{ 'warehouses.saveChanges' | translate }}
           }
         </button>
       </div>

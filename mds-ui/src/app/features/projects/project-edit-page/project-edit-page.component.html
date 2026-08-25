@@ -2,22 +2,22 @@
   <div class="page__container">
     <header class="project-edit__header">
       <nav class="project-edit__breadcrumbs" aria-label="Breadcrumb">
-        <a routerLink="/projects" class="project-edit__breadcrumb-link">Home</a>
+        <a routerLink="/projects" class="project-edit__breadcrumb-link">{{ 'nav.home' | translate }}</a>
         <mat-icon>chevron_right</mat-icon>
-        <a routerLink="/settings/projects" class="project-edit__breadcrumb-link">Projects</a>
+        <a routerLink="/settings/projects" class="project-edit__breadcrumb-link">{{ 'projects.title' | translate }}</a>
         <mat-icon>chevron_right</mat-icon>
         @if (activeProjectService.activeProject(); as project) {
           <span class="project-edit__breadcrumb-current">{{ project.name }}</span>
           <mat-icon>chevron_right</mat-icon>
         }
-        <span class="project-edit__breadcrumb-current">Edit</span>
+        <span class="project-edit__breadcrumb-current">{{ 'projects.edit.breadcrumb' | translate }}</span>
       </nav>
 
           <div class="project-edit__title-row">
             <div>
-              <h1 class="project-edit__title">Project settings</h1>
+              <h1 class="project-edit__title">{{ 'projects.edit.title' | translate }}</h1>
               <p class="project-edit__subtitle">
-                Update the project name, warehouse connection, Git repository settings, and table links.
+                {{ 'projects.edit.subtitle' | translate }}
               </p>
             </div>
           </div>
@@ -47,7 +47,7 @@
               [class.project-edit__tab--active]="activeSettingsTab() === 'configuration'"
               (click)="setSettingsTab('configuration')"
             >
-              Configuration
+              {{ 'projects.edit.configuration' | translate }}
             </button>
             <button
               type="button"
@@ -55,7 +55,7 @@
               [class.project-edit__tab--active]="activeSettingsTab() === 'links'"
               (click)="setSettingsTab('links')"
             >
-              Table links
+              {{ 'projects.edit.tableLinks' | translate }}
               <span class="project-edit__tab-count">{{ linksCount() }}</span>
             </button>
           </div>
@@ -63,15 +63,15 @@
           @if (activeSettingsTab() === 'configuration') {
           <form class="project-edit__form" (ngSubmit)="save()">
             <mat-form-field appearance="outline" class="project-edit__field">
-              <mat-label>Project name</mat-label>
+              <mat-label>{{ 'projects.fields.name' | translate }}</mat-label>
               <input matInput name="name" [(ngModel)]="name" required autocomplete="off" />
             </mat-form-field>
 
             <div class="project-edit__warehouse-row">
               <mat-form-field appearance="outline" class="project-edit__field">
-                <mat-label>Warehouse</mat-label>
+                <mat-label>{{ 'projects.fields.warehouse' | translate }}</mat-label>
                 <mat-select name="warehouseUuid" [(ngModel)]="selectedWarehouseUuid">
-                  <mat-option [value]="null">No warehouse assigned</mat-option>
+                  <mat-option [value]="null">{{ 'projects.fields.noWarehouse' | translate }}</mat-option>
                   @for (warehouse of warehouses(); track warehouse.warehouseUuid) {
                     <mat-option [value]="warehouse.warehouseUuid">
                       {{ warehouse.name }} ({{ warehouse.host }}:{{ warehouse.port }})
@@ -87,31 +87,37 @@
                 (click)="openCreateWarehouseDialog()"
               >
                 <mat-icon>add</mat-icon>
-                Create warehouse
+                {{ 'warehouses.create' | translate }}
               </button>
             </div>
 
             @if (warehouses().length === 0) {
               <p class="project-edit__hint">
-                No warehouses exist yet. Create one to connect this project to Trino.
+                {{ 'projects.noWarehousesHint' | translate }}
               </p>
             }
 
             <div class="project-edit__section">
               <div class="project-edit__section-header">
-                <h2 class="project-edit__section-title">Git repository</h2>
+                <h2 class="project-edit__section-title">{{ 'projects.git.title' | translate }}</h2>
                 @if (repoStatus(); as repo) {
                   <span
                     class="project-edit__repo-badge"
                     [class.project-edit__repo-badge--connected]="repo.cloned"
                   >
-                    {{ repo.cloned ? 'Cloned' : repo.configured ? 'Configured' : 'Not configured' }}
+                    {{
+                      (repo.cloned
+                        ? 'projects.git.cloned'
+                        : repo.configured
+                          ? 'projects.git.configured'
+                          : 'projects.git.notConfigured') | translate
+                    }}
                   </span>
                 }
               </div>
 
               <mat-form-field appearance="outline" class="project-edit__field">
-                <mat-label>Repository URL</mat-label>
+                <mat-label>{{ 'projects.git.repositoryUrl' | translate }}</mat-label>
                 <input
                   matInput
                   name="gitRepoUrl"
@@ -124,13 +130,13 @@
 
               <div class="project-edit__repo-row">
                 <mat-form-field appearance="outline" class="project-edit__field">
-                  <mat-label>Provider</mat-label>
+                  <mat-label>{{ 'projects.git.provider' | translate }}</mat-label>
                   <mat-select
                     name="gitProvider"
                     [ngModel]="gitProvider"
                     (ngModelChange)="onGitProviderChange($event)"
                   >
-                    <mat-option [value]="null">Auto-detect</mat-option>
+                    <mat-option [value]="null">{{ 'projects.git.autoDetect' | translate }}</mat-option>
                     @for (provider of gitProviders; track provider.value) {
                       <mat-option [value]="provider.value">{{ provider.label }}</mat-option>
                     }
@@ -138,7 +144,7 @@
                 </mat-form-field>
 
                 <mat-form-field appearance="outline" class="project-edit__field">
-                  <mat-label>Default branch</mat-label>
+                  <mat-label>{{ 'projects.git.defaultBranch' | translate }}</mat-label>
                   <input
                     matInput
                     name="gitDefaultBranch"
@@ -149,7 +155,7 @@
               </div>
 
               <mat-form-field appearance="outline" class="project-edit__field">
-                <mat-label>Subdirectory (monorepo)</mat-label>
+                <mat-label>{{ 'projects.git.subdirectory' | translate }}</mat-label>
                 <input
                   matInput
                   name="gitSubdirectory"
@@ -161,19 +167,19 @@
 
               @if (gitProvider === 'bitbucket') {
                 <mat-form-field appearance="outline" class="project-edit__field">
-                  <mat-label>Bitbucket username</mat-label>
+                  <mat-label>{{ 'projects.git.bitbucketUsername' | translate }}</mat-label>
                   <input
                     matInput
                     name="gitUsername"
                     [(ngModel)]="gitUsername"
                     autocomplete="username"
                   />
-                  <mat-hint>Required for Bitbucket Cloud HTTP access tokens / app passwords.</mat-hint>
+                  <mat-hint>{{ 'projects.git.bitbucketUsernameHint' | translate }}</mat-hint>
                 </mat-form-field>
               }
 
               <mat-form-field appearance="outline" class="project-edit__field">
-                <mat-label>Access token</mat-label>
+                <mat-label>{{ 'projects.git.accessToken' | translate }}</mat-label>
                 <input
                   matInput
                   type="password"
@@ -183,11 +189,11 @@
                 />
                 <mat-hint>
                   @if (hasGitToken) {
-                    A token is saved. Leave blank to keep it, or check clear below.
+                    {{ 'projects.git.savedTokenHint' | translate }}
                   } @else if (gitProvider === 'bitbucket') {
-                    Bitbucket Cloud HTTP access token or app password.
+                    {{ 'projects.git.bitbucketTokenHint' | translate }}
                   } @else {
-                    For private repositories. Stored encrypted on the server.
+                    {{ 'projects.git.privateTokenHint' | translate }}
                   }
                 </mat-hint>
               </mat-form-field>
@@ -195,12 +201,12 @@
               @if (hasGitToken) {
                 <label class="project-edit__checkbox">
                   <input type="checkbox" name="clearGitToken" [(ngModel)]="clearGitToken" />
-                  Clear saved access token
+                  {{ 'projects.git.clearToken' | translate }}
                 </label>
               }
 
               <mat-form-field appearance="outline" class="project-edit__field">
-                <mat-label>dbt project path</mat-label>
+                <mat-label>{{ 'projects.dbt.path' | translate }}</mat-label>
                 <input
                   matInput
                   name="dbtProjectPath"
@@ -215,7 +221,7 @@
               </mat-form-field>
 
               <mat-form-field appearance="outline" class="project-edit__field">
-                <mat-label>dbt profile target</mat-label>
+                <mat-label>{{ 'projects.dbt.target' | translate }}</mat-label>
                 <input
                   matInput
                   name="dbtTarget"
@@ -253,11 +259,7 @@
                   (click)="syncRepository()"
                   [disabled]="syncing() || desyncing() || saving() || !gitRepoUrl.trim()"
                 >
-                  @if (syncing()) {
-                    Syncing…
-                  } @else {
-                    Sync repository
-                  }
+                  {{ (syncing() ? 'projects.git.syncing' : 'projects.git.sync') | translate }}
                 </button>
 
                 @if (repoStatus()?.cloned) {
@@ -268,11 +270,7 @@
                     (click)="desyncRepository()"
                     [disabled]="syncing() || desyncing() || saving()"
                   >
-                    @if (desyncing()) {
-                      Removing…
-                    } @else {
-                      Remove local clone
-                    }
+                    {{ (desyncing() ? 'projects.git.removing' : 'projects.git.remove') | translate }}
                   </button>
                 }
               </div>
@@ -280,23 +278,24 @@
 
             <div class="project-edit__actions">
               <button mat-stroked-button type="button" (click)="cancel()" [disabled]="saving()">
-                Cancel
+                {{ 'common.cancel' | translate }}
               </button>
               <button mat-flat-button type="submit" [disabled]="saving() || deleting()">
                 @if (saving()) {
-                  Saving…
+                  {{ 'projects.saving' | translate }}
                 } @else {
-                  Save project
+                  {{ 'projects.edit.save' | translate }}
                 }
               </button>
             </div>
           </form>
 
           <section class="project-edit__danger-zone" aria-labelledby="project-delete-heading">
-            <h2 id="project-delete-heading" class="project-edit__danger-title">Danger zone</h2>
+            <h2 id="project-delete-heading" class="project-edit__danger-title">
+              {{ 'projects.edit.dangerTitle' | translate }}
+            </h2>
             <p class="project-edit__danger-text">
-              Permanently delete this project and all of its spaces, dashboards, and saved charts.
-              Warehouse connections are kept.
+              {{ 'projects.edit.dangerText' | translate }}
             </p>
             <button
               mat-stroked-button
@@ -306,9 +305,9 @@
               (click)="deleteProject()"
             >
               @if (deleting()) {
-                Deleting…
+                {{ 'projects.deleting' | translate }}
               } @else {
-                Delete project
+                {{ 'projects.edit.delete' | translate }}
               }
             </button>
           </section>

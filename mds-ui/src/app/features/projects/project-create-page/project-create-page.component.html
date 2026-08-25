@@ -2,17 +2,17 @@
   <div class="page__container">
     <header class="project-create__header">
       <nav class="project-create__breadcrumbs" aria-label="Breadcrumb">
-        <a routerLink="/projects" class="project-create__breadcrumb-link">Home</a>
+        <a routerLink="/projects" class="project-create__breadcrumb-link">{{ 'nav.home' | translate }}</a>
         <mat-icon>chevron_right</mat-icon>
-        <a routerLink="/settings/projects" class="project-create__breadcrumb-link">Projects</a>
+        <a routerLink="/settings/projects" class="project-create__breadcrumb-link">{{ 'projects.title' | translate }}</a>
         <mat-icon>chevron_right</mat-icon>
-        <span class="project-create__breadcrumb-current">Create project</span>
+        <span class="project-create__breadcrumb-current">{{ 'projects.create.title' | translate }}</span>
       </nav>
     </header>
 
-        <h1 class="project-create__title">Create project</h1>
+        <h1 class="project-create__title">{{ 'projects.create.title' | translate }}</h1>
         <p class="project-create__subtitle">
-          Add a new project to organize dashboards, charts, and metrics.
+          {{ 'projects.create.subtitle' | translate }}
         </p>
 
         @if (loading()) {
@@ -22,7 +22,7 @@
         } @else {
           <form class="project-create__form" (ngSubmit)="submit()">
             <mat-form-field appearance="outline" class="project-create__field">
-              <mat-label>Project name</mat-label>
+              <mat-label>{{ 'projects.fields.name' | translate }}</mat-label>
               <input
                 matInput
                 name="name"
@@ -35,13 +35,13 @@
 
             <div class="project-create__warehouse-row">
               <mat-form-field appearance="outline" class="project-create__field">
-                <mat-label>Warehouse</mat-label>
+                <mat-label>{{ 'projects.fields.warehouse' | translate }}</mat-label>
                 <mat-select
                   name="warehouseUuid"
                   [(ngModel)]="selectedWarehouseUuid"
                   [disabled]="submitting()"
                 >
-                  <mat-option [value]="null">No warehouse assigned</mat-option>
+                  <mat-option [value]="null">{{ 'projects.fields.noWarehouse' | translate }}</mat-option>
                   @for (warehouse of warehouses(); track warehouse.warehouseUuid) {
                     <mat-option [value]="warehouse.warehouseUuid">
                       {{ warehouse.name }} ({{ warehouse.host }}:{{ warehouse.port }})
@@ -58,25 +58,24 @@
                 [disabled]="submitting()"
               >
                 <mat-icon>add</mat-icon>
-                Create warehouse
+                {{ 'warehouses.create' | translate }}
               </button>
             </div>
 
             @if (warehouses().length === 0) {
               <p class="project-create__hint">
-                No warehouses exist yet. Create one to connect this project to Trino.
+                {{ 'projects.noWarehousesHint' | translate }}
               </p>
             }
 
             <div class="project-create__section">
-              <h2 class="project-create__section-title">Git repository</h2>
+              <h2 class="project-create__section-title">{{ 'projects.git.title' | translate }}</h2>
               <p class="project-create__hint">
-                Optional. Point this project at a dbt repo to clone locally for semantic layer
-                artifacts.
+                {{ 'projects.git.subtitle' | translate }}
               </p>
 
               <mat-form-field appearance="outline" class="project-create__field">
-                <mat-label>Repository URL</mat-label>
+                <mat-label>{{ 'projects.git.repositoryUrl' | translate }}</mat-label>
                 <input
                   matInput
                   name="gitRepoUrl"
@@ -90,14 +89,14 @@
 
               <div class="project-create__repo-row">
                 <mat-form-field appearance="outline" class="project-create__field">
-                  <mat-label>Provider</mat-label>
+                  <mat-label>{{ 'projects.git.provider' | translate }}</mat-label>
                   <mat-select
                     name="gitProvider"
                     [ngModel]="gitProvider"
                     (ngModelChange)="onGitProviderChange($event)"
                     [disabled]="submitting()"
                   >
-                    <mat-option [value]="null">Auto-detect</mat-option>
+                    <mat-option [value]="null">{{ 'projects.git.autoDetect' | translate }}</mat-option>
                     @for (provider of gitProviders; track provider.value) {
                       <mat-option [value]="provider.value">{{ provider.label }}</mat-option>
                     }
@@ -105,7 +104,7 @@
                 </mat-form-field>
 
                 <mat-form-field appearance="outline" class="project-create__field">
-                  <mat-label>Default branch</mat-label>
+                  <mat-label>{{ 'projects.git.defaultBranch' | translate }}</mat-label>
                   <input
                     matInput
                     name="gitDefaultBranch"
@@ -117,7 +116,7 @@
               </div>
 
               <mat-form-field appearance="outline" class="project-create__field">
-                <mat-label>Subdirectory (monorepo)</mat-label>
+                <mat-label>{{ 'projects.git.subdirectory' | translate }}</mat-label>
                 <input
                   matInput
                   name="gitSubdirectory"
@@ -126,12 +125,12 @@
                   autocomplete="off"
                   [disabled]="submitting()"
                 />
-                <mat-hint>Path to the dbt project within the repository, if not at the root.</mat-hint>
+                <mat-hint>{{ 'projects.git.subdirectoryHint' | translate }}</mat-hint>
               </mat-form-field>
 
               @if (gitProvider === 'bitbucket') {
                 <mat-form-field appearance="outline" class="project-create__field">
-                  <mat-label>Bitbucket username</mat-label>
+                  <mat-label>{{ 'projects.git.bitbucketUsername' | translate }}</mat-label>
                   <input
                     matInput
                     name="gitUsername"
@@ -139,12 +138,12 @@
                     autocomplete="username"
                     [disabled]="submitting()"
                   />
-                  <mat-hint>Required for Bitbucket Cloud HTTP access tokens / app passwords.</mat-hint>
+                  <mat-hint>{{ 'projects.git.bitbucketUsernameHint' | translate }}</mat-hint>
                 </mat-form-field>
               }
 
               <mat-form-field appearance="outline" class="project-create__field">
-                <mat-label>Access token</mat-label>
+                <mat-label>{{ 'projects.git.accessToken' | translate }}</mat-label>
                 <input
                   matInput
                   type="password"
@@ -155,23 +154,22 @@
                 />
                 <mat-hint>
                   @if (gitProvider === 'bitbucket') {
-                    Bitbucket Cloud HTTP access token or app password.
+                    {{ 'projects.git.bitbucketTokenHint' | translate }}
                   } @else {
-                    For private repositories. Stored encrypted on the server.
+                    {{ 'projects.git.privateTokenHint' | translate }}
                   }
                 </mat-hint>
               </mat-form-field>
             </div>
 
             <div class="project-create__section">
-              <h2 class="project-create__section-title">dbt project</h2>
+              <h2 class="project-create__section-title">{{ 'projects.dbt.title' | translate }}</h2>
               <p class="project-create__hint">
-                Optional. Local path to your dbt project when not using Git sync. Relative paths
-                are resolved from the backend directory (e.g. <code>../mds-transform</code>).
+                {{ 'projects.dbt.subtitle' | translate }}
               </p>
 
               <mat-form-field appearance="outline" class="project-create__field">
-                <mat-label>dbt project path</mat-label>
+                <mat-label>{{ 'projects.dbt.path' | translate }}</mat-label>
                 <input
                   matInput
                   name="dbtProjectPath"
@@ -181,13 +179,12 @@
                   [disabled]="submitting()"
                 />
                 <mat-hint>
-                  Overrides DBT_PROJECT_PATH from .env for this project. Requires
-                  target/manifest.json (run dbt compile).
+                  {{ 'projects.dbt.pathHint' | translate }}
                 </mat-hint>
               </mat-form-field>
 
               <mat-form-field appearance="outline" class="project-create__field">
-                <mat-label>dbt profile target</mat-label>
+                <mat-label>{{ 'projects.dbt.target' | translate }}</mat-label>
                 <input
                   matInput
                   name="dbtTarget"
@@ -197,8 +194,7 @@
                   [disabled]="submitting()"
                 />
                 <mat-hint>
-                  Optional profiles.yml target used for <code>dbt parse</code> after Git sync
-                  (e.g. <code>dev</code> or <code>parse</code>).
+                  {{ 'projects.dbt.targetHint' | translate }}
                 </mat-hint>
               </mat-form-field>
             </div>
@@ -214,7 +210,7 @@
                 (click)="cancel()"
                 [disabled]="submitting()"
               >
-                Cancel
+                {{ 'common.cancel' | translate }}
               </button>
               <button
                 mat-flat-button
@@ -225,7 +221,7 @@
                 @if (submitting()) {
                   <mat-spinner diameter="18" />
                 } @else {
-                  Create project
+                  {{ 'projects.create.submit' | translate }}
                 }
               </button>
             </div>

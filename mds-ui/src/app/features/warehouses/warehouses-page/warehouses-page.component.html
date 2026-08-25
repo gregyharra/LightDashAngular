@@ -2,14 +2,14 @@
   <div class="page__container">
     <header class="warehouses__header">
       <div>
-        <h1 class="warehouses__title">Warehouses</h1>
+        <h1 class="warehouses__title">{{ 'warehouses.title' | translate }}</h1>
         <p class="warehouses__subtitle">
-          Manage reusable database connections for your projects.
+          {{ 'warehouses.subtitle' | translate }}
         </p>
       </div>
       <button mat-flat-button class="warehouses__create-btn" (click)="openCreate()">
         <mat-icon>add</mat-icon>
-        Create warehouse
+        {{ 'warehouses.create' | translate }}
       </button>
     </header>
 
@@ -22,8 +22,10 @@
     } @else if (warehouses().length === 0) {
       <div class="warehouses__empty">
         <mat-icon>storage</mat-icon>
-        <p>No warehouses yet.</p>
-        <button mat-stroked-button (click)="openCreate()">Create your first warehouse</button>
+        <p>{{ 'warehouses.empty' | translate }}</p>
+        <button mat-stroked-button (click)="openCreate()">
+          {{ 'warehouses.createFirst' | translate }}
+        </button>
       </div>
     } @else {
       <div class="warehouses__grid">
@@ -41,8 +43,8 @@
                 mat-icon-button
                 type="button"
                 class="warehouse-card__delete-btn"
-                aria-label="Delete warehouse"
-                title="Delete warehouse"
+                [attr.aria-label]="'warehouses.delete' | translate"
+                [attr.title]="'warehouses.delete' | translate"
                 [disabled]="deletingUuid() === warehouse.warehouseUuid"
                 (click)="deleteWarehouse($event, warehouse.warehouseUuid)"
               >
@@ -61,7 +63,7 @@
               @if (warehouse.hasPassword) {
                 <span class="warehouse-card__chip">
                   <mat-icon>lock</mat-icon>
-                  Password set
+                  {{ 'warehouses.passwordSet' | translate }}
                 </span>
               }
             </div>
@@ -71,7 +73,7 @@
                 <span class="warehouse-card__detail">{{ detail }}</span>
               }
               <span class="warehouse-card__date">
-                Updated {{ formatDate(warehouse.updatedAt) }}
+                {{ 'warehouses.updated' | translate }} {{ formatDate(warehouse.updatedAt) }}
               </span>
             </div>
           </article>

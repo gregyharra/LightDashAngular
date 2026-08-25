@@ -8,6 +8,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatSelectModule } from '@angular/material/select';
+import { TranslatePipe } from '@ngx-translate/core';
 import { apiErrorMessage } from '../../../core/api/lightdash-api.service';
 import { GitProvider } from '../../../core/models/project.model';
 import { WarehouseListItem } from '../../../core/models/warehouse.model';
@@ -29,6 +30,7 @@ import { detectGitProvider } from '../git-provider.utils';
     MatInputModule,
     MatProgressSpinnerModule,
     MatSelectModule,
+    TranslatePipe,
   ],
   templateUrl: './project-create-page.component.html',
   styleUrl: './project-create-page.component.scss',

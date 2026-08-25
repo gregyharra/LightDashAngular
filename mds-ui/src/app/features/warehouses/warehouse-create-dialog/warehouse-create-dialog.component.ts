@@ -4,6 +4,7 @@ import {
   MatDialogModule,
   MatDialogRef,
 } from '@angular/material/dialog';
+import { TranslatePipe } from '@ngx-translate/core';
 import { Warehouse } from '../../../core/models/warehouse.model';
 import { WarehouseFormComponent } from '../warehouse-form/warehouse-form.component';
 
@@ -13,9 +14,9 @@ export type WarehouseCreateDialogData = {
 
 @Component({
   selector: 'app-warehouse-create-dialog',
-  imports: [MatDialogModule, WarehouseFormComponent],
+  imports: [MatDialogModule, WarehouseFormComponent, TranslatePipe],
   template: `
-    <h2 mat-dialog-title>Create warehouse</h2>
+    <h2 mat-dialog-title>{{ 'warehouses.create' | translate }}</h2>
     <mat-dialog-content class="warehouse-create-dialog__content">
       <app-warehouse-form
         mode="create"
