@@ -26,9 +26,8 @@ import {
   filterDashboards,
   getDashboardActiveFilterChips,
   hasActiveDashboardColumnFilters,
+  SHARED_SPACE_SENTINEL,
 } from '../../../ui/content-list-filter.utils';
-
-const SHARED_SPACE_VALUE = '__shared__';
 
 @Component({
   selector: 'app-dashboards-list-page',
@@ -70,14 +69,14 @@ export class DashboardsListPageComponent {
   protected readonly availableSpaces = computed(() =>
     collectUniqueSpaces(
       this.dashboards(),
-      (dashboard) => dashboard.spaceName ?? SHARED_SPACE_VALUE,
+      (dashboard) => dashboard.spaceName ?? SHARED_SPACE_SENTINEL,
     ),
   );
 
   protected readonly spaceOptions = computed(() =>
     this.availableSpaces().map((space) => ({
       value: space,
-      label: space === SHARED_SPACE_VALUE ? this.sharedSpaceLabel() : space,
+      label: space === SHARED_SPACE_SENTINEL ? this.sharedSpaceLabel() : space,
     })),
   );
 
@@ -85,7 +84,7 @@ export class DashboardsListPageComponent {
     filterDashboards(
       this.dashboards(),
       this.columnFilters(),
-      SHARED_SPACE_VALUE,
+      SHARED_SPACE_SENTINEL,
     ),
   );
 

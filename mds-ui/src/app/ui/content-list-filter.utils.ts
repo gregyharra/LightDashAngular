@@ -1,3 +1,6 @@
+/** Internal filter value for dashboards without a space; not a display label. */
+export const SHARED_SPACE_SENTINEL = '\u0000mds.shared';
+
 export interface TextFilterValue {
   query: string;
 }
