@@ -163,6 +163,7 @@
                   placeholder="transform"
                   autocomplete="off"
                 />
+                <mat-hint>{{ 'projects.git.subdirectoryHint' | translate }}</mat-hint>
               </mat-form-field>
 
               @if (gitProvider === 'bitbucket') {
@@ -214,10 +215,7 @@
                   placeholder="../mds-transform"
                   autocomplete="off"
                 />
-                <mat-hint>
-                  Local dbt directory for this project. Relative to mds-backend/. Cleared on desync
-                  only when the path pointed at the cloned repo.
-                </mat-hint>
+                <mat-hint>{{ 'projects.dbt.pathHintEdit' | translate }}</mat-hint>
               </mat-form-field>
 
               <mat-form-field appearance="outline" class="project-edit__field">
@@ -229,25 +227,22 @@
                   placeholder="dev"
                   autocomplete="off"
                 />
-                <mat-hint>
-                  Optional profiles.yml target passed to <code>dbt parse</code> after sync
-                  (e.g. <code>dev</code> or <code>parse</code>).
-                </mat-hint>
+                <mat-hint>{{ 'projects.dbt.targetHintEdit' | translate }}</mat-hint>
               </mat-form-field>
 
               @if (repoStatus(); as repo) {
                 <div class="project-edit__repo-status">
-                  <p><strong>Branch:</strong> {{ repo.branch || repo.defaultBranch || '—' }}</p>
-                  <p><strong>Commit:</strong> {{ repo.commitSha?.slice(0, 7) || '—' }}</p>
+                  <p><strong>{{ 'projects.git.repoStatus.branch' | translate }}</strong> {{ repo.branch || repo.defaultBranch || '—' }}</p>
+                  <p><strong>{{ 'projects.git.repoStatus.commit' | translate }}</strong> {{ repo.commitSha?.slice(0, 7) || '—' }}</p>
                   <p>
-                    <strong>Last sync:</strong>
-                    {{ repo.lastSyncAt ? (repo.lastSyncAt | date: 'medium') : 'Never' }}
+                    <strong>{{ 'projects.git.repoStatus.lastSync' | translate }}</strong>
+                    {{ repo.lastSyncAt ? (repo.lastSyncAt | date: 'medium') : ('projects.git.repoStatus.never' | translate) }}
                   </p>
                   @if (repo.dbtProjectPath) {
-                    <p><strong>dbt path:</strong> {{ repo.dbtProjectPath }}</p>
+                    <p><strong>{{ 'projects.git.repoStatus.dbtPath' | translate }}</strong> {{ repo.dbtProjectPath }}</p>
                   }
                   @if (repo.dbtTarget) {
-                    <p><strong>dbt target:</strong> {{ repo.dbtTarget }}</p>
+                    <p><strong>{{ 'projects.git.repoStatus.dbtTarget' | translate }}</strong> {{ repo.dbtTarget }}</p>
                   }
                 </div>
               }

@@ -122,15 +122,25 @@
       "remove": "Remove local clone",
       "removing": "Removing…",
       "removed": "Local clone removed.",
-      "removeConfirm": "Remove the local clone for this project? Git settings are kept so you can sync again later."
+      "removeConfirm": "Remove the local clone for this project? Git settings are kept so you can sync again later.",
+      "repoStatus": {
+        "branch": "Branch:",
+        "commit": "Commit:",
+        "lastSync": "Last sync:",
+        "never": "Never",
+        "dbtPath": "dbt path:",
+        "dbtTarget": "dbt target:"
+      }
     },
     "dbt": {
       "title": "dbt project",
       "subtitle": "Optional. Local path to your dbt project when not using Git sync. Relative paths are resolved from the backend directory.",
       "path": "dbt project path",
       "pathHint": "Overrides DBT_PROJECT_PATH from .env for this project. Requires target/manifest.json (run dbt compile).",
+      "pathHintEdit": "Local dbt directory for this project. Relative to mds-backend/. Cleared on desync only when the path pointed at the cloned repo.",
       "target": "dbt profile target",
-      "targetHint": "Optional profiles.yml target used for dbt parse after Git sync."
+      "targetHint": "Optional profiles.yml target used for dbt parse after Git sync.",
+      "targetHintEdit": "Optional profiles.yml target passed to dbt parse after sync (e.g. dev or parse)."
     }
   },
   "warehouses": {

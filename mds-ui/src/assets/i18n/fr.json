@@ -122,15 +122,25 @@
       "remove": "Supprimer le clone local",
       "removing": "Suppression…",
       "removed": "Clone local supprimé.",
-      "removeConfirm": "Supprimer le clone local de ce projet ? Les paramètres Git seront conservés pour une synchronisation ultérieure."
+      "removeConfirm": "Supprimer le clone local de ce projet ? Les paramètres Git seront conservés pour une synchronisation ultérieure.",
+      "repoStatus": {
+        "branch": "Branche :",
+        "commit": "Commit :",
+        "lastSync": "Dernière synchro :",
+        "never": "Jamais",
+        "dbtPath": "Chemin dbt :",
+        "dbtTarget": "Cible dbt :"
+      }
     },
     "dbt": {
       "title": "Projet dbt",
       "subtitle": "Facultatif. Chemin local de votre projet dbt lorsque la synchronisation Git n'est pas utilisée. Les chemins relatifs partent du répertoire du backend.",
       "path": "Chemin du projet dbt",
       "pathHint": "Remplace DBT_PROJECT_PATH du fichier .env pour ce projet. Nécessite target/manifest.json (exécutez dbt compile).",
+      "pathHintEdit": "Répertoire dbt local pour ce projet. Relatif à mds-backend/. Effacé lors d'une désynchronisation uniquement si le chemin pointait vers le dépôt cloné.",
       "target": "Cible du profil dbt",
-      "targetHint": "Cible profiles.yml facultative utilisée par dbt parse après la synchronisation Git."
+      "targetHint": "Cible profiles.yml facultative utilisée par dbt parse après la synchronisation Git.",
+      "targetHintEdit": "Cible profiles.yml facultative passée à dbt parse après la synchronisation (p. ex. dev ou parse)."
     }
   },
   "warehouses": {
