@@ -14,7 +14,7 @@ import { RouterLink } from '@angular/router';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
-import { TranslatePipe } from '@ngx-translate/core';
+import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import {
   FieldId,
 } from '../../../core/models/explore.model';
@@ -94,11 +94,12 @@ export class TablesFieldsPanelComponent {
   private readonly platformId = inject(PLATFORM_ID);
   private readonly renderer = inject(Renderer2);
   private readonly destroyRef = inject(DestroyRef);
+  private readonly translate = inject(TranslateService);
 
   readonly projectUuid = input.required<string>();
   readonly tableId = input.required<string>();
   readonly tableLabel = input.required<string>();
-  readonly parentLabel = input('Tables');
+  readonly parentLabel = input(this.translate.instant('tables.title'));
   readonly parentLink = input<string[] | null>(null);
   readonly fieldSearch = input('');
   readonly fieldGroups = input<TablesFieldGroup[]>([]);

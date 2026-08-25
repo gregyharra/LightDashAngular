@@ -22,7 +22,6 @@ import { LineageService } from '../../lineage/lineage.service';
 import { ProjectLineage } from '../../../core/models/lineage.model';
 import { FilterableLinksTableComponent } from '../../tables/filterable-links-table/filterable-links-table.component';
 import { LinkDialogComponent } from '../../tables/link-dialog/link-dialog.component';
-import { modelJoinDeleteMessage } from '../../tables/model-links.utils';
 import { ModelJoinsService } from '../../tables/model-joins.service';
 import {
   LinkDialogSavePayload,
@@ -406,9 +405,12 @@ export class ProjectEditPageComponent {
       .open(ConfirmDialogComponent, {
         width: '28rem',
         data: {
-          title: 'Delete table link',
-          message: modelJoinDeleteMessage(link),
-          confirmLabel: 'Delete',
+          title: this.translate.instant('tables.links.deleteTitle'),
+          message: this.translate.instant('tables.links.deleteMessage', {
+            source: `${link.sourceModelName}.${link.sourceColumn}`,
+            target: `${link.targetModelName}.${link.targetColumn}`,
+          }),
+          confirmLabel: this.translate.instant('common.delete'),
         },
       })
       .afterClosed()

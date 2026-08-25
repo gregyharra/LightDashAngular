@@ -2,6 +2,7 @@ import { Component, HostListener, computed, inject, signal } from '@angular/core
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { ActiveProjectService } from '../../../core/services/active-project.service';
 import { ApiErrorService } from '../../../core/api/api-error.service';
 import {
@@ -30,6 +31,7 @@ import { ResizableSidebarDirective } from '../../../layout/resizable-sidebar/res
     LineageDetailPanelComponent,
     FolderSearchPanelComponent,
     ResizableSidebarDirective,
+    TranslatePipe,
   ],
   templateUrl: './lineage-page.component.html',
   styleUrl: './lineage-page.component.scss',
@@ -38,6 +40,7 @@ export class LineagePageComponent {
   private readonly lineageService = inject(LineageService);
   private readonly apiErrorService = inject(ApiErrorService);
   private readonly route = inject(ActivatedRoute);
+  private readonly translate = inject(TranslateService);
   protected readonly activeProjectService = inject(ActiveProjectService);
 
   protected readonly projectUuid = signal<string | null>(null);
@@ -120,7 +123,9 @@ export class LineagePageComponent {
         }
       },
       error: (err) => {
-        this.error.set(this.apiErrorService.showTransient(err, 'Failed to load lineage.'));
+        this.error.set(
+          this.apiErrorService.showTransient(err, this.translate.instant('lineage.loadError')),
+        );
         this.loading.set(false);
       },
     });

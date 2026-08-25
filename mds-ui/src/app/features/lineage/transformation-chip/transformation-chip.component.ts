@@ -1,9 +1,9 @@
-import { Component, computed, input } from '@angular/core';
+import { Component, computed, inject, input } from '@angular/core';
+import { TranslateService } from '@ngx-translate/core';
 import { ColumnTransformationType } from '../../../core/models/lineage.model';
 import {
+  TRANSFORMATION_SHORT_LABELS,
   TransformationChipMode,
-  transformationChipLabel,
-  transformationDescription,
 } from '../column-transformation.utils';
 
 @Component({
@@ -21,15 +21,22 @@ import {
   styleUrl: './transformation-chip.component.scss',
 })
 export class TransformationChipComponent {
+  private readonly translate = inject(TranslateService);
+
   readonly type = input.required<ColumnTransformationType>();
   readonly mode = input<TransformationChipMode>('full');
   readonly size = input<'sm' | 'md'>('sm');
 
-  protected readonly label = computed(() =>
-    transformationChipLabel(this.type(), this.mode()),
-  );
+  protected readonly label = computed(() => {
+    const type = this.type();
+    return this.mode() === 'compact'
+      ? TRANSFORMATION_SHORT_LABELS[type]
+      : this.translate.instant(`lineage.transformations.labels.${type}`);
+  });
 
-  protected readonly description = computed(() => transformationDescription(this.type()));
+  protected readonly description = computed(() =>
+    this.translate.instant(`lineage.transformations.descriptions.${this.type()}`),
+  );
 
   protected readonly chipClasses = computed(() => {
     const typeClass = `ld-transform-chip--${this.type()}`;

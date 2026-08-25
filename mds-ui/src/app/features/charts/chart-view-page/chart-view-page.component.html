@@ -36,14 +36,14 @@
           [routerLink]="['/projects', projectUuid(), 'tables']"
         >
           <mat-icon>table_chart</mat-icon>
-          Tables
+          {{ 'tables.title' | translate }}
         </a>
         <a
           class="page-sidebar__link page-sidebar__link--clickable"
           [routerLink]="['/projects', projectUuid(), 'lineage']"
         >
           <mat-icon>account_tree</mat-icon>
-          Lineage
+          {{ 'tables.lineage' | translate }}
         </a>
       </nav>
     </div>
@@ -59,7 +59,7 @@
         [searchPlaceholder]="'explorer.searchModels' | translate"
         [emptyMessage]="'explorer.noModelsMatch' | translate"
         collapsedStorageKey="lightdash-chart-view-folder-panel-collapsed"
-        treeAriaLabel="dbt project folder tree"
+        [treeAriaLabel]="'tables.dbtTree' | translate"
         (nodeSelected)="onProjectNodeSelected($event)"
       />
     </aside>

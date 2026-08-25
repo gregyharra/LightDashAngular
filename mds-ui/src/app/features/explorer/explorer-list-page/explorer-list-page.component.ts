@@ -3,6 +3,7 @@ import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { ActiveProjectService } from '../../../core/services/active-project.service';
 import { ApiErrorService } from '../../../core/api/api-error.service';
 import { ExploreSummary } from '../../../core/models/explore.model';
@@ -17,6 +18,7 @@ import { ResizableSidebarDirective } from '../../../layout/resizable-sidebar/res
     MatIconModule,
     MatProgressSpinnerModule,
     ResizableSidebarDirective,
+    TranslatePipe,
   ],
   templateUrl: './explorer-list-page.component.html',
   styleUrl: './explorer-list-page.component.scss',
@@ -26,6 +28,7 @@ export class ExplorerListPageComponent {
   private readonly apiErrorService = inject(ApiErrorService);
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
+  private readonly translate = inject(TranslateService);
   protected readonly activeProjectService = inject(ActiveProjectService);
 
   protected readonly projectUuid = signal<string | null>(null);
@@ -56,7 +59,9 @@ export class ExplorerListPageComponent {
         this.loading.set(false);
       },
       error: (err) => {
-        this.error.set(this.apiErrorService.showTransient(err, 'Failed to load explores.'));
+        this.error.set(
+          this.apiErrorService.showTransient(err, this.translate.instant('explorer.loadExploresError')),
+        );
         this.loading.set(false);
       },
     });

@@ -1,30 +1,34 @@
 <div class="lineage-graph">
   <div class="lineage-graph__toolbar">
     <div class="lineage-graph__toolbar-group lineage-graph__toolbar-group--scope">
-      <div class="lineage-graph__view-toggle" role="group" aria-label="Graph scope">
+      <div
+        class="lineage-graph__view-toggle"
+        role="group"
+        [attr.aria-label]="'lineage.graph.scope' | translate"
+      >
         <button
           type="button"
           class="lineage-graph__view-btn"
           [class.lineage-graph__view-btn--active]="graphMode() === 'focus'"
           (click)="setGraphMode('focus')"
-          aria-label="Focus on selection"
-          title="Focus on selection"
+          [attr.aria-label]="'lineage.graph.focusOnSelection' | translate"
+          [attr.title]="'lineage.graph.focusOnSelection' | translate"
         >
           <mat-icon class="lineage-graph__btn-icon" aria-hidden="true">center_focus_strong</mat-icon>
-          <span class="lineage-graph__btn-label">Focus</span>
+          <span class="lineage-graph__btn-label">{{ 'lineage.graph.focus' | translate }}</span>
         </button>
         <button
           type="button"
           class="lineage-graph__view-btn lineage-graph__view-btn--full"
           [class.lineage-graph__view-btn--active]="graphMode() === 'full'"
           (click)="setGraphMode('full')"
-          aria-label="Full graph"
-          title="Full graph"
+          [attr.aria-label]="'lineage.graph.fullGraph' | translate"
+          [attr.title]="'lineage.graph.fullGraph' | translate"
         >
           <mat-icon class="lineage-graph__btn-icon" aria-hidden="true">hub</mat-icon>
           <span class="lineage-graph__btn-label">
-            <span class="lineage-graph__btn-label-full">Full graph</span>
-            <span class="lineage-graph__btn-label-short">Full</span>
+            <span class="lineage-graph__btn-label-full">{{ 'lineage.graph.fullGraph' | translate }}</span>
+            <span class="lineage-graph__btn-label-short">{{ 'lineage.graph.full' | translate }}</span>
           </span>
         </button>
       </div>
@@ -36,7 +40,7 @@
       <div
         class="lineage-graph__hop-controls"
         role="group"
-        aria-label="Lineage hop depth"
+        [attr.aria-label]="'lineage.graph.hopDepth' | translate"
         [class.lineage-graph__hop-controls--disabled]="!hopDepthControlsEnabled()"
       >
         <button
@@ -44,12 +48,15 @@
           class="lineage-graph__tool-btn"
           (click)="decreaseHopDepth()"
           [disabled]="!canDecreaseHopDepth()"
-          aria-label="Decrease hop depth"
-          title="Show fewer upstream/downstream levels"
+          [attr.aria-label]="'lineage.graph.decreaseHopDepth' | translate"
+          [attr.title]="'lineage.graph.showFewerLevels' | translate"
         >
           −
         </button>
-        <span class="lineage-graph__hop-label" [attr.aria-label]="'Hop depth: ' + hopDepthLabel()">
+        <span
+          class="lineage-graph__hop-label"
+          [attr.aria-label]="'lineage.graph.hopDepthValue' | translate: { depth: hopDepthLabel() }"
+        >
           {{ hopDepthLabel() }}
         </span>
         <button
@@ -57,8 +64,8 @@
           class="lineage-graph__tool-btn"
           (click)="increaseHopDepth()"
           [disabled]="!canIncreaseHopDepth()"
-          aria-label="Increase hop depth"
-          title="Show more upstream/downstream levels"
+          [attr.aria-label]="'lineage.graph.increaseHopDepth' | translate"
+          [attr.title]="'lineage.graph.showMoreLevels' | translate"
         >
           +
         </button>
@@ -68,8 +75,8 @@
           [class.lineage-graph__tool-btn--active]="isUnlimitedHopDepth()"
           (click)="setUnlimitedHopDepth()"
           [disabled]="!hopDepthControlsEnabled()"
-          aria-label="Show full lineage"
-          title="Show full transitive closure"
+          [attr.aria-label]="'lineage.graph.showFullLineage' | translate"
+          [attr.title]="'lineage.graph.showFullClosure' | translate"
         >
           ∞
         </button>
@@ -79,28 +86,32 @@
     <div class="lineage-graph__toolbar-divider" aria-hidden="true"></div>
 
     <div class="lineage-graph__toolbar-group lineage-graph__toolbar-group--view">
-      <div class="lineage-graph__view-toggle" role="group" aria-label="Lineage view mode">
+      <div
+        class="lineage-graph__view-toggle"
+        role="group"
+        [attr.aria-label]="'lineage.graph.viewMode' | translate"
+      >
         <button
           type="button"
           class="lineage-graph__view-btn"
           [class.lineage-graph__view-btn--active]="viewMode() === 'models'"
           (click)="setViewMode('models')"
-          aria-label="Models view"
-          title="Models view"
+          [attr.aria-label]="'lineage.graph.modelsView' | translate"
+          [attr.title]="'lineage.graph.modelsView' | translate"
         >
           <mat-icon class="lineage-graph__btn-icon" aria-hidden="true">table_chart</mat-icon>
-          <span class="lineage-graph__btn-label">Models</span>
+          <span class="lineage-graph__btn-label">{{ 'lineage.graph.models' | translate }}</span>
         </button>
         <button
           type="button"
           class="lineage-graph__view-btn"
           [class.lineage-graph__view-btn--active]="viewMode() === 'columns'"
           (click)="setViewMode('columns')"
-          aria-label="Columns view"
-          title="Columns view"
+          [attr.aria-label]="'lineage.graph.columnsView' | translate"
+          [attr.title]="'lineage.graph.columnsView' | translate"
         >
           <mat-icon class="lineage-graph__btn-icon" aria-hidden="true">view_column</mat-icon>
-          <span class="lineage-graph__btn-label">Columns</span>
+          <span class="lineage-graph__btn-label">{{ 'tables.tabs.columns' | translate }}</span>
         </button>
       </div>
     </div>
@@ -113,8 +124,8 @@
         <input
           type="search"
           class="lineage-graph__node-search-input"
-          placeholder="Find model…"
-          aria-label="Find model"
+          [placeholder]="'lineage.graph.findModel' | translate"
+          [attr.aria-label]="'lineage.graph.findModel' | translate"
           [value]="nodeSearchQuery()"
           (input)="onNodeSearchInput($event)"
           (focus)="onNodeSearchFocus()"
@@ -141,29 +152,41 @@
     <div class="lineage-graph__toolbar-divider" aria-hidden="true"></div>
 
     <div class="lineage-graph__toolbar-group lineage-graph__toolbar-group--zoom">
-      <button type="button" class="lineage-graph__tool-btn" (click)="zoomOut()" aria-label="Zoom out" title="Zoom out">
+      <button
+        type="button"
+        class="lineage-graph__tool-btn"
+        (click)="zoomOut()"
+        [attr.aria-label]="'lineage.graph.zoomOut' | translate"
+        [attr.title]="'lineage.graph.zoomOut' | translate"
+      >
         −
       </button>
       <span class="lineage-graph__zoom-label">{{ (zoom() * 100) | number: '1.0-0' }}%</span>
-      <button type="button" class="lineage-graph__tool-btn" (click)="zoomIn()" aria-label="Zoom in" title="Zoom in">
+      <button
+        type="button"
+        class="lineage-graph__tool-btn"
+        (click)="zoomIn()"
+        [attr.aria-label]="'lineage.graph.zoomIn' | translate"
+        [attr.title]="'lineage.graph.zoomIn' | translate"
+      >
         +
       </button>
       <button
         type="button"
         class="lineage-graph__tool-btn lineage-graph__tool-btn--fit"
         (click)="resetView()"
-        aria-label="Fit to view"
-        title="Fit to view"
+        [attr.aria-label]="'lineage.graph.fitToView' | translate"
+        [attr.title]="'lineage.graph.fitToView' | translate"
       >
         <mat-icon class="lineage-graph__btn-icon" aria-hidden="true">fit_screen</mat-icon>
-        <span class="lineage-graph__btn-label">Fit</span>
+        <span class="lineage-graph__btn-label">{{ 'lineage.graph.fit' | translate }}</span>
       </button>
       <button
         type="button"
         class="lineage-graph__tool-btn lineage-graph__tool-btn--icon"
         (click)="reorganizeLayout()"
-        aria-label="Reorganize layout"
-        title="Reorganize layout"
+        [attr.aria-label]="'lineage.graph.reorganizeLayout' | translate"
+        [attr.title]="'lineage.graph.reorganizeLayout' | translate"
       >
         <mat-icon>account_tree</mat-icon>
       </button>
@@ -277,10 +300,10 @@
                 (dblclick)="onNodeDoubleClick(node.id, $event)"
                 role="button"
                 tabindex="0"
-                [attr.aria-label]="'Select or drag model ' + node.name"
+                [attr.aria-label]="'lineage.graph.selectOrDragModel' | translate: { model: node.name }"
                 (keydown.enter)="selectNode(node.id, $event)"
               >
-                <title>Drag to reposition · click to select {{ node.name }}</title>
+                <title>{{ 'lineage.graph.dragToSelect' | translate: { model: node.name } }}</title>
                 <rect
                   class="lineage-graph__node-header-hit"
                   [attr.width]="pos.width"
@@ -323,9 +346,19 @@
                     (pointerup)="$event.stopPropagation()"
                     role="button"
                     tabindex="0"
-                    [attr.aria-label]="isNodeExpanded(node.id) ? 'Collapse columns' : 'Expand columns'"
+                    [attr.aria-label]="
+                      (isNodeExpanded(node.id)
+                        ? 'lineage.graph.collapseColumns'
+                        : 'lineage.graph.expandColumns') | translate
+                    "
                   >
-                    <title>{{ isNodeExpanded(node.id) ? 'Collapse columns' : 'Expand columns' }}</title>
+                    <title>
+                      {{
+                        (isNodeExpanded(node.id)
+                          ? 'lineage.graph.collapseColumns'
+                          : 'lineage.graph.expandColumns') | translate
+                      }}
+                    </title>
                     <rect width="18" height="18" rx="4" fill="rgba(255,255,255,0.85)" stroke="var(--ld-gray-4)" />
                     <foreignObject x="0" y="0" width="18" height="18">
                       <div
@@ -425,10 +458,22 @@
                           (pointerup)="onColumnPointerUp(node.id, col.name, $event)"
                           role="button"
                           tabindex="0"
-                          [attr.aria-label]="'Select column ' + col.name + ' on ' + node.name"
+                          [attr.aria-label]="
+                            'lineage.graph.selectColumn'
+                              | translate: { column: col.name, model: node.name }
+                          "
                           (keydown.enter)="selectColumn(node.id, col.name, $event)"
                         >
-                          <title>Select {{ col.name }} ({{ col.type }}) — {{ transformationChipTitle(columnTransformation(node, col)) }}</title>
+                          <title>
+                            {{
+                              'lineage.graph.selectColumnTitle'
+                                | translate: {
+                                    column: col.name,
+                                    type: col.type,
+                                    transformation: transformationChipTitle(columnTransformation(node, col))
+                                  }
+                            }}
+                          </title>
                           <rect
                             class="lineage-graph__column-bg"
                             x="8"
@@ -502,7 +547,7 @@
                       [attr.y]="pos.height - footerHeight() - 2"
                       text-anchor="middle"
                     >
-                      scroll for {{ overflowColumnCount(node) }} more
+                      {{ 'lineage.graph.scrollForMore' | translate: { count: overflowColumnCount(node) } }}
                     </text>
                   }
                 </g>
@@ -529,9 +574,11 @@
                   (pointerup)="$event.stopPropagation()"
                   role="button"
                   [attr.aria-disabled]="!canToggleNeighborhood(node.id, 'upstream')"
-                  [attr.aria-label]="'Toggle upstream neighbors for ' + node.name"
+                  [attr.aria-label]="
+                    'lineage.graph.toggleUpstream' | translate: { model: node.name }
+                  "
                 >
-                  <title>Toggle upstream neighbors</title>
+                  <title>{{ 'lineage.graph.toggleUpstreamShort' | translate }}</title>
                   <rect width="22" height="20" rx="4" />
                   <text x="11" y="14" text-anchor="middle">{{ neighborhoodToggleGlyph(node.id, 'upstream') }}</text>
                 </g>
@@ -545,9 +592,11 @@
                   (pointerup)="$event.stopPropagation()"
                   role="button"
                   [attr.aria-disabled]="!canToggleNeighborhood(node.id, 'downstream')"
-                  [attr.aria-label]="'Toggle downstream neighbors for ' + node.name"
+                  [attr.aria-label]="
+                    'lineage.graph.toggleDownstream' | translate: { model: node.name }
+                  "
                 >
-                  <title>Toggle downstream neighbors</title>
+                  <title>{{ 'lineage.graph.toggleDownstreamShort' | translate }}</title>
                   <rect width="22" height="20" rx="4" />
                   <text x="11" y="14" text-anchor="middle">{{ neighborhoodToggleGlyph(node.id, 'downstream') }}</text>
                 </g>
@@ -565,8 +614,8 @@
       (pointerup)="onMinimapPointerUp($event)"
       (pointercancel)="onMinimapPointerUp($event)"
       role="slider"
-      aria-label="Lineage minimap"
-      title="Drag to pan"
+      [attr.aria-label]="'lineage.graph.minimap' | translate"
+      [attr.title]="'lineage.graph.dragToPan' | translate"
     >
       <svg
         [attr.width]="bounds().width * minimapScale()"
@@ -606,10 +655,16 @@
       class="lineage-graph__legend-toggle"
       (click)="toggleLegendCollapsed()"
       [attr.aria-expanded]="!legendCollapsed()"
-      [attr.aria-label]="legendCollapsed() ? 'Expand legend' : 'Collapse legend'"
-      [attr.title]="legendCollapsed() ? 'Expand legend' : 'Collapse legend'"
+      [attr.aria-label]="
+        (legendCollapsed() ? 'lineage.graph.expandLegend' : 'lineage.graph.collapseLegend')
+          | translate
+      "
+      [attr.title]="
+        (legendCollapsed() ? 'lineage.graph.expandLegend' : 'lineage.graph.collapseLegend')
+          | translate
+      "
     >
-      <span class="lineage-graph__legend-toggle-label">Legend</span>
+      <span class="lineage-graph__legend-toggle-label">{{ 'lineage.graph.legend' | translate }}</span>
       <mat-icon class="lineage-graph__legend-toggle-icon" aria-hidden="true">
         {{ legendCollapsed() ? 'expand_more' : 'expand_less' }}
       </mat-icon>
@@ -617,15 +672,27 @@
     @if (!legendCollapsed()) {
       <div class="lineage-graph__legend-body">
         <div class="lineage-graph__legend-section">
-          <span class="lineage-graph__legend-heading">Models</span>
+          <span class="lineage-graph__legend-heading">{{ 'lineage.graph.models' | translate }}</span>
           <div class="lineage-graph__legend-items">
-            <span class="lineage-graph__legend-item lineage-graph__legend-item--source">Source</span>
-            <span class="lineage-graph__legend-item lineage-graph__legend-item--seed">Seed</span>
-            <span class="lineage-graph__legend-item lineage-graph__legend-item--staging">Bronze</span>
-            <span class="lineage-graph__legend-item lineage-graph__legend-item--intermediate">Silver</span>
-            <span class="lineage-graph__legend-item lineage-graph__legend-item--mart">Gold</span>
+            <span class="lineage-graph__legend-item lineage-graph__legend-item--source">
+              {{ 'lineage.modelTypes.source' | translate }}
+            </span>
+            <span class="lineage-graph__legend-item lineage-graph__legend-item--seed">
+              {{ 'lineage.modelTypes.seed' | translate }}
+            </span>
+            <span class="lineage-graph__legend-item lineage-graph__legend-item--staging">
+              {{ 'lineage.modelTypes.staging' | translate }}
+            </span>
+            <span class="lineage-graph__legend-item lineage-graph__legend-item--intermediate">
+              {{ 'lineage.modelTypes.intermediate' | translate }}
+            </span>
+            <span class="lineage-graph__legend-item lineage-graph__legend-item--mart">
+              {{ 'lineage.modelTypes.mart' | translate }}
+            </span>
             @if (viewMode() === 'columns' || hasColumnFocus()) {
-              <span class="lineage-graph__legend-item lineage-graph__legend-item--column-edge">Column lineage</span>
+              <span class="lineage-graph__legend-item lineage-graph__legend-item--column-edge">
+                {{ 'lineage.detail.columnLineage' | translate }}
+              </span>
             }
           </div>
         </div>

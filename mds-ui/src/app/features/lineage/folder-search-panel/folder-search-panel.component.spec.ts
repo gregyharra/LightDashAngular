@@ -1,5 +1,6 @@
 import { ComponentFixture, TestBed, fakeAsync, tick } from '@angular/core/testing';
 import { NoopAnimationsModule } from '@angular/platform-browser/animations';
+import { provideTranslateService } from '@ngx-translate/core';
 import { DbtTreeNode } from '../../../core/models/lineage.model';
 import { FolderSearchPanelComponent } from './folder-search-panel.component';
 
@@ -32,6 +33,7 @@ describe('FolderSearchPanelComponent', () => {
   beforeEach(async () => {
     await TestBed.configureTestingModule({
       imports: [FolderSearchPanelComponent, NoopAnimationsModule],
+      providers: [provideTranslateService()],
     }).compileComponents();
 
     fixture = TestBed.createComponent(FolderSearchPanelComponent);

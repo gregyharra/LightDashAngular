@@ -2,48 +2,48 @@
   <aside class="page-layout__sidebar" appResizableSidebar>
     <div class="page-sidebar">
       <header class="page-sidebar__header">
-        <p class="page-sidebar__breadcrumb">Browse</p>
+        <p class="page-sidebar__breadcrumb">{{ 'explorer.browse' | translate }}</p>
         @if (activeProjectService.activeProject(); as project) {
           <p class="page-sidebar__org">{{ project.name }}</p>
         }
       </header>
 
-      <nav class="page-sidebar__nav" aria-label="Browse navigation">
-        <p class="page-sidebar__section-label">Content</p>
+      <nav class="page-sidebar__nav" [attr.aria-label]="'charts.browseNavigation' | translate">
+        <p class="page-sidebar__section-label">{{ 'explorer.content' | translate }}</p>
         <a
           class="page-sidebar__link page-sidebar__link--clickable"
           [routerLink]="['/projects', projectUuid(), 'explore']"
         >
           <mat-icon>search</mat-icon>
-          Explore
+          {{ 'explorer.title' | translate }}
         </a>
         <a
           class="page-sidebar__link page-sidebar__link--clickable"
           [routerLink]="['/projects', projectUuid(), 'dashboards']"
         >
           <mat-icon>dashboard</mat-icon>
-          Dashboards
+          {{ 'dashboards.title' | translate }}
         </a>
         <a
           class="page-sidebar__link page-sidebar__link--clickable"
           [routerLink]="['/projects', projectUuid(), 'charts']"
         >
           <mat-icon>bar_chart</mat-icon>
-          Charts
+          {{ 'charts.title' | translate }}
         </a>
         <a
           class="page-sidebar__link page-sidebar__link--active page-sidebar__link--clickable"
           [routerLink]="['/projects', projectUuid(), 'tables']"
         >
           <mat-icon>table_chart</mat-icon>
-          Tables
+          {{ 'tables.title' | translate }}
         </a>
         <a
           class="page-sidebar__link page-sidebar__link--clickable"
           [routerLink]="['/projects', projectUuid(), 'lineage']"
         >
           <mat-icon>account_tree</mat-icon>
-          Lineage
+          {{ 'tables.lineage' | translate }}
         </a>
       </nav>
     </div>
@@ -53,15 +53,20 @@
     <section class="explorer-list">
       <div class="page__container page__container--wide">
         <header class="explorer-list__header page-header__toolbar">
-          <nav class="explorer-list__breadcrumbs" aria-label="Breadcrumb">
-            <a routerLink="/projects" class="explorer-list__breadcrumb-link">Home</a>
+          <nav
+            class="explorer-list__breadcrumbs"
+            [attr.aria-label]="'charts.breadcrumb' | translate"
+          >
+            <a routerLink="/projects" class="explorer-list__breadcrumb-link">
+              {{ 'nav.home' | translate }}
+            </a>
             <mat-icon>chevron_right</mat-icon>
-            <span class="explorer-list__breadcrumb-current">All tables</span>
+            <span class="explorer-list__breadcrumb-current">{{ 'tables.title' | translate }}</span>
           </nav>
         </header>
 
-        <h1 class="explorer-list__title">Tables</h1>
-        <p class="explorer-list__subtitle">Select an explore to build a query</p>
+        <h1 class="explorer-list__title">{{ 'tables.title' | translate }}</h1>
+        <p class="explorer-list__subtitle">{{ 'explorer.selectModelToQuery' | translate }}</p>
 
         @if (loading()) {
           <div class="explorer-list__loading">
@@ -72,7 +77,7 @@
         } @else if (explores().length === 0) {
           <div class="explorer-list__empty">
             <mat-icon>table_chart</mat-icon>
-            <p>No explores available.</p>
+            <p>{{ 'explorer.noExplores' | translate }}</p>
           </div>
         } @else {
           <div class="explorer-list__grid">

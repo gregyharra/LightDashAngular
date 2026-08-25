@@ -346,7 +346,9 @@ export class ExplorerPageComponent {
         this.queryError.set(null);
       } else if (entry.status === 'error') {
         this.queryLoading.set(false);
-        this.queryError.set(entry.error ?? 'Failed to run query.');
+        this.queryError.set(
+          entry.error ?? this.translate.instant('common.queryFailed'),
+        );
       }
     });
   }
@@ -406,7 +408,12 @@ export class ExplorerPageComponent {
         this.projectTreeLoading.set(false);
         this.dbtTree.set([]);
         if (!this.tableId()) {
-          this.error.set(apiErrorMessage(err, 'Failed to load explores.'));
+          this.error.set(
+            apiErrorMessage(
+              err,
+              this.translate.instant('explorer.loadExploresError'),
+            ),
+          );
           this.loading.set(false);
         }
       },
@@ -436,7 +443,12 @@ export class ExplorerPageComponent {
         if (generation !== this.loadGeneration) {
           return;
         }
-        this.error.set(apiErrorMessage(err, 'Failed to load explore.'));
+        this.error.set(
+          apiErrorMessage(
+            err,
+            this.translate.instant('explorer.loadExploreError'),
+          ),
+        );
         this.loading.set(false);
       },
     });

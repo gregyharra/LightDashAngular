@@ -1,7 +1,11 @@
 <div class="transformation-legend">
   <div class="transformation-legend__header">
-    <span class="transformation-legend__title">Transformations</span>
-    <div class="transformation-legend__mode-toggle" role="radiogroup" aria-label="Transformation chip display">
+    <span class="transformation-legend__title">{{ 'lineage.transformations.title' | translate }}</span>
+    <div
+      class="transformation-legend__mode-toggle"
+      role="radiogroup"
+      [attr.aria-label]="'lineage.transformations.display' | translate"
+    >
       <button
         type="button"
         class="transformation-legend__mode-btn"
@@ -9,7 +13,7 @@
         role="radio"
         [attr.aria-checked]="chipMode() === 'compact'"
         (click)="setChipMode('compact')"
-        title="Compact badges"
+        [attr.title]="'lineage.transformations.compactBadges' | translate"
       >
         A
       </button>
@@ -20,7 +24,7 @@
         role="radio"
         [attr.aria-checked]="chipMode() === 'full'"
         (click)="setChipMode('full')"
-        title="Full labels"
+        [attr.title]="'lineage.transformations.fullLabels' | translate"
       >
         Abc
       </button>
@@ -35,11 +39,13 @@
           class="transformation-legend__filter-btn"
           [class.transformation-legend__filter-btn--active]="activeFilter() === type"
           [attr.aria-pressed]="activeFilter() === type"
-          [title]="descriptions[type]"
+          [title]="'lineage.transformations.descriptions.' + type | translate"
           (click)="toggleFilter(type)"
         >
           <app-transformation-chip [type]="type" [mode]="chipMode()" size="sm" />
-          <span class="transformation-legend__label">{{ labels[type] }}</span>
+          <span class="transformation-legend__label">
+            {{ 'lineage.transformations.labels.' + type | translate }}
+          </span>
         </button>
       </li>
     }

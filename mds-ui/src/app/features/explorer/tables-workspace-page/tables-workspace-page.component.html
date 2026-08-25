@@ -15,35 +15,35 @@
           [routerLink]="['/projects', projectUuid(), 'explore']"
         >
           <mat-icon>search</mat-icon>
-          Explore
+          {{ 'explorer.title' | translate }}
         </a>
         <a
           class="page-sidebar__link page-sidebar__link--clickable"
           [routerLink]="['/projects', projectUuid(), 'dashboards']"
         >
           <mat-icon>dashboard</mat-icon>
-          Dashboards
+          {{ 'dashboards.title' | translate }}
         </a>
         <a
           class="page-sidebar__link page-sidebar__link--active page-sidebar__link--clickable"
           [routerLink]="['/projects', projectUuid(), 'charts']"
         >
           <mat-icon>bar_chart</mat-icon>
-          Charts
+          {{ 'charts.title' | translate }}
         </a>
         <a
           class="page-sidebar__link page-sidebar__link--clickable"
           [routerLink]="['/projects', projectUuid(), 'tables']"
         >
           <mat-icon>table_chart</mat-icon>
-          Tables
+          {{ 'tables.title' | translate }}
         </a>
         <a
           class="page-sidebar__link page-sidebar__link--clickable"
           [routerLink]="['/projects', projectUuid(), 'lineage']"
         >
           <mat-icon>account_tree</mat-icon>
-          Lineage
+          {{ 'tables.lineage' | translate }}
         </a>
       </nav>
     </div>
@@ -63,10 +63,10 @@
           [lineageNodes]="lineageNodes()"
           [projectUuid]="projectUuid()"
           [selectedNodeId]="tableId()"
-          searchPlaceholder="Search models…"
+          [searchPlaceholder]="'explorer.searchModels' | translate"
           [emptyMessage]="'explorer.noModelsMatch' | translate"
           collapsedStorageKey="lightdash-tables-folder-panel-collapsed"
-          treeAriaLabel="dbt project folder tree"
+          [treeAriaLabel]="'tables.dbtTree' | translate"
           (nodeSelected)="onNodeSelected($event)"
         />
 

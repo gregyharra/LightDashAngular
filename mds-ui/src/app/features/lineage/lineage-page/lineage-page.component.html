@@ -2,48 +2,48 @@
   <aside class="page-layout__sidebar" appResizableSidebar>
     <div class="page-sidebar">
       <header class="page-sidebar__header">
-        <p class="page-sidebar__breadcrumb">Browse</p>
+        <p class="page-sidebar__breadcrumb">{{ 'explorer.browse' | translate }}</p>
         @if (activeProjectService.activeProject(); as project) {
           <p class="page-sidebar__org">{{ project.name }}</p>
         }
       </header>
 
-      <nav class="page-sidebar__nav" aria-label="Browse navigation">
-        <p class="page-sidebar__section-label">Content</p>
+      <nav class="page-sidebar__nav" [attr.aria-label]="'charts.browseNavigation' | translate">
+        <p class="page-sidebar__section-label">{{ 'explorer.content' | translate }}</p>
         <a
           class="page-sidebar__link page-sidebar__link--clickable"
           [routerLink]="['/projects', projectUuid(), 'explore']"
         >
           <mat-icon>search</mat-icon>
-          Explore
+          {{ 'explorer.title' | translate }}
         </a>
         <a
           class="page-sidebar__link page-sidebar__link--clickable"
           [routerLink]="['/projects', projectUuid(), 'dashboards']"
         >
           <mat-icon>dashboard</mat-icon>
-          Dashboards
+          {{ 'dashboards.title' | translate }}
         </a>
         <a
           class="page-sidebar__link page-sidebar__link--clickable"
           [routerLink]="['/projects', projectUuid(), 'charts']"
         >
           <mat-icon>bar_chart</mat-icon>
-          Charts
+          {{ 'charts.title' | translate }}
         </a>
         <a
           class="page-sidebar__link page-sidebar__link--clickable"
           [routerLink]="['/projects', projectUuid(), 'tables']"
         >
           <mat-icon>table_chart</mat-icon>
-          Tables
+          {{ 'tables.title' | translate }}
         </a>
         <a
           class="page-sidebar__link page-sidebar__link--active page-sidebar__link--clickable"
           [routerLink]="['/projects', projectUuid(), 'lineage']"
         >
           <mat-icon>account_tree</mat-icon>
-          Lineage
+          {{ 'tables.lineage' | translate }}
         </a>
       </nav>
     </div>
@@ -53,16 +53,16 @@
     <section class="lineage-page">
       <header class="lineage-page__header">
         <div>
-          <nav class="lineage-page__breadcrumbs" aria-label="Breadcrumb">
-            <a routerLink="/projects" class="lineage-page__breadcrumb-link">Home</a>
+          <nav class="lineage-page__breadcrumbs" [attr.aria-label]="'charts.breadcrumb' | translate">
+            <a routerLink="/projects" class="lineage-page__breadcrumb-link">{{ 'nav.home' | translate }}</a>
             <mat-icon>chevron_right</mat-icon>
-            <span class="lineage-page__breadcrumb-current">dbt Lineage</span>
+            <span class="lineage-page__breadcrumb-current">{{ 'lineage.dbtLineage' | translate }}</span>
           </nav>
           <h1 class="lineage-page__title">
             @if (lineage(); as data) {
               {{ data.projectName }}
             } @else {
-              dbt Lineage
+              {{ 'lineage.dbtLineage' | translate }}
             }
           </h1>
           @if (lineage(); as data) {
@@ -77,12 +77,14 @@
                   {{ path }}
                 </span>
               }
-              <span>{{ data.nodes.length }} nodes · {{ data.edges.length }} dependencies</span>
+              <span>
+                {{ 'lineage.summary' | translate: { nodes: data.nodes.length, dependencies: data.edges.length } }}
+              </span>
               @if (columnEdgeCount() > 0) {
-                <span>{{ columnEdgeCount() }} column links</span>
+                <span>{{ 'lineage.columnLinks' | translate: { count: columnEdgeCount() } }}</span>
               }
               <span class="lineage-page__compiled">
-                Last compiled {{ formatCompiledAt(data.dbtProject.lastCompiledAt) }}
+                {{ 'lineage.lastCompiled' | translate: { date: formatCompiledAt(data.dbtProject.lastCompiledAt) } }}
               </span>
               @if (data.warehouseType) {
                 <span class="lineage-page__warehouse-chip">
@@ -143,7 +145,7 @@
             } @else {
               <aside class="lineage-page__detail-placeholder">
                 <mat-icon>touch_app</mat-icon>
-                <p>Select a model from the project tree or graph</p>
+                <p>{{ 'lineage.selectModel' | translate }}</p>
               </aside>
             }
           </div>

@@ -1,8 +1,7 @@
 import { Component, input, output } from '@angular/core';
+import { TranslatePipe } from '@ngx-translate/core';
 import { ColumnTransformationType } from '../../../core/models/lineage.model';
 import {
-  TRANSFORMATION_DESCRIPTIONS,
-  TRANSFORMATION_LABELS,
   TRANSFORMATION_TYPES,
   TransformationChipMode,
 } from '../column-transformation.utils';
@@ -10,7 +9,7 @@ import { TransformationChipComponent } from '../transformation-chip/transformati
 
 @Component({
   selector: 'app-transformation-legend',
-  imports: [TransformationChipComponent],
+  imports: [TransformationChipComponent, TranslatePipe],
   templateUrl: './transformation-legend.component.html',
   styleUrl: './transformation-legend.component.scss',
 })
@@ -22,9 +21,6 @@ export class TransformationLegendComponent {
   readonly filterChange = output<ColumnTransformationType | null>();
 
   protected readonly types = TRANSFORMATION_TYPES;
-  protected readonly labels = TRANSFORMATION_LABELS;
-  protected readonly descriptions = TRANSFORMATION_DESCRIPTIONS;
-
   protected setChipMode(mode: TransformationChipMode): void {
     this.chipModeChange.emit(mode);
   }

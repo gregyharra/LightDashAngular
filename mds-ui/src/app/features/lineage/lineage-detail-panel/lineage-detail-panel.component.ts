@@ -16,6 +16,7 @@ import {
 import { MatButtonToggleModule } from '@angular/material/button-toggle';
 import { MatIconModule } from '@angular/material/icon';
 import { RouterLink } from '@angular/router';
+import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import {
   ColumnLineageEdge,
   ColumnSelectionEvent,
@@ -68,6 +69,7 @@ const COLLAPSED_WIDTH = 44;
     TransformationChipComponent,
     RouterLink,
     SqlHighlightComponent,
+    TranslatePipe,
   ],
   templateUrl: './lineage-detail-panel.component.html',
   styleUrl: './lineage-detail-panel.component.scss',
@@ -76,6 +78,7 @@ export class LineageDetailPanelComponent {
   private readonly platformId = inject(PLATFORM_ID);
   private readonly renderer = inject(Renderer2);
   private readonly destroyRef = inject(DestroyRef);
+  private readonly translate = inject(TranslateService);
   protected readonly activeProjectService = inject(ActiveProjectService);
 
   readonly node = input.required<LineageNode>();
@@ -415,20 +418,9 @@ export class LineageDetailPanelComponent {
   }
 
   protected typeLabel(type: string): string {
-    switch (type) {
-      case 'source':
-        return 'Source';
-      case 'staging':
-        return 'Bronze';
-      case 'intermediate':
-        return 'Silver';
-      case 'mart':
-        return 'Gold';
-      case 'seed':
-        return 'Seed';
-      default:
-        return type;
-    }
+    const key = `lineage.modelTypes.${type}`;
+    const translated = this.translate.instant(key);
+    return translated === key ? type : translated;
   }
 
   protected columnTransformation(column: LineageColumn): ColumnTransformationType {

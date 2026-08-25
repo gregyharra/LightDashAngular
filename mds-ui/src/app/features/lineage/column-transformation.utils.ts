@@ -19,17 +19,6 @@ export const TRANSFORMATION_TYPES: ColumnTransformationType[] = [
   'join-key',
 ];
 
-export const TRANSFORMATION_LABELS: Record<ColumnTransformationType, string> = {
-  source: 'source',
-  'pass-through': 'pass-through',
-  rename: 'rename',
-  cast: 'cast',
-  derived: 'derived',
-  coalesce: 'coalesce',
-  aggregate: 'aggregate',
-  'join-key': 'join-key',
-};
-
 /** Single-letter badges (dbt-colibri uses T/R/P/U for its four types). */
 export const TRANSFORMATION_SHORT_LABELS: Record<ColumnTransformationType, string> = {
   source: 'S',
@@ -40,17 +29,6 @@ export const TRANSFORMATION_SHORT_LABELS: Record<ColumnTransformationType, strin
   coalesce: '?',
   aggregate: 'A',
   'join-key': 'J',
-};
-
-export const TRANSFORMATION_DESCRIPTIONS: Record<ColumnTransformationType, string> = {
-  source: 'Original column from a source or seed table',
-  'pass-through': 'Unchanged from the upstream column',
-  rename: 'Renamed from an upstream column with the same value',
-  cast: 'Type cast or conversion from upstream',
-  derived: 'Computed from one or more upstream columns',
-  coalesce: 'First non-null value from multiple upstream columns',
-  aggregate: 'Aggregated across rows (sum, count, etc.)',
-  'join-key': 'Brought in via a join from another model',
 };
 
 /** CSS custom property names for SVG/HTML chip theming. */
@@ -140,35 +118,4 @@ export function inferColumnTransformation(
   }
 
   return inferFromEdge(incoming[0], column, nodes);
-}
-
-export function transformationLabel(type: ColumnTransformationType): string {
-  return TRANSFORMATION_LABELS[type];
-}
-
-export function transformationDescription(type: ColumnTransformationType): string {
-  return TRANSFORMATION_DESCRIPTIONS[type];
-}
-
-export function transformationChipLabel(
-  type: ColumnTransformationType,
-  mode: TransformationChipMode,
-): string {
-  return mode === 'compact' ? TRANSFORMATION_SHORT_LABELS[type] : TRANSFORMATION_LABELS[type];
-}
-
-/** Approximate pixel width for SVG chip layout. */
-export function transformationChipWidth(
-  type: ColumnTransformationType,
-  mode: TransformationChipMode = 'full',
-): number {
-  if (mode === 'compact') {
-    return 18;
-  }
-  return transformationLabel(type).length * 5.5 + 12;
-}
-
-/** @deprecated Use transformationChipWidth */
-export function transformationBadgeWidth(type: ColumnTransformationType): number {
-  return transformationChipWidth(type, 'full');
 }

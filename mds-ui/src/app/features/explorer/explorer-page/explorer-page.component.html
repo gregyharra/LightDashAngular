@@ -58,7 +58,7 @@
       [searchPlaceholder]="'explorer.searchModels' | translate"
       [emptyMessage]="'explorer.noModelsMatch' | translate"
       collapsedStorageKey="lightdash-explore-folder-panel-collapsed"
-      treeAriaLabel="dbt project folder tree"
+      [treeAriaLabel]="'tables.dbtTree' | translate"
       (nodeSelected)="onProjectNodeSelected($event)"
     />
   </aside>
@@ -69,7 +69,7 @@
         [projectUuid]="projectUuid()!"
         [tableId]="selectedTableId"
         [tableLabel]="explore()?.label || selectedTableId"
-        [parentLabel]="'Explore'"
+        [parentLabel]="'explorer.title' | translate"
         [parentLink]="['/projects', projectUuid()!, 'explore']"
         [fieldSearch]="fieldSearch()"
         [fieldGroups]="filteredTableGroups()"
@@ -104,7 +104,10 @@
       <section class="explorer-page explorer-page--picker">
         <div class="page__container page__container--wide">
           <header class="explorer-page__header">
-            <nav class="explorer-page__breadcrumbs" aria-label="Breadcrumb">
+            <nav
+              class="explorer-page__breadcrumbs"
+              [attr.aria-label]="'charts.breadcrumb' | translate"
+            >
               <a routerLink="/projects" class="explorer-page__breadcrumb-link">{{ 'nav.home' | translate }}</a>
               <mat-icon>chevron_right</mat-icon>
               <span class="explorer-page__breadcrumb-current">{{ 'explorer.title' | translate }}</span>
@@ -172,14 +175,19 @@
       <section class="explorer-page">
         <div class="page__container page__container--wide">
           <header class="explorer-page__header explorer-page__header--workspace">
-            <nav class="explorer-page__breadcrumbs" aria-label="Breadcrumb">
-              <a routerLink="/projects" class="explorer-page__breadcrumb-link">Home</a>
+            <nav
+              class="explorer-page__breadcrumbs"
+              [attr.aria-label]="'charts.breadcrumb' | translate"
+            >
+              <a routerLink="/projects" class="explorer-page__breadcrumb-link">
+                {{ 'nav.home' | translate }}
+              </a>
               <mat-icon>chevron_right</mat-icon>
               <a
                 class="explorer-page__breadcrumb-link"
                 [routerLink]="['/projects', projectUuid(), 'explore']"
               >
-                Explore
+                {{ 'explorer.title' | translate }}
               </a>
               <mat-icon>chevron_right</mat-icon>
               <span class="explorer-page__breadcrumb-current">{{

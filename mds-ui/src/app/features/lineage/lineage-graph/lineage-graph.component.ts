@@ -5,12 +5,14 @@ import {
   ElementRef,
   computed,
   effect,
+  inject,
   input,
   output,
   signal,
   viewChild,
 } from '@angular/core';
 import { MatIconModule } from '@angular/material/icon';
+import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import {
   ColumnLineageEdge,
   ColumnTransformationType,
@@ -65,10 +67,8 @@ import {
 } from '../lineage-neighborhood-utils';
 import {
   inferColumnTransformation,
-  transformationChipLabel,
-  transformationChipWidth,
   transformationCssVar,
-  transformationDescription,
+  TRANSFORMATION_SHORT_LABELS,
   TransformationChipMode,
 } from '../column-transformation.utils';
 import { TransformationLegendComponent } from '../transformation-legend/transformation-legend.component';
@@ -115,11 +115,13 @@ const LEGEND_COLLAPSED_STORAGE_KEY = 'lightdash-lineage-legend-collapsed';
 
 @Component({
   selector: 'app-lineage-graph',
-  imports: [DecimalPipe, MatIconModule, TransformationLegendComponent],
+  imports: [DecimalPipe, MatIconModule, TransformationLegendComponent, TranslatePipe],
   templateUrl: './lineage-graph.component.html',
   styleUrl: './lineage-graph.component.scss',
 })
 export class LineageGraphComponent implements AfterViewInit {
+  private readonly translate = inject(TranslateService);
+
   readonly nodes = input.required<LineageNode[]>();
   readonly edges = input.required<LineageEdge[]>();
   readonly columnEdges = input<ColumnLineageEdge[]>([]);
@@ -474,20 +476,9 @@ export class LineageGraphComponent implements AfterViewInit {
   }
 
   protected typeLabel(type: string): string {
-    switch (type) {
-      case 'source':
-        return 'Source';
-      case 'staging':
-        return 'Bronze';
-      case 'intermediate':
-        return 'Silver';
-      case 'mart':
-        return 'Gold';
-      case 'seed':
-        return 'Seed';
-      default:
-        return type;
-    }
+    const key = `lineage.modelTypes.${type}`;
+    const translated = this.translate.instant(key);
+    return translated === key ? type : translated;
   }
 
   protected toggleLegendCollapsed(): void {
@@ -511,8 +502,8 @@ export class LineageGraphComponent implements AfterViewInit {
   /**
    * Approximate pixel width for the SVG type badge, sized to fit the
    * (uppercased) label instead of a fixed width. Character-width estimate
-   * follows the same pattern as `transformationChipWidth` — the badge font
-   * is 10px/600 uppercase, so it uses a slightly wider per-char value.
+   * follows the transformation-chip sizing pattern — the badge font is
+   * 10px/600 uppercase, so it uses a slightly wider per-char value.
    */
   protected typeBadgeWidth(type: string): number {
     const label = this.typeIconGlyph(type);
@@ -1239,7 +1230,7 @@ export class LineageGraphComponent implements AfterViewInit {
 
   protected columnCountLabel(node: LineageNode): string {
     const n = node.columnCount ?? node.columns?.length ?? 0;
-    return `${n} column${n === 1 ? '' : 's'}`;
+    return this.translate.instant('lineage.graph.columnCount', { count: n });
   }
 
   protected typeHintForColumn(column: LineageColumn): '#' | 'Aa' | null {
@@ -1251,20 +1242,9 @@ export class LineageGraphComponent implements AfterViewInit {
   }
 
   protected typeIconGlyph(type: string): string {
-    switch (type) {
-      case 'source':
-        return 'Src';
-      case 'seed':
-        return 'Seed';
-      case 'staging':
-        return 'S';
-      case 'intermediate':
-        return 'I';
-      case 'mart':
-        return 'M';
-      default:
-        return '?';
-    }
+    const key = `lineage.modelTypeBadges.${type}`;
+    const translated = this.translate.instant(key);
+    return translated === key ? '?' : translated;
   }
 
   protected columnTransformation(node: LineageNode, column: LineageColumn): ColumnTransformationType {
@@ -1280,11 +1260,13 @@ export class LineageGraphComponent implements AfterViewInit {
   }
 
   protected transformationChipText(type: ColumnTransformationType): string {
-    return transformationChipLabel(type, this.transformationChipMode());
+    return this.transformationChipMode() === 'compact'
+      ? TRANSFORMATION_SHORT_LABELS[type]
+      : this.translate.instant(`lineage.transformations.labels.${type}`);
   }
 
   protected transformationChipTitle(type: ColumnTransformationType): string {
-    return transformationDescription(type);
+    return this.translate.instant(`lineage.transformations.descriptions.${type}`);
   }
 
   protected transformChipFill(type: ColumnTransformationType): string {
@@ -1309,7 +1291,9 @@ export class LineageGraphComponent implements AfterViewInit {
       hasTypeHint: this.typeHintForColumn(column) !== null,
       columnType: column.type,
       chipWidth: transformType
-        ? transformationChipWidth(transformType, this.transformationChipMode())
+        ? this.transformationChipMode() === 'compact'
+          ? 18
+          : this.transformationChipText(transformType).length * 5.5 + 12
         : 0,
     });
   }

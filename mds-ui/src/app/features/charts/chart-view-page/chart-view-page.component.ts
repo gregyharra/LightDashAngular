@@ -266,7 +266,11 @@ export class ChartViewPageComponent {
 
   protected readonly displayName = computed(() => {
     if (this.editMode()) {
-      return this.draftName().trim() || this.chart()?.name || 'Untitled chart';
+      return (
+        this.draftName().trim() ||
+        this.chart()?.name ||
+        this.translate.instant('charts.workspace.untitled')
+      );
     }
     return this.chart()?.name ?? '';
   });
@@ -548,7 +552,9 @@ export class ChartViewPageComponent {
         this.queryError.set(null);
       } else if (entry.status === 'error') {
         this.queryLoading.set(false);
-        this.queryError.set(entry.error ?? 'Failed to run query.');
+        this.queryError.set(
+          entry.error ?? this.translate.instant('common.queryFailed'),
+        );
       }
     });
   }
@@ -802,7 +808,7 @@ export class ChartViewPageComponent {
     this.explore.set(null);
     this.editMode.set(true);
     this.configureMode.set(false);
-    this.draftName.set('Untitled chart');
+    this.draftName.set(this.translate.instant('charts.workspace.untitled'));
     this.draftDescription.set('');
     this.chartConfig.set(defaultConfigForType('cartesian'));
     this.cachedChartConfigs.set({});
@@ -873,7 +879,12 @@ export class ChartViewPageComponent {
         this.loadProjectTree(projectUuid, chart.tableName);
       },
       error: (err) => {
-        this.error.set(apiErrorMessage(err, 'Failed to load chart.'));
+        this.error.set(
+          apiErrorMessage(
+            err,
+            this.translate.instant('charts.workspace.loadChartError'),
+          ),
+        );
         this.loading.set(false);
       },
     });
@@ -940,7 +951,9 @@ export class ChartViewPageComponent {
       next: (explore) => {
         if (!exploreHasFields(explore)) {
           this.explore.set(null);
-          this.queryError.set('Unable to load fields for this model.');
+          this.queryError.set(
+            this.translate.instant('charts.workspace.fieldsUnavailable'),
+          );
           return;
         }
         this.explore.set(explore);
@@ -951,7 +964,12 @@ export class ChartViewPageComponent {
         this.runQuery();
       },
       error: (err) => {
-        this.queryError.set(apiErrorMessage(err, 'Failed to load explore fields.'));
+        this.queryError.set(
+          apiErrorMessage(
+            err,
+            this.translate.instant('charts.workspace.loadExploreFieldsError'),
+          ),
+        );
       },
     });
   }
@@ -985,7 +1003,10 @@ export class ChartViewPageComponent {
       },
       error: (err) => {
         this.projectTreeError.set(
-          apiErrorMessage(err, 'Failed to load project tree.'),
+          apiErrorMessage(
+            err,
+            this.translate.instant('charts.workspace.loadProjectTreeError'),
+          ),
         );
         this.projectTreeLoading.set(false);
       },
@@ -1028,7 +1049,9 @@ export class ChartViewPageComponent {
     if (!exploreName) {
       this.explore.set(null);
       if (isExploreableDbtTreeNode(treeNode)) {
-        this.queryError.set('Unable to load fields for this model.');
+        this.queryError.set(
+          this.translate.instant('charts.workspace.fieldsUnavailable'),
+        );
       }
       return;
     }
@@ -1375,7 +1398,12 @@ export class ChartViewPageComponent {
           ]);
         },
         error: (err) => {
-          this.saveError.set(apiErrorMessage(err, 'Failed to save chart.'));
+          this.saveError.set(
+            apiErrorMessage(
+              err,
+              this.translate.instant('charts.workspace.saveError'),
+            ),
+          );
           this.saveLoading.set(false);
         },
       });
@@ -1432,7 +1460,12 @@ export class ChartViewPageComponent {
           this.saveSuccess.set(true);
         },
         error: (err) => {
-          this.saveError.set(apiErrorMessage(err, 'Failed to save chart.'));
+          this.saveError.set(
+            apiErrorMessage(
+              err,
+              this.translate.instant('charts.workspace.saveError'),
+            ),
+          );
           this.saveLoading.set(false);
         },
       });

@@ -17,6 +17,7 @@ import {
 import { FormsModule } from '@angular/forms';
 import { MatIconModule } from '@angular/material/icon';
 import { MatTooltipModule } from '@angular/material/tooltip';
+import { TranslatePipe } from '@ngx-translate/core';
 import { DbtTreeNode, LineageNode } from '../../../core/models/lineage.model';
 import {
   buildSchemaGroupedTree,
@@ -34,7 +35,7 @@ import {
   host: {
     class: 'folder-panel-host',
   },
-  imports: [FormsModule, MatIconModule, MatTooltipModule],
+  imports: [FormsModule, MatIconModule, MatTooltipModule, TranslatePipe],
   templateUrl: './folder-search-panel.component.html',
   styleUrl: './folder-search-panel.component.scss',
 })
@@ -52,11 +53,11 @@ export class FolderSearchPanelComponent {
   readonly selectedNodeId = input<string | null>(null);
   readonly projectUuid = input<string | null>(null);
   readonly lineageNodes = input<LineageNode[]>([]);
-  readonly title = input('Project');
-  readonly searchPlaceholder = input('Search models…');
-  readonly emptyMessage = input('No models match your search');
+  readonly title = input('lineage.project');
+  readonly searchPlaceholder = input('lineage.searchModels');
+  readonly emptyMessage = input('lineage.noModelsMatch');
   readonly collapsedStorageKey = input('lightdash-lineage-folder-panel-collapsed');
-  readonly treeAriaLabel = input('dbt project folder tree');
+  readonly treeAriaLabel = input('lineage.dbtTree');
   readonly resizable = input(true);
 
   readonly nodeSelected = output<string>();

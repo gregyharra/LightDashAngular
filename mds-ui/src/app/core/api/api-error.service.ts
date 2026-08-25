@@ -16,11 +16,22 @@ export class ApiErrorService {
     });
     return message;
   }
+
+  queryErrorWarning(error: unknown): {
+    code: string;
+    message: string;
+    severity: 'error';
+  } {
+    return queryErrorWarning(
+      error,
+      this.translate.instant('common.queryFailed'),
+    );
+  }
 }
 
 export function queryErrorWarning(
   error: unknown,
-  fallback = 'Failed to run query.',
+  fallback: string,
 ): { code: string; message: string; severity: 'error' } {
   return {
     code: 'QUERY_FAILED',

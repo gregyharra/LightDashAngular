@@ -6,11 +6,11 @@
 >
   <header class="folder-panel__header">
     <div class="folder-panel__header-top">
-      <h2 class="folder-panel__title">{{ title() }}</h2>
+      <h2 class="folder-panel__title">{{ title() | translate }}</h2>
       <div
         class="folder-panel__view-toggle"
         role="radiogroup"
-        aria-label="Tree view mode"
+        [attr.aria-label]="'lineage.folder.treeViewMode' | translate"
       >
         <button
           type="button"
@@ -18,8 +18,8 @@
           role="radio"
           [attr.aria-checked]="treeViewMode() === 'folder'"
           [class.folder-panel__view-btn--active]="treeViewMode() === 'folder'"
-          aria-label="Folder view"
-          matTooltip="Folder view"
+          [attr.aria-label]="'lineage.folder.folderView' | translate"
+          [matTooltip]="'lineage.folder.folderView' | translate"
           matTooltipPosition="below"
           (click)="setTreeViewMode('folder')"
         >
@@ -31,8 +31,8 @@
           role="radio"
           [attr.aria-checked]="treeViewMode() === 'schema'"
           [class.folder-panel__view-btn--active]="treeViewMode() === 'schema'"
-          aria-label="Schema view"
-          matTooltip="Schema view"
+          [attr.aria-label]="'lineage.folder.schemaView' | translate"
+          [matTooltip]="'lineage.folder.schemaView' | translate"
           matTooltipPosition="below"
           (click)="setTreeViewMode('schema')"
         >
@@ -43,7 +43,10 @@
         type="button"
         class="folder-panel__fold-btn"
         [attr.aria-expanded]="!collapsed()"
-        [attr.aria-label]="collapsed() ? 'Expand project panel' : 'Collapse project panel'"
+        [attr.aria-label]="
+          (collapsed() ? 'lineage.folder.expandProjectPanel' : 'lineage.folder.collapseProjectPanel')
+            | translate
+        "
         (click)="toggleCollapsed()"
       >
         <mat-icon>{{ collapsed() ? 'chevron_right' : 'chevron_left' }}</mat-icon>
@@ -54,8 +57,8 @@
       <input
         class="folder-panel__search"
         type="search"
-        [placeholder]="searchPlaceholder()"
-        [attr.aria-label]="searchPlaceholder()"
+        [placeholder]="searchPlaceholder() | translate"
+        [attr.aria-label]="searchPlaceholder() | translate"
         [ngModel]="searchQuery()"
         (ngModelChange)="onSearchInput($event)"
         (keydown)="onSearchKeydown($event)"
@@ -63,15 +66,15 @@
     </div>
     @if (searchQuery().trim()) {
       <p class="folder-panel__match-count">
-        {{ matchCount() }} match{{ matchCount() === 1 ? '' : 'es' }}
-        <span class="folder-panel__hint">· Enter to select first</span>
+        {{ 'lineage.folder.matches' | translate: { count: matchCount() } }}
+        <span class="folder-panel__hint">· {{ 'lineage.folder.enterToSelect' | translate }}</span>
       </p>
     }
   </header>
 
-  <nav #treeNav class="folder-panel__tree" [attr.aria-label]="treeAriaLabel()">
+  <nav #treeNav class="folder-panel__tree" [attr.aria-label]="treeAriaLabel() | translate">
     @if (visibleItems().length === 0) {
-      <p class="folder-panel__empty">{{ emptyMessage() }}</p>
+      <p class="folder-panel__empty">{{ emptyMessage() | translate }}</p>
     } @else {
       <ul class="folder-panel__list">
         @for (item of visibleItems(); track item.node.id) {
@@ -87,7 +90,10 @@
               <button
                 type="button"
                 class="folder-panel__expand"
-                [attr.aria-label]="item.expanded ? 'Collapse folder' : 'Expand folder'"
+                [attr.aria-label]="
+                  (item.expanded ? 'lineage.folder.collapseFolder' : 'lineage.folder.expandFolder')
+                    | translate
+                "
                 (click)="toggleFolder(item.node.path, $event)"
               >
                 <mat-icon>{{ item.expanded ? 'expand_more' : 'chevron_right' }}</mat-icon>
@@ -111,7 +117,10 @@
             </button>
 
             @if (showLeafCount(item.node)) {
-              <span class="folder-panel__count" [attr.aria-label]="leafCount(item.node) + ' items'">
+              <span
+                class="folder-panel__count"
+                [attr.aria-label]="'lineage.folder.items' | translate: { count: leafCount(item.node) }"
+              >
                 {{ leafCount(item.node) }}
               </span>
             }
@@ -126,7 +135,7 @@
       class="folder-panel__resize-handle"
       role="separator"
       aria-orientation="vertical"
-      aria-label="Resize panel"
+      [attr.aria-label]="'lineage.folder.resizePanel' | translate"
       tabindex="0"
       (pointerdown)="onResizeStart($event)"
     ></div>
