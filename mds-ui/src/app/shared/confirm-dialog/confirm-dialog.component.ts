@@ -5,6 +5,7 @@ import {
   MatDialogModule,
   MatDialogRef,
 } from '@angular/material/dialog';
+import { TranslatePipe } from '@ngx-translate/core';
 
 export type ConfirmDialogData = {
   title?: string;
@@ -18,18 +19,20 @@ export type ConfirmDialogResult = true | undefined;
 
 @Component({
   selector: 'app-confirm-dialog',
-  imports: [MatButtonModule, MatDialogModule],
+  imports: [MatButtonModule, MatDialogModule, TranslatePipe],
   template: `
-    <h2 mat-dialog-title>{{ data.title ?? 'Confirm' }}</h2>
+    <h2 mat-dialog-title>
+      {{ data.title ?? ('common.confirm' | translate) }}
+    </h2>
     <mat-dialog-content>
       <p class="confirm-dialog__message">{{ data.message }}</p>
     </mat-dialog-content>
     <mat-dialog-actions align="end">
       <button mat-stroked-button type="button" mat-dialog-close>
-        {{ data.cancelLabel ?? 'Cancel' }}
+        {{ data.cancelLabel ?? ('common.cancel' | translate) }}
       </button>
       <button mat-flat-button color="warn" type="button" (click)="confirm()">
-        {{ data.confirmLabel ?? 'Delete' }}
+        {{ data.confirmLabel ?? ('common.delete' | translate) }}
       </button>
     </mat-dialog-actions>
   `,

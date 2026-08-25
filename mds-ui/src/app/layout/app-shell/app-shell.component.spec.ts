@@ -4,6 +4,11 @@ import { provideHttpClient } from '@angular/common/http';
 import { provideHttpClientTesting } from '@angular/common/http/testing';
 import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 import { provideRouter } from '@angular/router';
+import { Store } from '@ngrx/store';
+import {
+  provideTranslateService,
+  TranslateService,
+} from '@ngx-translate/core';
 import { of } from 'rxjs';
 import { HealthResults } from '../../core/api/api.types';
 import { AppStateService } from '../../core/services/app-state.service';
@@ -58,8 +63,10 @@ describe('AppShellComponent Ask AI flag', () => {
         provideRouter([]),
         provideHttpClient(),
         provideHttpClientTesting(),
+        provideTranslateService({ fallbackLang: 'en', lang: 'en' }),
         ActiveProjectService,
         AiAssistantUiService,
+        { provide: Store, useValue: jasmine.createSpyObj('Store', ['dispatch']) },
         {
           provide: AppStateService,
           useValue: {
@@ -81,6 +88,24 @@ describe('AppShellComponent Ask AI flag', () => {
         add: { imports: [AiAssistantPanelStub, NavbarSearchStub] },
       })
       .compileComponents();
+
+    const translate = TestBed.inject(TranslateService);
+    translate.setTranslation('en', {
+      nav: {
+        home: 'Home',
+        new: 'New',
+        browse: 'Browse',
+        metrics: 'Metrics',
+        askAi: 'Ask AI',
+        dashboard: 'Dashboard',
+        exploreData: 'Explore data',
+        newDashboard: 'New dashboard',
+        moreNavigation: 'More navigation',
+        settings: 'Settings',
+        logout: 'Logout',
+      },
+      common: { admin: 'Admin' },
+    });
 
     fixture = TestBed.createComponent(AppShellComponent);
     component = fixture.componentInstance;

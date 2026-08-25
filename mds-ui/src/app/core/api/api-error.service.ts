@@ -1,14 +1,16 @@
 import { Injectable, inject, isDevMode } from '@angular/core';
 import { MatSnackBar } from '@angular/material/snack-bar';
+import { TranslateService } from '@ngx-translate/core';
 import { apiErrorMessage } from '../api/lightdash-api.service';
 
 @Injectable({ providedIn: 'root' })
 export class ApiErrorService {
   private readonly snackBar = inject(MatSnackBar);
+  private readonly translate = inject(TranslateService);
 
   showTransient(error: unknown, fallback?: string): string {
     const message = apiErrorMessage(error, fallback);
-    this.snackBar.open(message, 'Dismiss', {
+    this.snackBar.open(message, this.translate.instant('common.dismiss'), {
       duration: 8000,
       panelClass: 'api-error-snackbar',
     });

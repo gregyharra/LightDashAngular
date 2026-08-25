@@ -1,7 +1,7 @@
 <div class="shell" id="navbar-header" data-ld-navbar>
   <header class="shell__navbar">
     <div class="shell__navbar-left">
-      <a routerLink="/projects" class="shell__logo" title="Home" >
+      <a routerLink="/projects" class="shell__logo" [title]="'nav.home' | translate" >
         <img src="assets/logo-icon-v2.png" alt="LightDash" width="32" height="32" border-radius="50%" overflow="hidden"/>
       </a>
 
@@ -11,10 +11,10 @@
             mat-button
             class="shell__nav-btn shell__nav-inline"
             [matMenuTriggerFor]="newMenu"
-            aria-label="New"
+            [attr.aria-label]="'nav.new' | translate"
           >
             <mat-icon>add_box</mat-icon>
-            <span class="shell__nav-label">New</span>
+            <span class="shell__nav-label">{{ 'nav.new' | translate }}</span>
           </button>
           <mat-menu #newMenu="matMenu" panelClass="ld-navbar-menu">
             <a
@@ -22,51 +22,51 @@
               [routerLink]="['/projects', projectUuid, 'dashboards', 'create']"
             >
               <mat-icon>dashboard</mat-icon>
-              Dashboard
+              {{ 'nav.dashboard' | translate }}
             </a>
             <a
               mat-menu-item
               [routerLink]="exploreRootPath(projectUuid)"
             >
               <mat-icon>bar_chart</mat-icon>
-              Explore data
+              {{ 'nav.exploreData' | translate }}
             </a>
           </mat-menu>
           <a
             mat-button
             class="shell__nav-btn shell__nav-inline"
             [routerLink]="['/projects', projectUuid, 'dashboards']"
-            aria-label="Browse"
+            [attr.aria-label]="'nav.browse' | translate"
           >
             <mat-icon>folder</mat-icon>
-            <span class="shell__nav-label">Browse</span>
+            <span class="shell__nav-label">{{ 'nav.browse' | translate }}</span>
           </a>
           <a
             mat-button
             class="shell__nav-btn shell__nav-inline"
             [routerLink]="exploreRootPath(projectUuid)"
-            aria-label="Metrics"
+            [attr.aria-label]="'nav.metrics' | translate"
           >
             <mat-icon>bar_chart</mat-icon>
-            <span class="shell__nav-label">Metrics</span>
+            <span class="shell__nav-label">{{ 'nav.metrics' | translate }}</span>
           </a>
           @if (askAiEnabled()) {
             <button
               mat-button
               class="shell__nav-btn shell__nav-btn--ai shell__nav-inline shell__nav-inline--hide-md"
               type="button"
-              aria-label="Ask AI"
+              [attr.aria-label]="'nav.askAi' | translate"
               (click)="openAiAssistant()"
             >
               <mat-icon>auto_awesome</mat-icon>
-              <span class="shell__nav-label">Ask AI</span>
+              <span class="shell__nav-label">{{ 'nav.askAi' | translate }}</span>
             </button>
           }
           <button
             mat-button
             class="shell__nav-btn shell__nav-btn--icon shell__nav-overflow shell__nav-overflow--left"
             [matMenuTriggerFor]="leftOverflowMenu"
-            aria-label="More navigation"
+            [attr.aria-label]="'nav.moreNavigation' | translate"
           >
             <mat-icon>more_vert</mat-icon>
           </button>
@@ -76,33 +76,33 @@
               [routerLink]="['/projects', projectUuid, 'dashboards', 'create']"
             >
               <mat-icon>add_box</mat-icon>
-              New dashboard
+              {{ 'nav.newDashboard' | translate }}
             </a>
             <a
               mat-menu-item
               [routerLink]="exploreRootPath(projectUuid)"
             >
               <mat-icon>bar_chart</mat-icon>
-              Explore data
+              {{ 'nav.exploreData' | translate }}
             </a>
             <a
               mat-menu-item
               [routerLink]="['/projects', projectUuid, 'dashboards']"
             >
               <mat-icon>folder</mat-icon>
-              Browse
+              {{ 'nav.browse' | translate }}
             </a>
             <a
               mat-menu-item
               [routerLink]="exploreRootPath(projectUuid)"
             >
               <mat-icon>bar_chart</mat-icon>
-              Metrics
+              {{ 'nav.metrics' | translate }}
             </a>
             @if (askAiEnabled()) {
               <button mat-menu-item type="button" (click)="openAiAssistant()">
                 <mat-icon>auto_awesome</mat-icon>
-                Ask AI
+                {{ 'nav.askAi' | translate }}
               </button>
             }
           </mat-menu>

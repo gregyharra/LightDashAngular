@@ -4,6 +4,7 @@ import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { MatButtonModule } from '@angular/material/button';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
+import { TranslatePipe } from '@ngx-translate/core';
 import { AuthService } from '../../../core/services/auth.service';
 import { AppStateService } from '../../../core/services/app-state.service';
 
@@ -15,6 +16,7 @@ import { AppStateService } from '../../../core/services/app-state.service';
     MatFormFieldModule,
     MatInputModule,
     RouterLink,
+    TranslatePipe,
   ],
   templateUrl: './reset-password-page.component.html',
   styleUrl: './reset-password-page.component.scss',

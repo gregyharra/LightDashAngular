@@ -3,6 +3,7 @@ import { RouterLink, RouterOutlet } from '@angular/router';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatMenuModule } from '@angular/material/menu';
+import { TranslatePipe } from '@ngx-translate/core';
 import { AppStateService } from '../../core/services/app-state.service';
 import { ActiveProjectService } from '../../core/services/active-project.service';
 import { ProjectsService } from '../../features/projects/projects.service';
@@ -21,6 +22,7 @@ import { exploreRootPath } from '../../features/explorer/explore-routes';
     MatButtonModule,
     MatIconModule,
     MatMenuModule,
+    TranslatePipe,
     NavbarUserMenuComponent,
     NavbarProjectSwitcherComponent,
     NavbarSearchComponent,

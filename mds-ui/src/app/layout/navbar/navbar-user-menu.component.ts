@@ -10,6 +10,7 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
 import { MatMenuModule } from '@angular/material/menu';
+import { TranslatePipe } from '@ngx-translate/core';
 import { AppStateService } from '../../core/services/app-state.service';
 import { AuthService } from '../../core/services/auth.service';
 
@@ -21,21 +22,22 @@ import { AuthService } from '../../core/services/auth.service';
     MatDialogModule,
     MatFormFieldModule,
     MatInputModule,
+    TranslatePipe,
   ],
   template: `
-    <h2 mat-dialog-title>Change password</h2>
+    <h2 mat-dialog-title>{{ 'auth.changePasswordTitle' | translate }}</h2>
     <mat-dialog-content>
       <form class="dialog-form" [formGroup]="form">
         <mat-form-field appearance="outline">
-          <mat-label>Current password</mat-label>
+          <mat-label>{{ 'auth.currentPassword' | translate }}</mat-label>
           <input matInput type="password" formControlName="currentPassword" />
         </mat-form-field>
         <mat-form-field appearance="outline">
-          <mat-label>New password</mat-label>
+          <mat-label>{{ 'auth.newPassword' | translate }}</mat-label>
           <input matInput type="password" formControlName="newPassword" />
         </mat-form-field>
         <mat-form-field appearance="outline">
-          <mat-label>Confirm new password</mat-label>
+          <mat-label>{{ 'auth.confirmPassword' | translate }}</mat-label>
           <input matInput type="password" formControlName="confirmPassword" />
         </mat-form-field>
         @if (error) {
@@ -44,8 +46,12 @@ import { AuthService } from '../../core/services/auth.service';
       </form>
     </mat-dialog-content>
     <mat-dialog-actions align="end">
-      <button mat-button type="button" mat-dialog-close>Cancel</button>
-      <button mat-flat-button color="primary" type="button" (click)="save()">Save</button>
+      <button mat-button type="button" mat-dialog-close>
+        {{ 'common.cancel' | translate }}
+      </button>
+      <button mat-flat-button color="primary" type="button" (click)="save()">
+        {{ 'common.save' | translate }}
+      </button>
     </mat-dialog-actions>
   `,
   styles: `
@@ -106,7 +112,13 @@ export class ChangePasswordDialogComponent {
 
 @Component({
   selector: 'app-navbar-user-menu',
-  imports: [RouterLink, MatButtonModule, MatIconModule, MatMenuModule],
+  imports: [
+    RouterLink,
+    MatButtonModule,
+    MatIconModule,
+    MatMenuModule,
+    TranslatePipe,
+  ],
   templateUrl: './navbar-user-menu.component.html',
   styleUrl: './navbar-user-menu.component.scss',
 })
