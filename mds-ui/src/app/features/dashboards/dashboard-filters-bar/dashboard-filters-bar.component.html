@@ -22,7 +22,10 @@
                 <button
                   type="button"
                   class="dashboard-filters-bar__pill-body"
-                  [attr.aria-label]="'Edit filter: ' + formatFilterSummary(filter)"
+                  [attr.aria-label]="
+                    'explorer.filter.edit'
+                      | translate: { summary: formatFilterSummary(filter) }
+                  "
                   (click)="onEditFilter(filter)"
                 >
                   <span class="dashboard-filters-bar__pill-label">{{ filter.label }}</span>

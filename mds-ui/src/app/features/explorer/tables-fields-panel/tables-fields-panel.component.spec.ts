@@ -24,6 +24,7 @@ describe('TablesFieldsPanelComponent', () => {
 
     TestBed.inject(TranslateService).setTranslation('en', {
       explorer: {
+        dimensions: 'Dimensions',
         searchDimensionsMetrics: 'Find dimensions and metrics',
         selectDbtModelFields: 'Choose a dbt model for fields.',
         unableToLoadFields: 'Fields could not be loaded.',

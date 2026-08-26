@@ -3,7 +3,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatDialog } from '@angular/material/dialog';
 import { MatIconModule } from '@angular/material/icon';
 import { MatMenuModule } from '@angular/material/menu';
-import { TranslatePipe } from '@ngx-translate/core';
+import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import {
   DashboardConfig,
   DashboardDimensionFilter,
@@ -35,6 +35,7 @@ import {
 })
 export class DashboardFiltersBarComponent {
   private readonly dialog = inject(MatDialog);
+  private readonly translate = inject(TranslateService);
 
   readonly filters = input.required<DashboardDimensionFilter[]>();
   readonly config = input<DashboardConfig | undefined>();
@@ -71,7 +72,7 @@ export class DashboardFiltersBarComponent {
   );
 
   protected formatFilterSummary(filter: DashboardDimensionFilter): string {
-    return formatDashboardFilterSummary(filter);
+    return formatDashboardFilterSummary(filter, (key) => this.translate.instant(key));
   }
 
   protected formatDateZoom(granularity: DateZoomGranularity): string {

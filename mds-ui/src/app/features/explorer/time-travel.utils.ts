@@ -26,7 +26,13 @@ export function formatTimeTravelLabel(isoTimestamp: string): string {
     return isoTimestamp;
   }
 
-  return date.toLocaleString(undefined, {
+  const activeLanguage =
+    typeof document === 'undefined' ? 'en' : document.documentElement.lang;
+  const locale = activeLanguage.toLowerCase().startsWith('fr')
+    ? 'fr-FR'
+    : 'en-US';
+
+  return date.toLocaleString(locale, {
     year: 'numeric',
     month: 'short',
     day: 'numeric',

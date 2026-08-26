@@ -36,14 +36,14 @@
           [routerLink]="['/projects', projectUuid(), 'tables']"
         >
           <mat-icon>table_chart</mat-icon>
-          Tables
+          {{ 'tables.title' | translate }}
         </a>
         <a
           class="page-sidebar__link page-sidebar__link--clickable"
           [routerLink]="['/projects', projectUuid(), 'lineage']"
         >
           <mat-icon>account_tree</mat-icon>
-          Lineage
+          {{ 'lineage.title' | translate }}
         </a>
       </nav>
     </div>
@@ -391,7 +391,7 @@
                       (click)="$event.stopPropagation()"
                     >
                       <label class="dashboard-edit__tab-menu-label" for="tab-name-{{ tab.uuid }}">
-                        Tab name
+                        {{ 'dashboards.workspace.tabName' | translate }}
                       </label>
                       <input
                         id="tab-name-{{ tab.uuid }}"
@@ -405,21 +405,25 @@
                           type="button"
                           (click)="saveTabRename(tab.uuid)"
                         >
-                          Rename
+                          {{ 'dashboards.workspace.renameTab' | translate }}
                         </button>
                         <button
                           mat-stroked-button
                           type="button"
                           (click)="duplicateTab(tab.uuid)"
                         >
-                          Duplicate
+                          {{ 'dashboards.workspace.duplicate' | translate }}
                         </button>
                         <button
                           mat-stroked-button
                           type="button"
                           (click)="toggleTabHidden(tab.uuid)"
                         >
-                          {{ tab.hidden ? 'Show tab' : 'Hide tab' }}
+                          {{
+                            (tab.hidden
+                              ? 'dashboards.workspace.showTab'
+                              : 'dashboards.workspace.hideTab') | translate
+                          }}
                         </button>
                         @if (state.tabs.length > 1) {
                           <button
@@ -428,7 +432,7 @@
                             class="dashboard-edit__tab-delete-btn"
                             (click)="deleteTab(tab.uuid)"
                           >
-                            Delete tab
+                            {{ 'dashboards.workspace.deleteTab' | translate }}
                           </button>
                         }
                       </div>
@@ -691,7 +695,7 @@
                         ></iframe>
                       } @else {
                         <div class="dashboard-tile__placeholder">
-                          Loom video unavailable.
+                          {{ 'dashboards.workspace.loomUnavailable' | translate }}
                         </div>
                       }
                     </div>

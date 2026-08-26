@@ -12,39 +12,47 @@ import {
 } from '../../core/models/explore.model';
 import { mergeTimeTravelIntoMetricQuery } from '../explorer/time-travel.utils';
 
-const OPERATOR_LABELS: Record<DashboardFilterOperator, string> = {
-  equals: 'is',
-  notEquals: 'is not',
-  isNull: 'is null',
-  notNull: 'is not null',
-  startsWith: 'starts with',
-  endsWith: 'ends with',
-  include: 'includes',
-  doesNotInclude: 'does not include',
-  lessThan: 'is less than',
-  lessThanOrEqual: 'is less than or equal to',
-  greaterThan: 'is greater than',
-  greaterThanOrEqual: 'is greater than or equal to',
-  inThePast: 'in the last',
-  notInThePast: 'not in the last',
-  inTheNext: 'in the next',
-  inTheCurrent: 'in the current',
-  notInTheCurrent: 'not in the current',
-  inBetween: 'is between',
-  notInBetween: 'is not between',
+type Translate = (key: string) => string;
+
+const OPERATOR_LABEL_KEYS: Record<DashboardFilterOperator, string> = {
+  equals: 'dashboardFilters.operators.equals',
+  notEquals: 'dashboardFilters.operators.notEquals',
+  isNull: 'dashboardFilters.operators.isNull',
+  notNull: 'dashboardFilters.operators.notNull',
+  startsWith: 'dashboardFilters.operators.startsWith',
+  endsWith: 'dashboardFilters.operators.endsWith',
+  include: 'dashboardFilters.operators.include',
+  doesNotInclude: 'dashboardFilters.operators.doesNotInclude',
+  lessThan: 'dashboardFilters.operators.lessThan',
+  lessThanOrEqual: 'dashboardFilters.operators.lessThanOrEqual',
+  greaterThan: 'dashboardFilters.operators.greaterThan',
+  greaterThanOrEqual: 'dashboardFilters.operators.greaterThanOrEqual',
+  inThePast: 'dashboardFilters.operators.inThePast',
+  notInThePast: 'dashboardFilters.operators.notInThePast',
+  inTheNext: 'dashboardFilters.operators.inTheNext',
+  inTheCurrent: 'dashboardFilters.operators.inTheCurrent',
+  notInTheCurrent: 'dashboardFilters.operators.notInTheCurrent',
+  inBetween: 'dashboardFilters.operators.inBetween',
+  notInBetween: 'dashboardFilters.operators.notInBetween',
 };
 
-function formatUnitOfTime(settings?: DashboardFilterSettings): string {
-  return settings?.unitOfTime ?? 'days';
+function formatUnitOfTime(
+  translate: Translate,
+  settings?: DashboardFilterSettings,
+): string {
+  return translate(`dashboardFilters.units.${settings?.unitOfTime ?? 'days'}`);
 }
 
-function formatFilterValues(filter: DashboardDimensionFilter): string {
+function formatFilterValues(
+  filter: DashboardDimensionFilter,
+  translate: Translate,
+): string {
   if (filter.operator === 'isNull' || filter.operator === 'notNull') {
     return '';
   }
 
   if (filter.values.length === 0) {
-    return 'any value';
+    return translate('dashboardFilters.anyValue');
   }
 
   if (
@@ -53,14 +61,14 @@ function formatFilterValues(filter: DashboardDimensionFilter): string {
     filter.operator === 'inTheNext'
   ) {
     const count = filter.values[0];
-    return `${String(count)} ${formatUnitOfTime(filter.settings)}`;
+    return `${String(count)} ${formatUnitOfTime(translate, filter.settings)}`;
   }
 
   if (
     filter.operator === 'inTheCurrent' ||
     filter.operator === 'notInTheCurrent'
   ) {
-    return formatUnitOfTime(filter.settings);
+    return formatUnitOfTime(translate, filter.settings);
   }
 
   return filter.values.map((value) => String(value)).join(', ');
@@ -68,15 +76,17 @@ function formatFilterValues(filter: DashboardDimensionFilter): string {
 
 export function formatFilterOperator(
   operator: DashboardFilterOperator,
+  translate: Translate,
 ): string {
-  return OPERATOR_LABELS[operator] ?? operator;
+  return translate(OPERATOR_LABEL_KEYS[operator] ?? operator);
 }
 
 export function formatDashboardFilterSummary(
   filter: DashboardDimensionFilter,
+  translate: Translate,
 ): string {
-  const operator = formatFilterOperator(filter.operator);
-  const values = formatFilterValues(filter);
+  const operator = formatFilterOperator(filter.operator, translate);
+  const values = formatFilterValues(filter, translate);
   return values ? `${filter.label} ${operator} ${values}` : `${filter.label} ${operator}`;
 }
 

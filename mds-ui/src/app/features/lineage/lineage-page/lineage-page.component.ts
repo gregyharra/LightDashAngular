@@ -3,6 +3,7 @@ import { ActivatedRoute, RouterLink } from '@angular/router';
 import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
+import { LanguageService } from '../../../core/i18n/language.service';
 import { ActiveProjectService } from '../../../core/services/active-project.service';
 import { ApiErrorService } from '../../../core/api/api-error.service';
 import {
@@ -41,6 +42,7 @@ export class LineagePageComponent {
   private readonly apiErrorService = inject(ApiErrorService);
   private readonly route = inject(ActivatedRoute);
   private readonly translate = inject(TranslateService);
+  private readonly languageService = inject(LanguageService);
   protected readonly activeProjectService = inject(ActiveProjectService);
 
   protected readonly projectUuid = signal<string | null>(null);
@@ -187,7 +189,7 @@ export class LineagePageComponent {
   }
 
   protected formatCompiledAt(isoDate: string): string {
-    return new Date(isoDate).toLocaleDateString(undefined, {
+    return this.languageService.formatDate(isoDate, {
       month: 'short',
       day: 'numeric',
       year: 'numeric',

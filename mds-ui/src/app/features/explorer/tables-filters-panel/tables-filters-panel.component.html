@@ -1,7 +1,7 @@
 <div class="tables-filters-panel">
   @if (filters().length === 0 && !draftOpen()) {
     <p class="tables-filters-panel__empty">
-      No filters applied. Add a filter to narrow your results.
+      {{ 'explorer.filter.empty' | translate }}
     </p>
   }
 
@@ -12,7 +12,10 @@
           <button
             type="button"
             class="tables-filters-panel__chip-body"
-            [attr.aria-label]="'Edit filter: ' + formatFilterSummary(filter)"
+            [attr.aria-label]="
+              'explorer.filter.edit'
+                | translate: { summary: formatFilterSummary(filter) }
+            "
             (click)="startEditFilter(filter)"
           >
             <span class="tables-filters-panel__chip-label">{{ filter.label }}</span>
@@ -96,7 +99,9 @@
               (valueChange)="draftUnitOfTime.set($event)"
             >
               @for (unit of unitOfTimeOptions; track unit) {
-                <mat-option [value]="unit">{{ unit }}</mat-option>
+                <mat-option [value]="unit">
+                  {{ 'dashboardFilters.units.' + unit | translate }}
+                </mat-option>
               }
             </mat-select>
           </mat-form-field>
@@ -108,7 +113,7 @@
             type="button"
             (click)="cancelDraft()"
           >
-            Cancel
+            {{ 'common.cancel' | translate }}
           </button>
           <button
             mat-flat-button
@@ -116,7 +121,7 @@
             [disabled]="!canApplyDraft()"
             (click)="applyDraftFilter()"
           >
-            Apply
+            {{ 'filters.apply' | translate }}
           </button>
         </div>
       </div>
@@ -131,7 +136,7 @@
       (click)="startAddFilter()"
     >
       <mat-icon>add</mat-icon>
-      Add filter
+      {{ 'dashboards.workspace.addFilter' | translate }}
     </button>
   }
 </div>

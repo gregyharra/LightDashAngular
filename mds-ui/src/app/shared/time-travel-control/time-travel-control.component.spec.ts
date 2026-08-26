@@ -3,6 +3,7 @@ import { FormsModule } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { NoopAnimationsModule } from '@angular/platform-browser/animations';
+import { provideTranslateService } from '@ngx-translate/core';
 import { TimeTravelControlComponent } from './time-travel-control.component';
 
 describe('TimeTravelControlComponent', () => {
@@ -18,6 +19,7 @@ describe('TimeTravelControlComponent', () => {
         MatIconModule,
         NoopAnimationsModule,
       ],
+      providers: [provideTranslateService()],
     }).compileComponents();
 
     fixture = TestBed.createComponent(TimeTravelControlComponent);

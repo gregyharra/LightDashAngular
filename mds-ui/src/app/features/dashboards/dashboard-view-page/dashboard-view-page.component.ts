@@ -21,6 +21,7 @@ import { MatMenuModule } from '@angular/material/menu';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
+import { LanguageService } from '../../../core/i18n/language.service';
 import { ActiveProjectService } from '../../../core/services/active-project.service';
 import { apiErrorMessage } from '../../../core/api/lightdash-api.service';
 import { SavedChartBasic } from '../../../core/models/chart.model';
@@ -101,6 +102,7 @@ export class DashboardViewPageComponent {
   private readonly route = inject(ActivatedRoute);
   private readonly dialog = inject(MatDialog);
   private readonly translate = inject(TranslateService);
+  private readonly languageService = inject(LanguageService);
   private readonly sanitizer = inject(DomSanitizer);
   protected readonly activeProjectService = inject(ActiveProjectService);
 
@@ -854,7 +856,7 @@ export class DashboardViewPageComponent {
   }
 
   protected formatDate(iso: string): string {
-    return new Date(iso).toLocaleDateString(undefined, {
+    return this.languageService.formatDate(iso, {
       year: 'numeric',
       month: 'short',
       day: 'numeric',

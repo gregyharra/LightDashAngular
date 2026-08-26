@@ -26,9 +26,11 @@ import {
   filterDashboards,
   getDashboardActiveFilterChips,
   hasActiveDashboardColumnFilters,
+  isSharedSpaceFilterValue,
+  parseSpaceFilterValue,
+  sharedSpaceFilterValue,
+  spaceFilterValue,
 } from '../../../ui/content-list-filter.utils';
-
-const SHARED_SPACE_VALUE = '__shared__';
 
 @Component({
   selector: 'app-dashboards-list-page',
@@ -68,25 +70,24 @@ export class DashboardsListPageComponent {
   });
 
   protected readonly availableSpaces = computed(() =>
-    collectUniqueSpaces(
-      this.dashboards(),
-      (dashboard) => dashboard.spaceName ?? SHARED_SPACE_VALUE,
+    collectUniqueSpaces(this.dashboards(), (dashboard) =>
+      dashboard.spaceName
+        ? spaceFilterValue(dashboard.spaceName)
+        : sharedSpaceFilterValue(),
     ),
   );
 
   protected readonly spaceOptions = computed(() =>
     this.availableSpaces().map((space) => ({
       value: space,
-      label: space === SHARED_SPACE_VALUE ? this.sharedSpaceLabel() : space,
+      label: isSharedSpaceFilterValue(space)
+        ? this.sharedSpaceLabel()
+        : (parseSpaceFilterValue(space) ?? space),
     })),
   );
 
   protected readonly filteredDashboards = computed(() =>
-    filterDashboards(
-      this.dashboards(),
-      this.columnFilters(),
-      SHARED_SPACE_VALUE,
-    ),
+    filterDashboards(this.dashboards(), this.columnFilters()),
   );
 
   protected readonly activeFilterChips = computed(() => {
@@ -171,7 +172,7 @@ export class DashboardsListPageComponent {
   }
 
   protected formatDate(iso: string): string {
-    return new Date(iso).toLocaleDateString(undefined, {
+    return this.languageService.formatDate(iso, {
       year: 'numeric',
       month: 'short',
       day: 'numeric',
@@ -179,7 +180,7 @@ export class DashboardsListPageComponent {
   }
 
   protected spaceName(spaceName: string | null | undefined): string {
-    return spaceName ?? this.sharedSpaceLabel();
+    return spaceName || this.sharedSpaceLabel();
   }
 
   protected openDashboard(dashboardUuid: string): void {

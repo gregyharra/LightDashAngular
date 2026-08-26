@@ -108,7 +108,7 @@ export class DashboardFilterDialogComponent {
   }
 
   protected formatOperator(operator: DashboardFilterOperator): string {
-    return formatFilterOperator(operator);
+    return formatFilterOperator(operator, (key) => this.translate.instant(key));
   }
 
   protected onFieldChange(fieldId: string): void {

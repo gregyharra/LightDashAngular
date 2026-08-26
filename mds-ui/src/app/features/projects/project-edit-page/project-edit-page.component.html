@@ -239,7 +239,7 @@
                   <p><strong>{{ 'projects.git.repoStatus.commit' | translate }}</strong> {{ repo.commitSha?.slice(0, 7) || '—' }}</p>
                   <p>
                     <strong>{{ 'projects.git.repoStatus.lastSync' | translate }}</strong>
-                    {{ repo.lastSyncAt ? (repo.lastSyncAt | date: 'medium') : ('projects.git.repoStatus.never' | translate) }}
+                    {{ repo.lastSyncAt ? formatDateTime(repo.lastSyncAt) : ('projects.git.repoStatus.never' | translate) }}
                   </p>
                   @if (repo.dbtProjectPath) {
                     <p><strong>{{ 'projects.git.repoStatus.dbtPath' | translate }}</strong> {{ repo.dbtProjectPath }}</p>

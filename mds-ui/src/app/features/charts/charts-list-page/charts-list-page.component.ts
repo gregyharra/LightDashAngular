@@ -173,7 +173,7 @@ export class ChartsListPageComponent {
   }
 
   protected formatDate(iso: string): string {
-    return new Date(iso).toLocaleDateString(undefined, {
+    return this.languageService.formatDate(iso, {
       year: 'numeric',
       month: 'short',
       day: 'numeric',

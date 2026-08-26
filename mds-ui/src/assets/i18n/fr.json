@@ -347,6 +347,8 @@
     "selectDbtModelForSql": "Sélectionnez un modèle dbt pour afficher le SQL.",
     "filter": {
       "remove": "Supprimer le filtre",
+      "edit": "Modifier le filtre : {{summary}}",
+      "empty": "Aucun filtre appliqué. Ajoutez un filtre pour affiner vos résultats.",
       "field": "Champ",
       "operator": "Opérateur",
       "from": "De",
@@ -624,6 +626,12 @@
       "tabsAria": "Onglets du tableau de bord",
       "reorderTab": "Réorganiser l’onglet",
       "editTab": "Modifier l’onglet",
+      "tabName": "Nom de l’onglet",
+      "renameTab": "Renommer",
+      "showTab": "Afficher l’onglet",
+      "hideTab": "Masquer l’onglet",
+      "deleteTab": "Supprimer l’onglet",
+      "loomUnavailable": "Vidéo Loom indisponible.",
       "moveTile": "Déplacer la tuile",
       "tileActions": "Actions de la tuile",
       "resizeTile": "Redimensionner la tuile",
@@ -763,6 +771,7 @@
     }
   },
   "lineage": {
+    "title": "Lignage",
     "dbtLineage": "Lignage dbt",
     "loadError": "Impossible de charger le lignage.",
     "project": "Projet",
@@ -944,6 +953,37 @@
       "greaterThanOrEqual": "Supérieur ou égal à",
       "inBetween": "Entre",
       "notInBetween": "Pas entre"
+    }
+  },
+  "dashboardFilters": {
+    "anyValue": "n’importe quelle valeur",
+    "operators": {
+      "equals": "est",
+      "notEquals": "n’est pas",
+      "isNull": "est nul",
+      "notNull": "n’est pas nul",
+      "startsWith": "commence par",
+      "endsWith": "se termine par",
+      "include": "contient",
+      "doesNotInclude": "ne contient pas",
+      "lessThan": "est inférieur à",
+      "lessThanOrEqual": "est inférieur ou égal à",
+      "greaterThan": "est supérieur à",
+      "greaterThanOrEqual": "est supérieur ou égal à",
+      "inThePast": "dans les derniers",
+      "notInThePast": "pas dans les derniers",
+      "inTheNext": "dans les prochains",
+      "inTheCurrent": "dans la période en cours",
+      "notInTheCurrent": "hors de la période en cours",
+      "inBetween": "est compris entre",
+      "notInBetween": "n’est pas compris entre"
+    },
+    "units": {
+      "days": "jours",
+      "weeks": "semaines",
+      "months": "mois",
+      "quarters": "trimestres",
+      "years": "ans"
     }
   },
   "export": {

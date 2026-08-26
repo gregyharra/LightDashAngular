@@ -7,6 +7,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { map } from 'rxjs';
+import { LanguageService } from '../../../core/i18n/language.service';
 import { ActiveProjectService } from '../../../core/services/active-project.service';
 import { AppStateService } from '../../../core/services/app-state.service';
 import { ApiErrorService } from '../../../core/api/api-error.service';
@@ -40,6 +41,7 @@ export class ProjectsPageComponent {
   private readonly router = inject(Router);
   private readonly route = inject(ActivatedRoute);
   private readonly translate = inject(TranslateService);
+  private readonly languageService = inject(LanguageService);
   protected readonly activeProjectService = inject(ActiveProjectService);
   protected readonly appState = inject(AppStateService);
 
@@ -79,7 +81,7 @@ export class ProjectsPageComponent {
   }
 
   protected formatDate(iso: string): string {
-    return new Date(iso).toLocaleDateString(undefined, {
+    return this.languageService.formatDate(iso, {
       year: 'numeric',
       month: 'short',
       day: 'numeric',
