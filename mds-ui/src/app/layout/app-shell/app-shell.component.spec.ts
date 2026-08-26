@@ -66,7 +66,10 @@ describe('AppShellComponent Ask AI flag', () => {
         provideTranslateService({ fallbackLang: 'en', lang: 'en' }),
         ActiveProjectService,
         AiAssistantUiService,
-        { provide: Store, useValue: jasmine.createSpyObj('Store', ['dispatch']) },
+        {
+          provide: Store,
+          useValue: { dispatch: () => undefined },
+        },
         {
           provide: AppStateService,
           useValue: {
@@ -101,10 +104,12 @@ describe('AppShellComponent Ask AI flag', () => {
         exploreData: 'Explore data',
         newDashboard: 'New dashboard',
         moreNavigation: 'More navigation',
+        help: 'Help',
+        notifications: 'Notifications',
         settings: 'Settings',
         logout: 'Logout',
       },
-      common: { admin: 'Admin' },
+      common: { admin: 'Admin', moreActions: 'More actions' },
     });
 
     fixture = TestBed.createComponent(AppShellComponent);
@@ -126,6 +131,27 @@ describe('AppShellComponent Ask AI flag', () => {
 
     component['openAiAssistant']();
     expect(aiUi.open()).toBeFalse();
+  });
+
+  it('hides stub Help / Notifications / Settings by default', () => {
+    expect(component['showHelp']).toBeFalse();
+    expect(component['showNotifications']).toBeFalse();
+    expect(component['showSettings']).toBeFalse();
+    expect(component['showRightOverflowMenu']).toBeFalse();
+    expect(
+      fixture.nativeElement.querySelector('[aria-label="Help"]'),
+    ).toBeNull();
+    expect(
+      fixture.nativeElement.querySelector('[aria-label="Notifications"]'),
+    ).toBeNull();
+    expect(
+      fixture.nativeElement.querySelector(
+        '.shell__nav-group--secondary [aria-label="Settings"]',
+      ),
+    ).toBeNull();
+    expect(
+      fixture.nativeElement.querySelector('[aria-label="More actions"]'),
+    ).toBeNull();
   });
 
   it('shows Ask AI and opens the panel when askAiEnabled is true', () => {

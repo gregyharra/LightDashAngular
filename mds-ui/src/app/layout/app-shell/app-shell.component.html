@@ -121,53 +121,71 @@
         @if (activeProjectService.activeProjectUuid()) {
           <app-navbar-project-switcher />
         }
-        <button
-          mat-button
-          class="shell__nav-btn shell__nav-btn--icon shell__nav-inline"
-          disabled
-          aria-label="Help"
-        >
-          <mat-icon>help_outline</mat-icon>
-        </button>
-        <button
-          mat-button
-          class="shell__nav-btn shell__nav-btn--icon shell__nav-btn--notifications shell__nav-inline"
-          disabled
-          aria-label="Notifications"
-        >
-          <mat-icon>notifications_none</mat-icon>
-          <span class="shell__notification-dot"></span>
-        </button>
-        <button
-          mat-button
-          class="shell__nav-btn shell__nav-btn--icon shell__nav-inline"
-          disabled
-          aria-label="Settings"
-        >
-          <mat-icon>settings</mat-icon>
-        </button>
-        <button
-          mat-button
-          class="shell__nav-btn shell__nav-btn--icon shell__nav-overflow shell__nav-overflow--right"
-          [matMenuTriggerFor]="rightOverflowMenu"
-          [attr.aria-label]="'common.moreActions' | translate"
-        >
-          <mat-icon>more_vert</mat-icon>
-        </button>
-        <mat-menu #rightOverflowMenu="matMenu" xPosition="before" panelClass="ld-navbar-menu">
-          <button mat-menu-item disabled aria-label="Help">
+@if (showHelp) {
+          <button
+            mat-button
+            class="shell__nav-btn shell__nav-btn--icon shell__nav-inline"
+            disabled
+            [attr.aria-label]="'nav.help' | translate"
+          >
             <mat-icon>help_outline</mat-icon>
-            Help
           </button>
-          <button mat-menu-item disabled aria-label="Notifications">
+        }
+        @if (showNotifications) {
+          <button
+            mat-button
+            class="shell__nav-btn shell__nav-btn--icon shell__nav-btn--notifications shell__nav-inline"
+            disabled
+            [attr.aria-label]="'nav.notifications' | translate"
+          >
             <mat-icon>notifications_none</mat-icon>
-            Notifications
+            <span class="shell__notification-dot"></span>
           </button>
-          <button mat-menu-item disabled aria-label="Settings">
+        }
+        @if (showSettings) {
+          <button
+            mat-button
+            class="shell__nav-btn shell__nav-btn--icon shell__nav-inline"
+            disabled
+            [attr.aria-label]="'nav.settings' | translate"
+          >
             <mat-icon>settings</mat-icon>
-            Settings
           </button>
-        </mat-menu>
+        }
+        @if (showRightOverflowMenu) {
+          <button
+            mat-button
+            class="shell__nav-btn shell__nav-btn--icon shell__nav-overflow shell__nav-overflow--right"
+            [matMenuTriggerFor]="rightOverflowMenu"
+            [attr.aria-label]="'common.moreActions' | translate"
+          >
+            <mat-icon>more_vert</mat-icon>
+          </button>
+          <mat-menu #rightOverflowMenu="matMenu" xPosition="before" panelClass="ld-navbar-menu">
+            @if (showHelp) {
+              <button mat-menu-item disabled [attr.aria-label]="'nav.help' | translate">
+                <mat-icon>help_outline</mat-icon>
+                {{ 'nav.help' | translate }}
+              </button>
+            }
+            @if (showNotifications) {
+              <button
+                mat-menu-item
+                disabled
+                [attr.aria-label]="'nav.notifications' | translate"
+              >
+                <mat-icon>notifications_none</mat-icon>
+                {{ 'nav.notifications' | translate }}
+              </button>
+            }
+            @if (showSettings) {
+              <button mat-menu-item disabled [attr.aria-label]="'nav.settings' | translate">
+                <mat-icon>settings</mat-icon>
+                {{ 'nav.settings' | translate }}
+              </button>
+            }
+          </mat-menu>
+        }
       </div>
       <app-navbar-user-menu />
     </div>

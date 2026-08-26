@@ -12,6 +12,11 @@ import { AiAssistantUiService } from '../../features/ai/ai-assistant-ui.service'
 import { NavbarProjectSwitcherComponent } from '../navbar/navbar-project-switcher.component';
 import { NavbarSearchComponent } from '../navbar/navbar-search.component';
 import { NavbarUserMenuComponent } from '../navbar/navbar-user-menu.component';
+import {
+  NAVBAR_SHOW_HELP,
+  NAVBAR_SHOW_NOTIFICATIONS,
+  NAVBAR_SHOW_SETTINGS,
+} from '../navbar/navbar-secondary-actions';
 import { exploreRootPath } from '../../features/explorer/explore-routes';
 
 @Component({
@@ -40,6 +45,13 @@ export class AppShellComponent implements OnInit {
   protected readonly askAiEnabled = computed(
     () => this.appState.health()?.askAiEnabled === true,
   );
+
+  /** Stub navbar actions — see navbar-secondary-actions.ts */
+  protected readonly showHelp = NAVBAR_SHOW_HELP;
+  protected readonly showNotifications = NAVBAR_SHOW_NOTIFICATIONS;
+  protected readonly showSettings = NAVBAR_SHOW_SETTINGS;
+  protected readonly showRightOverflowMenu =
+    NAVBAR_SHOW_HELP || NAVBAR_SHOW_NOTIFICATIONS || NAVBAR_SHOW_SETTINGS;
 
   protected readonly exploreRootPath = exploreRootPath;
 
