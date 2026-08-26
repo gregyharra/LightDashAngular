@@ -3,7 +3,9 @@ import {
   LINEAGE_NODE_FOOTER_HEIGHT,
   LINEAGE_NODE_HEADER_HEIGHT,
   LINEAGE_NODE_WIDTH,
+  columnEdgeKey,
   columnRefKey,
+  computeColumnLineageHighlight,
   getCollapsedNodeHeight,
   getColumnAnchorY,
   getColumnRowLayout,
@@ -11,7 +13,11 @@ import {
   getMaxColumnScrollTop,
   orderColumnsForDisplay,
 } from './lineage-column-utils';
-import { LineageColumn, LineageNode } from '../../core/models/lineage.model';
+import {
+  ColumnLineageEdge,
+  LineageColumn,
+  LineageNode,
+} from '../../core/models/lineage.model';
 
 function makeNode(columns: LineageColumn[]): LineageNode {
   return {
@@ -81,6 +87,73 @@ describe('lineage-column-utils density helpers', () => {
 
     const hiddenY = getColumnAnchorY(pos, 0, scrollTop, columnCount);
     expect(hiddenY).toBe(pos.y + LINEAGE_NODE_HEADER_HEIGHT / 2);
+  });
+});
+
+describe('computeColumnLineageHighlight', () => {
+  const edges: ColumnLineageEdge[] = [
+    {
+      sourceNodeId: 'stg_orders',
+      sourceColumn: 'order_id',
+      targetNodeId: 'fct_orders',
+      targetColumn: 'order_id',
+    },
+    {
+      sourceNodeId: 'fct_orders',
+      sourceColumn: 'customer_id',
+      targetNodeId: 'customer_order_summary',
+      targetColumn: 'customer_id',
+    },
+  ];
+
+  it('finds upstream and downstream edges with unlimited depth', () => {
+    const highlight = computeColumnLineageHighlight(edges, {
+      nodeId: 'fct_orders',
+      columnName: 'order_id',
+    });
+
+    expect(highlight.edgeKeys.has(columnEdgeKey(edges[0]))).toBe(true);
+    expect(highlight.columnKeys.has(columnRefKey('stg_orders', 'order_id'))).toBe(true);
+  });
+
+  it('still finds column lineage when model hop depth is 0', () => {
+    // Focus mode defaults hopDepth to 0 ("selected node only"). That must not
+    // wipe column edges when a column is selected — otherwise the graph shows
+    // selection with no lineage lines.
+    const highlight = computeColumnLineageHighlight(
+      edges,
+      { nodeId: 'fct_orders', columnName: 'order_id' },
+      0,
+    );
+
+    expect(highlight.edgeKeys.size).toBeGreaterThan(0);
+    expect(highlight.edgeKeys.has(columnEdgeKey(edges[0]))).toBe(true);
+  });
+
+  it('respects a positive finite hop depth', () => {
+    const multiHop: ColumnLineageEdge[] = [
+      {
+        sourceNodeId: 'raw',
+        sourceColumn: 'id',
+        targetNodeId: 'stg',
+        targetColumn: 'order_id',
+      },
+      {
+        sourceNodeId: 'stg',
+        sourceColumn: 'order_id',
+        targetNodeId: 'fct',
+        targetColumn: 'order_id',
+      },
+    ];
+
+    const oneHop = computeColumnLineageHighlight(
+      multiHop,
+      { nodeId: 'fct', columnName: 'order_id' },
+      1,
+    );
+
+    expect(oneHop.edgeKeys.has(columnEdgeKey(multiHop[1]))).toBe(true);
+    expect(oneHop.edgeKeys.has(columnEdgeKey(multiHop[0]))).toBe(false);
   });
 });
 

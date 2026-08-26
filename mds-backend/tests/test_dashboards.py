@@ -67,3 +67,55 @@ def test_create_and_update_dashboard(client: TestClient) -> None:
         assert row.name == "Renamed dashboard"
     finally:
         db.close()
+
+
+def test_update_dashboard_persists_filters(client: TestClient) -> None:
+    create = client.post(
+        f"/api/v1/projects/{MOCK_PROJECT_UUID}/dashboards",
+        json={"name": "Filter dashboard", "tabs": [], "tiles": []},
+    )
+    assert create.status_code == 200
+    created = create.json()["results"]
+    dashboard_uuid = created["uuid"]
+
+    filters = {
+        "dimensions": [
+            {
+                "id": "filter-1",
+                "label": "Status",
+                "operator": "equals",
+                "target": {"fieldId": "orders_status", "tableName": "orders"},
+                "values": ["completed"],
+            }
+        ],
+        "metrics": [],
+        "tableCalculations": [],
+    }
+    config = {
+        "isDateZoomDisabled": False,
+        "isAddFilterDisabled": False,
+        "defaultDateZoomGranularity": "Week",
+    }
+
+    update = client.patch(
+        f"/api/v2/projects/{MOCK_PROJECT_UUID}/dashboards/{dashboard_uuid}",
+        json={
+            "name": created["name"],
+            "tabs": created["tabs"],
+            "tiles": created["tiles"],
+            "filters": filters,
+            "config": config,
+        },
+    )
+    assert update.status_code == 200
+    updated = update.json()["results"]
+    assert updated["filters"]["dimensions"] == filters["dimensions"]
+    assert updated["config"]["defaultDateZoomGranularity"] == "Week"
+
+    reload = client.get(
+        f"/api/v2/projects/{MOCK_PROJECT_UUID}/dashboards/{dashboard_uuid}"
+    )
+    assert reload.status_code == 200
+    reloaded = reload.json()["results"]
+    assert reloaded["filters"]["dimensions"] == filters["dimensions"]
+    assert reloaded["config"]["defaultDateZoomGranularity"] == "Week"

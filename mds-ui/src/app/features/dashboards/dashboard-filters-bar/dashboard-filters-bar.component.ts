@@ -63,6 +63,9 @@ export class DashboardFiltersBarComponent {
   });
 
   protected readonly canAddFilter = computed(() => {
+    if (!this.isEditMode()) {
+      return false;
+    }
     const config = this.config();
     return config?.isAddFilterDisabled !== true;
   });

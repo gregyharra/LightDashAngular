@@ -187,6 +187,10 @@ def update_dashboard(
         dashboard.tabs = [tab.model_dump(by_alias=True, mode="json") for tab in payload.tabs]
     if payload.tiles is not None:
         dashboard.tiles = payload.tiles
+    if payload.filters is not None:
+        dashboard.filters = payload.filters
+    if payload.config is not None:
+        dashboard.config = payload.config
 
     dashboard.dashboard_version_id += 1
     dashboard.version_uuid = uuid.uuid4()

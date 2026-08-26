@@ -103,7 +103,11 @@ import { TablesChartDisplayConfig } from '../../explorer/tables-chart-config-pan
 import { TablesFiltersPanelComponent } from '../../explorer/tables-filters-panel/tables-filters-panel.component';
 import { getFilterableDimensions } from '../../explorer/tables-filters-panel/tables-filters.utils';
 import { buildMetricQuerySql } from '../../explorer/metric-query-sql.utils';
-import { mergeDashboardFiltersIntoMetricQuery } from '../../dashboards/dashboard-filters';
+import {
+  enrichDashboardFilterLabels,
+  extractDashboardFiltersFromMetricQuery,
+  mergeDashboardFiltersIntoMetricQuery,
+} from '../../dashboards/dashboard-filters';
 import {
   ChartQueryActions,
   ChartQueryEntry,
@@ -977,6 +981,11 @@ export class ChartViewPageComponent {
         this.queryError.set(null);
         if (resetSelection) {
           this.setDefaultSelection(explore);
+        } else if (this.dimensionFilters().length > 0) {
+          // applyMetricQuery may have run before explore arrived; refresh labels.
+          this.dimensionFilters.update((filters) =>
+            enrichDashboardFilterLabels(filters, explore),
+          );
         }
         this.runQuery();
       },
@@ -1123,6 +1132,10 @@ export class ChartViewPageComponent {
     this.selectedDimensions.set(new Set(metricQuery.dimensions));
     this.selectedMetrics.set(new Set(metricQuery.metrics));
     this.additionalMetrics.set(metricQuery.additionalMetrics);
+    this.metricQueryFilters.set(metricQuery.filters ?? {});
+    this.dimensionFilters.set(
+      extractDashboardFiltersFromMetricQuery(metricQuery, this.explore() ?? undefined),
+    );
     this.syncChartAxisFields();
   }
 

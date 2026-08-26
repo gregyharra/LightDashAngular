@@ -10,6 +10,7 @@ import {
   TimeTravelConfig,
   getFieldId,
 } from '../../core/models/explore.model';
+import { createUuid } from '../../core/utils/uuid';
 import { mergeTimeTravelIntoMetricQuery } from '../explorer/time-travel.utils';
 
 type Translate = (key: string) => string;
@@ -139,6 +140,7 @@ export function mergeDashboardFiltersIntoMetricQuery(
 
   const dashboardFilters = activeFilters.map((filter) => ({
     id: filter.id,
+    label: filter.label,
     target: filter.target,
     operator: filter.operator,
     values: filter.values,
@@ -152,4 +154,95 @@ export function mergeDashboardFiltersIntoMetricQuery(
       dimensions: dashboardFilters,
     },
   };
+}
+
+/** Restore UI filter chips from a saved metric query's `filters.dimensions`. */
+export function extractDashboardFiltersFromMetricQuery(
+  metricQuery: MetricQuery,
+  explore?: Explore,
+): DashboardDimensionFilter[] {
+  const raw = metricQuery.filters?.['dimensions'];
+  if (!Array.isArray(raw)) {
+    return [];
+  }
+
+  const labelByFieldId = explore
+    ? new Map(
+        Object.values(explore.tables).flatMap((table) =>
+          Object.values(table.dimensions).map(
+            (dimension) =>
+              [getFieldId(table.name, dimension.name), dimension.label] as const,
+          ),
+        ),
+      )
+    : undefined;
+
+  return raw
+    .map((item): DashboardDimensionFilter | null => {
+      if (!item || typeof item !== 'object') {
+        return null;
+      }
+
+      const filter = item as Record<string, unknown>;
+      const target = filter['target'];
+      if (!target || typeof target !== 'object') {
+        return null;
+      }
+
+      const targetRecord = target as Record<string, unknown>;
+      const fieldId = targetRecord['fieldId'];
+      const tableName = targetRecord['tableName'];
+      const operator = filter['operator'];
+
+      if (
+        typeof fieldId !== 'string' ||
+        typeof tableName !== 'string' ||
+        typeof operator !== 'string'
+      ) {
+        return null;
+      }
+
+      const storedLabel = filter['label'];
+      const label =
+        (typeof storedLabel === 'string' && storedLabel) ||
+        labelByFieldId?.get(fieldId) ||
+        fieldId;
+
+      return {
+        id: typeof filter['id'] === 'string' ? filter['id'] : createUuid(),
+        label,
+        operator: operator as DashboardFilterOperator,
+        target: { fieldId, tableName },
+        values: Array.isArray(filter['values']) ? [...filter['values']] : [],
+        ...(filter['settings'] && typeof filter['settings'] === 'object'
+          ? { settings: filter['settings'] as DashboardFilterSettings }
+          : {}),
+        ...(filter['disabled'] === true ? { disabled: true } : {}),
+      };
+    })
+    .filter((filter): filter is DashboardDimensionFilter => filter !== null);
+}
+
+/** Fill missing/stale filter labels from explore field metadata. */
+export function enrichDashboardFilterLabels(
+  filters: DashboardDimensionFilter[],
+  explore: Explore,
+): DashboardDimensionFilter[] {
+  if (filters.length === 0) {
+    return filters;
+  }
+
+  const labelByFieldId = new Map(
+    Object.values(explore.tables).flatMap((table) =>
+      Object.values(table.dimensions).map(
+        (dimension) =>
+          [getFieldId(table.name, dimension.name), dimension.label] as const,
+      ),
+    ),
+  );
+
+  return filters.map((filter) => {
+    const label = labelByFieldId.get(filter.target.fieldId);
+    return label && label !== filter.label ? { ...filter, label } : filter;
+  });
 }

@@ -233,7 +233,7 @@ export class DashboardViewPageComponent {
       next: (dashboard) => {
         this.dashboard.set(dashboard);
         this.activeTabUuid.set(dashboard.tabs[0]?.uuid ?? null);
-        this.dashboardFilters.set(dashboard.filters.dimensions);
+        this.dashboardFilters.set(dashboard.filters?.dimensions ?? []);
         this.dateZoomGranularity.set(
           dashboard.config?.defaultDateZoomGranularity ?? 'Month',
         );
@@ -289,7 +289,7 @@ export class DashboardViewPageComponent {
       description: dashboard.description ?? '',
       tabs: dashboard.tabs.map((tab) => ({ ...tab })),
       tiles: dashboard.tiles.map((tile) => ({ ...tile })) as DashboardTile[],
-      filters: dashboard.filters.dimensions.map((filter) => ({ ...filter })),
+      filters: (dashboard.filters?.dimensions ?? []).map((filter) => ({ ...filter })),
       config: dashboard.config ? { ...dashboard.config } : undefined,
     });
     this.activeTabUuid.set(dashboard.tabs[0]?.uuid ?? null);
@@ -822,7 +822,7 @@ export class DashboardViewPageComponent {
       .subscribe({
         next: (updated) => {
           this.dashboard.set(updated);
-          this.dashboardFilters.set(updated.filters.dimensions);
+          this.dashboardFilters.set(updated.filters?.dimensions ?? []);
           this.dateZoomGranularity.set(
             updated.config?.defaultDateZoomGranularity ?? 'Month',
           );

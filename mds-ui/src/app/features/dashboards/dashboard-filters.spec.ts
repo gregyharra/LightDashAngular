@@ -1,5 +1,6 @@
 import {
   applyDashboardContextToMetricQuery,
+  extractDashboardFiltersFromMetricQuery,
   formatDashboardFilterSummary,
   formatFilterOperator,
   mergeDashboardFiltersIntoMetricQuery,
@@ -95,6 +96,7 @@ describe('dashboard-filters', () => {
       dimensions: [
         {
           id: 'filter-1',
+          label: 'Status',
           target: {
             fieldId: 'orders_status',
             tableName: 'orders',
@@ -133,6 +135,7 @@ describe('dashboard-filters', () => {
     expect(merged.filters['dimensions']).toEqual([
       {
         id: 'filter-1',
+        label: 'Status',
         target: {
           fieldId: 'orders_status',
           tableName: 'orders',
@@ -163,5 +166,42 @@ describe('dashboard-filters', () => {
 
     expect(merged.filters['dimensions']).toHaveSize(1);
     expect(merged.timeTravel?.asOfTimestamp).toBe('2024-01-01T00:00:00.000Z');
+  });
+
+  it('round-trips filters so saved chart filters reappear after reload', () => {
+    const merged = mergeDashboardFiltersIntoMetricQuery(baseQuery, [activeFilter]);
+    const restored = extractDashboardFiltersFromMetricQuery(merged, tileExplore);
+
+    expect(restored).toEqual([
+      {
+        id: 'filter-1',
+        label: 'Status',
+        operator: 'equals',
+        target: {
+          fieldId: 'orders_status',
+          tableName: 'orders',
+        },
+        values: ['completed'],
+      },
+    ]);
+  });
+
+  it('falls back to fieldId label when explore is unavailable', () => {
+    const restored = extractDashboardFiltersFromMetricQuery({
+      ...baseQuery,
+      filters: {
+        dimensions: [
+          {
+            id: 'filter-1',
+            target: { fieldId: 'orders_status', tableName: 'orders' },
+            operator: 'equals',
+            values: ['completed'],
+          },
+        ],
+      },
+    });
+
+    expect(restored[0]?.label).toBe('orders_status');
+    expect(restored[0]?.values).toEqual(['completed']);
   });
 });

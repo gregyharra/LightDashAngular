@@ -228,6 +228,11 @@ export function computeColumnLineageHighlight(
     return EMPTY_COLUMN_HIGHLIGHT;
   }
 
+  // Model focus uses hopDepth 0 for "selected node only". Passing that through
+  // here would skip the traversal entirely and hide every column edge. Treat
+  // non-positive depth as unlimited so column selection still shows lineage.
+  const effectiveHopDepth = hopDepth <= 0 ? UNLIMITED_HOP_DEPTH : hopDepth;
+
   const edgeKeys = new Set<string>();
   const columnKeys = new Set<string>();
   const upstreamColumnKeys = new Set<string>();
@@ -248,7 +253,7 @@ export function computeColumnLineageHighlight(
     (upstream.get(targetKey) ?? upstream.set(targetKey, new Set()).get(targetKey))!.add(key);
   }
 
-  if (hopDepth === UNLIMITED_HOP_DEPTH) {
+  if (effectiveHopDepth === UNLIMITED_HOP_DEPTH) {
     const visitUpstream = (key: string): void => {
       for (const edgeKey of upstream.get(key) ?? []) {
         if (edgeKeys.has(edgeKey)) {
@@ -287,7 +292,7 @@ export function computeColumnLineageHighlight(
     let upstreamLayer = new Set([selectedKey]);
     let downstreamLayer = new Set([selectedKey]);
 
-    for (let hop = 0; hop < hopDepth; hop++) {
+    for (let hop = 0; hop < effectiveHopDepth; hop++) {
       const nextUpstream = new Set<string>();
       for (const key of upstreamLayer) {
         for (const edgeKey of upstream.get(key) ?? []) {

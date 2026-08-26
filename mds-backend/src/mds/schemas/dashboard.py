@@ -36,3 +36,5 @@ class UpdateDashboardPayload(BaseModel):
     description: str | None = None
     tabs: list[DashboardTabSchema] | None = None
     tiles: list[dict[str, Any]] | None = None
+    filters: dict[str, Any] | None = None
+    config: dict[str, Any] | None = None
