@@ -1,0 +1,13 @@
+---
+description: Prefer shared UI components over duplicating similar surfaces
+alwaysApply: true
+---
+
+# Reuse shared components
+
+When building or changing UI that already exists elsewhere (Explore vs chart edit, Table Hub vs project settings, list filters, dialogs, sidebars, etc.):
+
+- **Reuse first.** Find and extend an existing shared component under `mds-ui/src/app/shared/` (or extract one) instead of copying markup/styles into a second feature.
+- **Same visual → same component.** If two screens should look and behave the same (e.g. encapsulated model fields accordion), they must share one implementation — do not reimplement a lookalike that will need a later refactor.
+- **Extract early.** If you are about to duplicate a non-trivial chunk of template/SCSS/TS, move it to a shared component in the same change rather than “copy now, unify later.”
+- **Wire via inputs/outputs.** Keep feature-specific behavior in the parent; keep presentation and shared interaction in the reusable component.
