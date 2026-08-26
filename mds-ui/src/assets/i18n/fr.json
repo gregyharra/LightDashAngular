@@ -140,6 +140,12 @@
       "repositoryUrl": "URL du dépôt",
       "provider": "Fournisseur",
       "autoDetect": "Détection automatique",
+      "providers": {
+        "github": "GitHub",
+        "gitlab": "GitLab",
+        "bitbucket": "Bitbucket",
+        "generic": "HTTPS générique"
+      },
       "defaultBranch": "Branche par défaut",
       "subdirectory": "Sous-répertoire (monorepo)",
       "subdirectoryHint": "Chemin du projet dbt dans le dépôt, s'il ne se trouve pas à la racine.",
@@ -944,6 +950,11 @@
     "removeSpace": "Supprimer le filtre d’espace",
     "removeFilter": "Supprimer le filtre {{label}}",
     "clearAll": "Tout effacer",
+    "chip": {
+      "from": "depuis le {{date}}",
+      "until": "jusqu’au {{date}}",
+      "notRange": "hors de {{from}} – {{to}}"
+    },
     "operators": {
       "equals": "Égal à",
       "notEquals": "Différent de",
@@ -957,6 +968,13 @@
   },
   "dashboardFilters": {
     "anyValue": "n’importe quelle valeur",
+    "dateZoom": {
+      "day": "Jour",
+      "week": "Semaine",
+      "month": "Mois",
+      "quarter": "Trimestre",
+      "year": "Année"
+    },
     "operators": {
       "equals": "est",
       "notEquals": "n’est pas",

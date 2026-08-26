@@ -101,6 +101,7 @@ export class DashboardsListPageComponent {
         views: this.translate.instant('dashboards.fields.views'),
       },
       this.spaceOptions(),
+      (key, params) => this.translate.instant(key, params),
     );
   });
 

@@ -140,6 +140,12 @@
       "repositoryUrl": "Repository URL",
       "provider": "Provider",
       "autoDetect": "Auto-detect",
+      "providers": {
+        "github": "GitHub",
+        "gitlab": "GitLab",
+        "bitbucket": "Bitbucket",
+        "generic": "Generic HTTPS"
+      },
       "defaultBranch": "Default branch",
       "subdirectory": "Subdirectory (monorepo)",
       "subdirectoryHint": "Path to the dbt project within the repository, if not at the root.",
@@ -944,6 +950,11 @@
     "removeSpace": "Remove space filter",
     "removeFilter": "Remove {{label}} filter",
     "clearAll": "Clear all",
+    "chip": {
+      "from": "from {{date}}",
+      "until": "until {{date}}",
+      "notRange": "not {{from}} – {{to}}"
+    },
     "operators": {
       "equals": "Equals",
       "notEquals": "Not equal",
@@ -957,6 +968,13 @@
   },
   "dashboardFilters": {
     "anyValue": "any value",
+    "dateZoom": {
+      "day": "Day",
+      "week": "Week",
+      "month": "Month",
+      "quarter": "Quarter",
+      "year": "Year"
+    },
     "operators": {
       "equals": "is",
       "notEquals": "is not",

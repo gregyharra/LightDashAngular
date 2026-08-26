@@ -101,7 +101,7 @@
                   >
                     <mat-option [value]="null">{{ 'projects.git.autoDetect' | translate }}</mat-option>
                     @for (provider of gitProviders; track provider.value) {
-                      <mat-option [value]="provider.value">{{ provider.label }}</mat-option>
+                      <mat-option [value]="provider.value">{{ provider.labelKey | translate }}</mat-option>
                     }
                   </mat-select>
                 </mat-form-field>

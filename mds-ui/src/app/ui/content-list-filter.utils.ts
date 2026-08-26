@@ -60,18 +60,22 @@ export interface NumberFilterValue {
 
 export interface NumberFilterOperatorOption {
   value: NumberFilterOperator;
-  label: string;
 }
 
+export type TranslateFn = (
+  key: string,
+  params?: Record<string, string | number>,
+) => string;
+
 export const NUMBER_FILTER_OPERATOR_OPTIONS: NumberFilterOperatorOption[] = [
-  { value: 'equals', label: 'Equals' },
-  { value: 'notEquals', label: 'Not equal' },
-  { value: 'lessThan', label: 'Less than' },
-  { value: 'lessThanOrEqual', label: 'Less than or equal' },
-  { value: 'greaterThan', label: 'Greater than' },
-  { value: 'greaterThanOrEqual', label: 'Greater than or equal' },
-  { value: 'inBetween', label: 'Between' },
-  { value: 'notInBetween', label: 'Not between' },
+  { value: 'equals' },
+  { value: 'notEquals' },
+  { value: 'lessThan' },
+  { value: 'lessThanOrEqual' },
+  { value: 'greaterThan' },
+  { value: 'greaterThanOrEqual' },
+  { value: 'inBetween' },
+  { value: 'notInBetween' },
 ];
 
 export function numberFilterNeedsTwoValues(operator: NumberFilterOperator): boolean {
@@ -140,20 +144,30 @@ export function formatSelectFilterChip(
   return filter.values.map((value) => labelByValue.get(value) ?? value).join(', ');
 }
 
-export function formatDateFilterChip(filter: DateFilterValue): string {
+export function formatDateFilterChip(
+  filter: DateFilterValue,
+  translate?: TranslateFn,
+): string {
   if (filter.from && filter.to) {
     return `${filter.from} – ${filter.to}`;
   }
   if (filter.from) {
-    return `from ${filter.from}`;
+    return translate
+      ? translate('filters.chip.from', { date: filter.from })
+      : `from ${filter.from}`;
   }
   if (filter.to) {
-    return `until ${filter.to}`;
+    return translate
+      ? translate('filters.chip.until', { date: filter.to })
+      : `until ${filter.to}`;
   }
   return '';
 }
 
-export function formatNumberFilterChip(filter: NumberFilterValue): string {
+export function formatNumberFilterChip(
+  filter: NumberFilterValue,
+  translate?: TranslateFn,
+): string {
   if (!isNumberFilterActive(filter)) {
     return '';
   }
@@ -174,7 +188,12 @@ export function formatNumberFilterChip(filter: NumberFilterValue): string {
     case 'inBetween':
       return `${filter.value} – ${filter.valueTo}`;
     case 'notInBetween':
-      return `not ${filter.value} – ${filter.valueTo}`;
+      return translate
+        ? translate('filters.chip.notRange', {
+            from: String(filter.value),
+            to: String(filter.valueTo),
+          })
+        : `not ${filter.value} – ${filter.valueTo}`;
   }
 }
 
@@ -335,6 +354,7 @@ export function getDashboardActiveFilterChips(
   filters: DashboardColumnFilters,
   labels: Record<'name' | 'space' | 'lastEdited' | 'views', string>,
   spaceOptions?: SelectOption[],
+  translate?: TranslateFn,
 ): ActiveFilterChip[] {
   const chips: ActiveFilterChip[] = [];
 
@@ -358,7 +378,7 @@ export function getDashboardActiveFilterChips(
     chips.push({
       key: 'lastEdited',
       label: labels.lastEdited,
-      displayValue: formatDateFilterChip(filters.lastEdited),
+      displayValue: formatDateFilterChip(filters.lastEdited, translate),
     });
   }
 
@@ -366,7 +386,7 @@ export function getDashboardActiveFilterChips(
     chips.push({
       key: 'views',
       label: labels.views,
-      displayValue: formatNumberFilterChip(filters.views),
+      displayValue: formatNumberFilterChip(filters.views, translate),
     });
   }
 
@@ -440,6 +460,7 @@ export function getChartActiveFilterChips(
   filters: ChartColumnFilters,
   typeOptions: SelectOption[],
   labels: Record<'name' | 'type' | 'table' | 'space' | 'lastEdited' | 'views', string>,
+  translate?: TranslateFn,
 ): ActiveFilterChip[] {
   const chips: ActiveFilterChip[] = [];
 
@@ -479,7 +500,7 @@ export function getChartActiveFilterChips(
     chips.push({
       key: 'lastEdited',
       label: labels.lastEdited,
-      displayValue: formatDateFilterChip(filters.lastEdited),
+      displayValue: formatDateFilterChip(filters.lastEdited, translate),
     });
   }
 
@@ -487,7 +508,7 @@ export function getChartActiveFilterChips(
     chips.push({
       key: 'views',
       label: labels.views,
-      displayValue: formatNumberFilterChip(filters.views),
+      displayValue: formatNumberFilterChip(filters.views, translate),
     });
   }
 

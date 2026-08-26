@@ -1,4 +1,3 @@
-import { TitleCasePipe } from '@angular/common';
 import { Component, computed, input, output } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
@@ -36,7 +35,6 @@ import {
 @Component({
   selector: 'app-tables-chart-config-panel',
   imports: [
-    TitleCasePipe,
     FormsModule,
     MatButtonModule,
     MatCheckboxModule,

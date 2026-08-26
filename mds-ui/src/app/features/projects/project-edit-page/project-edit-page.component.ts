@@ -102,11 +102,11 @@ export class ProjectEditPageComponent {
     });
   }
 
-  protected readonly gitProviders: { value: GitProvider; label: string }[] = [
-    { value: 'github', label: 'GitHub' },
-    { value: 'gitlab', label: 'GitLab' },
-    { value: 'bitbucket', label: 'Bitbucket' },
-    { value: 'generic', label: 'Generic HTTPS' },
+  protected readonly gitProviders: { value: GitProvider; labelKey: string }[] = [
+    { value: 'github', labelKey: 'projects.git.providers.github' },
+    { value: 'gitlab', labelKey: 'projects.git.providers.gitlab' },
+    { value: 'bitbucket', labelKey: 'projects.git.providers.bitbucket' },
+    { value: 'generic', labelKey: 'projects.git.providers.generic' },
   ];
 
   protected readonly modelLinkOptions = computed<ModelLinkOption[]>(() => {

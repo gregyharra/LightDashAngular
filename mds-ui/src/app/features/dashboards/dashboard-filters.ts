@@ -90,8 +90,12 @@ export function formatDashboardFilterSummary(
   return values ? `${filter.label} ${operator} ${values}` : `${filter.label} ${operator}`;
 }
 
-export function formatDateZoomLabel(granularity: DateZoomGranularity): string {
-  return granularity;
+export function formatDateZoomLabel(
+  granularity: DateZoomGranularity,
+  translate?: (key: string) => string,
+): string {
+  const key = `dashboardFilters.dateZoom.${granularity.toLowerCase()}`;
+  return translate ? translate(key) : granularity;
 }
 
 export function applyDashboardContextToMetricQuery(

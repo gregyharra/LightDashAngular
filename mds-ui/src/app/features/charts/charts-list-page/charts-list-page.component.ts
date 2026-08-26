@@ -89,14 +89,19 @@ export class ChartsListPageComponent {
 
   protected readonly activeFilterChips = computed(() => {
     this.languageService.language();
-    return getChartActiveFilterChips(this.columnFilters(), this.typeOptions(), {
-      name: this.translate.instant('charts.fields.name'),
-      type: this.translate.instant('charts.fields.type'),
-      table: this.translate.instant('charts.fields.table'),
-      space: this.translate.instant('charts.fields.space'),
-      lastEdited: this.translate.instant('charts.fields.lastEdited'),
-      views: this.translate.instant('charts.fields.views'),
-    });
+    return getChartActiveFilterChips(
+      this.columnFilters(),
+      this.typeOptions(),
+      {
+        name: this.translate.instant('charts.fields.name'),
+        type: this.translate.instant('charts.fields.type'),
+        table: this.translate.instant('charts.fields.table'),
+        space: this.translate.instant('charts.fields.space'),
+        lastEdited: this.translate.instant('charts.fields.lastEdited'),
+        views: this.translate.instant('charts.fields.views'),
+      },
+      (key, params) => this.translate.instant(key, params),
+    );
   });
 
   protected readonly hasActiveFilters = computed(() =>

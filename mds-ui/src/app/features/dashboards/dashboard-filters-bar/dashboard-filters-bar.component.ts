@@ -76,7 +76,7 @@ export class DashboardFiltersBarComponent {
   }
 
   protected formatDateZoom(granularity: DateZoomGranularity): string {
-    return formatDateZoomLabel(granularity);
+    return formatDateZoomLabel(granularity, (key) => this.translate.instant(key));
   }
 
   protected toggleHidden(): void {
