@@ -7,33 +7,6 @@
   <span class="user-menu__avatar">{{ initials() }}</span>
 </button>
 
-<div class="user-menu__language-test-hooks" aria-hidden="true">
-  <button
-    type="button"
-    data-testid="user-menu-language-en"
-    (click)="setLanguage('en')"
-  >
-    @if (languageService.language() === 'en') {
-      <mat-icon>check</mat-icon>
-    } @else {
-      <mat-icon class="user-menu__check-spacer"></mat-icon>
-    }
-    <span class="user-menu__item-label">{{ 'settings.language.en' | translate }}</span>
-  </button>
-  <button
-    type="button"
-    data-testid="user-menu-language-fr"
-    (click)="setLanguage('fr')"
-  >
-    @if (languageService.language() === 'fr') {
-      <mat-icon>check</mat-icon>
-    } @else {
-      <mat-icon class="user-menu__check-spacer"></mat-icon>
-    }
-    <span class="user-menu__item-label">{{ 'settings.language.fr' | translate }}</span>
-  </button>
-</div>
-
 <mat-menu #userMenu="matMenu" xPosition="before" panelClass="ld-user-menu user-menu__panel">
   <div class="user-menu__header" mat-menu-item disabled>
     <span class="user-menu__name">
@@ -58,6 +31,7 @@
     <button
       mat-menu-item
       type="button"
+      data-testid="user-menu-language-en"
       (click)="setLanguage('en')"
     >
       @if (languageService.language() === 'en') {
@@ -70,6 +44,7 @@
     <button
       mat-menu-item
       type="button"
+      data-testid="user-menu-language-fr"
       (click)="setLanguage('fr')"
     >
       @if (languageService.language() === 'fr') {

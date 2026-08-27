@@ -1,5 +1,4 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { By } from '@angular/platform-browser';
 import { provideRouter } from '@angular/router';
 import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 import { provideTranslateService, TranslateService } from '@ngx-translate/core';
@@ -8,6 +7,18 @@ import { LanguageService } from '../../core/i18n/language.service';
 import { AppStateService } from '../../core/services/app-state.service';
 import { AuthService } from '../../core/services/auth.service';
 import { NavbarUserMenuComponent } from './navbar-user-menu.component';
+
+function openLanguageMenu(fixture: ComponentFixture<NavbarUserMenuComponent>): void {
+  fixture.debugElement.nativeElement
+    .querySelector('.user-menu__trigger')
+    .click();
+  fixture.detectChanges();
+  const languageTrigger = document.querySelector(
+    '[data-testid="user-menu-language"]',
+  ) as HTMLElement;
+  languageTrigger.click();
+  fixture.detectChanges();
+}
 
 describe('NavbarUserMenuComponent language', () => {
   let fixture: ComponentFixture<NavbarUserMenuComponent>;
@@ -54,18 +65,20 @@ describe('NavbarUserMenuComponent language', () => {
   });
 
   it('calls setLanguage when Français is selected', () => {
-    const fr = fixture.debugElement.query(
-      By.css('[data-testid="user-menu-language-fr"]'),
-    );
+    openLanguageMenu(fixture);
+    const fr = document.querySelector(
+      '[data-testid="user-menu-language-fr"]',
+    ) as HTMLElement;
     expect(fr).toBeTruthy();
-    fr.triggerEventHandler('click', new MouseEvent('click'));
+    fr.click();
     expect(languageService.setLanguage).toHaveBeenCalledWith('fr');
   });
 
   it('marks the active language', () => {
-    const en = fixture.debugElement.query(
-      By.css('[data-testid="user-menu-language-en"]'),
-    );
-    expect(en.nativeElement.textContent).toContain('check');
+    openLanguageMenu(fixture);
+    const en = document.querySelector(
+      '[data-testid="user-menu-language-en"]',
+    ) as HTMLElement;
+    expect(en.textContent).toContain('check');
   });
 });
