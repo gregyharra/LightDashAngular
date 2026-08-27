@@ -79,3 +79,19 @@
 .user-menu__item-label {
   white-space: nowrap;
 }
+
+.user-menu__check-spacer {
+  visibility: hidden;
+}
+
+.user-menu__language-test-hooks {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}

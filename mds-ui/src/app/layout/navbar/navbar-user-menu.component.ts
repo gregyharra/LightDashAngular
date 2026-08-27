@@ -11,6 +11,10 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
 import { MatMenuModule } from '@angular/material/menu';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
+import {
+  AppLanguage,
+  LanguageService,
+} from '../../core/i18n/language.service';
 import { AppStateService } from '../../core/services/app-state.service';
 import { AuthService } from '../../core/services/auth.service';
 
@@ -127,6 +131,7 @@ export class NavbarUserMenuComponent {
   private readonly appState = inject(AppStateService);
   private readonly auth = inject(AuthService);
   private readonly router = inject(Router);
+  protected readonly languageService = inject(LanguageService);
 
   protected readonly user = this.appState.user;
   protected readonly isAdmin = this.appState.isAdmin;
@@ -144,5 +149,9 @@ export class NavbarUserMenuComponent {
       next: () => void this.router.navigate(['/login']),
       error: () => void this.router.navigate(['/login']),
     });
+  }
+
+  protected setLanguage(lang: AppLanguage): void {
+    void this.languageService.setLanguage(lang);
   }
 }
