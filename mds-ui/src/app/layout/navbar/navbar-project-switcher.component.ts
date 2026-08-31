@@ -2,6 +2,7 @@ import { Component, inject } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatMenuModule } from '@angular/material/menu';
+import { Router } from '@angular/router';
 import { TranslatePipe } from '@ngx-translate/core';
 import { ActiveProjectService } from '../../core/services/active-project.service';
 
@@ -12,9 +13,11 @@ import { ActiveProjectService } from '../../core/services/active-project.service
   styleUrl: './navbar-project-switcher.component.scss',
 })
 export class NavbarProjectSwitcherComponent {
+  private readonly router = inject(Router);
   protected readonly activeProjectService = inject(ActiveProjectService);
 
   protected selectProject(projectUuid: string): void {
     this.activeProjectService.setActiveProject(projectUuid);
+    void this.router.navigate(['/projects', projectUuid, 'explore']);
   }
 }
