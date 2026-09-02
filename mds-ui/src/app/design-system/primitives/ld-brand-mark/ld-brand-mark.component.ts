@@ -65,6 +65,12 @@ import { RouterLink } from '@angular/router';
       font-style: normal;
       font-weight: 700;
     }
+
+    @media (max-width: 480px) {
+      .ld-brand-mark__wordmark {
+        display: none;
+      }
+    }
   `,
 })
 export class LdBrandMarkComponent {
