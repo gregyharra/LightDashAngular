@@ -61,12 +61,14 @@
 }
 
 .ld-content-list-filter-chips__clear-all {
+  flex-shrink: 0;
   padding: 0;
   border: none;
   background: transparent;
   color: var(--ld-color-brand);
   font-family: inherit;
   font-size: var(--ld-font-size-sm);
+  white-space: nowrap;
   cursor: pointer;
 
   &:hover {
