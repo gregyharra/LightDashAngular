@@ -1,7 +1,11 @@
 import { Component, computed, inject, OnInit } from '@angular/core';
-import { RouterLink, RouterOutlet } from '@angular/router';
-import { MatIconModule } from '@angular/material/icon';
+import { RouterOutlet } from '@angular/router';
 import { TranslatePipe } from '@ngx-translate/core';
+import {
+  LdAppTopbarComponent,
+  LdBrandMarkComponent,
+  LdIconButtonComponent,
+} from '../../design-system';
 import { AppStateService } from '../../core/services/app-state.service';
 import { ActiveProjectService } from '../../core/services/active-project.service';
 import { ProjectsService } from '../../features/projects/projects.service';
@@ -19,9 +23,10 @@ import {
   selector: 'app-shell',
   imports: [
     RouterOutlet,
-    RouterLink,
-    MatIconModule,
     TranslatePipe,
+    LdAppTopbarComponent,
+    LdBrandMarkComponent,
+    LdIconButtonComponent,
     NavbarUserMenuComponent,
     NavbarProjectSwitcherComponent,
     NavbarSearchComponent,

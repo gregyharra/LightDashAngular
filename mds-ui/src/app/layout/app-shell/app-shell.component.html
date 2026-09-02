@@ -1,71 +1,50 @@
-<div class="shell" id="navbar-header" data-ld-navbar>
-  <header class="shell__navbar">
-    <div class="shell__navbar-left">
-      <a
-        routerLink="/projects"
-        class="shell__brand"
-        [attr.title]="'nav.home' | translate"
-        [attr.aria-label]="'nav.brandName' | translate"
-      >
-        <img
-          class="shell__brand-mark"
-          src="assets/brand-mark.svg"
-          alt=""
-          width="34"
-          height="34"
-          aria-hidden="true"
-        />
-        <span class="shell__brand-name">
-          <em>{{ 'nav.brandNameLead' | translate }}</em>
-          {{ 'nav.brandNameTrail' | translate }}
-        </span>
-      </a>
-    </div>
-
+<div class="shell">
+  <ld-app-topbar id="navbar-header" data-ld-navbar>
+    <ld-brand-mark
+      ldBrand
+      [title]="'nav.home' | translate"
+      [ariaLabel]="'nav.brandName' | translate"
+      [lead]="'nav.brandNameLead' | translate"
+      [trail]="'nav.brandNameTrail' | translate"
+    />
     @if (activeProjectService.activeProject()) {
-      <app-navbar-search />
+      <app-navbar-search ldCenter />
     } @else {
-      <div class="shell__navbar-spacer"></div>
+      <div ldCenter class="shell__navbar-spacer"></div>
     }
 
-    <div class="shell__navbar-right">
+    <div ldActions class="shell__navbar-actions">
       @if (activeProjectService.activeProjectUuid()) {
         <app-navbar-project-switcher />
       }
       @if (askAiEnabled()) {
-        <button
-          type="button"
-          class="shell__icon-btn shell__icon-btn--ai"
-          [attr.aria-label]="'nav.askAi' | translate"
+        <ld-icon-button
+          icon="auto_awesome"
+          tone="ai"
+          [ariaLabel]="'nav.askAi' | translate"
           (click)="openAiAssistant()"
-        >
-          <mat-icon>auto_awesome</mat-icon>
-        </button>
+        />
       }
       @if (showHelp) {
-        <button
-          type="button"
-          class="shell__icon-btn"
-          disabled
-          [attr.aria-label]="'nav.help' | translate"
-        >
-          <mat-icon>help_outline</mat-icon>
-        </button>
+        <ld-icon-button
+          icon="help_outline"
+          [disabled]="true"
+          [ariaLabel]="'nav.help' | translate"
+        />
       }
       @if (showNotifications) {
-        <button
-          type="button"
-          class="shell__icon-btn shell__icon-btn--notifications"
-          disabled
-          [attr.aria-label]="'nav.notifications' | translate"
-        >
-          <mat-icon>notifications_none</mat-icon>
+        <span class="shell__notification-action">
+          <ld-icon-button
+            icon="notifications_none"
+            [disabled]="true"
+            [ariaLabel]="'nav.notifications' | translate"
+          />
           <span class="shell__notification-dot"></span>
-        </button>
+        </span>
       }
       <app-navbar-user-menu />
     </div>
-  </header>
+  </ld-app-topbar>
 
   <main class="shell__content">
     <router-outlet />

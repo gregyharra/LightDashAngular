@@ -119,20 +119,22 @@ describe('AppShellComponent navbar identity', () => {
     fixture.detectChanges();
   });
 
-  it('renders light brand link to projects with mark and wordmark', () => {
+  it('renders the design-system topbar and brand link', () => {
+    expect(fixture.nativeElement.querySelector('ld-app-topbar')).not.toBeNull();
+
     const brand = fixture.nativeElement.querySelector(
-      'a.shell__brand[href="/projects"]',
+      'ld-brand-mark a[href="/projects"]',
     ) as HTMLAnchorElement | null;
     expect(brand).not.toBeNull();
     expect(brand?.getAttribute('aria-label')).toBe('Data Platform');
     expect(
-      fixture.nativeElement.querySelector('img.shell__brand-mark'),
+      fixture.nativeElement.querySelector('ld-brand-mark img'),
     ).not.toBeNull();
     expect(
-      fixture.nativeElement.querySelector('.shell__brand-name')?.textContent,
+      fixture.nativeElement.querySelector('ld-brand-mark')?.textContent,
     ).toContain('Data');
     expect(
-      fixture.nativeElement.querySelector('.shell__brand-name')?.textContent,
+      fixture.nativeElement.querySelector('ld-brand-mark')?.textContent,
     ).toContain('Platform');
   });
 
@@ -224,7 +226,7 @@ describe('AppShellComponent navbar identity', () => {
 
     expect(component['askAiEnabled']()).toBeTrue();
     const askAi = fixture.nativeElement.querySelector(
-      '.shell__navbar-right [aria-label="Ask AI"]',
+      'ld-app-topbar [ldActions] [aria-label="Ask AI"]',
     );
     expect(askAi).not.toBeNull();
     expect(
