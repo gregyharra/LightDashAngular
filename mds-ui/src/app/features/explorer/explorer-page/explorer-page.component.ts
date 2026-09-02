@@ -34,6 +34,7 @@ import {
   findExploreByName,
   findExploreForLineageNode,
 } from '../explore-lineage.utils';
+import { groupExploresByTags } from '../explore-sections.utils';
 import { resolveExploreNameForSelection } from '../explore-from-dbt.utils';
 import {
   CREATE_FROM_EXPLORE_STATE_KEY,
@@ -204,12 +205,17 @@ export class ExplorerPageComponent {
         explore.name,
         explore.description ?? '',
         `${explore.databaseName}.${explore.schemaName}`,
+        ...(explore.tags ?? []),
       ]
         .join(' ')
         .toLowerCase();
       return haystack.includes(query);
     });
   });
+
+  protected readonly exploreSections = computed(() =>
+    groupExploresByTags(this.filteredExplores()),
+  );
 
   protected readonly selectedNodeId = computed(() => {
     const tableId = this.tableId();

@@ -332,6 +332,7 @@
     "resizeFields": "Redimensionner le panneau des champs",
     "back": "Retour à l'exploration",
     "selectModelToQuery": "Sélectionnez un modèle à interroger",
+    "modelsCount": "{{count}} modèles",
     "noExplores": "Aucune exploration disponible.",
     "loadExploresError": "Impossible de charger les explorations.",
     "loadExploreError": "Impossible de charger l’exploration.",

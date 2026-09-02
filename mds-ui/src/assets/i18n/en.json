@@ -332,6 +332,7 @@
     "resizeFields": "Resize fields panel",
     "back": "Back to Explore",
     "selectModelToQuery": "Select a model to query",
+    "modelsCount": "{{count}} models",
     "noExplores": "No explores available.",
     "loadExploresError": "Failed to load explores.",
     "loadExploreError": "Failed to load explore.",
