@@ -11,28 +11,20 @@
   max-width: 260px;
   min-width: 0;
   flex-shrink: 1;
-  height: 30px;
-  padding: 0 10px;
-  border: 1px solid var(--ld-dark-4);
-  border-radius: 0;
-  background-color: var(--ld-dark-3);
-  color: var(--ld-dark-9);
-  font-size: var(--ld-font-size-xs);
-  font-weight: 500;
+  height: 36px;
+  padding: 0 14px;
+  border: 1px solid var(--ld-gray-2);
+  border-radius: 999px;
+  background-color: #fff;
+  color: var(--ld-navy);
+  font-size: 0.875rem;
+  font-weight: 600;
   line-height: 1;
   overflow: hidden;
+  white-space: nowrap;
 
   &:hover {
-    background-color: var(--ld-dark-4);
-  }
-}
-
-:host-context(.shell__nav-group--secondary) {
-  .project-switcher__trigger {
-    border-top-left-radius: var(--ld-radius-md);
-    border-bottom-left-radius: var(--ld-radius-md);
-    border-top-right-radius: 0;
-    border-bottom-right-radius: 0;
+    background-color: var(--ld-gray-1);
   }
 }
 
@@ -43,7 +35,7 @@
   height: 16px;
   font-size: 16px;
   margin: 0;
-  color: var(--ld-gray-6);
+  color: var(--ld-navy);
 }
 
 .project-switcher__label {
@@ -60,7 +52,7 @@
   height: 16px;
   font-size: 16px;
   margin-left: 4px;
-  color: var(--ld-dark-6);
+  color: var(--ld-gray-5);
 }
 
 .project-switcher__section-header {
@@ -69,7 +61,7 @@
   gap: 6px;
   font-size: var(--ld-font-size-xs);
   font-weight: 600;
-  color: var(--ld-dark-9);
+  color: var(--ld-gray-8);
   opacity: 1 !important;
   cursor: default;
 }
@@ -79,8 +71,8 @@
   align-items: center;
   padding: 0 6px;
   border-radius: var(--ld-radius-sm);
-  background-color: rgba(34, 139, 230, 0.15);
-  color: var(--ld-blue-6);
+  background-color: rgba(30, 58, 138, 0.12);
+  color: var(--ld-navy);
   font-size: 11px;
   font-weight: 700;
   text-transform: none;
@@ -102,7 +94,7 @@
   margin-left: auto;
   padding: 1px 6px;
   border-radius: var(--ld-radius-sm);
-  background-color: var(--ld-blue-6);
+  background-color: var(--ld-navy);
   color: #fff;
   font-size: 10px;
   font-weight: 600;
@@ -118,7 +110,7 @@
 @media (max-width: 720px) {
   .project-switcher__trigger {
     max-width: 120px;
-    padding-inline: 8px;
+    padding-inline: 10px;
   }
 }
 
@@ -129,9 +121,10 @@
   }
 
   .project-switcher__trigger {
-    width: 30px;
-    max-width: 30px;
-    min-width: 30px;
+    width: 36px;
+    max-width: 36px;
+    min-width: 36px;
+    height: 36px;
     flex-shrink: 0;
     padding: 0;
     overflow: visible;

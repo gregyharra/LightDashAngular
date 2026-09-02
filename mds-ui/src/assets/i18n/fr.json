@@ -62,6 +62,9 @@
   },
   "nav": {
     "home": "Accueil",
+    "brandName": "Data Platform",
+    "brandNameLead": "Data",
+    "brandNameTrail": "Platform",
     "new": "Nouveau",
     "browse": "Parcourir",
     "metrics": "Métriques",

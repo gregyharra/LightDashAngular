@@ -2,7 +2,9 @@ import { Component, signal } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideHttpClient } from '@angular/common/http';
 import { provideHttpClientTesting } from '@angular/common/http/testing';
+import { provideNativeDateAdapter } from '@angular/material/core';
 import { NoopAnimationsModule } from '@angular/platform-browser/animations';
+import { By } from '@angular/platform-browser';
 import { provideRouter } from '@angular/router';
 import { Store } from '@ngrx/store';
 import {
@@ -43,7 +45,7 @@ const PROJECT: ProjectSummary = {
   expiresAt: null,
 };
 
-describe('AppShellComponent Ask AI flag', () => {
+describe('AppShellComponent navbar identity', () => {
   let fixture: ComponentFixture<AppShellComponent>;
   let component: AppShellComponent;
   let healthSignal: ReturnType<typeof signal<HealthResults | null>>;
@@ -63,6 +65,7 @@ describe('AppShellComponent Ask AI flag', () => {
         provideRouter([]),
         provideHttpClient(),
         provideHttpClientTesting(),
+        provideNativeDateAdapter(),
         provideTranslateService({ fallbackLang: 'en', lang: 'en' }),
         ActiveProjectService,
         AiAssistantUiService,
@@ -96,20 +99,16 @@ describe('AppShellComponent Ask AI flag', () => {
     translate.setTranslation('en', {
       nav: {
         home: 'Home',
-        new: 'New',
-        browse: 'Browse',
-        metrics: 'Metrics',
+        brandName: 'Data Platform',
+        brandNameLead: 'Data',
+        brandNameTrail: 'Platform',
         askAi: 'Ask AI',
-        dashboard: 'Dashboard',
-        exploreData: 'Explore data',
-        newDashboard: 'New dashboard',
-        moreNavigation: 'More navigation',
         help: 'Help',
         notifications: 'Notifications',
         settings: 'Settings',
         logout: 'Logout',
       },
-      common: { admin: 'Admin', moreActions: 'More actions' },
+      common: { admin: 'Admin' },
     });
 
     fixture = TestBed.createComponent(AppShellComponent);
@@ -118,6 +117,78 @@ describe('AppShellComponent Ask AI flag', () => {
     activeProject = TestBed.inject(ActiveProjectService);
     activeProject.setProjects([PROJECT]);
     fixture.detectChanges();
+  });
+
+  it('renders light brand link to projects with mark and wordmark', () => {
+    const brand = fixture.nativeElement.querySelector(
+      'a.shell__brand[href="/projects"]',
+    ) as HTMLAnchorElement | null;
+    expect(brand).not.toBeNull();
+    expect(brand?.getAttribute('aria-label')).toBe('Data Platform');
+    expect(
+      fixture.nativeElement.querySelector('img.shell__brand-mark'),
+    ).not.toBeNull();
+    expect(
+      fixture.nativeElement.querySelector('.shell__brand-name')?.textContent,
+    ).toContain('Data');
+    expect(
+      fixture.nativeElement.querySelector('.shell__brand-name')?.textContent,
+    ).toContain('Platform');
+  });
+
+  it('always shows a settings link to /settings', () => {
+    const settings = fixture.debugElement.query(
+      By.css('a.shell__settings-btn'),
+    );
+    expect(settings).not.toBeNull();
+    expect(settings.attributes['routerLink'] ?? settings.properties['routerLink']).toBe(
+      '/settings',
+    );
+    expect(settings.nativeElement.getAttribute('aria-label')).toBe('Settings');
+    expect(
+      fixture.nativeElement.querySelector(
+        'a.shell__settings-btn mat-icon',
+      )?.textContent?.trim(),
+    ).toBe('settings');
+  });
+
+  it('hides legacy New / Browse / Metrics primary nav', () => {
+    activeProject.setActiveProject(PROJECT.projectUuid);
+    fixture.detectChanges();
+
+    expect(
+      fixture.nativeElement.querySelector('[aria-label="New"]'),
+    ).toBeNull();
+    expect(
+      fixture.nativeElement.querySelector('[aria-label="Browse"]'),
+    ).toBeNull();
+    expect(
+      fixture.nativeElement.querySelector('[aria-label="Metrics"]'),
+    ).toBeNull();
+  });
+
+  it('shows project switcher and search when a project is active', () => {
+    // setProjects auto-selects the first project
+    expect(activeProject.activeProjectUuid()).toBe(PROJECT.projectUuid);
+    expect(
+      fixture.nativeElement.querySelector('app-navbar-project-switcher'),
+    ).not.toBeNull();
+    expect(
+      fixture.nativeElement.querySelector('app-navbar-search'),
+    ).not.toBeNull();
+  });
+
+  it('hides project switcher and search when no project is active', () => {
+    activeProject.setProjects([]);
+    fixture.detectChanges();
+
+    expect(activeProject.activeProjectUuid()).toBeNull();
+    expect(
+      fixture.nativeElement.querySelector('app-navbar-project-switcher'),
+    ).toBeNull();
+    expect(
+      fixture.nativeElement.querySelector('app-navbar-search'),
+    ).toBeNull();
   });
 
   it('hides Ask AI when askAiEnabled is false', () => {
@@ -133,28 +204,18 @@ describe('AppShellComponent Ask AI flag', () => {
     expect(aiUi.open()).toBeFalse();
   });
 
-  it('hides stub Help / Notifications / Settings by default', () => {
+  it('hides stub Help / Notifications by default', () => {
     expect(component['showHelp']).toBeFalse();
     expect(component['showNotifications']).toBeFalse();
-    expect(component['showSettings']).toBeFalse();
-    expect(component['showRightOverflowMenu']).toBeFalse();
     expect(
       fixture.nativeElement.querySelector('[aria-label="Help"]'),
     ).toBeNull();
     expect(
       fixture.nativeElement.querySelector('[aria-label="Notifications"]'),
     ).toBeNull();
-    expect(
-      fixture.nativeElement.querySelector(
-        '.shell__nav-group--secondary [aria-label="Settings"]',
-      ),
-    ).toBeNull();
-    expect(
-      fixture.nativeElement.querySelector('[aria-label="More actions"]'),
-    ).toBeNull();
   });
 
-  it('shows Ask AI and opens the panel when askAiEnabled is true', () => {
+  it('shows Ask AI in the right cluster when askAiEnabled is true', () => {
     healthSignal.set({
       version: 'test',
       isAuthenticated: true,
@@ -163,9 +224,10 @@ describe('AppShellComponent Ask AI flag', () => {
     fixture.detectChanges();
 
     expect(component['askAiEnabled']()).toBeTrue();
-    expect(
-      fixture.nativeElement.querySelector('[aria-label="Ask AI"]'),
-    ).not.toBeNull();
+    const askAi = fixture.nativeElement.querySelector(
+      '.shell__navbar-right [aria-label="Ask AI"]',
+    );
+    expect(askAi).not.toBeNull();
     expect(
       fixture.nativeElement.querySelector('app-ai-assistant-panel'),
     ).not.toBeNull();

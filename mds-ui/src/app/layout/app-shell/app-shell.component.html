@@ -1,113 +1,25 @@
 <div class="shell" id="navbar-header" data-ld-navbar>
   <header class="shell__navbar">
     <div class="shell__navbar-left">
-      <a routerLink="/projects" class="shell__logo" [title]="'nav.home' | translate" >
-        <img src="assets/logo-icon-v2.png" alt="LightDash" width="32" height="32" border-radius="50%" overflow="hidden"/>
+      <a
+        routerLink="/projects"
+        class="shell__brand"
+        [attr.title]="'nav.home' | translate"
+        [attr.aria-label]="'nav.brandName' | translate"
+      >
+        <img
+          class="shell__brand-mark"
+          src="assets/brand-mark.svg"
+          alt=""
+          width="34"
+          height="34"
+          aria-hidden="true"
+        />
+        <span class="shell__brand-name">
+          <em>{{ 'nav.brandNameLead' | translate }}</em>
+          {{ 'nav.brandNameTrail' | translate }}
+        </span>
       </a>
-
-      @if (activeProjectService.activeProjectUuid(); as projectUuid) {
-        <div class="shell__nav-group shell__nav-group--primary">
-          <button
-            mat-button
-            class="shell__nav-btn shell__nav-inline"
-            [matMenuTriggerFor]="newMenu"
-            [attr.aria-label]="'nav.new' | translate"
-          >
-            <mat-icon>add_box</mat-icon>
-            <span class="shell__nav-label">{{ 'nav.new' | translate }}</span>
-          </button>
-          <mat-menu #newMenu="matMenu" panelClass="ld-navbar-menu">
-            <a
-              mat-menu-item
-              [routerLink]="['/projects', projectUuid, 'dashboards', 'create']"
-            >
-              <mat-icon>dashboard</mat-icon>
-              {{ 'nav.dashboard' | translate }}
-            </a>
-            <a
-              mat-menu-item
-              [routerLink]="exploreRootPath(projectUuid)"
-            >
-              <mat-icon>bar_chart</mat-icon>
-              {{ 'nav.exploreData' | translate }}
-            </a>
-          </mat-menu>
-          <a
-            mat-button
-            class="shell__nav-btn shell__nav-inline"
-            [routerLink]="['/projects', projectUuid, 'dashboards']"
-            [attr.aria-label]="'nav.browse' | translate"
-          >
-            <mat-icon>folder</mat-icon>
-            <span class="shell__nav-label">{{ 'nav.browse' | translate }}</span>
-          </a>
-          <a
-            mat-button
-            class="shell__nav-btn shell__nav-inline"
-            [routerLink]="exploreRootPath(projectUuid)"
-            [attr.aria-label]="'nav.metrics' | translate"
-          >
-            <mat-icon>bar_chart</mat-icon>
-            <span class="shell__nav-label">{{ 'nav.metrics' | translate }}</span>
-          </a>
-          @if (askAiEnabled()) {
-            <button
-              mat-button
-              class="shell__nav-btn shell__nav-btn--ai shell__nav-inline shell__nav-inline--hide-md"
-              type="button"
-              [attr.aria-label]="'nav.askAi' | translate"
-              (click)="openAiAssistant()"
-            >
-              <mat-icon>auto_awesome</mat-icon>
-              <span class="shell__nav-label">{{ 'nav.askAi' | translate }}</span>
-            </button>
-          }
-          <button
-            mat-button
-            class="shell__nav-btn shell__nav-btn--icon shell__nav-overflow shell__nav-overflow--left"
-            [matMenuTriggerFor]="leftOverflowMenu"
-            [attr.aria-label]="'nav.moreNavigation' | translate"
-          >
-            <mat-icon>more_vert</mat-icon>
-          </button>
-          <mat-menu #leftOverflowMenu="matMenu" panelClass="ld-navbar-menu">
-            <a
-              mat-menu-item
-              [routerLink]="['/projects', projectUuid, 'dashboards', 'create']"
-            >
-              <mat-icon>add_box</mat-icon>
-              {{ 'nav.newDashboard' | translate }}
-            </a>
-            <a
-              mat-menu-item
-              [routerLink]="exploreRootPath(projectUuid)"
-            >
-              <mat-icon>bar_chart</mat-icon>
-              {{ 'nav.exploreData' | translate }}
-            </a>
-            <a
-              mat-menu-item
-              [routerLink]="['/projects', projectUuid, 'dashboards']"
-            >
-              <mat-icon>folder</mat-icon>
-              {{ 'nav.browse' | translate }}
-            </a>
-            <a
-              mat-menu-item
-              [routerLink]="exploreRootPath(projectUuid)"
-            >
-              <mat-icon>bar_chart</mat-icon>
-              {{ 'nav.metrics' | translate }}
-            </a>
-            @if (askAiEnabled()) {
-              <button mat-menu-item type="button" (click)="openAiAssistant()">
-                <mat-icon>auto_awesome</mat-icon>
-                {{ 'nav.askAi' | translate }}
-              </button>
-            }
-          </mat-menu>
-        </div>
-      }
     </div>
 
     @if (activeProjectService.activeProject()) {
@@ -117,76 +29,47 @@
     }
 
     <div class="shell__navbar-right">
-      <div class="shell__nav-group shell__nav-group--secondary">
-        @if (activeProjectService.activeProjectUuid()) {
-          <app-navbar-project-switcher />
-        }
-@if (showHelp) {
-          <button
-            mat-button
-            class="shell__nav-btn shell__nav-btn--icon shell__nav-inline"
-            disabled
-            [attr.aria-label]="'nav.help' | translate"
-          >
-            <mat-icon>help_outline</mat-icon>
-          </button>
-        }
-        @if (showNotifications) {
-          <button
-            mat-button
-            class="shell__nav-btn shell__nav-btn--icon shell__nav-btn--notifications shell__nav-inline"
-            disabled
-            [attr.aria-label]="'nav.notifications' | translate"
-          >
-            <mat-icon>notifications_none</mat-icon>
-            <span class="shell__notification-dot"></span>
-          </button>
-        }
-        @if (showSettings) {
-          <button
-            mat-button
-            class="shell__nav-btn shell__nav-btn--icon shell__nav-inline"
-            disabled
-            [attr.aria-label]="'nav.settings' | translate"
-          >
-            <mat-icon>settings</mat-icon>
-          </button>
-        }
-        @if (showRightOverflowMenu) {
-          <button
-            mat-button
-            class="shell__nav-btn shell__nav-btn--icon shell__nav-overflow shell__nav-overflow--right"
-            [matMenuTriggerFor]="rightOverflowMenu"
-            [attr.aria-label]="'common.moreActions' | translate"
-          >
-            <mat-icon>more_vert</mat-icon>
-          </button>
-          <mat-menu #rightOverflowMenu="matMenu" xPosition="before" panelClass="ld-navbar-menu">
-            @if (showHelp) {
-              <button mat-menu-item disabled [attr.aria-label]="'nav.help' | translate">
-                <mat-icon>help_outline</mat-icon>
-                {{ 'nav.help' | translate }}
-              </button>
-            }
-            @if (showNotifications) {
-              <button
-                mat-menu-item
-                disabled
-                [attr.aria-label]="'nav.notifications' | translate"
-              >
-                <mat-icon>notifications_none</mat-icon>
-                {{ 'nav.notifications' | translate }}
-              </button>
-            }
-            @if (showSettings) {
-              <button mat-menu-item disabled [attr.aria-label]="'nav.settings' | translate">
-                <mat-icon>settings</mat-icon>
-                {{ 'nav.settings' | translate }}
-              </button>
-            }
-          </mat-menu>
-        }
-      </div>
+      @if (activeProjectService.activeProjectUuid()) {
+        <app-navbar-project-switcher />
+      }
+      @if (askAiEnabled()) {
+        <button
+          type="button"
+          class="shell__icon-btn shell__icon-btn--ai"
+          [attr.aria-label]="'nav.askAi' | translate"
+          (click)="openAiAssistant()"
+        >
+          <mat-icon>auto_awesome</mat-icon>
+        </button>
+      }
+      @if (showHelp) {
+        <button
+          type="button"
+          class="shell__icon-btn"
+          disabled
+          [attr.aria-label]="'nav.help' | translate"
+        >
+          <mat-icon>help_outline</mat-icon>
+        </button>
+      }
+      @if (showNotifications) {
+        <button
+          type="button"
+          class="shell__icon-btn shell__icon-btn--notifications"
+          disabled
+          [attr.aria-label]="'nav.notifications' | translate"
+        >
+          <mat-icon>notifications_none</mat-icon>
+          <span class="shell__notification-dot"></span>
+        </button>
+      }
+      <a
+        routerLink="/settings"
+        class="shell__settings-btn"
+        [attr.aria-label]="'nav.settings' | translate"
+      >
+        <mat-icon>settings</mat-icon>
+      </a>
       <app-navbar-user-menu />
     </div>
   </header>

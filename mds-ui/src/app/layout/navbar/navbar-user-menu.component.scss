@@ -8,21 +8,21 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 32px;
-  height: 32px;
-  border-radius: var(--ld-radius-md);
-  background-color: var(--ld-gray-2);
-  color: var(--ld-dark-9);
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background-color: var(--ld-gray-1);
+  color: var(--ld-navy);
   font-size: var(--ld-font-size-xs);
   font-weight: 600;
-  box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.2);
+  border: 1px solid var(--ld-gray-2);
   transition:
     background-color 0.2s ease,
-    box-shadow 0.2s ease;
+    border-color 0.2s ease;
 
   .user-menu__trigger:hover & {
-    background-color: var(--ld-gray-3);
-    box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.4);
+    background-color: var(--ld-gray-2);
+    border-color: var(--ld-gray-3);
   }
 }
 
