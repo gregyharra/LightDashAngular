@@ -56,7 +56,7 @@
             </a>
           </div>
         } @else {
-          <app-content-list-filter-chips
+          <ld-content-list-filter-chips
             [chips]="activeFilterChips()"
             (clearChip)="clearFilterChip($event)"
             (clearAll)="clearAllFilters()"
@@ -79,7 +79,7 @@
               <thead>
                 <tr>
                   <th scope="col">
-                    <app-content-list-column-header
+                    <ld-content-list-column-header
                       [label]="'charts.fields.name' | translate"
                       filterType="text"
                       [textPlaceholder]="'charts.search' | translate"
@@ -88,7 +88,7 @@
                     />
                   </th>
                   <th scope="col">
-                    <app-content-list-column-header
+                    <ld-content-list-column-header
                       [label]="'charts.fields.type' | translate"
                       filterType="select"
                       [options]="typeOptions()"
@@ -97,7 +97,7 @@
                     />
                   </th>
                   <th scope="col">
-                    <app-content-list-column-header
+                    <ld-content-list-column-header
                       [label]="'charts.fields.table' | translate"
                       filterType="text"
                       [textPlaceholder]="'tables.search' | translate"
@@ -106,7 +106,7 @@
                     />
                   </th>
                   <th scope="col">
-                    <app-content-list-column-header
+                    <ld-content-list-column-header
                       [label]="'charts.fields.space' | translate"
                       filterType="select"
                       [options]="spaceOptions()"
@@ -115,7 +115,7 @@
                     />
                   </th>
                   <th scope="col">
-                    <app-content-list-column-header
+                    <ld-content-list-column-header
                       [label]="'charts.fields.lastEdited' | translate"
                       filterType="date"
                       [value]="columnFilters().lastEdited"
@@ -123,7 +123,7 @@
                     />
                   </th>
                   <th scope="col">
-                    <app-content-list-column-header
+                    <ld-content-list-column-header
                       [label]="'charts.fields.views' | translate"
                       filterType="number"
                       [value]="columnFilters().views"

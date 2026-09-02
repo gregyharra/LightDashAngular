@@ -247,7 +247,7 @@
                     <thead>
                       <tr>
                         <th scope="col">
-                          <app-content-list-column-header
+                          <ld-content-list-column-header
                             [label]="'tables.fields.name' | translate"
                             filterType="text"
                             [textPlaceholder]="'tables.filterNames' | translate"
@@ -256,7 +256,7 @@
                           />
                         </th>
                         <th scope="col">
-                          <app-content-list-column-header
+                          <ld-content-list-column-header
                             [label]="'tables.fields.type' | translate"
                             filterType="select"
                             [options]="columnTypeOptions()"
@@ -268,7 +268,7 @@
                           {{ 'tables.fields.transformation' | translate }}
                         </th>
                         <th scope="col" class="table-hub__desc-header">
-                          <app-content-list-column-header
+                          <ld-content-list-column-header
                             [label]="'tables.fields.description' | translate"
                             filterType="text"
                             [textPlaceholder]="'tables.filterDescriptions' | translate"
@@ -279,7 +279,7 @@
                         @for (attr of attributeDefs(); track attr.id) {
                           <th scope="col" class="table-hub__attr-header">
                             <div class="table-hub__attr-header-row">
-                              <app-content-list-column-header
+                              <ld-content-list-column-header
                                 [label]="attr.name"
                                 [filterType]="attributeFilterType(attr)"
                                 [options]="attributeFilterOptions(attr)"

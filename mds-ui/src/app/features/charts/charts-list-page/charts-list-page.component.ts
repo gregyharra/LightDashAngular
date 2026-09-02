@@ -12,12 +12,10 @@ import { ChartService } from '../chart.service';
 import { ResizableSidebarDirective } from '../../../layout/resizable-sidebar/resizable-sidebar.directive';
 import { ProjectBrowseNavComponent } from '../../../layout/project-browse-nav/project-browse-nav.component';
 import {
-  ContentListColumnHeaderComponent,
-  ColumnFilterValue,
-} from '../../../ui/content-list-column-header/content-list-column-header.component';
-import { ContentListFilterChipsComponent } from '../../../ui/content-list-filter-chips/content-list-filter-chips.component';
-import {
   ChartColumnFilters,
+  ColumnFilterValue,
+  LdContentListColumnHeaderComponent,
+  LdContentListFilterChipsComponent,
   collectUniqueSpaces,
   collectUniqueValues,
   createEmptyChartColumnFilters,
@@ -28,7 +26,7 @@ import {
   filterCharts,
   getChartActiveFilterChips,
   hasActiveChartColumnFilters,
-} from '../../../ui/content-list-filter.utils';
+} from '../../../design-system';
 
 const CHART_KIND_LABELS: Record<string, string> = {
   vertical_bar: 'charts.types.bar',
@@ -48,8 +46,8 @@ const CHART_KIND_LABELS: Record<string, string> = {
     TranslatePipe,
     ResizableSidebarDirective,
     ProjectBrowseNavComponent,
-    ContentListColumnHeaderComponent,
-    ContentListFilterChipsComponent,
+    LdContentListColumnHeaderComponent,
+    LdContentListFilterChipsComponent,
   ],
   templateUrl: './charts-list-page.component.html',
   styleUrl: './charts-list-page.component.scss',

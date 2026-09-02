@@ -1,9 +1,9 @@
-<div class="content-list-column-header">
-  <span class="content-list-column-header__label">{{ label() }}</span>
+<div class="ld-content-list-column-header">
+  <span class="ld-content-list-column-header__label">{{ label() }}</span>
   <button
     type="button"
-    class="content-list-column-header__filter-btn"
-    [class.content-list-column-header__filter-btn--active]="isActive()"
+    class="ld-content-list-column-header__filter-btn"
+    [class.ld-content-list-column-header__filter-btn--active]="isActive()"
     [matMenuTriggerFor]="filterMenu"
     [attr.aria-label]="'filters.filterLabel' | translate: { label: label() }"
     [attr.aria-pressed]="isActive()"
@@ -13,21 +13,21 @@
     <mat-icon>filter_list</mat-icon>
   </button>
 
-  <mat-menu #filterMenu="matMenu" class="content-list-column-header__menu">
+  <mat-menu #filterMenu="matMenu" class="ld-content-list-column-header__menu">
     <ng-template matMenuContent>
-      <div class="content-list-column-header__menu-panel" (click)="$event.stopPropagation()">
-      <p class="content-list-column-header__menu-title">
+      <div class="ld-content-list-column-header__menu-panel" (click)="$event.stopPropagation()">
+      <p class="ld-content-list-column-header__menu-title">
         {{ 'filters.filterBy' | translate: { label: label() } }}
       </p>
 
       @switch (filterType()) {
         @case ('text') {
-          <label class="content-list-column-header__field">
-            <span class="content-list-column-header__field-label">
+          <label class="ld-content-list-column-header__field">
+            <span class="ld-content-list-column-header__field-label">
               {{ 'filters.contains' | translate }}
             </span>
             <input
-              class="content-list-column-header__input"
+              class="ld-content-list-column-header__input"
               type="search"
               [placeholder]="textPlaceholder() ?? ('filters.containsPlaceholder' | translate)"
               [ngModel]="draftText()"
@@ -37,9 +37,9 @@
           </label>
         }
         @case ('select') {
-          <div class="content-list-column-header__options">
+          <div class="ld-content-list-column-header__options">
             @for (option of options(); track option.value) {
-              <label class="content-list-column-header__option">
+              <label class="ld-content-list-column-header__option">
                 <mat-checkbox
                   [checked]="isOptionSelected(option.value)"
                   (change)="toggleSelectOption(option.value, $event.checked)"
@@ -50,19 +50,19 @@
           </div>
         }
         @case ('date') {
-          <label class="content-list-column-header__field">
-            <span class="content-list-column-header__field-label">{{ 'filters.from' | translate }}</span>
+          <label class="ld-content-list-column-header__field">
+            <span class="ld-content-list-column-header__field-label">{{ 'filters.from' | translate }}</span>
             <input
-              class="content-list-column-header__input"
+              class="ld-content-list-column-header__input"
               type="date"
               [ngModel]="draftDateFrom()"
               (ngModelChange)="draftDateFrom.set($event || null)"
             />
           </label>
-          <label class="content-list-column-header__field">
-            <span class="content-list-column-header__field-label">{{ 'filters.to' | translate }}</span>
+          <label class="ld-content-list-column-header__field">
+            <span class="ld-content-list-column-header__field-label">{{ 'filters.to' | translate }}</span>
             <input
-              class="content-list-column-header__input"
+              class="ld-content-list-column-header__input"
               type="date"
               [ngModel]="draftDateTo()"
               (ngModelChange)="draftDateTo.set($event || null)"
@@ -70,12 +70,12 @@
           </label>
         }
         @case ('number') {
-          <label class="content-list-column-header__field">
-            <span class="content-list-column-header__field-label">
+          <label class="ld-content-list-column-header__field">
+            <span class="ld-content-list-column-header__field-label">
               {{ 'filters.operator' | translate }}
             </span>
             <select
-              class="content-list-column-header__input content-list-column-header__select"
+              class="ld-content-list-column-header__input ld-content-list-column-header__select"
               [ngModel]="draftNumberOperator()"
               (ngModelChange)="onNumberOperatorChange($event)"
             >
@@ -87,13 +87,13 @@
             </select>
           </label>
           @if (numberNeedsTwoValues()) {
-            <div class="content-list-column-header__number-range">
-              <label class="content-list-column-header__field">
-                <span class="content-list-column-header__field-label">
+            <div class="ld-content-list-column-header__number-range">
+              <label class="ld-content-list-column-header__field">
+                <span class="ld-content-list-column-header__field-label">
                   {{ 'filters.min' | translate }}
                 </span>
                 <input
-                  class="content-list-column-header__input"
+                  class="ld-content-list-column-header__input"
                   type="number"
                   [placeholder]="'filters.any' | translate"
                   [ngModel]="draftNumberValue()"
@@ -101,12 +101,12 @@
                   (keydown.enter)="applyFilter()"
                 />
               </label>
-              <label class="content-list-column-header__field">
-                <span class="content-list-column-header__field-label">
+              <label class="ld-content-list-column-header__field">
+                <span class="ld-content-list-column-header__field-label">
                   {{ 'filters.max' | translate }}
                 </span>
                 <input
-                  class="content-list-column-header__input"
+                  class="ld-content-list-column-header__input"
                   type="number"
                   [placeholder]="'filters.any' | translate"
                   [ngModel]="draftNumberValueTo()"
@@ -116,12 +116,12 @@
               </label>
             </div>
           } @else {
-            <label class="content-list-column-header__field">
-              <span class="content-list-column-header__field-label">
+            <label class="ld-content-list-column-header__field">
+              <span class="ld-content-list-column-header__field-label">
                 {{ 'filters.value' | translate }}
               </span>
               <input
-                class="content-list-column-header__input"
+                class="ld-content-list-column-header__input"
                 type="number"
                 [placeholder]="'filters.enterNumber' | translate"
                 [ngModel]="draftNumberValue()"
@@ -133,17 +133,17 @@
         }
       }
 
-      <div class="content-list-column-header__menu-actions">
+      <div class="ld-content-list-column-header__menu-actions">
         <button
           type="button"
-          class="content-list-column-header__clear-btn"
+          class="ld-content-list-column-header__clear-btn"
           (click)="clearFilter()"
         >
           {{ 'filters.clear' | translate }}
         </button>
         <button
           type="button"
-          class="content-list-column-header__apply-btn"
+          class="ld-content-list-column-header__apply-btn"
           (click)="applyFilter()"
         >
           {{ 'filters.apply' | translate }}

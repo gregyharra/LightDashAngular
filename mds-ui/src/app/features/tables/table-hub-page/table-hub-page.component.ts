@@ -61,9 +61,7 @@ import {
 import {
   ColumnFilterType,
   ColumnFilterValue,
-  ContentListColumnHeaderComponent,
-} from '../../../ui/content-list-column-header/content-list-column-header.component';
-import {
+  LdContentListColumnHeaderComponent,
   NumberFilterValue,
   SelectFilterValue,
   SelectOption,
@@ -76,7 +74,7 @@ import {
   matchesNumberFilter,
   matchesSelectFilter,
   matchesTextFilter,
-} from '../../../ui/content-list-filter.utils';
+} from '../../../design-system';
 
 type HubTab = 'overview' | 'columns' | 'links' | 'lineage' | 'sql';
 
@@ -125,7 +123,7 @@ const ENABLE_TABLE_HUB_TAG_EDITING = false;
     MatProgressSpinnerModule,
     TranslatePipe,
     AddAttributeDialogComponent,
-    ContentListColumnHeaderComponent,
+    LdContentListColumnHeaderComponent,
     FilterableLinksTableComponent,
     FolderSearchPanelComponent,
     LineageGraphComponent,

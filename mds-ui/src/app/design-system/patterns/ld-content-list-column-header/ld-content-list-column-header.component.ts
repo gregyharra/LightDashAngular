@@ -22,7 +22,7 @@ import {
   isSelectFilterActive,
   isTextFilterActive,
   numberFilterNeedsTwoValues,
-} from '../content-list-filter.utils';
+} from '../../utils/content-list-filter.utils';
 
 export type ColumnFilterType = 'text' | 'select' | 'date' | 'number';
 
@@ -33,7 +33,7 @@ export type ColumnFilterValue =
   | NumberFilterValue;
 
 @Component({
-  selector: 'app-content-list-column-header',
+  selector: 'ld-content-list-column-header',
   imports: [
     FormsModule,
     MatButtonModule,
@@ -42,10 +42,10 @@ export type ColumnFilterValue =
     MatMenuModule,
     TranslatePipe,
   ],
-  templateUrl: './content-list-column-header.component.html',
-  styleUrl: './content-list-column-header.component.scss',
+  templateUrl: './ld-content-list-column-header.component.html',
+  styleUrl: './ld-content-list-column-header.component.scss',
 })
-export class ContentListColumnHeaderComponent {
+export class LdContentListColumnHeaderComponent {
   readonly label = input.required<string>();
   readonly filterType = input.required<ColumnFilterType>();
   readonly options = input<SelectOption[]>([]);

@@ -1,15 +1,15 @@
 import { Component, input, output } from '@angular/core';
 import { MatIconModule } from '@angular/material/icon';
 import { TranslatePipe } from '@ngx-translate/core';
-import { ActiveFilterChip } from '../content-list-filter.utils';
+import { ActiveFilterChip } from '../../utils/content-list-filter.utils';
 
 @Component({
-  selector: 'app-content-list-filter-chips',
+  selector: 'ld-content-list-filter-chips',
   imports: [MatIconModule, TranslatePipe],
-  templateUrl: './content-list-filter-chips.component.html',
-  styleUrl: './content-list-filter-chips.component.scss',
+  templateUrl: './ld-content-list-filter-chips.component.html',
+  styleUrl: './ld-content-list-filter-chips.component.scss',
 })
-export class ContentListFilterChipsComponent {
+export class LdContentListFilterChipsComponent {
   readonly chips = input<ActiveFilterChip[]>([]);
 
   readonly clearChip = output<string>();

@@ -12,12 +12,10 @@ import { DashboardService } from '../dashboard.service';
 import { ResizableSidebarDirective } from '../../../layout/resizable-sidebar/resizable-sidebar.directive';
 import { ProjectBrowseNavComponent } from '../../../layout/project-browse-nav/project-browse-nav.component';
 import {
-  ContentListColumnHeaderComponent,
   ColumnFilterValue,
-} from '../../../ui/content-list-column-header/content-list-column-header.component';
-import { ContentListFilterChipsComponent } from '../../../ui/content-list-filter-chips/content-list-filter-chips.component';
-import {
   DashboardColumnFilters,
+  LdContentListColumnHeaderComponent,
+  LdContentListFilterChipsComponent,
   collectUniqueSpaces,
   createEmptyDashboardColumnFilters,
   emptyDateFilter,
@@ -31,7 +29,7 @@ import {
   parseSpaceFilterValue,
   sharedSpaceFilterValue,
   spaceFilterValue,
-} from '../../../ui/content-list-filter.utils';
+} from '../../../design-system';
 
 @Component({
   selector: 'app-dashboards-list-page',
@@ -43,8 +41,8 @@ import {
     TranslatePipe,
     ResizableSidebarDirective,
     ProjectBrowseNavComponent,
-    ContentListColumnHeaderComponent,
-    ContentListFilterChipsComponent,
+    LdContentListColumnHeaderComponent,
+    LdContentListFilterChipsComponent,
   ],
   templateUrl: './dashboards-list-page.component.html',
   styleUrl: './dashboards-list-page.component.scss',
