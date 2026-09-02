@@ -7,3 +7,7 @@ export { LdAppTopbarComponent } from './patterns/ld-app-topbar/ld-app-topbar.com
 export { LdPageHeaderComponent } from './patterns/ld-page-header/ld-page-header.component';
 export { LdPageFrameComponent } from './patterns/ld-page-frame/ld-page-frame.component';
 export { LdEmptyStateComponent } from './patterns/ld-empty-state/ld-empty-state.component';
+export {
+  LdProjectSidenavComponent,
+  type LdProjectSidenavItem,
+} from './patterns/ld-project-sidenav/ld-project-sidenav.component';
