@@ -1,51 +1,12 @@
 <div class="page-layout">
   <aside class="page-layout__sidebar" appResizableSidebar>
-    <div class="page-sidebar">
-      <header class="page-sidebar__header">
-        <p class="page-sidebar__breadcrumb">{{ 'explorer.browse' | translate }}</p>
-        @if (activeProjectService.activeProject(); as project) {
-          <p class="page-sidebar__org">{{ project.name }}</p>
-        }
-      </header>
-
-      <nav class="page-sidebar__nav" [attr.aria-label]="'dashboards.browseNavigation' | translate">
-        <p class="page-sidebar__section-label">{{ 'explorer.content' | translate }}</p>
-        <a
-          class="page-sidebar__link page-sidebar__link--clickable"
-          [routerLink]="['/projects', projectUuid(), 'explore']"
-        >
-          <mat-icon>search</mat-icon>
-          {{ 'explorer.title' | translate }}
-        </a>
-        <a
-          class="page-sidebar__link page-sidebar__link--active page-sidebar__link--clickable"
-          [routerLink]="['/projects', projectUuid(), 'dashboards']"
-        >
-          <mat-icon>dashboard</mat-icon>
-          {{ 'dashboards.title' | translate }}
-        </a>
-        <a
-          class="page-sidebar__link page-sidebar__link--clickable"
-          [routerLink]="['/projects', projectUuid(), 'charts']"
-        >
-          <mat-icon>bar_chart</mat-icon>
-          {{ 'charts.title' | translate }}
-        </a>
-        <a
-          class="page-sidebar__link page-sidebar__link--clickable"
-          [routerLink]="['/projects', projectUuid(), 'tables']"
-        >
-          <mat-icon>table_chart</mat-icon>
-          {{ 'tables.title' | translate }}
-        </a>
-        <a
-          class="page-sidebar__link page-sidebar__link--clickable"
-          [routerLink]="['/projects', projectUuid(), 'lineage']"
-        >
-          <mat-icon>account_tree</mat-icon>
-          {{ 'lineage.title' | translate }}
-        </a>
-      </nav>
+    <div class="page-sidebar page-sidebar--dark">
+      @if (projectUuid(); as browseProjectUuid) {
+        <app-project-browse-nav
+          [projectUuid]="browseProjectUuid"
+          active="dashboards"
+        />
+      }
     </div>
   </aside>
 

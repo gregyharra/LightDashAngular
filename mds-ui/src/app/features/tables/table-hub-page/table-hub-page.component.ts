@@ -41,6 +41,7 @@ import { LineageGraphComponent } from '../../lineage/lineage-graph/lineage-graph
 import { LineageService } from '../../lineage/lineage.service';
 import { TransformationChipComponent } from '../../lineage/transformation-chip/transformation-chip.component';
 import { ResizableSidebarDirective } from '../../../layout/resizable-sidebar/resizable-sidebar.directive';
+import { ProjectBrowseNavComponent } from '../../../layout/project-browse-nav/project-browse-nav.component';
 import { DictionaryService } from '../dictionary.service';
 import { FilterableLinksTableComponent } from '../filterable-links-table/filterable-links-table.component';
 import { LinkDialogComponent } from '../link-dialog/link-dialog.component';
@@ -130,6 +131,7 @@ const ENABLE_TABLE_HUB_TAG_EDITING = false;
     LineageGraphComponent,
     LinkDialogComponent,
     ResizableSidebarDirective,
+    ProjectBrowseNavComponent,
     SqlHighlightComponent,
     TransformationChipComponent,
   ],
@@ -146,7 +148,7 @@ export class TableHubPageComponent {
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
   private readonly translate = inject(TranslateService);
-  protected readonly activeProjectService = inject(ActiveProjectService);
+  private readonly activeProjectService = inject(ActiveProjectService);
 
   protected readonly projectUuid = signal<string | null>(null);
   protected readonly tableId = signal<string | null>(null);

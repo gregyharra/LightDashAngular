@@ -70,6 +70,8 @@
     "metrics": "Metrics",
     "askAi": "Ask AI",
     "dashboard": "Dashboard",
+    "graph": "Graph",
+    "browseNavigation": "Browse navigation",
     "exploreData": "Explore data",
     "newDashboard": "New dashboard",
     "moreNavigation": "More navigation",

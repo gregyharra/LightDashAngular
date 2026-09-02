@@ -9,6 +9,7 @@ import { ApiErrorService } from '../../../core/api/api-error.service';
 import { ExploreSummary } from '../../../core/models/explore.model';
 import { ExplorerService } from '../explorer.service';
 import { ResizableSidebarDirective } from '../../../layout/resizable-sidebar/resizable-sidebar.directive';
+import { ProjectBrowseNavComponent } from '../../../layout/project-browse-nav/project-browse-nav.component';
 
 @Component({
   selector: 'app-explorer-list-page',
@@ -18,6 +19,7 @@ import { ResizableSidebarDirective } from '../../../layout/resizable-sidebar/res
     MatIconModule,
     MatProgressSpinnerModule,
     ResizableSidebarDirective,
+    ProjectBrowseNavComponent,
     TranslatePipe,
   ],
   templateUrl: './explorer-list-page.component.html',
@@ -29,7 +31,7 @@ export class ExplorerListPageComponent {
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
   private readonly translate = inject(TranslateService);
-  protected readonly activeProjectService = inject(ActiveProjectService);
+  private readonly activeProjectService = inject(ActiveProjectService);
 
   protected readonly projectUuid = signal<string | null>(null);
   protected readonly explores = signal<ExploreSummary[]>([]);

@@ -196,13 +196,3 @@
   color: var(--ld-gray-6);
   line-height: 1.3;
 }
-
-.page-sidebar__link--clickable {
-  text-decoration: none;
-  cursor: pointer;
-
-  &:hover {
-    background-color: var(--ld-gray-1);
-    color: var(--ld-gray-9);
-  }
-}
