@@ -34,6 +34,7 @@ import {
   findExploreByName,
   findExploreForLineageNode,
 } from '../explore-lineage.utils';
+import { groupExploresByTags } from '../explore-sections.utils';
 import { resolveExploreNameForSelection } from '../explore-from-dbt.utils';
 import {
   CREATE_FROM_EXPLORE_STATE_KEY,
@@ -65,6 +66,7 @@ import { ExportFormat } from '../../export/export.models';
 import { ExportService } from '../../export/export.service';
 import { startExport } from '../../export/start-export';
 import { ResizableSidebarDirective } from '../../../layout/resizable-sidebar/resizable-sidebar.directive';
+import { ProjectBrowseNavComponent } from '../../../layout/project-browse-nav/project-browse-nav.component';
 import { RunQueryButtonComponent } from '../../../shared/run-query-button/run-query-button.component';
 import { SqlHighlightComponent } from '../../../shared/sql-highlight/sql-highlight.component';
 
@@ -86,6 +88,7 @@ const RESULTS_DEFAULT_PAGE_SIZE = 25;
     TablesFieldsPanelComponent,
     FolderSearchPanelComponent,
     ResizableSidebarDirective,
+    ProjectBrowseNavComponent,
     RunQueryButtonComponent,
     SqlHighlightComponent,
   ],
@@ -104,7 +107,7 @@ export class ExplorerPageComponent {
   private readonly appState = inject(AppStateService);
   private readonly language = inject(LanguageService);
   private readonly translate = inject(TranslateService);
-  protected readonly activeProjectService = inject(ActiveProjectService);
+  private readonly activeProjectService = inject(ActiveProjectService);
 
   private readonly cacheEntries = toSignal(this.store.select(selectEntries), {
     initialValue: {} as Record<string, ChartQueryEntry>,
@@ -202,12 +205,17 @@ export class ExplorerPageComponent {
         explore.name,
         explore.description ?? '',
         `${explore.databaseName}.${explore.schemaName}`,
+        ...(explore.tags ?? []),
       ]
         .join(' ')
         .toLowerCase();
       return haystack.includes(query);
     });
   });
+
+  protected readonly exploreSections = computed(() =>
+    groupExploresByTags(this.filteredExplores()),
+  );
 
   protected readonly selectedNodeId = computed(() => {
     const tableId = this.tableId();

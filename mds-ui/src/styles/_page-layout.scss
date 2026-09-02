@@ -31,6 +31,12 @@
     min-width: var(--ld-sidebar-collapsed-width);
     max-width: var(--ld-sidebar-collapsed-width);
   }
+
+  // Dark project browse sidenav (Data Platform identity)
+  &:has(> .page-sidebar--dark) {
+    background-color: var(--ld-sidebar-dark);
+    border-right-color: rgba(255, 255, 255, 0.06);
+  }
 }
 
 .page-sidebar__resize-handle {
@@ -183,6 +189,23 @@ body.lineage-detail--resizing {
   &--collapsed {
     padding-top: var(--ld-spacing-xs);
     padding-inline: var(--ld-spacing-xs);
+  }
+
+  &--dark {
+    color: #cfd3dc;
+    background-color: var(--ld-sidebar-dark);
+
+    .page-sidebar__fold-btn {
+      border-color: rgba(255, 255, 255, 0.12);
+      background: transparent;
+      color: #9ca3af;
+
+      &:hover {
+        background: var(--ld-sidebar-dark-hover);
+        color: #e5e7eb;
+        border-color: rgba(255, 255, 255, 0.2);
+      }
+    }
   }
 }
 

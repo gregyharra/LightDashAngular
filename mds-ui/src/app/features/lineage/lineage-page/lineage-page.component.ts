@@ -21,6 +21,7 @@ import { LineageGraphComponent } from '../lineage-graph/lineage-graph.component'
 import { LineageDetailPanelComponent } from '../lineage-detail-panel/lineage-detail-panel.component';
 import { findTreeNodeByLineageId } from '../dbt-tree-utils';
 import { ResizableSidebarDirective } from '../../../layout/resizable-sidebar/resizable-sidebar.directive';
+import { ProjectBrowseNavComponent } from '../../../layout/project-browse-nav/project-browse-nav.component';
 
 @Component({
   selector: 'app-lineage-page',
@@ -32,6 +33,7 @@ import { ResizableSidebarDirective } from '../../../layout/resizable-sidebar/res
     LineageDetailPanelComponent,
     FolderSearchPanelComponent,
     ResizableSidebarDirective,
+    ProjectBrowseNavComponent,
     TranslatePipe,
   ],
   templateUrl: './lineage-page.component.html',
@@ -43,7 +45,7 @@ export class LineagePageComponent {
   private readonly route = inject(ActivatedRoute);
   private readonly translate = inject(TranslateService);
   private readonly languageService = inject(LanguageService);
-  protected readonly activeProjectService = inject(ActiveProjectService);
+  private readonly activeProjectService = inject(ActiveProjectService);
 
   protected readonly projectUuid = signal<string | null>(null);
   protected readonly lineage = signal<ProjectLineage | null>(null);

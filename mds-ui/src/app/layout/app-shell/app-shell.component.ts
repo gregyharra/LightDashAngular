@@ -1,8 +1,6 @@
 import { Component, computed, inject, OnInit } from '@angular/core';
 import { RouterLink, RouterOutlet } from '@angular/router';
-import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
-import { MatMenuModule } from '@angular/material/menu';
 import { TranslatePipe } from '@ngx-translate/core';
 import { AppStateService } from '../../core/services/app-state.service';
 import { ActiveProjectService } from '../../core/services/active-project.service';
@@ -15,18 +13,14 @@ import { NavbarUserMenuComponent } from '../navbar/navbar-user-menu.component';
 import {
   NAVBAR_SHOW_HELP,
   NAVBAR_SHOW_NOTIFICATIONS,
-  NAVBAR_SHOW_SETTINGS,
 } from '../navbar/navbar-secondary-actions';
-import { exploreRootPath } from '../../features/explorer/explore-routes';
 
 @Component({
   selector: 'app-shell',
   imports: [
     RouterOutlet,
     RouterLink,
-    MatButtonModule,
     MatIconModule,
-    MatMenuModule,
     TranslatePipe,
     NavbarUserMenuComponent,
     NavbarProjectSwitcherComponent,
@@ -49,11 +43,6 @@ export class AppShellComponent implements OnInit {
   /** Stub navbar actions — see navbar-secondary-actions.ts */
   protected readonly showHelp = NAVBAR_SHOW_HELP;
   protected readonly showNotifications = NAVBAR_SHOW_NOTIFICATIONS;
-  protected readonly showSettings = NAVBAR_SHOW_SETTINGS;
-  protected readonly showRightOverflowMenu =
-    NAVBAR_SHOW_HELP || NAVBAR_SHOW_NOTIFICATIONS || NAVBAR_SHOW_SETTINGS;
-
-  protected readonly exploreRootPath = exploreRootPath;
 
   protected openAiAssistant(): void {
     if (!this.askAiEnabled()) {

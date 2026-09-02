@@ -1,9 +1,7 @@
 #navbar-header {
-  .mat-mdc-button.shell__nav-btn,
-  .mat-mdc-button.project-switcher__trigger,
-  .mat-mdc-button.user-menu__trigger {
+  .mat-mdc-button.project-switcher__trigger {
     --mat-mdc-button-persistent-ripple-color: transparent;
-    --mat-mdc-button-ripple-color: rgba(255, 255, 255, 0.08);
+    --mat-mdc-button-ripple-color: rgba(30, 58, 138, 0.08);
   }
 
   .mat-mdc-button.project-switcher__trigger {
@@ -14,11 +12,9 @@
       max-width: 100%;
       overflow: hidden;
     }
-  }
 
-  .mat-mdc-button.shell__nav-btn {
     .mat-mdc-button-touch-target {
-      height: 30px;
+      height: 36px;
     }
   }
 }
@@ -26,9 +22,9 @@
 .ld-navbar-menu.mat-mdc-menu-panel {
   min-width: 250px;
   max-width: 400px;
-  border: 1px solid var(--ld-dark-4);
+  border: 1px solid var(--ld-gray-2);
   border-radius: var(--ld-radius-md);
-  background-color: var(--ld-dark-2);
+  background-color: #fff;
   box-shadow: var(--ld-shadow-heavy);
 
   .mat-mdc-menu-content {
@@ -37,21 +33,21 @@
 
   .mat-mdc-menu-item {
     min-height: 36px;
-    color: var(--ld-dark-9);
+    color: var(--ld-gray-8);
     font-size: var(--ld-font-size-xs);
     font-weight: 500;
 
     mat-icon {
-      color: var(--ld-dark-7);
+      color: var(--ld-gray-6);
     }
 
     &:hover:not([disabled]) {
-      background-color: var(--ld-dark-3);
+      background-color: var(--ld-gray-1);
     }
 
     &[disabled] {
       opacity: 1;
-      color: var(--ld-dark-9);
+      color: var(--ld-gray-8);
     }
   }
 

@@ -1,10 +1,10 @@
 <button
-  mat-button
+  type="button"
   class="user-menu__trigger"
   [matMenuTriggerFor]="userMenu"
   [attr.aria-label]="'nav.userMenu' | translate"
 >
-  <span class="user-menu__avatar">{{ initials() }}</span>
+  <mat-icon>settings</mat-icon>
 </button>
 
 <mat-menu #userMenu="matMenu" xPosition="before" panelClass="ld-user-menu user-menu__panel">
@@ -56,7 +56,7 @@
     </button>
   </mat-menu>
 
-  <a mat-menu-item routerLink="/settings">
+  <a mat-menu-item routerLink="/settings" data-testid="user-menu-settings">
     <mat-icon>settings</mat-icon>
     <span class="user-menu__item-label">{{ 'nav.settings' | translate }}</span>
   </a>

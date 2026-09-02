@@ -5,7 +5,7 @@
 } @else {
   <div class="page-layout">
     <div class="page-layout__content">
-      <section class="projects">
+      <section class="projects projects--domains">
         <ng-container [ngTemplateOutlet]="projectsContent" />
       </section>
     </div>
@@ -43,7 +43,7 @@
         <mat-icon>folder_open</mat-icon>
         <p>{{ 'projects.empty' | translate }}</p>
       </div>
-    } @else {
+    } @else if (managementMode()) {
       <div class="projects__grid">
         @for (project of projects(); track project.projectUuid) {
           <article
@@ -66,7 +66,7 @@
                   <span class="project-card__badge">{{ 'projects.current' | translate }}</span>
                 }
               </div>
-              @if (managementMode() && appState.isAdmin()) {
+              @if (appState.isAdmin()) {
                 <button
                   mat-icon-button
                   type="button"
@@ -104,6 +104,30 @@
                 <mat-icon>arrow_forward</mat-icon>
               </span>
             </div>
+          </article>
+        }
+      </div>
+    } @else {
+      <div class="projects__grid projects__grid--domains">
+        @for (project of projects(); track project.projectUuid) {
+          <article
+            class="domain-card"
+            [class.domain-card--active]="
+              project.projectUuid === activeProjectService.activeProjectUuid()
+            "
+            (click)="openCard(project.projectUuid)"
+            (keydown.enter)="openCard(project.projectUuid)"
+            tabindex="0"
+            role="button"
+            [attr.aria-label]="project.name"
+          >
+            <div class="domain-card__top">
+              <h2 class="domain-card__title">{{ project.name }}</h2>
+            </div>
+            <p class="domain-card__desc">{{ domainDescription(project) }}</p>
+            <span class="domain-card__go" aria-hidden="true">
+              <mat-icon>arrow_forward</mat-icon>
+            </span>
           </article>
         }
       </div>

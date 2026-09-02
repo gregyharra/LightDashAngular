@@ -80,6 +80,14 @@ export class ProjectsPageComponent {
     return WAREHOUSE_LABELS[type] ?? type;
   }
 
+  protected domainDescription(project: ProjectSummary): string {
+    const description = project.description?.trim();
+    if (description) {
+      return description;
+    }
+    return this.translate.instant('projects.domainFallback');
+  }
+
   protected formatDate(iso: string): string {
     return this.languageService.formatDate(iso, {
       year: 'numeric',

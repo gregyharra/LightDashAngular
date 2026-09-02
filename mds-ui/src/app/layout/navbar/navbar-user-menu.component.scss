@@ -1,28 +1,33 @@
 .user-menu__trigger {
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
   min-width: 0;
+  flex-shrink: 0;
   padding: 0;
-  border-radius: var(--ld-radius-md);
+  border: 0;
+  border-radius: 50%;
+  background: var(--ld-navy);
+  color: #fff;
+  line-height: 0;
+  cursor: pointer;
+
+  mat-icon {
+    width: 18px;
+    height: 18px;
+    font-size: 18px;
+  }
+
+  &:hover {
+    background: var(--ld-navy-ink);
+  }
 }
 
-.user-menu__avatar {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 32px;
-  height: 32px;
-  border-radius: var(--ld-radius-md);
-  background-color: var(--ld-gray-2);
-  color: var(--ld-dark-9);
-  font-size: var(--ld-font-size-xs);
-  font-weight: 600;
-  box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.2);
-  transition:
-    background-color 0.2s ease,
-    box-shadow 0.2s ease;
-
-  .user-menu__trigger:hover & {
-    background-color: var(--ld-gray-3);
-    box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.4);
+@media (max-width: 480px) {
+  .user-menu__trigger {
+    width: 36px;
+    height: 36px;
   }
 }
 

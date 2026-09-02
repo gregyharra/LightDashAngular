@@ -74,6 +74,26 @@ describe('NavbarUserMenuComponent language', () => {
     expect(languageService.setLanguage).toHaveBeenCalledWith('fr');
   });
 
+  it('renders a settings gear as the menu trigger', () => {
+    const trigger = fixture.nativeElement.querySelector(
+      '.user-menu__trigger',
+    ) as HTMLButtonElement;
+    expect(trigger.getAttribute('aria-label')).toBe('User menu');
+    expect(trigger.querySelector('mat-icon')?.textContent?.trim()).toBe(
+      'settings',
+    );
+  });
+
+  it('keeps Settings reachable from the menu', () => {
+    fixture.nativeElement.querySelector('.user-menu__trigger').click();
+    fixture.detectChanges();
+    const settings = document.querySelector(
+      '[data-testid="user-menu-settings"]',
+    ) as HTMLElement | null;
+    expect(settings).toBeTruthy();
+    expect(settings?.textContent).toContain('Settings');
+  });
+
   it('marks the active language', () => {
     openLanguageMenu(fixture);
     const en = document.querySelector(

@@ -14,6 +14,8 @@ export type ProjectSummary = {
   projectUuid: string;
   name: string;
   type: string;
+  /** Optional short blurb shown on domain cards when present. */
+  description?: string | null;
   createdByUserUuid: string | null;
   createdByUserName: string | null;
   createdAt: string;

@@ -42,6 +42,7 @@ import { FolderSearchPanelComponent } from '../../lineage/folder-search-panel/fo
 import { findTreeNodeByLineageId } from '../../lineage/dbt-tree-utils';
 import { LineageService } from '../../lineage/lineage.service';
 import { ResizableSidebarDirective } from '../../../layout/resizable-sidebar/resizable-sidebar.directive';
+import { ProjectBrowseNavComponent } from '../../../layout/project-browse-nav/project-browse-nav.component';
 import {
   filterTablesFieldGroups,
   TablesFieldGroup,
@@ -114,6 +115,7 @@ import {
     RunQueryButtonComponent,
     SqlHighlightComponent,
     ResizableSidebarDirective,
+    ProjectBrowseNavComponent,
   ],
   templateUrl: './tables-workspace-page.component.html',
   styleUrl: './tables-workspace-page.component.scss',
@@ -130,7 +132,7 @@ export class TablesWorkspacePageComponent {
   private readonly appState = inject(AppStateService);
   private readonly store = inject(Store);
   private readonly translate = inject(TranslateService);
-  protected readonly activeProjectService = inject(ActiveProjectService);
+  private readonly activeProjectService = inject(ActiveProjectService);
 
   private readonly cacheEntries = toSignal(this.store.select(selectEntries), {
     initialValue: {} as Record<string, ChartQueryEntry>,

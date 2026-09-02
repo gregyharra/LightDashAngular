@@ -1,51 +1,12 @@
 <div class="page-layout">
   <aside class="page-layout__sidebar" appResizableSidebar>
-    <div class="page-sidebar">
-      <header class="page-sidebar__header">
-        <p class="page-sidebar__breadcrumb">{{ 'explorer.browse' | translate }}</p>
-        @if (activeProjectService.activeProject(); as project) {
-          <p class="page-sidebar__org">{{ project.name }}</p>
-        }
-      </header>
-
-      <nav class="page-sidebar__nav" [attr.aria-label]="'charts.browseNavigation' | translate">
-        <p class="page-sidebar__section-label">{{ 'explorer.content' | translate }}</p>
-        <a
-          class="page-sidebar__link page-sidebar__link--active page-sidebar__link--clickable"
-          [routerLink]="['/projects', projectUuid(), 'explore']"
-        >
-          <mat-icon>search</mat-icon>
-          {{ 'explorer.title' | translate }}
-        </a>
-        <a
-          class="page-sidebar__link page-sidebar__link--clickable"
-          [routerLink]="['/projects', projectUuid(), 'dashboards']"
-        >
-          <mat-icon>dashboard</mat-icon>
-          {{ 'dashboards.title' | translate }}
-        </a>
-        <a
-          class="page-sidebar__link page-sidebar__link--clickable"
-          [routerLink]="['/projects', projectUuid(), 'charts']"
-        >
-          <mat-icon>bar_chart</mat-icon>
-          {{ 'charts.title' | translate }}
-        </a>
-        <a
-          class="page-sidebar__link page-sidebar__link--clickable"
-          [routerLink]="['/projects', projectUuid(), 'tables']"
-        >
-          <mat-icon>table_chart</mat-icon>
-          {{ 'tables.title' | translate }}
-        </a>
-        <a
-          class="page-sidebar__link page-sidebar__link--clickable"
-          [routerLink]="['/projects', projectUuid(), 'lineage']"
-        >
-          <mat-icon>account_tree</mat-icon>
-          {{ 'lineage.title' | translate }}
-        </a>
-      </nav>
+    <div class="page-sidebar page-sidebar--dark">
+      @if (projectUuid(); as browseProjectUuid) {
+        <app-project-browse-nav
+          [projectUuid]="browseProjectUuid"
+          active="explore"
+        />
+      }
     </div>
   </aside>
 
@@ -142,29 +103,45 @@
               <p>{{ 'explorer.noModelsMatch' | translate }}</p>
             </div>
           } @else {
-            <div class="explorer-page__grid">
-              @for (explore of filteredExplores(); track explore.name) {
-                <button
-                  type="button"
-                  class="explorer-page__card"
-                  (click)="openExplore(explore.name)"
-                >
-                  <div class="explorer-page__card-icon">
-                    <mat-icon>table_chart</mat-icon>
-                  </div>
-                  <div class="explorer-page__card-body">
-                    <span class="explorer-page__card-name">{{ explore.label }}</span>
-                    @if (explore.description) {
-                      <span class="explorer-page__card-description">{{
-                        explore.description
-                      }}</span>
-                    }
-                    <span class="explorer-page__card-meta">
-                      {{ explore.databaseName }}.{{ explore.schemaName }}
+            <div class="explorer-page__sections">
+              @for (section of exploreSections(); track section.key) {
+                <details class="explore-section" open>
+                  <summary class="explore-section__head">
+                    <h2 class="explore-section__title">{{ section.label }}</h2>
+                    <span class="explore-section__count">
+                      {{
+                        'explorer.modelsCount'
+                          | translate: { count: section.count }
+                      }}
                     </span>
-                  </div>
-                  <mat-icon class="explorer-page__card-chevron">chevron_right</mat-icon>
-                </button>
+                    <mat-icon class="explore-section__chev">expand_more</mat-icon>
+                  </summary>
+                  @for (sub of section.subcategories; track sub.key) {
+                    <div class="explore-section__subcat">{{ sub.label }}</div>
+                    <div class="explore-section__grid">
+                      @for (explore of sub.explores; track explore.name) {
+                        <button
+                          type="button"
+                          class="explore-model-card"
+                          (click)="openExplore(explore.name)"
+                        >
+                          <span class="explore-model-card__icon" aria-hidden="true">
+                            <mat-icon>table_chart</mat-icon>
+                          </span>
+                          <span class="explore-model-card__text">
+                            <strong>{{ explore.label }}</strong>
+                            <span>
+                              {{ explore.databaseName }}.{{ explore.schemaName }}
+                            </span>
+                          </span>
+                          <mat-icon class="explore-model-card__chev"
+                            >chevron_right</mat-icon
+                          >
+                        </button>
+                      }
+                    </div>
+                  }
+                </details>
               }
             </div>
           }

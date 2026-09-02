@@ -94,6 +94,7 @@ import { startExport } from '../../export/start-export';
 import { chartExportPlacement } from './chart-export-placement';
 import { resolveChartDraftName } from './chart-draft-name';
 import { ResizableSidebarDirective } from '../../../layout/resizable-sidebar/resizable-sidebar.directive';
+import { ProjectBrowseNavComponent } from '../../../layout/project-browse-nav/project-browse-nav.component';
 import { AppStateService } from '../../../core/services/app-state.service';
 import { SqlHighlightComponent } from '../../../shared/sql-highlight/sql-highlight.component';
 import { RunQueryButtonComponent } from '../../../shared/run-query-button/run-query-button.component';
@@ -150,6 +151,7 @@ const RESULTS_DEFAULT_PAGE_SIZE = 25;
     TablesChartConfigPanelComponent,
     TablesFiltersPanelComponent,
     ResizableSidebarDirective,
+    ProjectBrowseNavComponent,
     RunQueryButtonComponent,
     ChartFieldsAccordionComponent,
     SqlHighlightComponent,
@@ -173,7 +175,7 @@ export class ChartViewPageComponent {
   private readonly renderer = inject(Renderer2);
   private readonly destroyRef = inject(DestroyRef);
   private readonly store = inject(Store);
-  protected readonly activeProjectService = inject(ActiveProjectService);
+  private readonly activeProjectService = inject(ActiveProjectService);
   protected readonly chartExportPlacement = chartExportPlacement;
 
   private readonly cacheEntries = toSignal(this.store.select(selectEntries), {

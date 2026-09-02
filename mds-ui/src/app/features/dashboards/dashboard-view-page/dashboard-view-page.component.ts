@@ -61,6 +61,7 @@ import {
 import { DashboardTileGridInteractionDirective } from '../dashboard-tile-grid-interaction.directive';
 import { getLoomEmbedUrl } from '../dashboard-loom.utils';
 import { ResizableSidebarDirective } from '../../../layout/resizable-sidebar/resizable-sidebar.directive';
+import { ProjectBrowseNavComponent } from '../../../layout/project-browse-nav/project-browse-nav.component';
 
 type DraftState = {
   name: string;
@@ -91,6 +92,7 @@ type DraftState = {
     DashboardTileGridInteractionDirective,
     DragDropModule,
     ResizableSidebarDirective,
+    ProjectBrowseNavComponent,
   ],
   templateUrl: './dashboard-view-page.component.html',
   styleUrls: ['./dashboard-view-page.component.scss'],
@@ -104,7 +106,7 @@ export class DashboardViewPageComponent {
   private readonly translate = inject(TranslateService);
   private readonly languageService = inject(LanguageService);
   private readonly sanitizer = inject(DomSanitizer);
-  protected readonly activeProjectService = inject(ActiveProjectService);
+  private readonly activeProjectService = inject(ActiveProjectService);
 
   private readonly dashboardRoot = viewChild<ElementRef<HTMLElement>>('dashboardRoot');
 

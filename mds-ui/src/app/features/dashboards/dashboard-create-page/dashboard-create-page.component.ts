@@ -14,6 +14,7 @@ import { ActiveProjectService } from '../../../core/services/active-project.serv
 import { SpaceService } from '../../spaces/space.service';
 import { DashboardService } from '../dashboard.service';
 import { ResizableSidebarDirective } from '../../../layout/resizable-sidebar/resizable-sidebar.directive';
+import { ProjectBrowseNavComponent } from '../../../layout/project-browse-nav/project-browse-nav.component';
 
 @Component({
   selector: 'app-dashboard-create-page',
@@ -28,6 +29,7 @@ import { ResizableSidebarDirective } from '../../../layout/resizable-sidebar/res
     MatSelectModule,
     TranslatePipe,
     ResizableSidebarDirective,
+    ProjectBrowseNavComponent,
   ],
   templateUrl: './dashboard-create-page.component.html',
   styleUrl: './dashboard-create-page.component.scss',
@@ -37,7 +39,7 @@ export class DashboardCreatePageComponent {
   private readonly spaceService = inject(SpaceService);
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
-  protected readonly activeProjectService = inject(ActiveProjectService);
+  private readonly activeProjectService = inject(ActiveProjectService);
 
   protected readonly projectUuid = signal<string | null>(null);
   protected readonly spaces = signal<Space[]>([]);

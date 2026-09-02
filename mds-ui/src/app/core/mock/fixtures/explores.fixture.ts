@@ -23,7 +23,7 @@ export const mockExplores: Record<string, ExploreSummary> = {
   fct_orders: {
     name: 'fct_orders',
     label: 'Orders (No Pre-Agg)',
-    tags: ['fact', 'dbt'],
+    tags: ['ecommerce', 'fact'],
     description: 'Order fact table without pre-aggregations',
     schemaName: 'marts',
     databaseName: 'jaffle_shop',
@@ -32,7 +32,7 @@ export const mockExplores: Record<string, ExploreSummary> = {
   support_requests: {
     name: 'support_requests',
     label: 'Support requests',
-    tags: ['support', 'fact'],
+    tags: ['support', 'requests'],
     description: 'Customer support requests and feedback',
     schemaName: 'marts',
     databaseName: 'jaffle_shop',

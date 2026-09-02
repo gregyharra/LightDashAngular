@@ -10,6 +10,7 @@ import { ApiErrorService } from '../../../core/api/api-error.service';
 import { DashboardBasicDetailsWithTileTypes } from '../../../core/models/dashboard.model';
 import { DashboardService } from '../dashboard.service';
 import { ResizableSidebarDirective } from '../../../layout/resizable-sidebar/resizable-sidebar.directive';
+import { ProjectBrowseNavComponent } from '../../../layout/project-browse-nav/project-browse-nav.component';
 import {
   ContentListColumnHeaderComponent,
   ColumnFilterValue,
@@ -41,6 +42,7 @@ import {
     MatProgressSpinnerModule,
     TranslatePipe,
     ResizableSidebarDirective,
+    ProjectBrowseNavComponent,
     ContentListColumnHeaderComponent,
     ContentListFilterChipsComponent,
   ],
@@ -54,7 +56,7 @@ export class DashboardsListPageComponent {
   private readonly router = inject(Router);
   private readonly translate = inject(TranslateService);
   private readonly languageService = inject(LanguageService);
-  protected readonly activeProjectService = inject(ActiveProjectService);
+  private readonly activeProjectService = inject(ActiveProjectService);
 
   protected readonly projectUuid = signal<string | null>(null);
   protected readonly dashboards = signal<DashboardBasicDetailsWithTileTypes[]>([]);
