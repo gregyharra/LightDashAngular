@@ -48,7 +48,10 @@ describe('ProjectsPageComponent', () => {
   let router: Router;
   let routeData: { management?: boolean };
 
-  async function setup(management = false): Promise<void> {
+  async function setup(
+    management = false,
+    projects: ProjectSummary[] = PROJECTS,
+  ): Promise<void> {
     routeData = { management };
 
     await TestBed.configureTestingModule({
@@ -70,7 +73,7 @@ describe('ProjectsPageComponent', () => {
         },
         {
           provide: ProjectsService,
-          useValue: { list: () => of(PROJECTS) },
+          useValue: { list: () => of(projects) },
         },
         {
           provide: ApiErrorService,
@@ -119,6 +122,9 @@ describe('ProjectsPageComponent', () => {
   it('renders domain cards on the home projects page without favorite stars', async () => {
     await setup(false);
 
+    expect(fixture.debugElement.query(By.css('ld-page-frame'))).toBeTruthy();
+    expect(fixture.debugElement.query(By.css('ld-page-header'))).toBeTruthy();
+
     const cards = fixture.debugElement.queryAll(By.css('.domain-card'));
     expect(cards.length).toBe(2);
 
@@ -157,7 +163,9 @@ describe('ProjectsPageComponent', () => {
   it('keeps management create and edit affordances', async () => {
     await setup(true);
 
-    expect(fixture.debugElement.query(By.css('.projects__create-btn'))).toBeTruthy();
+    expect(
+      fixture.debugElement.query(By.css('ld-page-header ld-button[ldActions]')),
+    ).toBeTruthy();
     expect(fixture.debugElement.query(By.css('.domain-card'))).toBeNull();
 
     const adminCards = fixture.debugElement.queryAll(By.css('.project-card'));
@@ -175,5 +183,12 @@ describe('ProjectsPageComponent', () => {
       'project-1',
       'edit',
     ]);
+  });
+
+  it('renders the design-system empty state when there are no projects', async () => {
+    await setup(false, []);
+
+    expect(fixture.debugElement.query(By.css('ld-empty-state'))).toBeTruthy();
+    expect(fixture.debugElement.query(By.css('.projects__empty'))).toBeNull();
   });
 });

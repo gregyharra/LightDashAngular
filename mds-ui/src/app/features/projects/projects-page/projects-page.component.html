@@ -13,24 +13,22 @@
 }
 
 <ng-template #projectsContent>
-  <div class="page__container">
-    <header class="projects__header">
-      <div class="projects__title-block">
-        <h1 class="projects__title">{{ 'projects.title' | translate }}</h1>
-        <p class="projects__subtitle">{{ subtitleKey() | translate }}</p>
-      </div>
+  <ld-page-frame>
+    <ld-page-header
+      [title]="'projects.title' | translate"
+      [subtitle]="subtitleKey() | translate"
+    >
       @if (managementMode() && appState.isAdmin()) {
-        <button
-          mat-flat-button
-          class="projects__create-btn"
+        <ld-button
+          ldActions
           type="button"
+          icon="add"
           (click)="createProject()"
         >
-          <mat-icon>add</mat-icon>
           {{ 'projects.createNew' | translate }}
-        </button>
+        </ld-button>
       }
-    </header>
+    </ld-page-header>
 
     @if (loading()) {
       <div class="projects__loading">
@@ -39,10 +37,10 @@
     } @else if (error()) {
       <div class="projects__error">{{ error() }}</div>
     } @else if (projects().length === 0) {
-      <div class="projects__empty">
-        <mat-icon>folder_open</mat-icon>
-        <p>{{ 'projects.empty' | translate }}</p>
-      </div>
+      <ld-empty-state
+        icon="folder_open"
+        [title]="'projects.empty' | translate"
+      />
     } @else if (managementMode()) {
       <div class="projects__grid">
         @for (project of projects(); track project.projectUuid) {
@@ -132,5 +130,5 @@
         }
       </div>
     }
-  </div>
+  </ld-page-frame>
 </ng-template>

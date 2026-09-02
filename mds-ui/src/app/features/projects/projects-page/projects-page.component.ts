@@ -12,6 +12,12 @@ import { ActiveProjectService } from '../../../core/services/active-project.serv
 import { AppStateService } from '../../../core/services/app-state.service';
 import { ApiErrorService } from '../../../core/api/api-error.service';
 import { ProjectSummary } from '../../../core/models/project.model';
+import {
+  LdButtonComponent,
+  LdEmptyStateComponent,
+  LdPageFrameComponent,
+  LdPageHeaderComponent,
+} from '../../../design-system';
 import { ProjectsService } from '../projects.service';
 
 const WAREHOUSE_LABELS: Record<string, string> = {
@@ -31,6 +37,10 @@ const WAREHOUSE_LABELS: Record<string, string> = {
     MatIconModule,
     MatProgressSpinnerModule,
     TranslatePipe,
+    LdButtonComponent,
+    LdEmptyStateComponent,
+    LdPageFrameComponent,
+    LdPageHeaderComponent,
   ],
   templateUrl: './projects-page.component.html',
   styleUrl: './projects-page.component.scss',
