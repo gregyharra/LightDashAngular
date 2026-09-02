@@ -72,4 +72,21 @@
 
   --ld-font-size-xs: 12px;
   --ld-font-size-sm: 14px;
+
+  /* Semantic aliases (prefer these in new UI) */
+  --ld-color-brand: var(--ld-navy);
+  --ld-color-brand-ink: var(--ld-navy-ink);
+  --ld-color-fg: var(--ld-foreground);
+  --ld-color-bg: var(--ld-background);
+  --ld-color-surface: var(--ld-gray-0);
+  --ld-color-border: var(--ld-gray-2);
+  --ld-color-muted: var(--ld-gray-6);
+
+  --ld-space-xxs: var(--ld-spacing-xxs);
+  --ld-space-xs: var(--ld-spacing-xs);
+  --ld-space-sm: var(--ld-spacing-sm);
+  --ld-space-md: var(--ld-spacing-md);
+  --ld-space-lg: var(--ld-spacing-lg);
+  --ld-space-xl: var(--ld-spacing-xl);
+  --ld-space-xxl: var(--ld-spacing-xxl);
 }
