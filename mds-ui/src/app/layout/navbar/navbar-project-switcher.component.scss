@@ -91,7 +91,8 @@
 }
 
 .project-switcher__current {
-  margin-left: auto;
+  flex-shrink: 0;
+  margin-inline-start: var(--ld-spacing-xs);
   padding: 1px 6px;
   border-radius: var(--ld-radius-sm);
   background-color: var(--ld-navy);
