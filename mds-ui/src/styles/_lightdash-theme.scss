@@ -1,5 +1,5 @@
 :root {
-  --ld-navbar-height: 50px;
+  --ld-navbar-height: 64px;
   --ld-page-header-height: 64px;
   --ld-page-content-width: 900px;
   --ld-page-content-max-width-large: 1600px;
@@ -33,7 +33,18 @@
   --ld-gray-8: #343a40;
   --ld-gray-9: #212529;
 
-  --ld-brand: #7262ff;
+  /* Data Platform identity */
+  --ld-navy: #1e3a8a;
+  --ld-navy-ink: #0f1c3f;
+  --ld-sidebar-dark: #14161d;
+  --ld-sidebar-dark-hover: #1f2330;
+  --ld-sidebar-dark-active: #2a3040;
+  --ld-accent-orange: #c45c3a;
+  --ld-brand-gold-1: #d4a017;
+  --ld-brand-gold-2: #c17a2e;
+  --ld-brand-gold-3: #8b5a2b;
+
+  --ld-brand: #1e3a8a;
   --ld-blue-0: #e7f5ff;
   --ld-blue-6: #228be6;
   --ld-indigo-0: #edf2ff;
