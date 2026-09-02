@@ -1,15 +1,13 @@
 <section class="users">
-  <div class="page__container">
-    <header class="users__header">
-      <div class="users__title-block">
-        <h1 class="users__title">{{ 'users.title' | translate }}</h1>
-        <p class="users__subtitle">{{ 'users.subtitle' | translate }}</p>
-      </div>
-      <button mat-flat-button class="users__create-btn" type="button" (click)="openCreate()">
-        <mat-icon>person_add</mat-icon>
+  <ld-page-frame>
+    <ld-page-header
+      [title]="'users.title' | translate"
+      [subtitle]="'users.subtitle' | translate"
+    >
+      <ld-button ldActions type="button" icon="person_add" (click)="openCreate()">
         {{ 'users.create.button' | translate }}
-      </button>
-    </header>
+      </ld-button>
+    </ld-page-header>
 
     @if (loading()) {
       <div class="users__loading">
@@ -81,8 +79,12 @@
           </table>
         </div>
       } @else if (!error()) {
-        <p class="users__empty">{{ 'users.empty' | translate }}</p>
+        <ld-empty-state icon="group" [title]="'users.empty' | translate">
+          <ld-button ldCta variant="outlined" type="button" (click)="openCreate()">
+            {{ 'users.create.button' | translate }}
+          </ld-button>
+        </ld-empty-state>
       }
     }
-  </div>
+  </ld-page-frame>
 </section>

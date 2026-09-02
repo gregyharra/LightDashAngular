@@ -1,17 +1,13 @@
 <section class="warehouses">
-  <div class="page__container">
-    <header class="warehouses__header">
-      <div>
-        <h1 class="warehouses__title">{{ 'warehouses.title' | translate }}</h1>
-        <p class="warehouses__subtitle">
-          {{ 'warehouses.subtitle' | translate }}
-        </p>
-      </div>
-      <button mat-flat-button class="warehouses__create-btn" (click)="openCreate()">
-        <mat-icon>add</mat-icon>
+  <ld-page-frame>
+    <ld-page-header
+      [title]="'warehouses.title' | translate"
+      [subtitle]="'warehouses.subtitle' | translate"
+    >
+      <ld-button ldActions type="button" icon="add" (click)="openCreate()">
         {{ 'warehouses.create' | translate }}
-      </button>
-    </header>
+      </ld-button>
+    </ld-page-header>
 
     @if (loading()) {
       <div class="warehouses__loading">
@@ -20,13 +16,11 @@
     } @else if (error()) {
       <div class="warehouses__error">{{ error() }}</div>
     } @else if (warehouses().length === 0) {
-      <div class="warehouses__empty">
-        <mat-icon>storage</mat-icon>
-        <p>{{ 'warehouses.empty' | translate }}</p>
-        <button mat-stroked-button (click)="openCreate()">
+      <ld-empty-state icon="storage" [title]="'warehouses.empty' | translate">
+        <ld-button ldCta variant="outlined" type="button" (click)="openCreate()">
           {{ 'warehouses.createFirst' | translate }}
-        </button>
-      </div>
+        </ld-button>
+      </ld-empty-state>
     } @else {
       <div class="warehouses__grid">
         @for (warehouse of warehouses(); track warehouse.warehouseUuid) {
@@ -80,5 +74,5 @@
         }
       </div>
     }
-  </div>
+  </ld-page-frame>
 </section>

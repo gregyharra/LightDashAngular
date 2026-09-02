@@ -6,6 +6,12 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { LanguageService } from '../../../core/i18n/language.service';
 import {
+  LdButtonComponent,
+  LdEmptyStateComponent,
+  LdPageFrameComponent,
+  LdPageHeaderComponent,
+} from '../../../design-system';
+import {
   WAREHOUSE_TYPE_LABELS,
   WarehouseListItem,
 } from '../../../core/models/warehouse.model';
@@ -14,7 +20,16 @@ import { WarehouseService } from '../../projects/warehouse.service';
 
 @Component({
   selector: 'app-warehouses-page',
-  imports: [MatButtonModule, MatIconModule, MatProgressSpinnerModule, TranslatePipe],
+  imports: [
+    MatButtonModule,
+    MatIconModule,
+    MatProgressSpinnerModule,
+    TranslatePipe,
+    LdButtonComponent,
+    LdEmptyStateComponent,
+    LdPageFrameComponent,
+    LdPageHeaderComponent,
+  ],
   templateUrl: './warehouses-page.component.html',
   styleUrl: './warehouses-page.component.scss',
 })

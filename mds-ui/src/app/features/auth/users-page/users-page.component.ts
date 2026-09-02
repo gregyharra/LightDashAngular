@@ -21,6 +21,12 @@ import {
   ManagedUser,
   UpdateUserPayload,
 } from '../../../core/services/auth.service';
+import {
+  LdButtonComponent,
+  LdEmptyStateComponent,
+  LdPageFrameComponent,
+  LdPageHeaderComponent,
+} from '../../../design-system';
 
 type UserFormValue = {
   email: string;
@@ -278,6 +284,10 @@ export class TemporaryPasswordDialogComponent {
     MatTableModule,
     MatDialogModule,
     TranslatePipe,
+    LdButtonComponent,
+    LdEmptyStateComponent,
+    LdPageFrameComponent,
+    LdPageHeaderComponent,
   ],
   templateUrl: './users-page.component.html',
   styleUrl: './users-page.component.scss',
