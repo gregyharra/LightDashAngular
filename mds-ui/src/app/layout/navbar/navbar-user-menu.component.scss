@@ -1,28 +1,33 @@
 .user-menu__trigger {
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
   min-width: 0;
+  flex-shrink: 0;
   padding: 0;
-  border-radius: var(--ld-radius-md);
+  border: 0;
+  border-radius: 50%;
+  background: var(--ld-navy);
+  color: #fff;
+  line-height: 0;
+  cursor: pointer;
+
+  mat-icon {
+    width: 18px;
+    height: 18px;
+    font-size: 18px;
+  }
+
+  &:hover {
+    background: var(--ld-navy-ink);
+  }
 }
 
-.user-menu__avatar {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 36px;
-  height: 36px;
-  border-radius: 50%;
-  background-color: var(--ld-gray-1);
-  color: var(--ld-navy);
-  font-size: var(--ld-font-size-xs);
-  font-weight: 600;
-  border: 1px solid var(--ld-gray-2);
-  transition:
-    background-color 0.2s ease,
-    border-color 0.2s ease;
-
-  .user-menu__trigger:hover & {
-    background-color: var(--ld-gray-2);
-    border-color: var(--ld-gray-3);
+@media (max-width: 480px) {
+  .user-menu__trigger {
+    width: 36px;
+    height: 36px;
   }
 }
 

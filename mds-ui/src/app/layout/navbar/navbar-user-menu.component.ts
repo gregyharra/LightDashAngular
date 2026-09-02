@@ -119,7 +119,6 @@ export class ChangePasswordDialogComponent {
   selector: 'app-navbar-user-menu',
   imports: [
     RouterLink,
-    MatButtonModule,
     MatIconModule,
     MatMenuModule,
     TranslatePipe,
@@ -135,14 +134,6 @@ export class NavbarUserMenuComponent {
 
   protected readonly user = this.appState.user;
   protected readonly isAdmin = this.appState.isAdmin;
-
-  protected initials(): string {
-    const u = this.user();
-    if (!u) {
-      return '?';
-    }
-    return `${u.firstName[0] ?? ''}${u.lastName[0] ?? ''}`.trim() || '?';
-  }
 
   protected logout(): void {
     this.auth.logout().subscribe({

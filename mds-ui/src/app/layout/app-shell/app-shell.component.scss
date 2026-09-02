@@ -108,30 +108,6 @@
   }
 }
 
-.shell__settings-btn {
-  display: grid;
-  place-items: center;
-  width: 40px;
-  height: 40px;
-  flex-shrink: 0;
-  border-radius: 50%;
-  border: 0;
-  background: var(--ld-navy);
-  color: #fff;
-  text-decoration: none;
-  line-height: 0;
-
-  mat-icon {
-    width: 18px;
-    height: 18px;
-    font-size: 18px;
-  }
-
-  &:hover {
-    background: var(--ld-navy-ink);
-  }
-}
-
 .shell__icon-btn {
   display: grid;
   place-items: center;
@@ -226,7 +202,6 @@
     gap: var(--ld-spacing-xxs);
   }
 
-  .shell__settings-btn,
   .shell__icon-btn {
     width: 36px;
     height: 36px;

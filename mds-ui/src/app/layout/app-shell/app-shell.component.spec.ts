@@ -4,7 +4,6 @@ import { provideHttpClient } from '@angular/common/http';
 import { provideHttpClientTesting } from '@angular/common/http/testing';
 import { provideNativeDateAdapter } from '@angular/material/core';
 import { NoopAnimationsModule } from '@angular/platform-browser/animations';
-import { By } from '@angular/platform-browser';
 import { provideRouter } from '@angular/router';
 import { Store } from '@ngrx/store';
 import {
@@ -106,6 +105,7 @@ describe('AppShellComponent navbar identity', () => {
         help: 'Help',
         notifications: 'Notifications',
         settings: 'Settings',
+        userMenu: 'User menu',
         logout: 'Logout',
       },
       common: { admin: 'Admin' },
@@ -136,19 +136,18 @@ describe('AppShellComponent navbar identity', () => {
     ).toContain('Platform');
   });
 
-  it('always shows a settings link to /settings', () => {
-    const settings = fixture.debugElement.query(
-      By.css('a.shell__settings-btn'),
-    );
-    expect(settings).not.toBeNull();
-    expect(settings.attributes['routerLink'] ?? settings.properties['routerLink']).toBe(
-      '/settings',
-    );
-    expect(settings.nativeElement.getAttribute('aria-label')).toBe('Settings');
+  it('shows a settings gear user-menu trigger (no standalone settings link)', () => {
     expect(
-      fixture.nativeElement.querySelector(
-        'a.shell__settings-btn mat-icon',
-      )?.textContent?.trim(),
+      fixture.nativeElement.querySelector('a.shell__settings-btn'),
+    ).toBeNull();
+
+    const trigger = fixture.nativeElement.querySelector(
+      'button.user-menu__trigger',
+    ) as HTMLButtonElement | null;
+    expect(trigger).not.toBeNull();
+    expect(trigger?.getAttribute('aria-label')).toBe('User menu');
+    expect(
+      trigger?.querySelector('mat-icon')?.textContent?.trim(),
     ).toBe('settings');
   });
 
