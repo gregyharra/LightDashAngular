@@ -30,12 +30,26 @@ import { MatIconModule } from '@angular/material/icon';
     button {
       width: 40px;
       height: 40px;
-      border-radius: var(--ld-radius-pill);
-      color: var(--ld-color-fg);
+      border: 1px solid var(--ld-color-border);
+      border-radius: 50%;
+      background: var(--ld-color-bg);
+      color: var(--ld-color-muted);
+    }
+
+    button:hover {
+      background: var(--ld-color-surface);
+      color: var(--ld-color-brand);
+    }
+
+    mat-icon {
+      width: 18px;
+      height: 18px;
+      font-size: 18px;
+      line-height: 18px;
     }
 
     :host(.ld-icon-button--ai) button {
-      color: var(--ld-color-brand);
+      color: var(--ld-color-ai);
     }
   `,
 })

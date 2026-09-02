@@ -21,9 +21,19 @@ describe('LdBrandMarkComponent', () => {
     fixture.detectChanges();
     const host = fixture.nativeElement as HTMLElement;
     const image = host.querySelector('img') as HTMLImageElement;
+    const wordmark = host.querySelector('.ld-brand-mark__wordmark') as HTMLElement;
+    const lead = host.querySelector('em') as HTMLElement;
     expect(image.getAttribute('src')).toBe('assets/brand-mark.svg');
-    expect(host.querySelector('em')?.textContent).toContain('Light');
+    expect(lead.textContent).toContain('Light');
     expect(host.textContent).toContain('dash');
+    expect(getComputedStyle(image).width).toBe('34px');
+    expect(getComputedStyle(image).height).toBe('34px');
+    expect(getComputedStyle(wordmark).fontSize).toBe('18.4px');
+    expect(getComputedStyle(wordmark).fontWeight).toBe('700');
+    expect(getComputedStyle(wordmark).overflow).toBe('hidden');
+    expect(getComputedStyle(wordmark).textOverflow).toBe('ellipsis');
+    expect(getComputedStyle(wordmark).color).toBe('rgb(30, 58, 138)');
+    expect(getComputedStyle(lead).color).toBe('rgb(26, 27, 30)');
   });
 
   it('applies RouterLink when provided', () => {

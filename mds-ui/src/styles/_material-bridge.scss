@@ -2,7 +2,7 @@
 // (prebuilt azure-blue.css loads first; these override on :root).
 :root {
   --mat-sys-primary: var(--ld-color-brand);
-  --mat-sys-on-primary: #ffffff;
+  --mat-sys-on-primary: var(--ld-color-on-brand);
   --mat-sys-primary-container: var(--ld-blue-0);
   --mat-sys-on-primary-container: var(--ld-color-brand-ink);
   --mat-sys-surface: var(--ld-color-bg);

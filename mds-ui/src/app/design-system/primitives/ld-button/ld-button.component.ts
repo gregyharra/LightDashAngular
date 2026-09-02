@@ -69,7 +69,7 @@ export type LdButtonTone = 'primary' | 'neutral';
 
     :host(.ld-button--primary.ld-button--filled) button {
       background: var(--ld-color-brand);
-      color: var(--ld-color-brand-ink);
+      color: var(--ld-color-on-brand);
     }
 
     :host(.ld-button--primary.ld-button--outlined) button {

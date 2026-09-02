@@ -19,6 +19,7 @@ import { Component } from '@angular/core';
 
     :host ::ng-deep > * {
       flex-shrink: 0;
+      white-space: nowrap;
     }
   `,
 })

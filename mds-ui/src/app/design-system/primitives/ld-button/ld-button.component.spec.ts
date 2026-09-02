@@ -28,4 +28,11 @@ describe('LdButtonComponent', () => {
     const btn = fixture.debugElement.query(By.css('button')).nativeElement as HTMLButtonElement;
     expect(btn.disabled).toBeTrue();
   });
+
+  it('uses the semantic on-brand color for filled primary buttons', () => {
+    fixture.detectChanges();
+    const btn = fixture.debugElement.query(By.css('button')).nativeElement as HTMLButtonElement;
+
+    expect(getComputedStyle(btn).color).toBe('rgb(255, 255, 255)');
+  });
 });

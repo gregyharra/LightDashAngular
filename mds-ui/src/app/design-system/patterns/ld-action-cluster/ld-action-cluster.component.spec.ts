@@ -30,5 +30,7 @@ describe('LdActionClusterComponent', () => {
 
     expect((cluster.nativeElement as HTMLElement).classList).toContain('ld-action-cluster');
     expect(button.textContent?.trim()).toBe('Refresh');
+    expect(getComputedStyle(button).whiteSpace).toBe('nowrap');
+    expect(getComputedStyle(button).flexShrink).toBe('0');
   });
 });

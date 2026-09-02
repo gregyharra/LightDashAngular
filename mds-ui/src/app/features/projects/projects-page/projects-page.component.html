@@ -17,6 +17,7 @@
     <ld-page-header
       [title]="'projects.title' | translate"
       [subtitle]="subtitleKey() | translate"
+      [titleTone]="managementMode() ? 'default' : 'brand'"
     >
       @if (managementMode() && appState.isAdmin()) {
         <ld-button

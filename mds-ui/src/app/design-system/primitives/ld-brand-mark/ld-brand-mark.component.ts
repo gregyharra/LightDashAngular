@@ -45,25 +45,29 @@ import { RouterLink } from '@angular/router';
       align-items: center;
       gap: var(--ld-space-xs);
       min-width: 0;
-      color: var(--ld-color-fg);
+      color: var(--ld-color-brand);
       text-decoration: none;
     }
 
     img {
       display: block;
       flex-shrink: 0;
-      width: 28px;
-      height: 28px;
+      width: 34px;
+      height: 34px;
     }
 
     .ld-brand-mark__wordmark {
+      overflow: hidden;
+      font-size: 1.15rem;
+      font-weight: 700;
+      letter-spacing: -0.01em;
+      text-overflow: ellipsis;
       white-space: nowrap;
     }
 
     em {
-      color: var(--ld-color-brand);
+      color: var(--ld-color-fg);
       font-style: normal;
-      font-weight: 700;
     }
 
     @media (max-width: 480px) {
