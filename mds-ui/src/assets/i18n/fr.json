@@ -106,6 +106,7 @@
     "title": "Projets",
     "managementSubtitle": "Créez des projets et gérez leurs paramètres.",
     "exploreSubtitle": "Sélectionnez un projet pour explorer les métriques, graphiques et tableaux de bord.",
+    "domainFallback": "Explorez les métriques, graphiques et tableaux de bord.",
     "loadError": "Impossible de charger les projets.",
     "createNew": "Créer",
     "empty": "Aucun projet disponible.",

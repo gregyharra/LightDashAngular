@@ -106,6 +106,7 @@
     "title": "Projects",
     "managementSubtitle": "Create projects and manage their settings.",
     "exploreSubtitle": "Select a project to explore metrics, charts, and dashboards.",
+    "domainFallback": "Explore metrics, charts, and dashboards.",
     "loadError": "Failed to load projects.",
     "createNew": "Create new",
     "empty": "No projects available.",
