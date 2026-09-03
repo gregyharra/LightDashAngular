@@ -29,6 +29,17 @@ describe('LdButtonComponent', () => {
     expect(btn.disabled).toBeTrue();
   });
 
+  it('binds aria-pressed to the inner button when provided', () => {
+    let btn = fixture.debugElement.query(By.css('button')).nativeElement as HTMLButtonElement;
+    expect(btn.hasAttribute('aria-pressed')).toBeFalse();
+
+    fixture.componentRef.setInput('ariaPressed', true);
+    fixture.detectChanges();
+
+    btn = fixture.debugElement.query(By.css('button')).nativeElement as HTMLButtonElement;
+    expect(btn.getAttribute('aria-pressed')).toBe('true');
+  });
+
   it('uses the semantic on-brand color for filled primary buttons', () => {
     fixture.detectChanges();
     const btn = fixture.debugElement.query(By.css('button')).nativeElement as HTMLButtonElement;

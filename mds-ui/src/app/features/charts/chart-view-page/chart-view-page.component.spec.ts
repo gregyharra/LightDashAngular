@@ -134,11 +134,20 @@ describe('ChartViewPageComponent', () => {
       .triggerEventHandler('click');
     fixture.detectChanges();
 
+    const configureButton = fixture.debugElement.query(
+      By.css('ld-button.chart-view__configure-btn[variant="outlined"]'),
+    );
+    expect(configureButton).toBeTruthy();
     expect(
-      fixture.debugElement.query(
-        By.css('ld-button.chart-view__configure-btn[variant="outlined"]'),
-      ),
-    ).toBeTruthy();
+      (configureButton.query(By.css('button')).nativeElement as HTMLButtonElement)
+        .getAttribute('aria-pressed'),
+    ).toBe('false');
+    configureButton.triggerEventHandler('click');
+    fixture.detectChanges();
+    expect(
+      (configureButton.query(By.css('button')).nativeElement as HTMLButtonElement)
+        .getAttribute('aria-pressed'),
+    ).toBe('true');
     expect(
       fixture.debugElement.query(
         By.css('ld-button.chart-view__save-btn[variant="outlined"]'),

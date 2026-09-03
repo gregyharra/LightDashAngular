@@ -24,6 +24,7 @@ export type LdButtonTone = 'primary' | 'neutral';
         mat-flat-button
         [type]="type()"
         [disabled]="disabled() || loading()"
+        [attr.aria-pressed]="ariaPressed()"
       >
         <ng-container *ngTemplateOutlet="content" />
       </button>
@@ -32,6 +33,7 @@ export type LdButtonTone = 'primary' | 'neutral';
         mat-stroked-button
         [type]="type()"
         [disabled]="disabled() || loading()"
+        [attr.aria-pressed]="ariaPressed()"
       >
         <ng-container *ngTemplateOutlet="content" />
       </button>
@@ -40,6 +42,7 @@ export type LdButtonTone = 'primary' | 'neutral';
         mat-button
         [type]="type()"
         [disabled]="disabled() || loading()"
+        [attr.aria-pressed]="ariaPressed()"
       >
         <ng-container *ngTemplateOutlet="content" />
       </button>
@@ -106,4 +109,5 @@ export class LdButtonComponent {
   readonly loading = input(false);
   readonly type = input<'button' | 'submit'>('button');
   readonly icon = input<string | null>(null);
+  readonly ariaPressed = input<boolean | null>(null);
 }
