@@ -2,9 +2,9 @@ import { Component, computed, inject, input } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { TranslateService } from '@ngx-translate/core';
 import {
-  LdProjectSidenavComponent,
-  LdProjectSidenavItem,
-} from '../../design-system';
+  DpfProjectSidenavComponent,
+  DpfProjectSidenavItem,
+} from '../../shared/ui';
 
 export type ProjectBrowseNavActive =
   | 'explore'
@@ -61,9 +61,9 @@ const TRANSLATION_KEYS = [
 
 @Component({
   selector: 'app-project-browse-nav',
-  imports: [LdProjectSidenavComponent],
+  imports: [DpfProjectSidenavComponent],
   template: `
-    <ld-project-sidenav
+    <dpf-project-sidenav
       [projectUuid]="projectUuid()"
       [active]="active()"
       [items]="items()"
@@ -88,7 +88,7 @@ export class ProjectBrowseNavComponent {
     },
   );
 
-  protected readonly items = computed<readonly LdProjectSidenavItem[]>(() =>
+  protected readonly items = computed<readonly DpfProjectSidenavItem[]>(() =>
     BROWSE_NAV_ITEMS.map(({ labelKey, ...item }) => ({
       ...item,
       label: this.translations()[labelKey],

@@ -50,7 +50,7 @@
         <mat-spinner diameter="32" />
       </div>
     } @else if (error()) {
-      <ld-page-frame class="explorer-page__error">
+      <dpf-page-frame class="explorer-page__error">
         <p>{{ error() }}</p>
         @if (tableId()) {
           <a
@@ -60,10 +60,10 @@
             {{ 'explorer.back' | translate }}
           </a>
         }
-      </ld-page-frame>
+      </dpf-page-frame>
     } @else if (!tableId()) {
       <section class="explorer-page explorer-page--picker">
-        <ld-page-frame class="explorer-page__frame" [wide]="true">
+        <dpf-page-frame class="explorer-page__frame" [wide]="true">
           <header class="explorer-page__header">
             <nav
               class="explorer-page__breadcrumbs"
@@ -93,12 +93,12 @@
           }
 
           @if (explores().length === 0) {
-            <ld-empty-state
+            <dpf-empty-state
               icon="table_chart"
               [title]="'explorer.noExplores' | translate"
             />
           } @else if (filteredExplores().length === 0) {
-            <ld-empty-state
+            <dpf-empty-state
               icon="search"
               [title]="'explorer.noModelsMatch' | translate"
             />
@@ -145,12 +145,12 @@
               }
             </div>
           }
-        </ld-page-frame>
+        </dpf-page-frame>
       </section>
     } @else {
       @if (explore(); as exploreData) {
       <section class="explorer-page">
-        <ld-page-frame class="explorer-page__frame" [wide]="true">
+        <dpf-page-frame class="explorer-page__frame" [wide]="true">
           <header class="explorer-page__header explorer-page__header--workspace">
             <nav
               class="explorer-page__breadcrumbs"
@@ -199,7 +199,7 @@
                   {{ 'export.excel' | translate }}
                 </button>
               </mat-menu>
-              <ld-button
+              <dpf-button
                 type="button"
                 class="explorer-page__action-btn"
                 icon="insert_chart"
@@ -207,7 +207,7 @@
                 (click)="createChartFromData()"
               >
                 {{ 'explorer.createChartFromData' | translate }}
-              </ld-button>
+              </dpf-button>
             </div>
           </header>
 
@@ -307,7 +307,7 @@
               </div>
             </div>
           </div>
-        </ld-page-frame>
+        </dpf-page-frame>
       </section>
       }
     }

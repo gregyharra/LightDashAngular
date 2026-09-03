@@ -1,5 +1,5 @@
 <section class="project-create">
-  <ld-page-frame>
+  <dpf-page-frame>
     <nav
       class="project-create__breadcrumbs"
       [attr.aria-label]="'common.breadcrumb' | translate"
@@ -19,7 +19,7 @@
       }}</span>
     </nav>
 
-    <ld-page-header
+    <dpf-page-header
       [title]="'projects.create.title' | translate"
       [subtitle]="'projects.create.subtitle' | translate"
     />
@@ -63,7 +63,7 @@
             </mat-select>
           </mat-form-field>
 
-          <ld-button
+          <dpf-button
             type="button"
             class="project-create__create-warehouse-btn"
             variant="outlined"
@@ -73,7 +73,7 @@
             [disabled]="submitting()"
           >
             {{ "warehouses.create" | translate }}
-          </ld-button>
+          </dpf-button>
         </div>
 
         @if (warehouses().length === 0) {
@@ -236,7 +236,7 @@
         }
 
         <div class="project-create__actions">
-          <ld-button
+          <dpf-button
             type="button"
             variant="outlined"
             tone="neutral"
@@ -244,17 +244,17 @@
             [disabled]="submitting()"
           >
             {{ "common.cancel" | translate }}
-          </ld-button>
-          <ld-button
+          </dpf-button>
+          <dpf-button
             type="submit"
             class="project-create__submit-btn"
             [disabled]="submitting() || !name.trim()"
             [loading]="submitting()"
           >
             {{ "projects.create.submit" | translate }}
-          </ld-button>
+          </dpf-button>
         </div>
       </form>
     }
-  </ld-page-frame>
+  </dpf-page-frame>
 </section>

@@ -17,9 +17,9 @@
       <p class="auth-card__error">{{ error() }}</p>
     }
 
-    <ld-button type="submit" [disabled]="submitting()">
+    <dpf-button type="submit" [disabled]="submitting()">
       {{ (submitting() ? 'auth.signingIn' : 'auth.signIn') | translate }}
-    </ld-button>
+    </dpf-button>
 
     <p class="auth-card__hint">
       {{ 'auth.forgotHint' | translate }}

@@ -6,11 +6,11 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { LanguageService } from '../../../core/i18n/language.service';
 import {
-  LdButtonComponent,
-  LdEmptyStateComponent,
-  LdPageFrameComponent,
-  LdPageHeaderComponent,
-} from '../../../design-system';
+  DpfButtonComponent,
+  DpfEmptyStateComponent,
+  DpfPageFrameComponent,
+  DpfPageHeaderComponent,
+} from '../../../shared/ui';
 import {
   WAREHOUSE_TYPE_LABELS,
   WarehouseListItem,
@@ -25,10 +25,10 @@ import { WarehouseService } from '../../projects/warehouse.service';
     MatIconModule,
     MatProgressSpinnerModule,
     TranslatePipe,
-    LdButtonComponent,
-    LdEmptyStateComponent,
-    LdPageFrameComponent,
-    LdPageHeaderComponent,
+    DpfButtonComponent,
+    DpfEmptyStateComponent,
+    DpfPageFrameComponent,
+    DpfPageHeaderComponent,
   ],
   templateUrl: './warehouses-page.component.html',
   styleUrl: './warehouses-page.component.scss',

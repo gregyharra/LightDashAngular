@@ -84,16 +84,16 @@ describe('TableHubPageComponent chrome', () => {
 
   afterEach(() => TestBed.resetTestingModule());
 
-  it('uses a wide page frame and design-system picker empty state', async () => {
+  it('uses a wide page frame and shared UI picker empty state', async () => {
     await setup(null);
 
-    const pageFrame = fixture.debugElement.query(By.css('ld-page-frame'));
+    const pageFrame = fixture.debugElement.query(By.css('dpf-page-frame'));
     expect(pageFrame).toBeTruthy();
     expect(pageFrame.componentInstance.wide()).toBeTrue();
-    const frameContent = pageFrame.query(By.css('.ld-page-frame__container'))
+    const frameContent = pageFrame.query(By.css('.dpf-page-frame__container'))
       .nativeElement as HTMLElement;
     expect(getComputedStyle(frameContent).paddingLeft).toBe('20px');
-    expect(fixture.debugElement.query(By.css('ld-empty-state'))).toBeTruthy();
+    expect(fixture.debugElement.query(By.css('dpf-empty-state'))).toBeTruthy();
     expect(fixture.debugElement.query(By.css('.table-hub__empty'))).toBeNull();
   });
 
@@ -101,10 +101,10 @@ describe('TableHubPageComponent chrome', () => {
     await setup('model.orders');
 
     expect(
-      fixture.debugElement.query(By.css('ld-button.table-hub__explore-btn')),
+      fixture.debugElement.query(By.css('dpf-button.table-hub__explore-btn')),
     ).toBeTruthy();
     expect(
-      fixture.debugElement.query(By.css('ld-button.table-hub__save-btn')),
+      fixture.debugElement.query(By.css('dpf-button.table-hub__save-btn')),
     ).toBeTruthy();
   });
 });

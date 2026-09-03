@@ -2,10 +2,10 @@ import { Component, computed, inject, OnInit } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
 import { TranslatePipe } from '@ngx-translate/core';
 import {
-  LdAppTopbarComponent,
-  LdBrandMarkComponent,
-  LdIconButtonComponent,
-} from '../../design-system';
+  DpfAppTopbarComponent,
+  DpfBrandMarkComponent,
+  DpfIconButtonComponent,
+} from '../../shared/ui';
 import { AppStateService } from '../../core/services/app-state.service';
 import { ActiveProjectService } from '../../core/services/active-project.service';
 import { ProjectsService } from '../../features/projects/projects.service';
@@ -24,9 +24,9 @@ import {
   imports: [
     RouterOutlet,
     TranslatePipe,
-    LdAppTopbarComponent,
-    LdBrandMarkComponent,
-    LdIconButtonComponent,
+    DpfAppTopbarComponent,
+    DpfBrandMarkComponent,
+    DpfIconButtonComponent,
     NavbarUserMenuComponent,
     NavbarProjectSwitcherComponent,
     NavbarSearchComponent,

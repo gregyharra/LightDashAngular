@@ -8,10 +8,10 @@ import { Component } from '@angular/core';
   template: `
     <header class="dpf-app-topbar__layout">
       <div class="dpf-app-topbar__brand">
-        <ng-content select="[ldBrand]" />
+        <ng-content select="[dpfBrand]" />
       </div>
       <div class="dpf-app-topbar__center">
-        <ng-content select="[ldCenter]" />
+        <ng-content select="[dpfCenter]" />
       </div>
       <div class="dpf-app-topbar__actions">
         <ng-content select="[dpfActions]" />

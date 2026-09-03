@@ -42,15 +42,15 @@ describe('ProjectCreatePageComponent', () => {
     fixture.detectChanges();
   });
 
-  it('renders design-system page chrome and form actions', () => {
-    expect(fixture.debugElement.query(By.css('ld-page-frame'))).toBeTruthy();
-    expect(fixture.debugElement.query(By.css('ld-page-header'))).toBeTruthy();
+  it('renders shared UI page chrome and form actions', () => {
+    expect(fixture.debugElement.query(By.css('dpf-page-frame'))).toBeTruthy();
+    expect(fixture.debugElement.query(By.css('dpf-page-header'))).toBeTruthy();
     expect(
-      fixture.debugElement.query(By.css('ld-button[type="submit"]')),
+      fixture.debugElement.query(By.css('dpf-button[type="submit"]')),
     ).toBeTruthy();
     expect(
       fixture.debugElement.query(
-        By.css('ld-button[variant="outlined"][tone="neutral"]'),
+        By.css('dpf-button[variant="outlined"][tone="neutral"]'),
       ),
     ).toBeTruthy();
   });

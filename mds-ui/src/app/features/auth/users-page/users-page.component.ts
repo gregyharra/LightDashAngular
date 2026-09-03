@@ -22,11 +22,11 @@ import {
   UpdateUserPayload,
 } from '../../../core/services/auth.service';
 import {
-  LdButtonComponent,
-  LdEmptyStateComponent,
-  LdPageFrameComponent,
-  LdPageHeaderComponent,
-} from '../../../design-system';
+  DpfButtonComponent,
+  DpfEmptyStateComponent,
+  DpfPageFrameComponent,
+  DpfPageHeaderComponent,
+} from '../../../shared/ui';
 
 type UserFormValue = {
   email: string;
@@ -284,10 +284,10 @@ export class TemporaryPasswordDialogComponent {
     MatTableModule,
     MatDialogModule,
     TranslatePipe,
-    LdButtonComponent,
-    LdEmptyStateComponent,
-    LdPageFrameComponent,
-    LdPageHeaderComponent,
+    DpfButtonComponent,
+    DpfEmptyStateComponent,
+    DpfPageFrameComponent,
+    DpfPageHeaderComponent,
   ],
   templateUrl: './users-page.component.html',
   styleUrl: './users-page.component.scss',

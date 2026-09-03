@@ -86,7 +86,7 @@
   min-height: 0;
   overflow: hidden;
 
-  ::ng-deep > .ld-page-frame__container {
+  ::ng-deep > .dpf-page-frame__container {
     display: flex;
     flex: 1 1 auto;
     flex-direction: column;
@@ -97,7 +97,7 @@
 }
 
 .explorer-page--picker .explorer-page__frame {
-  ::ng-deep > .ld-page-frame__container {
+  ::ng-deep > .dpf-page-frame__container {
     overflow-x: clip;
     overflow-y: auto;
   }
@@ -371,7 +371,7 @@ button.explorer-page__action-btn {
   font-size: var(--ld-font-size-sm);
 }
 
-ld-empty-state {
+dpf-empty-state {
   min-height: 200px;
   border: 1px dashed var(--ld-gray-3);
   border-radius: var(--ld-radius-md);

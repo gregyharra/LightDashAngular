@@ -10,10 +10,10 @@ import { ExplorerService } from '../explorer.service';
 import { ResizableSidebarDirective } from '../../../layout/resizable-sidebar/resizable-sidebar.directive';
 import { ProjectBrowseNavComponent } from '../../../layout/project-browse-nav/project-browse-nav.component';
 import {
-  LdEmptyStateComponent,
-  LdPageFrameComponent,
-  LdPageHeaderComponent,
-} from '../../../design-system';
+  DpfEmptyStateComponent,
+  DpfPageFrameComponent,
+  DpfPageHeaderComponent,
+} from '../../../shared/ui';
 
 @Component({
   selector: 'app-explorer-list-page',
@@ -24,9 +24,9 @@ import {
     ResizableSidebarDirective,
     ProjectBrowseNavComponent,
     TranslatePipe,
-    LdEmptyStateComponent,
-    LdPageFrameComponent,
-    LdPageHeaderComponent,
+    DpfEmptyStateComponent,
+    DpfPageFrameComponent,
+    DpfPageHeaderComponent,
   ],
   templateUrl: './explorer-list-page.component.html',
   styleUrl: './explorer-list-page.component.scss',

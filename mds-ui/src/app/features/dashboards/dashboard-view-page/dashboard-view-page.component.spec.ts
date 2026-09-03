@@ -80,37 +80,37 @@ describe('DashboardViewPageComponent', () => {
     fixture.detectChanges();
   });
 
-  it('uses wide page frames and design-system view actions', () => {
-    const pageFrames = fixture.debugElement.queryAll(By.css('ld-page-frame'));
+  it('uses wide page frames and shared UI view actions', () => {
+    const pageFrames = fixture.debugElement.queryAll(By.css('dpf-page-frame'));
     expect(pageFrames.length).toBe(2);
     expect(
       pageFrames.every((frame) => frame.componentInstance.wide()),
     ).toBeTrue();
     expect(
-      fixture.debugElement.query(By.css('ld-button.dashboard-view__edit-btn')),
+      fixture.debugElement.query(By.css('dpf-button.dashboard-view__edit-btn')),
     ).toBeTruthy();
     expect(
       fixture.debugElement.queryAll(
-        By.css('ld-icon-button.dashboard-view__icon-action'),
+        By.css('dpf-icon-button.dashboard-view__icon-action'),
       ).length,
     ).toBe(2);
   });
 
-  it('uses design-system save and cancel actions in edit mode', () => {
+  it('uses shared UI save and cancel actions in edit mode', () => {
     fixture.debugElement
-      .query(By.css('ld-button.dashboard-view__edit-btn'))
+      .query(By.css('dpf-button.dashboard-view__edit-btn'))
       .triggerEventHandler('click');
     fixture.detectChanges();
 
     expect(
       fixture.debugElement.query(
         By.css(
-          'ld-button.dashboard-edit__action-btn[variant="outlined"][tone="neutral"]',
+          'dpf-button.dashboard-edit__action-btn[variant="outlined"][tone="neutral"]',
         ),
       ),
     ).toBeTruthy();
     expect(
-      fixture.debugElement.query(By.css('ld-button.dashboard-edit__save-btn')),
+      fixture.debugElement.query(By.css('dpf-button.dashboard-edit__save-btn')),
     ).toBeTruthy();
   });
 });

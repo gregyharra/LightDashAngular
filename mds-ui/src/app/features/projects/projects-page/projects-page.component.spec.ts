@@ -122,8 +122,8 @@ describe('ProjectsPageComponent', () => {
   it('renders domain cards on the home projects page without favorite stars', async () => {
     await setup(false);
 
-    expect(fixture.debugElement.query(By.css('ld-page-frame'))).toBeTruthy();
-    expect(fixture.debugElement.query(By.css('ld-page-header'))).toBeTruthy();
+    expect(fixture.debugElement.query(By.css('dpf-page-frame'))).toBeTruthy();
+    expect(fixture.debugElement.query(By.css('dpf-page-header'))).toBeTruthy();
 
     const cards = fixture.debugElement.queryAll(By.css('.domain-card'));
     expect(cards.length).toBe(2);
@@ -164,7 +164,7 @@ describe('ProjectsPageComponent', () => {
     await setup(true);
 
     expect(
-      fixture.debugElement.query(By.css('ld-page-header ld-button[ldActions]')),
+      fixture.debugElement.query(By.css('dpf-page-header dpf-button[dpfActions]')),
     ).toBeTruthy();
     expect(fixture.debugElement.query(By.css('.domain-card'))).toBeNull();
 
@@ -185,10 +185,10 @@ describe('ProjectsPageComponent', () => {
     ]);
   });
 
-  it('renders the design-system empty state when there are no projects', async () => {
+  it('renders the shared UI empty state when there are no projects', async () => {
     await setup(false, []);
 
-    expect(fixture.debugElement.query(By.css('ld-empty-state'))).toBeTruthy();
+    expect(fixture.debugElement.query(By.css('dpf-empty-state'))).toBeTruthy();
     expect(fixture.debugElement.query(By.css('.projects__empty'))).toBeNull();
   });
 });

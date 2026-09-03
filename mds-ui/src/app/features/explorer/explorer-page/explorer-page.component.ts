@@ -70,10 +70,10 @@ import { ProjectBrowseNavComponent } from '../../../layout/project-browse-nav/pr
 import { RunQueryButtonComponent } from '../../../shared/run-query-button/run-query-button.component';
 import { SqlHighlightComponent } from '../../../shared/sql-highlight/sql-highlight.component';
 import {
-  LdButtonComponent,
-  LdEmptyStateComponent,
-  LdPageFrameComponent,
-} from '../../../design-system';
+  DpfButtonComponent,
+  DpfEmptyStateComponent,
+  DpfPageFrameComponent,
+} from '../../../shared/ui';
 
 const RESULTS_PAGE_SIZE_OPTIONS = [10, 25, 50, 100];
 const RESULTS_DEFAULT_PAGE_SIZE = 25;
@@ -96,9 +96,9 @@ const RESULTS_DEFAULT_PAGE_SIZE = 25;
     ProjectBrowseNavComponent,
     RunQueryButtonComponent,
     SqlHighlightComponent,
-    LdButtonComponent,
-    LdEmptyStateComponent,
-    LdPageFrameComponent,
+    DpfButtonComponent,
+    DpfEmptyStateComponent,
+    DpfPageFrameComponent,
   ],
   templateUrl: './explorer-page.component.html',
   styleUrl: './explorer-page.component.scss',

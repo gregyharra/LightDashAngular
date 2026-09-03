@@ -14,10 +14,10 @@ import { WarehouseListItem } from '../../../core/models/warehouse.model';
 import { ActiveProjectService } from '../../../core/services/active-project.service';
 import { WarehouseCreateDialogComponent } from '../../warehouses/warehouse-create-dialog/warehouse-create-dialog.component';
 import {
-  LdButtonComponent,
-  LdPageFrameComponent,
-  LdPageHeaderComponent,
-} from '../../../design-system';
+  DpfButtonComponent,
+  DpfPageFrameComponent,
+  DpfPageHeaderComponent,
+} from '../../../shared/ui';
 import { ProjectsService } from '../projects.service';
 import { WarehouseService } from '../warehouse.service';
 import { detectGitProvider } from '../git-provider.utils';
@@ -34,9 +34,9 @@ import { detectGitProvider } from '../git-provider.utils';
     MatProgressSpinnerModule,
     MatSelectModule,
     TranslatePipe,
-    LdButtonComponent,
-    LdPageFrameComponent,
-    LdPageHeaderComponent,
+    DpfButtonComponent,
+    DpfPageFrameComponent,
+    DpfPageHeaderComponent,
   ],
   templateUrl: './project-create-page.component.html',
   styleUrl: './project-create-page.component.scss',

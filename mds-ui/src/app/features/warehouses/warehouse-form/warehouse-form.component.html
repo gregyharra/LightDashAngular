@@ -137,7 +137,7 @@
 
     @if (showActions()) {
       <div class="warehouse-form__actions">
-        <ld-button
+        <dpf-button
           class="warehouse-form__test-btn"
           type="button"
           variant="outlined"
@@ -147,9 +147,9 @@
           [loading]="testing()"
         >
           {{ 'warehouses.testConnection' | translate }}
-        </ld-button>
+        </dpf-button>
 
-        <ld-button
+        <dpf-button
           class="warehouse-form__cancel-btn"
           type="button"
           variant="outlined"
@@ -158,9 +158,9 @@
           [disabled]="saving() || testing()"
         >
           {{ 'common.cancel' | translate }}
-        </ld-button>
+        </dpf-button>
 
-        <ld-button
+        <dpf-button
           class="warehouse-form__save-btn"
           type="submit"
           [disabled]="saving() || testing()"
@@ -171,7 +171,7 @@
           } @else {
             {{ 'warehouses.saveChanges' | translate }}
           }
-        </ld-button>
+        </dpf-button>
       </div>
     }
   </form>

@@ -80,13 +80,13 @@ describe('ExplorerPageComponent chrome', () => {
 
   afterEach(() => TestBed.resetTestingModule());
 
-  it('uses a wide page frame and design-system picker empty state', async () => {
+  it('uses a wide page frame and shared UI picker empty state', async () => {
     await setup(null);
 
-    const pageFrame = fixture.debugElement.query(By.css('ld-page-frame'));
+    const pageFrame = fixture.debugElement.query(By.css('dpf-page-frame'));
     expect(pageFrame).toBeTruthy();
     expect(pageFrame.componentInstance.wide()).toBeTrue();
-    expect(fixture.debugElement.query(By.css('ld-empty-state'))).toBeTruthy();
+    expect(fixture.debugElement.query(By.css('dpf-empty-state'))).toBeTruthy();
     expect(fixture.debugElement.query(By.css('.explorer-page__empty'))).toBeNull();
   });
 
@@ -97,7 +97,7 @@ describe('ExplorerPageComponent chrome', () => {
       fixture.debugElement.query(By.css('app-run-query-button')),
     ).toBeTruthy();
     expect(
-      fixture.debugElement.query(By.css('ld-button.explorer-page__action-btn')),
+      fixture.debugElement.query(By.css('dpf-button.explorer-page__action-btn')),
     ).toBeTruthy();
   });
 });

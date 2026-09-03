@@ -3,9 +3,9 @@ import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { MatIconModule } from '@angular/material/icon';
 import { TranslatePipe } from '@ngx-translate/core';
 import {
-  LdPageFrameComponent,
-  LdPageHeaderComponent,
-} from '../../../design-system';
+  DpfPageFrameComponent,
+  DpfPageHeaderComponent,
+} from '../../../shared/ui';
 import { WarehouseFormComponent } from '../warehouse-form/warehouse-form.component';
 
 @Component({
@@ -15,8 +15,8 @@ import { WarehouseFormComponent } from '../warehouse-form/warehouse-form.compone
     MatIconModule,
     WarehouseFormComponent,
     TranslatePipe,
-    LdPageFrameComponent,
-    LdPageHeaderComponent,
+    DpfPageFrameComponent,
+    DpfPageHeaderComponent,
   ],
   templateUrl: './warehouse-edit-page.component.html',
   styleUrl: './warehouse-edit-page.component.scss',

@@ -13,23 +13,23 @@
 }
 
 <ng-template #projectsContent>
-  <ld-page-frame>
-    <ld-page-header
+  <dpf-page-frame>
+    <dpf-page-header
       [title]="'projects.title' | translate"
       [subtitle]="subtitleKey() | translate"
       [titleTone]="managementMode() ? 'default' : 'brand'"
     >
       @if (managementMode() && appState.isAdmin()) {
-        <ld-button
-          ldActions
+        <dpf-button
+          dpfActions
           type="button"
           icon="add"
           (click)="createProject()"
         >
           {{ 'projects.createNew' | translate }}
-        </ld-button>
+        </dpf-button>
       }
-    </ld-page-header>
+    </dpf-page-header>
 
     @if (loading()) {
       <div class="projects__loading">
@@ -38,7 +38,7 @@
     } @else if (error()) {
       <div class="projects__error">{{ error() }}</div>
     } @else if (projects().length === 0) {
-      <ld-empty-state
+      <dpf-empty-state
         icon="folder_open"
         [title]="'projects.empty' | translate"
       />
@@ -131,5 +131,5 @@
         }
       </div>
     }
-  </ld-page-frame>
+  </dpf-page-frame>
 </ng-template>

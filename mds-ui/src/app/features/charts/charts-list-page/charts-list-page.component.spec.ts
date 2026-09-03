@@ -66,24 +66,24 @@ describe('ChartsListPageComponent', () => {
     fixture.detectChanges();
   });
 
-  it('renders the design-system page chrome and empty state', () => {
-    expect(fixture.debugElement.query(By.css('ld-page-frame'))).toBeTruthy();
-    expect(fixture.debugElement.query(By.css('ld-page-header'))).toBeTruthy();
+  it('renders the shared UI page chrome and empty state', () => {
+    expect(fixture.debugElement.query(By.css('dpf-page-frame'))).toBeTruthy();
+    expect(fixture.debugElement.query(By.css('dpf-page-header'))).toBeTruthy();
     expect(
-      fixture.debugElement.query(By.css('ld-page-header ld-button[ldActions]')),
+      fixture.debugElement.query(By.css('dpf-page-header dpf-button[dpfActions]')),
     ).toBeTruthy();
-    expect(fixture.debugElement.query(By.css('ld-empty-state'))).toBeTruthy();
+    expect(fixture.debugElement.query(By.css('dpf-empty-state'))).toBeTruthy();
     expect(
-      fixture.debugElement.query(By.css('ld-empty-state ld-button[ldCta]')),
+      fixture.debugElement.query(By.css('dpf-empty-state dpf-button[dpfCta]')),
     ).toBeTruthy();
     expect(
       fixture.debugElement.query(By.css('.charts-list__empty')),
     ).toBeNull();
   });
 
-  it('navigates from the design-system create action', () => {
+  it('navigates from the shared UI create action', () => {
     fixture.debugElement
-      .query(By.css('ld-page-header ld-button[ldActions]'))
+      .query(By.css('dpf-page-header dpf-button[dpfActions]'))
       .triggerEventHandler('click');
 
     expect(router.navigate).toHaveBeenCalledWith([

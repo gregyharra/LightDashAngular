@@ -61,13 +61,13 @@ describe('ExplorerListPageComponent', () => {
     fixture.detectChanges();
   });
 
-  it('renders the design-system page chrome and empty state without a create action', () => {
-    expect(fixture.debugElement.query(By.css('ld-page-frame'))).toBeTruthy();
-    expect(fixture.debugElement.query(By.css('ld-page-header'))).toBeTruthy();
+  it('renders the shared UI page chrome and empty state without a create action', () => {
+    expect(fixture.debugElement.query(By.css('dpf-page-frame'))).toBeTruthy();
+    expect(fixture.debugElement.query(By.css('dpf-page-header'))).toBeTruthy();
     expect(
-      fixture.debugElement.query(By.css('ld-page-header ld-button[ldActions]')),
+      fixture.debugElement.query(By.css('dpf-page-header dpf-button[dpfActions]')),
     ).toBeNull();
-    expect(fixture.debugElement.query(By.css('ld-empty-state'))).toBeTruthy();
+    expect(fixture.debugElement.query(By.css('dpf-empty-state'))).toBeTruthy();
     expect(
       fixture.debugElement.query(By.css('.explorer-list__empty')),
     ).toBeNull();

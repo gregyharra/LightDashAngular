@@ -10,10 +10,10 @@ import { apiErrorMessage } from '../../../core/api/lightdash-api.service';
 import { Space } from '../../../core/models/space.model';
 import { ActiveProjectService } from '../../../core/services/active-project.service';
 import {
-  LdButtonComponent,
-  LdPageFrameComponent,
-  LdPageHeaderComponent,
-} from '../../../design-system';
+  DpfButtonComponent,
+  DpfPageFrameComponent,
+  DpfPageHeaderComponent,
+} from '../../../shared/ui';
 import { ProjectBrowseNavComponent } from '../../../layout/project-browse-nav/project-browse-nav.component';
 import { ResizableSidebarDirective } from '../../../layout/resizable-sidebar/resizable-sidebar.directive';
 import { SpaceService } from '../../spaces/space.service';
@@ -31,9 +31,9 @@ import { DashboardService } from '../dashboard.service';
     TranslatePipe,
     ResizableSidebarDirective,
     ProjectBrowseNavComponent,
-    LdButtonComponent,
-    LdPageFrameComponent,
-    LdPageHeaderComponent,
+    DpfButtonComponent,
+    DpfPageFrameComponent,
+    DpfPageHeaderComponent,
   ],
   templateUrl: './dashboard-create-page.component.html',
   styleUrl: './dashboard-create-page.component.scss',

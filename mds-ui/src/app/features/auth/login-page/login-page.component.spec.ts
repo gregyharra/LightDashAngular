@@ -23,8 +23,8 @@ describe('LoginPageComponent', () => {
     fixture.detectChanges();
   });
 
-  it('renders the primary submit action with the design-system button', () => {
-    const action = fixture.debugElement.query(By.css('ld-button[type="submit"]'));
+  it('renders the primary submit action with the shared UI button', () => {
+    const action = fixture.debugElement.query(By.css('dpf-button[type="submit"]'));
 
     expect(action).toBeTruthy();
     expect(action.query(By.css('button[type="submit"]'))).toBeTruthy();

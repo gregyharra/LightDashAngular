@@ -5,7 +5,7 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { AuthService } from '../../../core/services/auth.service';
-import { LdButtonComponent } from '../../../design-system';
+import { DpfButtonComponent } from '../../../shared/ui';
 
 @Component({
   selector: 'app-login-page',
@@ -13,7 +13,7 @@ import { LdButtonComponent } from '../../../design-system';
     ReactiveFormsModule,
     MatFormFieldModule,
     MatInputModule,
-    LdButtonComponent,
+    DpfButtonComponent,
     TranslatePipe,
   ],
   templateUrl: './login-page.component.html',

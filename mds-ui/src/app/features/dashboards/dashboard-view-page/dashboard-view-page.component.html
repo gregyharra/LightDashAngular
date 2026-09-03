@@ -31,7 +31,7 @@
       [class.dashboard-view__header]="!editMode()"
       [class.dashboard-edit__header]="editMode()"
     >
-      <ld-page-frame [wide]="true">
+      <dpf-page-frame [wide]="true">
       <div
         class="page-header--compact-padding"
         [class.dashboard-view__header-inner]="!editMode()"
@@ -163,7 +163,7 @@
                 }
               </mat-menu>
 
-              <ld-button
+              <dpf-button
                 type="button"
                 class="dashboard-edit__action-btn page-header__action-btn--labeled page-header__action-btn--cancel"
                 variant="outlined"
@@ -173,8 +173,8 @@
                 icon="close"
               >
                 <span class="page-header__action-label page-header__action-btn--cancel-label">{{ 'common.cancel' | translate }}</span>
-              </ld-button>
-              <ld-button
+              </dpf-button>
+              <dpf-button
                 type="button"
                 class="dashboard-edit__save-btn page-header__action-btn--labeled"
                 (click)="saveDashboard()"
@@ -183,18 +183,18 @@
                 icon="save"
               >
                 <span class="page-header__action-label">{{ 'common.save' | translate }}</span>
-              </ld-button>
+              </dpf-button>
             } @else {
-              <ld-button
+              <dpf-button
                 type="button"
                 class="dashboard-view__edit-btn page-header__action-btn--labeled"
                 (click)="enterEditMode()"
                 icon="edit"
               >
                 <span class="page-header__action-label">{{ 'dashboards.workspace.edit' | translate }}</span>
-              </ld-button>
+              </dpf-button>
 
-              <ld-icon-button
+              <dpf-icon-button
                 class="dashboard-view__icon-action"
                 [class.dashboard-view__spin]="refreshing()"
                 [disabled]="refreshing()"
@@ -247,7 +247,7 @@
                 </button>
               </mat-menu>
 
-              <ld-icon-button
+              <dpf-icon-button
                 class="dashboard-view__icon-action"
                 (click)="toggleFullscreen()"
                 [icon]="isFullscreen() ? 'fullscreen_exit' : 'fullscreen'"
@@ -417,7 +417,7 @@
           </div>
         }
       </div>
-      </ld-page-frame>
+      </dpf-page-frame>
     </header>
 
     <app-dashboard-filters-bar
@@ -433,7 +433,7 @@
     />
 
     <div [class.dashboard-view__content]="!editMode()" [class.dashboard-edit__content]="editMode()">
-      <ld-page-frame [wide]="true">
+      <dpf-page-frame [wide]="true">
         <div
           #dashboardGrid
           [class.dashboard-view__grid]="!editMode()"
@@ -675,7 +675,7 @@
             }
           }
         </div>
-      </ld-page-frame>
+      </dpf-page-frame>
     </div>
 
     @if (!editMode() && showScrollTop()) {

@@ -63,10 +63,10 @@ import { getLoomEmbedUrl } from '../dashboard-loom.utils';
 import { ResizableSidebarDirective } from '../../../layout/resizable-sidebar/resizable-sidebar.directive';
 import { ProjectBrowseNavComponent } from '../../../layout/project-browse-nav/project-browse-nav.component';
 import {
-  LdButtonComponent,
-  LdIconButtonComponent,
-  LdPageFrameComponent,
-} from '../../../design-system';
+  DpfButtonComponent,
+  DpfIconButtonComponent,
+  DpfPageFrameComponent,
+} from '../../../shared/ui';
 
 type DraftState = {
   name: string;
@@ -97,9 +97,9 @@ type DraftState = {
     DragDropModule,
     ResizableSidebarDirective,
     ProjectBrowseNavComponent,
-    LdButtonComponent,
-    LdIconButtonComponent,
-    LdPageFrameComponent,
+    DpfButtonComponent,
+    DpfIconButtonComponent,
+    DpfPageFrameComponent,
   ],
   templateUrl: './dashboard-view-page.component.html',
   styleUrls: ['./dashboard-view-page.component.scss'],

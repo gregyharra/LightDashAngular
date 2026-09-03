@@ -6,7 +6,7 @@ import { MatInputModule } from '@angular/material/input';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { AuthService } from '../../../core/services/auth.service';
 import { AppStateService } from '../../../core/services/app-state.service';
-import { LdButtonComponent } from '../../../design-system';
+import { DpfButtonComponent } from '../../../shared/ui';
 
 @Component({
   selector: 'app-reset-password-page',
@@ -14,7 +14,7 @@ import { LdButtonComponent } from '../../../design-system';
     ReactiveFormsModule,
     MatFormFieldModule,
     MatInputModule,
-    LdButtonComponent,
+    DpfButtonComponent,
     RouterLink,
     TranslatePipe,
   ],

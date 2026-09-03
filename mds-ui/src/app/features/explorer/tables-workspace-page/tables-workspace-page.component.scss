@@ -144,7 +144,7 @@ button.tables-workspace__toolbar-btn {
   }
 
   button.tables-workspace__toolbar-btn,
-  ld-button.tables-workspace__toolbar-btn {
+  dpf-button.tables-workspace__toolbar-btn {
     width: 32px;
     min-width: 32px;
     padding: 0;
@@ -158,7 +158,7 @@ button.tables-workspace__toolbar-btn {
     }
   }
 
-  ld-button.tables-workspace__toolbar-btn {
+  dpf-button.tables-workspace__toolbar-btn {
     ::ng-deep > button {
       width: 32px;
       min-width: 32px;

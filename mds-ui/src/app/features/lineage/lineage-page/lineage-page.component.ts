@@ -16,9 +16,9 @@ import {
 } from '../../../core/models/lineage.model';
 import { ActiveProjectService } from '../../../core/services/active-project.service';
 import {
-  LdPageFrameComponent,
-  LdPageHeaderComponent,
-} from '../../../design-system';
+  DpfPageFrameComponent,
+  DpfPageHeaderComponent,
+} from '../../../shared/ui';
 import { ProjectBrowseNavComponent } from '../../../layout/project-browse-nav/project-browse-nav.component';
 import { ResizableSidebarDirective } from '../../../layout/resizable-sidebar/resizable-sidebar.directive';
 import { findTreeNodeByLineageId } from '../dbt-tree-utils';
@@ -39,8 +39,8 @@ import { LineageService } from '../lineage.service';
     ResizableSidebarDirective,
     ProjectBrowseNavComponent,
     TranslatePipe,
-    LdPageFrameComponent,
-    LdPageHeaderComponent,
+    DpfPageFrameComponent,
+    DpfPageHeaderComponent,
   ],
   templateUrl: './lineage-page.component.html',
   styleUrl: './lineage-page.component.scss',

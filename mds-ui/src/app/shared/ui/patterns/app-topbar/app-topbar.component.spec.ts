@@ -6,8 +6,8 @@ import { DpfAppTopbarComponent } from './app-topbar.component';
   imports: [DpfAppTopbarComponent],
   template: `
     <dpf-app-topbar>
-      <div ldBrand>Brand content</div>
-      <div ldCenter>Center content</div>
+      <div dpfBrand>Brand content</div>
+      <div dpfCenter>Center content</div>
       <div dpfActions>Actions content</div>
     </dpf-app-topbar>
   `,

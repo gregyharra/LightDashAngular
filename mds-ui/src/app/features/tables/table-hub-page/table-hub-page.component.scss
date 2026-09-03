@@ -36,7 +36,7 @@
   max-width: 100%;
   overflow: hidden;
 
-  ::ng-deep > .ld-page-frame__container {
+  ::ng-deep > .dpf-page-frame__container {
     display: flex;
     flex: 1;
     flex-direction: column;
@@ -52,7 +52,7 @@
 .table-hub__main:has(.table-hub__lineage),
 .table-hub__main:has(.table-hub__columns-panel),
 .table-hub__main:has(.table-hub__links-panel) {
-  ::ng-deep > .ld-page-frame__container {
+  ::ng-deep > .dpf-page-frame__container {
     overflow: hidden;
     padding-bottom: 0;
   }

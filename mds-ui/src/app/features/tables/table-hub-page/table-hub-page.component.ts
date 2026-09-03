@@ -61,10 +61,10 @@ import {
 import {
   ColumnFilterType,
   ColumnFilterValue,
-  LdContentListColumnHeaderComponent,
-  LdButtonComponent,
-  LdEmptyStateComponent,
-  LdPageFrameComponent,
+  DpfContentListColumnHeaderComponent,
+  DpfButtonComponent,
+  DpfEmptyStateComponent,
+  DpfPageFrameComponent,
   NumberFilterValue,
   SelectFilterValue,
   SelectOption,
@@ -77,7 +77,7 @@ import {
   matchesNumberFilter,
   matchesSelectFilter,
   matchesTextFilter,
-} from '../../../design-system';
+} from '../../../shared/ui';
 
 type HubTab = 'overview' | 'columns' | 'links' | 'lineage' | 'sql';
 
@@ -125,10 +125,10 @@ const ENABLE_TABLE_HUB_TAG_EDITING = false;
     MatProgressSpinnerModule,
     TranslatePipe,
     AddAttributeDialogComponent,
-    LdButtonComponent,
-    LdContentListColumnHeaderComponent,
-    LdEmptyStateComponent,
-    LdPageFrameComponent,
+    DpfButtonComponent,
+    DpfContentListColumnHeaderComponent,
+    DpfEmptyStateComponent,
+    DpfPageFrameComponent,
     FilterableLinksTableComponent,
     FolderSearchPanelComponent,
     LineageGraphComponent,

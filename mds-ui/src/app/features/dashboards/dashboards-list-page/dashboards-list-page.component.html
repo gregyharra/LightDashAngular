@@ -12,7 +12,7 @@
 
   <div class="page-layout__content">
     <section class="dashboards-list">
-      <ld-page-frame [wide]="true">
+      <dpf-page-frame [wide]="true">
         <nav
           class="dashboards-list__breadcrumbs"
           [attr.aria-label]="'dashboards.breadcrumb' | translate"
@@ -26,16 +26,16 @@
           </span>
         </nav>
 
-        <ld-page-header [title]="'dashboards.title' | translate">
-          <ld-button
-            ldActions
+        <dpf-page-header [title]="'dashboards.title' | translate">
+          <dpf-button
+            dpfActions
             type="button"
             icon="add"
             (click)="openCreatePage()"
           >
             {{ "dashboards.create.action" | translate }}
-          </ld-button>
-        </ld-page-header>
+          </dpf-button>
+        </dpf-page-header>
 
         @if (loading()) {
           <div class="dashboards-list__loading">
@@ -44,28 +44,28 @@
         } @else if (error()) {
           <div class="dashboards-list__error">{{ error() }}</div>
         } @else if (dashboards().length === 0) {
-          <ld-empty-state
+          <dpf-empty-state
             icon="dashboard"
             [title]="'dashboards.empty' | translate"
           >
-            <ld-button
-              ldCta
+            <dpf-button
+              dpfCta
               type="button"
               icon="add"
               (click)="openCreatePage()"
             >
               {{ "dashboards.create.action" | translate }}
-            </ld-button>
-          </ld-empty-state>
+            </dpf-button>
+          </dpf-empty-state>
         } @else {
-          <ld-content-list-filter-chips
+          <dpf-content-list-filter-chips
             [chips]="activeFilterChips()"
             (clearChip)="clearFilterChip($event)"
             (clearAll)="clearAllFilters()"
           />
 
           @if (filteredDashboards().length === 0) {
-            <ld-empty-state
+            <dpf-empty-state
               icon="search_off"
               [title]="
                 (hasActiveFilters()
@@ -80,7 +80,7 @@
                 <thead>
                   <tr>
                     <th scope="col">
-                      <ld-content-list-column-header
+                      <dpf-content-list-column-header
                         [label]="'dashboards.fields.name' | translate"
                         filterType="text"
                         [textPlaceholder]="'dashboards.search' | translate"
@@ -89,7 +89,7 @@
                       />
                     </th>
                     <th scope="col">
-                      <ld-content-list-column-header
+                      <dpf-content-list-column-header
                         [label]="'dashboards.fields.space' | translate"
                         filterType="select"
                         [options]="spaceOptions()"
@@ -98,7 +98,7 @@
                       />
                     </th>
                     <th scope="col">
-                      <ld-content-list-column-header
+                      <dpf-content-list-column-header
                         [label]="'dashboards.fields.lastEdited' | translate"
                         filterType="date"
                         [value]="columnFilters().lastEdited"
@@ -106,7 +106,7 @@
                       />
                     </th>
                     <th scope="col">
-                      <ld-content-list-column-header
+                      <dpf-content-list-column-header
                         [label]="'dashboards.fields.views' | translate"
                         filterType="number"
                         [value]="columnFilters().views"
@@ -154,7 +154,7 @@
             </div>
           }
         }
-      </ld-page-frame>
+      </dpf-page-frame>
     </section>
   </div>
 </div>

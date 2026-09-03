@@ -1,5 +1,5 @@
 <section class="warehouse-edit">
-  <ld-page-frame>
+  <dpf-page-frame>
     <nav
       class="warehouse-edit__breadcrumbs"
       [attr.aria-label]="'common.breadcrumb' | translate"
@@ -23,7 +23,7 @@
       </span>
     </nav>
 
-    <ld-page-header
+    <dpf-page-header
       [title]="
         (isCreateMode() ? 'warehouses.create' : 'warehouses.edit') | translate
       "
@@ -36,5 +36,5 @@
       (saved)="onSaved()"
       (cancelled)="onCancelled()"
     />
-  </ld-page-frame>
+  </dpf-page-frame>
 </section>

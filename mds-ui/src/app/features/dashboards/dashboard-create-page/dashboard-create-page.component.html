@@ -12,7 +12,7 @@
 
   <div class="page-layout__content">
     <section class="dashboard-create">
-      <ld-page-frame>
+      <dpf-page-frame>
         <nav
           class="dashboard-create__breadcrumbs"
           [attr.aria-label]="'dashboards.breadcrumb' | translate"
@@ -33,7 +33,7 @@
           </span>
         </nav>
 
-        <ld-page-header
+        <dpf-page-header
           [title]="'dashboards.create.action' | translate"
           [subtitle]="'dashboards.create.subtitle' | translate"
         />
@@ -80,7 +80,7 @@
           }
 
           <div class="dashboard-create__actions">
-            <ld-button
+            <dpf-button
               type="button"
               variant="outlined"
               tone="neutral"
@@ -88,18 +88,18 @@
               [disabled]="submitting()"
             >
               {{ 'common.cancel' | translate }}
-            </ld-button>
-            <ld-button
+            </dpf-button>
+            <dpf-button
               type="submit"
               class="dashboard-create__submit-btn"
               [disabled]="submitting() || !name.trim()"
               [loading]="submitting()"
             >
               {{ 'dashboards.create.action' | translate }}
-            </ld-button>
+            </dpf-button>
           </div>
         </form>
-      </ld-page-frame>
+      </dpf-page-frame>
     </section>
   </div>
 </div>

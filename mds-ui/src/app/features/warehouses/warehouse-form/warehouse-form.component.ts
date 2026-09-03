@@ -16,7 +16,7 @@ import {
   WAREHOUSE_TYPE_OPTIONS,
   WarehouseUpdate,
 } from '../../../core/models/warehouse.model';
-import { LdButtonComponent } from '../../../design-system';
+import { DpfButtonComponent } from '../../../shared/ui';
 import { WarehouseService } from '../../projects/warehouse.service';
 
 @Component({
@@ -29,7 +29,7 @@ import { WarehouseService } from '../../projects/warehouse.service';
     MatSelectModule,
     MatSlideToggleModule,
     TranslatePipe,
-    LdButtonComponent,
+    DpfButtonComponent,
   ],
   templateUrl: './warehouse-form.component.html',
   styleUrl: './warehouse-form.component.scss',

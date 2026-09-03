@@ -119,22 +119,22 @@ describe('AppShellComponent navbar identity', () => {
     fixture.detectChanges();
   });
 
-  it('renders the design-system topbar and brand link', () => {
-    expect(fixture.nativeElement.querySelector('ld-app-topbar')).not.toBeNull();
+  it('renders the shared UI topbar and brand link', () => {
+    expect(fixture.nativeElement.querySelector('dpf-app-topbar')).not.toBeNull();
 
     const brand = fixture.nativeElement.querySelector(
-      'ld-brand-mark a[href="/projects"]',
+      'dpf-brand-mark a[href="/projects"]',
     ) as HTMLAnchorElement | null;
     expect(brand).not.toBeNull();
     expect(brand?.getAttribute('aria-label')).toBe('Data Platform');
     expect(
-      fixture.nativeElement.querySelector('ld-brand-mark img'),
+      fixture.nativeElement.querySelector('dpf-brand-mark img'),
     ).not.toBeNull();
     expect(
-      fixture.nativeElement.querySelector('ld-brand-mark')?.textContent,
+      fixture.nativeElement.querySelector('dpf-brand-mark')?.textContent,
     ).toContain('Data');
     expect(
-      fixture.nativeElement.querySelector('ld-brand-mark')?.textContent,
+      fixture.nativeElement.querySelector('dpf-brand-mark')?.textContent,
     ).toContain('Platform');
   });
 
@@ -226,7 +226,7 @@ describe('AppShellComponent navbar identity', () => {
 
     expect(component['askAiEnabled']()).toBeTrue();
     const askAi = fixture.nativeElement.querySelector(
-      'ld-app-topbar [ldActions] [aria-label="Ask AI"]',
+      'dpf-app-topbar [dpfActions] [aria-label="Ask AI"]',
     );
     expect(askAi).not.toBeNull();
     expect(

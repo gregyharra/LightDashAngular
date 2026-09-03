@@ -1,13 +1,13 @@
 <section class="warehouses">
-  <ld-page-frame>
-    <ld-page-header
+  <dpf-page-frame>
+    <dpf-page-header
       [title]="'warehouses.title' | translate"
       [subtitle]="'warehouses.subtitle' | translate"
     >
-      <ld-button ldActions type="button" icon="add" (click)="openCreate()">
+      <dpf-button dpfActions type="button" icon="add" (click)="openCreate()">
         {{ 'warehouses.create' | translate }}
-      </ld-button>
-    </ld-page-header>
+      </dpf-button>
+    </dpf-page-header>
 
     @if (loading()) {
       <div class="warehouses__loading">
@@ -16,11 +16,11 @@
     } @else if (error()) {
       <div class="warehouses__error">{{ error() }}</div>
     } @else if (warehouses().length === 0) {
-      <ld-empty-state icon="storage" [title]="'warehouses.empty' | translate">
-        <ld-button ldCta variant="outlined" type="button" (click)="openCreate()">
+      <dpf-empty-state icon="storage" [title]="'warehouses.empty' | translate">
+        <dpf-button dpfCta variant="outlined" type="button" (click)="openCreate()">
           {{ 'warehouses.createFirst' | translate }}
-        </ld-button>
-      </ld-empty-state>
+        </dpf-button>
+      </dpf-empty-state>
     } @else {
       <div class="warehouses__grid">
         @for (warehouse of warehouses(); track warehouse.warehouseUuid) {
@@ -74,5 +74,5 @@
         }
       </div>
     }
-  </ld-page-frame>
+  </dpf-page-frame>
 </section>

@@ -40,8 +40,8 @@
       <p class="auth-card__error">{{ error() }}</p>
     }
 
-    <ld-button type="submit" [disabled]="submitting()">
+    <dpf-button type="submit" [disabled]="submitting()">
       {{ (submitting() ? 'auth.creating' : 'auth.createAdmin') | translate }}
-    </ld-button>
+    </dpf-button>
   </form>
 </div>

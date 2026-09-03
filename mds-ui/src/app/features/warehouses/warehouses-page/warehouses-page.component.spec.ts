@@ -47,18 +47,18 @@ describe('WarehousesPageComponent', () => {
     fixture.detectChanges();
   });
 
-  it('renders the design-system page header and create action when loaded', () => {
-    const header = fixture.debugElement.query(By.css('ld-page-header'));
+  it('renders the shared UI page header and create action when loaded', () => {
+    const header = fixture.debugElement.query(By.css('dpf-page-header'));
 
     expect(header).toBeTruthy();
     expect((header?.nativeElement as HTMLElement | undefined)?.textContent).toContain('Warehouses');
     expect(
-      fixture.debugElement.query(By.css('ld-page-header ld-button[ldActions]')),
+      fixture.debugElement.query(By.css('dpf-page-header dpf-button[dpfActions]')),
     ).toBeTruthy();
   });
 
-  it('adds page spacing below the design-system header', () => {
-    const header = fixture.debugElement.query(By.css('ld-page-header'));
+  it('adds page spacing below the shared UI header', () => {
+    const header = fixture.debugElement.query(By.css('dpf-page-header'));
 
     expect(getComputedStyle(header.nativeElement).marginBottom).toBe('24px');
   });

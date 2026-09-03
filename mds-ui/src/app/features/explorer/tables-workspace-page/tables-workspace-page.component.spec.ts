@@ -126,11 +126,11 @@ describe('TablesWorkspacePageComponent chrome', () => {
 
   afterEach(() => TestBed.resetTestingModule());
 
-  it('uses design-system empty states before a model is selected', async () => {
+  it('uses shared UI empty states before a model is selected', async () => {
     await setup(null);
 
     expect(
-      fixture.debugElement.queryAll(By.css('ld-empty-state')).length,
+      fixture.debugElement.queryAll(By.css('dpf-empty-state')).length,
     ).toBeGreaterThan(0);
     expect(
       fixture.debugElement.query(
@@ -148,7 +148,7 @@ describe('TablesWorkspacePageComponent chrome', () => {
       fixture.debugElement.query(By.css('app-run-query-button')),
     ).toBeTruthy();
     const saveButton = fixture.debugElement.query(
-      By.css('ld-button.tables-workspace__toolbar-btn'),
+      By.css('dpf-button.tables-workspace__toolbar-btn'),
     );
     expect(saveButton).toBeTruthy();
     const innerButton = saveButton.query(By.css('button'))

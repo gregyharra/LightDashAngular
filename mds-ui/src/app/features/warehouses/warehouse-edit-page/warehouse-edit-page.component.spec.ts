@@ -37,25 +37,25 @@ describe('WarehouseEditPageComponent', () => {
     fixture.detectChanges();
   });
 
-  it('renders the warehouse form inside design-system page chrome', () => {
-    expect(fixture.debugElement.query(By.css('ld-page-frame'))).toBeTruthy();
-    expect(fixture.debugElement.query(By.css('ld-page-header'))).toBeTruthy();
+  it('renders the warehouse form inside shared UI page chrome', () => {
+    expect(fixture.debugElement.query(By.css('dpf-page-frame'))).toBeTruthy();
+    expect(fixture.debugElement.query(By.css('dpf-page-header'))).toBeTruthy();
     expect(
       fixture.debugElement.query(By.css('app-warehouse-form')),
     ).toBeTruthy();
     expect(
       fixture.debugElement.query(
-        By.css('ld-button.warehouse-form__test-btn'),
+        By.css('dpf-button.warehouse-form__test-btn'),
       ),
     ).toBeTruthy();
     expect(
       fixture.debugElement.query(
-        By.css('ld-button.warehouse-form__cancel-btn'),
+        By.css('dpf-button.warehouse-form__cancel-btn'),
       ),
     ).toBeTruthy();
     expect(
       fixture.debugElement.query(
-        By.css('ld-button.warehouse-form__save-btn[type="submit"]'),
+        By.css('dpf-button.warehouse-form__save-btn[type="submit"]'),
       ),
     ).toBeTruthy();
   });

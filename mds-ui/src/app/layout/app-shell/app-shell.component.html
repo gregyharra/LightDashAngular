@@ -1,24 +1,24 @@
 <div class="shell">
-  <ld-app-topbar id="navbar-header" data-ld-navbar>
-    <ld-brand-mark
-      ldBrand
+  <dpf-app-topbar id="navbar-header" data-ld-navbar>
+    <dpf-brand-mark
+      dpfBrand
       [title]="'nav.home' | translate"
       [ariaLabel]="'nav.brandName' | translate"
       [lead]="'nav.brandNameLead' | translate"
       [trail]="'nav.brandNameTrail' | translate"
     />
     @if (activeProjectService.activeProject()) {
-      <app-navbar-search ldCenter />
+      <app-navbar-search dpfCenter />
     } @else {
-      <div ldCenter class="shell__navbar-spacer"></div>
+      <div dpfCenter class="shell__navbar-spacer"></div>
     }
 
-    <div ldActions class="shell__navbar-actions">
+    <div dpfActions class="shell__navbar-actions">
       @if (activeProjectService.activeProjectUuid()) {
         <app-navbar-project-switcher />
       }
       @if (askAiEnabled()) {
-        <ld-icon-button
+        <dpf-icon-button
           icon="auto_awesome"
           tone="ai"
           [ariaLabel]="'nav.askAi' | translate"
@@ -26,7 +26,7 @@
         />
       }
       @if (showHelp) {
-        <ld-icon-button
+        <dpf-icon-button
           icon="help_outline"
           [disabled]="true"
           [ariaLabel]="'nav.help' | translate"
@@ -34,7 +34,7 @@
       }
       @if (showNotifications) {
         <span class="shell__notification-action">
-          <ld-icon-button
+          <dpf-icon-button
             icon="notifications_none"
             [disabled]="true"
             [ariaLabel]="'nav.notifications' | translate"
@@ -44,7 +44,7 @@
       }
       <app-navbar-user-menu />
     </div>
-  </ld-app-topbar>
+  </dpf-app-topbar>
 
   <main class="shell__content">
     <router-outlet />

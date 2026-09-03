@@ -1,13 +1,13 @@
 <section class="users">
-  <ld-page-frame>
-    <ld-page-header
+  <dpf-page-frame>
+    <dpf-page-header
       [title]="'users.title' | translate"
       [subtitle]="'users.subtitle' | translate"
     >
-      <ld-button ldActions type="button" icon="person_add" (click)="openCreate()">
+      <dpf-button dpfActions type="button" icon="person_add" (click)="openCreate()">
         {{ 'users.create.button' | translate }}
-      </ld-button>
-    </ld-page-header>
+      </dpf-button>
+    </dpf-page-header>
 
     @if (loading()) {
       <div class="users__loading">
@@ -79,12 +79,12 @@
           </table>
         </div>
       } @else if (!error()) {
-        <ld-empty-state icon="group" [title]="'users.empty' | translate">
-          <ld-button ldCta variant="outlined" type="button" (click)="openCreate()">
+        <dpf-empty-state icon="group" [title]="'users.empty' | translate">
+          <dpf-button dpfCta variant="outlined" type="button" (click)="openCreate()">
             {{ 'users.create.button' | translate }}
-          </ld-button>
-        </ld-empty-state>
+          </dpf-button>
+        </dpf-empty-state>
       }
     }
-  </ld-page-frame>
+  </dpf-page-frame>
 </section>

@@ -12,7 +12,7 @@
 
   <div class="page-layout__content">
     <section class="charts-list">
-      <ld-page-frame [wide]="true">
+      <dpf-page-frame [wide]="true">
         <nav
           class="charts-list__breadcrumbs"
           [attr.aria-label]="'charts.breadcrumb' | translate"
@@ -26,16 +26,16 @@
           </span>
         </nav>
 
-        <ld-page-header [title]="'charts.title' | translate">
-          <ld-button
-            ldActions
+        <dpf-page-header [title]="'charts.title' | translate">
+          <dpf-button
+            dpfActions
             type="button"
             icon="add"
             (click)="openCreatePage()"
           >
             {{ "charts.create" | translate }}
-          </ld-button>
-        </ld-page-header>
+          </dpf-button>
+        </dpf-page-header>
 
         @if (loading()) {
           <div class="charts-list__loading">
@@ -44,25 +44,25 @@
         } @else if (error()) {
           <div class="charts-list__error">{{ error() }}</div>
         } @else if (charts().length === 0) {
-          <ld-empty-state icon="bar_chart" [title]="'charts.empty' | translate">
-            <ld-button
-              ldCta
+          <dpf-empty-state icon="bar_chart" [title]="'charts.empty' | translate">
+            <dpf-button
+              dpfCta
               type="button"
               icon="add"
               (click)="openCreatePage()"
             >
               {{ "charts.create" | translate }}
-            </ld-button>
-          </ld-empty-state>
+            </dpf-button>
+          </dpf-empty-state>
         } @else {
-          <ld-content-list-filter-chips
+          <dpf-content-list-filter-chips
             [chips]="activeFilterChips()"
             (clearChip)="clearFilterChip($event)"
             (clearAll)="clearAllFilters()"
           />
 
           @if (filteredCharts().length === 0) {
-            <ld-empty-state
+            <dpf-empty-state
               icon="search_off"
               [title]="
                 (hasActiveFilters()
@@ -77,7 +77,7 @@
                 <thead>
                   <tr>
                     <th scope="col">
-                      <ld-content-list-column-header
+                      <dpf-content-list-column-header
                         [label]="'charts.fields.name' | translate"
                         filterType="text"
                         [textPlaceholder]="'charts.search' | translate"
@@ -86,7 +86,7 @@
                       />
                     </th>
                     <th scope="col">
-                      <ld-content-list-column-header
+                      <dpf-content-list-column-header
                         [label]="'charts.fields.type' | translate"
                         filterType="select"
                         [options]="typeOptions()"
@@ -95,7 +95,7 @@
                       />
                     </th>
                     <th scope="col">
-                      <ld-content-list-column-header
+                      <dpf-content-list-column-header
                         [label]="'charts.fields.table' | translate"
                         filterType="text"
                         [textPlaceholder]="'tables.search' | translate"
@@ -104,7 +104,7 @@
                       />
                     </th>
                     <th scope="col">
-                      <ld-content-list-column-header
+                      <dpf-content-list-column-header
                         [label]="'charts.fields.space' | translate"
                         filterType="select"
                         [options]="spaceOptions()"
@@ -113,7 +113,7 @@
                       />
                     </th>
                     <th scope="col">
-                      <ld-content-list-column-header
+                      <dpf-content-list-column-header
                         [label]="'charts.fields.lastEdited' | translate"
                         filterType="date"
                         [value]="columnFilters().lastEdited"
@@ -121,7 +121,7 @@
                       />
                     </th>
                     <th scope="col">
-                      <ld-content-list-column-header
+                      <dpf-content-list-column-header
                         [label]="'charts.fields.views' | translate"
                         filterType="number"
                         [value]="columnFilters().views"
@@ -173,7 +173,7 @@
             </div>
           }
         }
-      </ld-page-frame>
+      </dpf-page-frame>
     </section>
   </div>
 </div>

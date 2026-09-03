@@ -31,10 +31,10 @@
           (nodeSelected)="onNodeSelected($event)"
         />
 
-        <ld-page-frame class="table-hub__main" [wide]="true">
+        <dpf-page-frame class="table-hub__main" [wide]="true">
           @if (!tableId()) {
             <section class="table-hub__picker">
-              <ld-empty-state
+              <dpf-empty-state
                 icon="table_chart"
                 [title]="'tables.title' | translate"
                 [body]="'tables.selectModel' | translate"
@@ -82,7 +82,7 @@
                   <p class="table-hub__path">{{ entry()!.dbtPath }}</p>
                 }
               </div>
-              <ld-button
+              <dpf-button
                 type="button"
                 class="table-hub__explore-btn"
                 icon="bar_chart"
@@ -103,7 +103,7 @@
                 >
                   {{ 'tables.explore' | translate }}
                 </span>
-              </ld-button>
+              </dpf-button>
             </header>
 
             <div class="table-hub__tabs" role="tablist">
@@ -227,7 +227,7 @@
                   }
                 </dl>
 
-                <ld-button
+                <dpf-button
                   class="table-hub__save-btn"
                   type="button"
                   [loading]="saving()"
@@ -235,7 +235,7 @@
                   (click)="saveOverview()"
                 >
                   {{ 'tables.saveOverview' | translate }}
-                </ld-button>
+                </dpf-button>
               </section>
             }
 
@@ -256,7 +256,7 @@
                     <thead>
                       <tr>
                         <th scope="col">
-                          <ld-content-list-column-header
+                          <dpf-content-list-column-header
                             [label]="'tables.fields.name' | translate"
                             filterType="text"
                             [textPlaceholder]="'tables.filterNames' | translate"
@@ -265,7 +265,7 @@
                           />
                         </th>
                         <th scope="col">
-                          <ld-content-list-column-header
+                          <dpf-content-list-column-header
                             [label]="'tables.fields.type' | translate"
                             filterType="select"
                             [options]="columnTypeOptions()"
@@ -277,7 +277,7 @@
                           {{ 'tables.fields.transformation' | translate }}
                         </th>
                         <th scope="col" class="table-hub__desc-header">
-                          <ld-content-list-column-header
+                          <dpf-content-list-column-header
                             [label]="'tables.fields.description' | translate"
                             filterType="text"
                             [textPlaceholder]="'tables.filterDescriptions' | translate"
@@ -288,7 +288,7 @@
                         @for (attr of attributeDefs(); track attr.id) {
                           <th scope="col" class="table-hub__attr-header">
                             <div class="table-hub__attr-header-row">
-                              <ld-content-list-column-header
+                              <dpf-content-list-column-header
                                 [label]="attr.name"
                                 [filterType]="attributeFilterType(attr)"
                                 [options]="attributeFilterOptions(attr)"
@@ -503,7 +503,7 @@
               </section>
             }
           }
-        </ld-page-frame>
+        </dpf-page-frame>
       }
     </div>
   </div>

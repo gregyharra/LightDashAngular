@@ -119,23 +119,23 @@ describe('ChartViewPageComponent', () => {
     fixture.detectChanges();
   });
 
-  it('uses a wide page frame and design-system edit action', () => {
-    const pageFrame = fixture.debugElement.query(By.css('ld-page-frame'));
+  it('uses a wide page frame and shared UI edit action', () => {
+    const pageFrame = fixture.debugElement.query(By.css('dpf-page-frame'));
     expect(pageFrame).toBeTruthy();
     expect(pageFrame.componentInstance.wide()).toBeTrue();
     expect(
-      fixture.debugElement.query(By.css('ld-button.chart-view__edit-btn')),
+      fixture.debugElement.query(By.css('dpf-button.chart-view__edit-btn')),
     ).toBeTruthy();
   });
 
-  it('uses design-system toolbar actions in edit mode', () => {
+  it('uses shared UI toolbar actions in edit mode', () => {
     fixture.debugElement
-      .query(By.css('ld-button.chart-view__edit-btn'))
+      .query(By.css('dpf-button.chart-view__edit-btn'))
       .triggerEventHandler('click');
     fixture.detectChanges();
 
     const configureButton = fixture.debugElement.query(
-      By.css('ld-button.chart-view__configure-btn[variant="outlined"]'),
+      By.css('dpf-button.chart-view__configure-btn[variant="outlined"]'),
     );
     expect(configureButton).toBeTruthy();
     expect(
@@ -150,15 +150,15 @@ describe('ChartViewPageComponent', () => {
     ).toBe('true');
     expect(
       fixture.debugElement.query(
-        By.css('ld-button.chart-view__save-btn[variant="outlined"]'),
+        By.css('dpf-button.chart-view__save-btn[variant="outlined"]'),
       ),
     ).toBeTruthy();
     expect(
-      fixture.debugElement.query(By.css('ld-button.chart-view__done-btn')),
+      fixture.debugElement.query(By.css('dpf-button.chart-view__done-btn')),
     ).toBeTruthy();
     expect(
       fixture.debugElement.query(
-        By.css('ld-icon-button.chart-view__breadcrumb-edit'),
+        By.css('dpf-icon-button.chart-view__breadcrumb-edit'),
       ),
     ).toBeTruthy();
   });

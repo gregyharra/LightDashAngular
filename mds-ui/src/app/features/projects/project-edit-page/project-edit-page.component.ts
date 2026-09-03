@@ -32,10 +32,10 @@ import {
   ModelLinkOption,
 } from '../../../core/models/model-join.model';
 import {
-  LdButtonComponent,
-  LdPageFrameComponent,
-  LdPageHeaderComponent,
-} from '../../../design-system';
+  DpfButtonComponent,
+  DpfPageFrameComponent,
+  DpfPageHeaderComponent,
+} from '../../../shared/ui';
 import { ConfirmDialogComponent } from '../../../shared/confirm-dialog/confirm-dialog.component';
 
 type ProjectSettingsTab = 'configuration' | 'links';
@@ -53,9 +53,9 @@ type ProjectSettingsTab = 'configuration' | 'links';
     MatProgressSpinnerModule,
     MatSelectModule,
     TranslatePipe,
-    LdButtonComponent,
-    LdPageFrameComponent,
-    LdPageHeaderComponent,
+    DpfButtonComponent,
+    DpfPageFrameComponent,
+    DpfPageHeaderComponent,
     FilterableLinksTableComponent,
     LinkDialogComponent,
   ],

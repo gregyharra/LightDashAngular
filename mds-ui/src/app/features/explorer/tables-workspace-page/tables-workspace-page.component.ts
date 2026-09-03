@@ -94,9 +94,9 @@ import {
   CustomMetricDialogResult,
 } from '../custom-metric/custom-metric-dialog.component';
 import {
-  LdButtonComponent,
-  LdEmptyStateComponent,
-} from '../../../design-system';
+  DpfButtonComponent,
+  DpfEmptyStateComponent,
+} from '../../../shared/ui';
 
 @Component({
   selector: 'app-tables-workspace-page',
@@ -119,8 +119,8 @@ import {
     SqlHighlightComponent,
     ResizableSidebarDirective,
     ProjectBrowseNavComponent,
-    LdButtonComponent,
-    LdEmptyStateComponent,
+    DpfButtonComponent,
+    DpfEmptyStateComponent,
   ],
   templateUrl: './tables-workspace-page.component.html',
   styleUrl: './tables-workspace-page.component.scss',

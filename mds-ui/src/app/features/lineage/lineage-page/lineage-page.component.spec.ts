@@ -76,9 +76,9 @@ describe('LineagePageComponent', () => {
     fixture.detectChanges();
   });
 
-  it('renders wide design-system page chrome with rich metadata below the header', () => {
-    const frame = fixture.debugElement.query(By.css('ld-page-frame'));
-    const header = fixture.debugElement.query(By.css('ld-page-header'));
+  it('renders wide shared UI page chrome with rich metadata below the header', () => {
+    const frame = fixture.debugElement.query(By.css('dpf-page-frame'));
+    const header = fixture.debugElement.query(By.css('dpf-page-header'));
     const metadata = fixture.debugElement.query(
       By.css('.lineage-page__subtitle'),
     );

@@ -12,7 +12,7 @@
 
   <div class="page-layout__content">
     <section class="explorer-list">
-      <ld-page-frame [wide]="true">
+      <dpf-page-frame [wide]="true">
         <nav
           class="explorer-list__breadcrumbs"
           [attr.aria-label]="'charts.breadcrumb' | translate"
@@ -26,7 +26,7 @@
           }}</span>
         </nav>
 
-        <ld-page-header
+        <dpf-page-header
           [title]="'tables.title' | translate"
           [subtitle]="'explorer.selectModelToQuery' | translate"
         />
@@ -38,7 +38,7 @@
         } @else if (error()) {
           <div class="explorer-list__error">{{ error() }}</div>
         } @else if (explores().length === 0) {
-          <ld-empty-state
+          <dpf-empty-state
             icon="table_chart"
             [title]="'explorer.noExplores' | translate"
           />
@@ -80,7 +80,7 @@
             }
           </div>
         }
-      </ld-page-frame>
+      </dpf-page-frame>
     </section>
   </div>
 </div>

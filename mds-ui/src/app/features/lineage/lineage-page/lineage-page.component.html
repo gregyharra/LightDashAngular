@@ -12,13 +12,13 @@
 
   <div class="page-layout__content page-layout__content--flush">
     <section class="lineage-page">
-      <ld-page-frame class="lineage-page__header-frame" [wide]="true">
+      <dpf-page-frame class="lineage-page__header-frame" [wide]="true">
         <nav class="lineage-page__breadcrumbs" [attr.aria-label]="'charts.breadcrumb' | translate">
           <a routerLink="/projects" class="lineage-page__breadcrumb-link">{{ 'nav.home' | translate }}</a>
           <mat-icon>chevron_right</mat-icon>
           <span class="lineage-page__breadcrumb-current">{{ 'lineage.dbtLineage' | translate }}</span>
         </nav>
-        <ld-page-header
+        <dpf-page-header
           [title]="lineage()?.projectName ?? ('lineage.dbtLineage' | translate)"
           [subtitle]="null"
         />
@@ -51,7 +51,7 @@
             }
           </p>
         }
-      </ld-page-frame>
+      </dpf-page-frame>
 
       @if (loading()) {
         <div class="lineage-page__loading">

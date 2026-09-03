@@ -117,7 +117,7 @@
                   (run)="runQuery()"
                   (limitChange)="setQueryRowLimit($event)"
                 />
-                <ld-button
+                <dpf-button
                   class="tables-workspace__toolbar-btn"
                   type="button"
                   variant="outlined"
@@ -136,7 +136,7 @@
                   >
                     {{ 'explorer.saveChart' | translate }}
                   </span>
-                </ld-button>
+                </dpf-button>
               }
               <button
                 mat-icon-button
@@ -213,19 +213,19 @@
                 </mat-expansion-panel-header>
 
                 @if (!tableId()) {
-                  <ld-empty-state
+                  <dpf-empty-state
                     icon="bar_chart"
                     [title]="'explorer.selectTable' | translate"
                     [body]="'explorer.selectTableToConfigure' | translate"
                   />
                 } @else if (exploreError()) {
-                  <ld-empty-state
+                  <dpf-empty-state
                     icon="error_outline"
                     [title]="'explorer.unableToLoadTable' | translate"
                     [body]="exploreError()"
                   />
                 } @else if (!explore() && !exploreLoading() && !isExploreableNode()) {
-                  <ld-empty-state
+                  <dpf-empty-state
                     icon="info"
                     [title]="'explorer.selectDbtModel' | translate"
                     [body]="'explorer.selectDbtModelFields' | translate"
@@ -247,7 +247,7 @@
                           {{ queryError() }}
                         </div>
                       } @else if (!hasRunQuery()) {
-                        <ld-empty-state
+                        <dpf-empty-state
                           class="tables-workspace__chart-viz-state"
                           icon="bar_chart"
                           [title]="'explorer.pickMetricDimensions' | translate"
@@ -258,14 +258,14 @@
                         chartKind() !== 'big_number' &&
                         (selectedDimensionList().length === 0 || selectedMetricList().length === 0)
                       ) {
-                        <ld-empty-state
+                        <dpf-empty-state
                           class="tables-workspace__chart-viz-state"
                           icon="bar_chart"
                           [title]="'explorer.addDimensionMetric' | translate"
                           [body]="'explorer.chartNeedsDimensionMetric' | translate"
                         />
                       } @else if (!canRenderChart()) {
-                        <ld-empty-state
+                        <dpf-empty-state
                           class="tables-workspace__chart-viz-state"
                           icon="search_off"
                           [title]="'explorer.noResultsToChart' | translate"
@@ -303,7 +303,7 @@
                 </mat-expansion-panel-header>
 
                 @if (!tableId()) {
-                  <ld-empty-state
+                  <dpf-empty-state
                     icon="table_rows"
                     [title]="'explorer.selectTable' | translate"
                     [body]="'explorer.selectTableToRun' | translate"
@@ -311,7 +311,7 @@
                 } @else if (exploreError()) {
                   <div class="tables-workspace__panel-error">{{ exploreError() }}</div>
                 } @else if (!explore() && !exploreLoading() && !isExploreableNode()) {
-                  <ld-empty-state
+                  <dpf-empty-state
                     icon="info"
                     [title]="'explorer.selectDbtModel' | translate"
                     [body]="'explorer.selectDbtModelFields' | translate"
@@ -328,13 +328,13 @@
                 } @else if (queryError()) {
                   <div class="tables-workspace__panel-error">{{ queryError() }}</div>
                 } @else if (!hasRunQuery()) {
-                  <ld-empty-state
+                  <dpf-empty-state
                     icon="table_view"
                     [title]="'explorer.pickMetricDimensions' | translate"
                     [body]="'explorer.selectFieldsThenRun' | translate"
                   />
                 } @else if (resultRows().length === 0) {
-                  <ld-empty-state
+                  <dpf-empty-state
                     icon="search_off"
                     [title]="'explorer.noResults' | translate"
                     [body]="'explorer.adjustFieldsFilters' | translate"
