@@ -42,10 +42,14 @@ import { MatIconModule } from '@angular/material/icon';
     }
 
     mat-icon {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
       width: 18px;
       height: 18px;
       font-size: 18px;
-      line-height: 18px;
+      line-height: 1;
+      overflow: hidden;
     }
 
     :host(.ld-icon-button--ai) button {

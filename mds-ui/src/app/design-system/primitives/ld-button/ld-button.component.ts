@@ -26,7 +26,8 @@ export type LdButtonTone = 'primary' | 'neutral';
         [disabled]="disabled() || loading()"
         [attr.aria-pressed]="ariaPressed()"
       >
-        <ng-container *ngTemplateOutlet="content" />
+        <ng-container *ngTemplateOutlet="leading" />
+        <ng-content />
       </button>
     } @else if (variant() === 'outlined') {
       <button
@@ -35,7 +36,8 @@ export type LdButtonTone = 'primary' | 'neutral';
         [disabled]="disabled() || loading()"
         [attr.aria-pressed]="ariaPressed()"
       >
-        <ng-container *ngTemplateOutlet="content" />
+        <ng-container *ngTemplateOutlet="leading" />
+        <ng-content />
       </button>
     } @else {
       <button
@@ -44,17 +46,21 @@ export type LdButtonTone = 'primary' | 'neutral';
         [disabled]="disabled() || loading()"
         [attr.aria-pressed]="ariaPressed()"
       >
-        <ng-container *ngTemplateOutlet="content" />
+        <ng-container *ngTemplateOutlet="leading" />
+        <ng-content />
       </button>
     }
 
-    <ng-template #content>
+    <!--
+      Keep mat-icon as a sibling of projected label content (not wrapped with it)
+      so Material can slot the icon beside .mdc-button__label and flex-center both.
+    -->
+    <ng-template #leading>
       @if (loading()) {
         <mat-spinner diameter="16" />
       } @else if (icon(); as iconName) {
-        <mat-icon>{{ iconName }}</mat-icon>
+        <mat-icon aria-hidden="true">{{ iconName }}</mat-icon>
       }
-      <ng-content />
     </ng-template>
   `,
   styles: `
@@ -65,9 +71,20 @@ export type LdButtonTone = 'primary' | 'neutral';
     }
 
     button {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
       gap: var(--ld-space-xs);
       border-radius: var(--ld-radius-md);
       white-space: nowrap;
+      line-height: 1.25;
+    }
+
+    /* Material may leave label as inline flow; keep icon+text optically centered. */
+    button .mdc-button__label {
+      display: inline-flex;
+      align-items: center;
+      line-height: inherit;
     }
 
     :host(.ld-button--primary.ld-button--filled) button {
@@ -98,7 +115,19 @@ export type LdButtonTone = 'primary' | 'neutral';
 
     mat-spinner,
     mat-icon {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
       flex-shrink: 0;
+    }
+
+    mat-icon {
+      width: 1.125rem;
+      height: 1.125rem;
+      font-size: 1.125rem;
+      line-height: 1;
+      overflow: hidden;
+      margin: 0;
     }
   `,
 })

@@ -46,4 +46,22 @@ describe('LdButtonComponent', () => {
 
     expect(getComputedStyle(btn).color).toBe('rgb(255, 255, 255)');
   });
+
+  it('vertically centers leading icons with the label', () => {
+    fixture.componentRef.setInput('icon', 'add');
+    fixture.detectChanges();
+
+    const btn = fixture.debugElement.query(By.css('button')).nativeElement as HTMLButtonElement;
+    const icon = fixture.debugElement.query(By.css('mat-icon')).nativeElement as HTMLElement;
+    const btnStyle = getComputedStyle(btn);
+    const iconStyle = getComputedStyle(icon);
+
+    expect(btnStyle.alignItems).toBe('center');
+    expect(['flex', 'inline-flex']).toContain(iconStyle.display);
+    expect(iconStyle.alignItems).toBe('center');
+    expect(iconStyle.width).toBe('18px');
+    expect(iconStyle.height).toBe('18px');
+    expect(iconStyle.fontSize).toBe('18px');
+    expect(iconStyle.lineHeight).toBe('18px');
+  });
 });

@@ -77,6 +77,29 @@ strong {
 .mat-mdc-unelevated-button,
 .mat-mdc-raised-button {
   letter-spacing: normal;
+  align-items: center;
+
+  // Icon + label vertical alignment (Chromium + Firefox).
+  // Default 24px mat-icon boxes sit optically high next to button text; size them
+  // to the label and flex-center both the button and the MDC label wrapper.
+  .mdc-button__label {
+    display: inline-flex;
+    align-items: center;
+    line-height: 1.25;
+  }
+
+  > .mat-icon,
+  .mdc-button__label > .mat-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 1.125rem;
+    height: 1.125rem;
+    font-size: 1.125rem;
+    line-height: 1;
+    overflow: hidden;
+    flex-shrink: 0;
+  }
 }
 
 .page {
