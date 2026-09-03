@@ -43,5 +43,20 @@ describe('WarehouseEditPageComponent', () => {
     expect(
       fixture.debugElement.query(By.css('app-warehouse-form')),
     ).toBeTruthy();
+    expect(
+      fixture.debugElement.query(
+        By.css('ld-button.warehouse-form__test-btn'),
+      ),
+    ).toBeTruthy();
+    expect(
+      fixture.debugElement.query(
+        By.css('ld-button.warehouse-form__cancel-btn'),
+      ),
+    ).toBeTruthy();
+    expect(
+      fixture.debugElement.query(
+        By.css('ld-button.warehouse-form__save-btn[type="submit"]'),
+      ),
+    ).toBeTruthy();
   });
 });

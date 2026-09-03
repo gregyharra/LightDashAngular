@@ -8,7 +8,7 @@ ld-page-header {
   gap: 4px;
   margin-bottom: var(--ld-spacing-sm);
   font-size: var(--ld-font-size-sm);
-  color: var(--ld-gray-6);
+  color: var(--ld-color-muted);
 
   mat-icon {
     width: 16px;
@@ -23,7 +23,7 @@ ld-page-header {
   text-decoration: none;
 
   &:hover {
-    color: var(--ld-blue-6);
+    color: var(--ld-color-brand);
     text-decoration: underline;
   }
 }
@@ -45,9 +45,9 @@ ld-page-header {
   gap: var(--ld-spacing-md);
   max-width: 640px;
   padding: var(--ld-spacing-lg);
-  border: 1px solid var(--ld-gray-2);
+  border: 1px solid var(--ld-color-border);
   border-radius: var(--ld-radius-md);
-  background-color: var(--ld-background);
+  background-color: var(--ld-color-bg);
   box-shadow: var(--ld-shadow-subtle);
 }
 
@@ -73,7 +73,7 @@ ld-page-header {
 .project-create__hint {
   margin: 0;
   font-size: var(--ld-font-size-sm);
-  color: var(--ld-gray-6);
+  color: var(--ld-color-muted);
 }
 
 .project-create__error {
@@ -107,7 +107,7 @@ ld-page-header {
   flex-direction: column;
   gap: var(--ld-spacing-sm);
   padding-top: var(--ld-spacing-sm);
-  border-top: 1px solid var(--ld-gray-2);
+  border-top: 1px solid var(--ld-color-border);
 }
 
 .project-create__section-title {

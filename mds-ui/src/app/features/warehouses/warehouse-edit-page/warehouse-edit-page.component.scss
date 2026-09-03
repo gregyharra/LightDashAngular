@@ -9,7 +9,7 @@ ld-page-header {
   gap: 4px;
   margin-bottom: var(--ld-spacing-sm);
   font-size: var(--ld-font-size-xs);
-  color: var(--ld-gray-6);
+  color: var(--ld-color-muted);
 
   mat-icon {
     width: 16px;
@@ -23,7 +23,7 @@ ld-page-header {
   text-decoration: none;
 
   &:hover {
-    color: var(--ld-blue-6);
+    color: var(--ld-color-brand);
   }
 }
 

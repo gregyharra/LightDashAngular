@@ -137,32 +137,41 @@
 
     @if (showActions()) {
       <div class="warehouse-form__actions">
-        <button
-          mat-stroked-button
+        <ld-button
+          class="warehouse-form__test-btn"
           type="button"
+          variant="outlined"
+          tone="neutral"
           (click)="testConnection()"
           [disabled]="testing() || saving() || !supportsConnectionTest() || !canTestConnection()"
+          [loading]="testing()"
         >
-          @if (testing()) {
-            {{ 'warehouses.testing' | translate }}
-          } @else {
-            {{ 'warehouses.testConnection' | translate }}
-          }
-        </button>
+          {{ 'warehouses.testConnection' | translate }}
+        </ld-button>
 
-        <button mat-stroked-button type="button" (click)="cancel()" [disabled]="saving() || testing()">
+        <ld-button
+          class="warehouse-form__cancel-btn"
+          type="button"
+          variant="outlined"
+          tone="neutral"
+          (click)="cancel()"
+          [disabled]="saving() || testing()"
+        >
           {{ 'common.cancel' | translate }}
-        </button>
+        </ld-button>
 
-        <button mat-flat-button type="submit" [disabled]="saving() || testing()">
-          @if (saving()) {
-            {{ 'warehouses.saving' | translate }}
-          } @else if (mode() === 'create') {
+        <ld-button
+          class="warehouse-form__save-btn"
+          type="submit"
+          [disabled]="saving() || testing()"
+          [loading]="saving()"
+        >
+          @if (mode() === 'create') {
             {{ 'warehouses.create' | translate }}
           } @else {
             {{ 'warehouses.saveChanges' | translate }}
           }
-        </button>
+        </ld-button>
       </div>
     }
   </form>

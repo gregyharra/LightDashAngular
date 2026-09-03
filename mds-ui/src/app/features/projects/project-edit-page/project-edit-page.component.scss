@@ -9,7 +9,7 @@ ld-page-header {
   gap: 4px;
   margin-bottom: var(--ld-spacing-sm);
   font-size: var(--ld-font-size-xs);
-  color: var(--ld-gray-6);
+  color: var(--ld-color-muted);
 
   mat-icon {
     width: 16px;
@@ -23,7 +23,7 @@ ld-page-header {
   text-decoration: none;
 
   &:hover {
-    color: var(--ld-blue-6);
+    color: var(--ld-color-brand);
   }
 }
 
@@ -85,7 +85,7 @@ ld-page-header {
 .project-edit__hint {
   margin: 0;
   font-size: var(--ld-font-size-sm);
-  color: var(--ld-gray-6);
+  color: var(--ld-color-muted);
 }
 
 .project-edit__actions {
@@ -124,7 +124,7 @@ ld-page-header {
   flex-direction: column;
   gap: var(--ld-spacing-sm);
   padding-top: var(--ld-spacing-sm);
-  border-top: 1px solid var(--ld-gray-2);
+  border-top: 1px solid var(--ld-color-border);
 }
 
 .project-edit__section-header {
@@ -231,8 +231,8 @@ ld-page-header {
 }
 
 .project-edit__tab--active {
-  color: var(--ld-blue-6, #228be6);
-  border-bottom-color: var(--ld-blue-6, #228be6);
+  color: var(--ld-color-brand);
+  border-bottom-color: var(--ld-color-brand);
   font-weight: 600;
 }
 
@@ -240,7 +240,7 @@ ld-page-header {
   font-size: 0.75rem;
   padding: 0.0625rem 0.375rem;
   border-radius: 999px;
-  background: var(--ld-gray-2, #e9ecef);
+  background: var(--ld-color-surface);
   color: var(--ld-gray-7, #495057);
 }
 

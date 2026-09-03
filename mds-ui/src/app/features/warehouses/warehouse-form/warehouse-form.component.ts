@@ -1,6 +1,5 @@
 import { Component, effect, inject, input, output, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { MatButtonModule } from '@angular/material/button';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
@@ -17,19 +16,20 @@ import {
   WAREHOUSE_TYPE_OPTIONS,
   WarehouseUpdate,
 } from '../../../core/models/warehouse.model';
+import { LdButtonComponent } from '../../../design-system';
 import { WarehouseService } from '../../projects/warehouse.service';
 
 @Component({
   selector: 'app-warehouse-form',
   imports: [
     FormsModule,
-    MatButtonModule,
     MatFormFieldModule,
     MatInputModule,
     MatProgressSpinnerModule,
     MatSelectModule,
     MatSlideToggleModule,
     TranslatePipe,
+    LdButtonComponent,
   ],
   templateUrl: './warehouse-form.component.html',
   styleUrl: './warehouse-form.component.scss',

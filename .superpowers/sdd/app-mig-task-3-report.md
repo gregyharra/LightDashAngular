@@ -32,3 +32,12 @@ Complete.
 ## Concerns
 
 None.
+
+## Review fixes
+
+- Migrated the shared warehouse form's test, cancel, and save actions from Material buttons to `LdButton`, using outlined neutral variants for secondary actions and the default primary submit action.
+- Added warehouse page coverage that asserts all three shared-form `ld-button` hosts, including the submit type.
+- Replaced the requested primitive page colors with semantic brand, foreground, background, border, muted, and surface tokens where applicable; genuine error and status colors remain unchanged.
+- TDD red: the strengthened warehouse page spec failed on all three absent warehouse-form `ld-button` selectors.
+- TDD green: the full Task 3 ChromeHeadless command passed, 3 tests; there is no separate warehouse-form spec.
+- IDE diagnostics reported no errors in the page or warehouse-form files.
