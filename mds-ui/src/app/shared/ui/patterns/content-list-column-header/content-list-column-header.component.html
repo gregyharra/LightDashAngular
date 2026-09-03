@@ -1,0 +1,155 @@
+<div class="dpf-content-list-column-header">
+  <span class="dpf-content-list-column-header__label">{{ label() }}</span>
+  <button
+    type="button"
+    class="dpf-content-list-column-header__filter-btn"
+    [class.dpf-content-list-column-header__filter-btn--active]="isActive()"
+    [matMenuTriggerFor]="filterMenu"
+    [attr.aria-label]="'filters.filterLabel' | translate: { label: label() }"
+    [attr.aria-pressed]="isActive()"
+    (click)="$event.stopPropagation()"
+    (menuOpened)="syncDraftFromValue()"
+  >
+    <mat-icon>filter_list</mat-icon>
+  </button>
+
+  <mat-menu #filterMenu="matMenu" class="dpf-content-list-column-header__menu">
+    <ng-template matMenuContent>
+      <div class="dpf-content-list-column-header__menu-panel" (click)="$event.stopPropagation()">
+      <p class="dpf-content-list-column-header__menu-title">
+        {{ 'filters.filterBy' | translate: { label: label() } }}
+      </p>
+
+      @switch (filterType()) {
+        @case ('text') {
+          <label class="dpf-content-list-column-header__field">
+            <span class="dpf-content-list-column-header__fiedpf-label">
+              {{ 'filters.contains' | translate }}
+            </span>
+            <input
+              class="dpf-content-list-column-header__input"
+              type="search"
+              [placeholder]="textPlaceholder() ?? ('filters.containsPlaceholder' | translate)"
+              [ngModel]="draftText()"
+              (ngModelChange)="draftText.set($event)"
+              (keydown.enter)="applyFilter()"
+            />
+          </label>
+        }
+        @case ('select') {
+          <div class="dpf-content-list-column-header__options">
+            @for (option of options(); track option.value) {
+              <label class="dpf-content-list-column-header__option">
+                <mat-checkbox
+                  [checked]="isOptionSelected(option.value)"
+                  (change)="toggleSelectOption(option.value, $event.checked)"
+                />
+                <span>{{ option.label }}</span>
+              </label>
+            }
+          </div>
+        }
+        @case ('date') {
+          <label class="dpf-content-list-column-header__field">
+            <span class="dpf-content-list-column-header__fiedpf-label">{{ 'filters.from' | translate }}</span>
+            <input
+              class="dpf-content-list-column-header__input"
+              type="date"
+              [ngModel]="draftDateFrom()"
+              (ngModelChange)="draftDateFrom.set($event || null)"
+            />
+          </label>
+          <label class="dpf-content-list-column-header__field">
+            <span class="dpf-content-list-column-header__fiedpf-label">{{ 'filters.to' | translate }}</span>
+            <input
+              class="dpf-content-list-column-header__input"
+              type="date"
+              [ngModel]="draftDateTo()"
+              (ngModelChange)="draftDateTo.set($event || null)"
+            />
+          </label>
+        }
+        @case ('number') {
+          <label class="dpf-content-list-column-header__field">
+            <span class="dpf-content-list-column-header__fiedpf-label">
+              {{ 'filters.operator' | translate }}
+            </span>
+            <select
+              class="dpf-content-list-column-header__input dpf-content-list-column-header__select"
+              [ngModel]="draftNumberOperator()"
+              (ngModelChange)="onNumberOperatorChange($event)"
+            >
+              @for (option of numberOperatorOptions; track option.value) {
+                <option [ngValue]="option.value">
+                  {{ 'filters.operators.' + option.value | translate }}
+                </option>
+              }
+            </select>
+          </label>
+          @if (numberNeedsTwoValues()) {
+            <div class="dpf-content-list-column-header__number-range">
+              <label class="dpf-content-list-column-header__field">
+                <span class="dpf-content-list-column-header__fiedpf-label">
+                  {{ 'filters.min' | translate }}
+                </span>
+                <input
+                  class="dpf-content-list-column-header__input"
+                  type="number"
+                  [placeholder]="'filters.any' | translate"
+                  [ngModel]="draftNumberValue()"
+                  (ngModelChange)="setDraftNumberValue($event)"
+                  (keydown.enter)="applyFilter()"
+                />
+              </label>
+              <label class="dpf-content-list-column-header__field">
+                <span class="dpf-content-list-column-header__fiedpf-label">
+                  {{ 'filters.max' | translate }}
+                </span>
+                <input
+                  class="dpf-content-list-column-header__input"
+                  type="number"
+                  [placeholder]="'filters.any' | translate"
+                  [ngModel]="draftNumberValueTo()"
+                  (ngModelChange)="setDraftNumberValueTo($event)"
+                  (keydown.enter)="applyFilter()"
+                />
+              </label>
+            </div>
+          } @else {
+            <label class="dpf-content-list-column-header__field">
+              <span class="dpf-content-list-column-header__fiedpf-label">
+                {{ 'filters.value' | translate }}
+              </span>
+              <input
+                class="dpf-content-list-column-header__input"
+                type="number"
+                [placeholder]="'filters.enterNumber' | translate"
+                [ngModel]="draftNumberValue()"
+                (ngModelChange)="setDraftNumberValue($event)"
+                (keydown.enter)="applyFilter()"
+              />
+            </label>
+          }
+        }
+      }
+
+      <div class="dpf-content-list-column-header__menu-actions">
+        <button
+          type="button"
+          class="dpf-content-list-column-header__clear-btn"
+          (click)="clearFilter()"
+        >
+          {{ 'filters.clear' | translate }}
+        </button>
+        <button
+          type="button"
+          class="dpf-content-list-column-header__apply-btn"
+          (click)="applyFilter()"
+        >
+          {{ 'filters.apply' | translate }}
+        </button>
+      </div>
+      </div>
+    </ng-template>
+  </mat-menu>
+</div>

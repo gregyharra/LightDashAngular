@@ -1,0 +1,22 @@
+@if (chips().length > 0) {
+  <div class="dpf-content-list-filter-chips">
+    @for (chip of chips(); track chip.key) {
+      <div class="dpf-content-list-filter-chips__chip">
+        <span class="dpf-content-list-filter-chips__chip-label">{{ chip.label }}</span>
+        <span class="dpf-content-list-filter-chips__chip-value">{{ chip.displayValue }}</span>
+        <button
+          type="button"
+          class="dpf-content-list-filter-chips__chip-remove"
+          [attr.aria-label]="'filters.removeFilter' | translate: { label: chip.label }"
+          (click)="clearChip.emit(chip.key)"
+        >
+          <mat-icon>close</mat-icon>
+        </button>
+      </div>
+    }
+
+    <button type="button" class="dpf-content-list-filter-chips__clear-all" (click)="clearAll.emit()">
+      {{ 'filters.clearAll' | translate }}
+    </button>
+  </div>
+}
