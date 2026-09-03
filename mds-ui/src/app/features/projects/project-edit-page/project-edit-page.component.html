@@ -1,331 +1,425 @@
 <section class="project-edit">
-  <div class="page__container">
-    <header class="project-edit__header">
-      <nav
-        class="project-edit__breadcrumbs"
-        [attr.aria-label]="'common.breadcrumb' | translate"
+  <ld-page-frame>
+    <nav
+      class="project-edit__breadcrumbs"
+      [attr.aria-label]="'common.breadcrumb' | translate"
+    >
+      <a routerLink="/projects" class="project-edit__breadcrumb-link">{{
+        "nav.home" | translate
+      }}</a>
+      <mat-icon>chevron_right</mat-icon>
+      <a
+        routerLink="/settings/projects"
+        class="project-edit__breadcrumb-link"
+        >{{ "projects.title" | translate }}</a
       >
-        <a routerLink="/projects" class="project-edit__breadcrumb-link">{{ 'nav.home' | translate }}</a>
+      <mat-icon>chevron_right</mat-icon>
+      @if (activeProjectService.activeProject(); as project) {
+        <span class="project-edit__breadcrumb-current">{{ project.name }}</span>
         <mat-icon>chevron_right</mat-icon>
-        <a routerLink="/settings/projects" class="project-edit__breadcrumb-link">{{ 'projects.title' | translate }}</a>
-        <mat-icon>chevron_right</mat-icon>
-        @if (activeProjectService.activeProject(); as project) {
-          <span class="project-edit__breadcrumb-current">{{ project.name }}</span>
-          <mat-icon>chevron_right</mat-icon>
-        }
-        <span class="project-edit__breadcrumb-current">{{ 'projects.edit.breadcrumb' | translate }}</span>
-      </nav>
+      }
+      <span class="project-edit__breadcrumb-current">{{
+        "projects.edit.breadcrumb" | translate
+      }}</span>
+    </nav>
 
-          <div class="project-edit__title-row">
-            <div>
-              <h1 class="project-edit__title">{{ 'projects.edit.title' | translate }}</h1>
-              <p class="project-edit__subtitle">
-                {{ 'projects.edit.subtitle' | translate }}
-              </p>
-            </div>
-          </div>
-        </header>
+    <ld-page-header
+      [title]="'projects.edit.title' | translate"
+      [subtitle]="'projects.edit.subtitle' | translate"
+    />
 
-        @if (loading()) {
-          <div class="project-edit__loading">
-            <mat-spinner diameter="32" />
-          </div>
-        } @else {
-          @if (error()) {
-            <div class="project-edit__alert project-edit__alert--error">
-              {{ error() }}
-            </div>
-          }
+    @if (loading()) {
+      <div class="project-edit__loading">
+        <mat-spinner diameter="32" />
+      </div>
+    } @else {
+      @if (error()) {
+        <div class="project-edit__alert project-edit__alert--error">
+          {{ error() }}
+        </div>
+      }
 
-          @if (success()) {
-            <div class="project-edit__alert project-edit__alert--success">
-              {{ success() }}
-            </div>
-          }
+      @if (success()) {
+        <div class="project-edit__alert project-edit__alert--success">
+          {{ success() }}
+        </div>
+      }
 
-          <div class="project-edit__tabs" role="tablist">
-            <button
-              type="button"
-              class="project-edit__tab"
-              [class.project-edit__tab--active]="activeSettingsTab() === 'configuration'"
-              (click)="setSettingsTab('configuration')"
-            >
-              {{ 'projects.edit.configuration' | translate }}
-            </button>
-            <button
-              type="button"
-              class="project-edit__tab"
-              [class.project-edit__tab--active]="activeSettingsTab() === 'links'"
-              (click)="setSettingsTab('links')"
-            >
-              {{ 'projects.edit.tableLinks' | translate }}
-              <span class="project-edit__tab-count">{{ linksCount() }}</span>
-            </button>
-          </div>
+      <div class="project-edit__tabs" role="tablist">
+        <button
+          type="button"
+          class="project-edit__tab"
+          [class.project-edit__tab--active]="
+            activeSettingsTab() === 'configuration'
+          "
+          (click)="setSettingsTab('configuration')"
+        >
+          {{ "projects.edit.configuration" | translate }}
+        </button>
+        <button
+          type="button"
+          class="project-edit__tab"
+          [class.project-edit__tab--active]="activeSettingsTab() === 'links'"
+          (click)="setSettingsTab('links')"
+        >
+          {{ "projects.edit.tableLinks" | translate }}
+          <span class="project-edit__tab-count">{{ linksCount() }}</span>
+        </button>
+      </div>
 
-          @if (activeSettingsTab() === 'configuration') {
-          <form class="project-edit__form" (ngSubmit)="save()">
+      @if (activeSettingsTab() === "configuration") {
+        <form class="project-edit__form" (ngSubmit)="save()">
+          <mat-form-field appearance="outline" class="project-edit__field">
+            <mat-label>{{ "projects.fields.name" | translate }}</mat-label>
+            <input
+              matInput
+              name="name"
+              [(ngModel)]="name"
+              required
+              autocomplete="off"
+            />
+          </mat-form-field>
+
+          <div class="project-edit__warehouse-row">
             <mat-form-field appearance="outline" class="project-edit__field">
-              <mat-label>{{ 'projects.fields.name' | translate }}</mat-label>
-              <input matInput name="name" [(ngModel)]="name" required autocomplete="off" />
+              <mat-label>{{
+                "projects.fields.warehouse" | translate
+              }}</mat-label>
+              <mat-select
+                name="warehouseUuid"
+                [(ngModel)]="selectedWarehouseUuid"
+              >
+                <mat-option [value]="null">{{
+                  "projects.fields.noWarehouse" | translate
+                }}</mat-option>
+                @for (
+                  warehouse of warehouses();
+                  track warehouse.warehouseUuid
+                ) {
+                  <mat-option [value]="warehouse.warehouseUuid">
+                    {{ warehouse.name }} ({{ warehouse.host }}:{{
+                      warehouse.port
+                    }})
+                  </mat-option>
+                }
+              </mat-select>
             </mat-form-field>
 
-            <div class="project-edit__warehouse-row">
+            <ld-button
+              type="button"
+              class="project-edit__create-warehouse-btn"
+              variant="outlined"
+              tone="neutral"
+              icon="add"
+              (click)="openCreateWarehouseDialog()"
+            >
+              {{ "warehouses.create" | translate }}
+            </ld-button>
+          </div>
+
+          @if (warehouses().length === 0) {
+            <p class="project-edit__hint">
+              {{ "projects.noWarehousesHint" | translate }}
+            </p>
+          }
+
+          <div class="project-edit__section">
+            <div class="project-edit__section-header">
+              <h2 class="project-edit__section-title">
+                {{ "projects.git.title" | translate }}
+              </h2>
+              @if (repoStatus(); as repo) {
+                <span
+                  class="project-edit__repo-badge"
+                  [class.project-edit__repo-badge--connected]="repo.cloned"
+                >
+                  {{
+                    (repo.cloned
+                      ? "projects.git.cloned"
+                      : repo.configured
+                        ? "projects.git.configured"
+                        : "projects.git.notConfigured"
+                    ) | translate
+                  }}
+                </span>
+              }
+            </div>
+
+            <mat-form-field appearance="outline" class="project-edit__field">
+              <mat-label>{{
+                "projects.git.repositoryUrl" | translate
+              }}</mat-label>
+              <input
+                matInput
+                name="gitRepoUrl"
+                [ngModel]="gitRepoUrl"
+                (ngModelChange)="onGitRepoUrlChange($event)"
+                placeholder="https://github.com/org/dbt-project.git"
+                autocomplete="off"
+              />
+            </mat-form-field>
+
+            <div class="project-edit__repo-row">
               <mat-form-field appearance="outline" class="project-edit__field">
-                <mat-label>{{ 'projects.fields.warehouse' | translate }}</mat-label>
-                <mat-select name="warehouseUuid" [(ngModel)]="selectedWarehouseUuid">
-                  <mat-option [value]="null">{{ 'projects.fields.noWarehouse' | translate }}</mat-option>
-                  @for (warehouse of warehouses(); track warehouse.warehouseUuid) {
-                    <mat-option [value]="warehouse.warehouseUuid">
-                      {{ warehouse.name }} ({{ warehouse.host }}:{{ warehouse.port }})
-                    </mat-option>
+                <mat-label>{{ "projects.git.provider" | translate }}</mat-label>
+                <mat-select
+                  name="gitProvider"
+                  [ngModel]="gitProvider"
+                  (ngModelChange)="onGitProviderChange($event)"
+                >
+                  <mat-option [value]="null">{{
+                    "projects.git.autoDetect" | translate
+                  }}</mat-option>
+                  @for (provider of gitProviders; track provider.value) {
+                    <mat-option [value]="provider.value">{{
+                      provider.labelKey | translate
+                    }}</mat-option>
                   }
                 </mat-select>
               </mat-form-field>
 
-              <button
-                mat-stroked-button
-                type="button"
-                class="project-edit__create-warehouse-btn"
-                (click)="openCreateWarehouseDialog()"
-              >
-                <mat-icon>add</mat-icon>
-                {{ 'warehouses.create' | translate }}
-              </button>
+              <mat-form-field appearance="outline" class="project-edit__field">
+                <mat-label>{{
+                  "projects.git.defaultBranch" | translate
+                }}</mat-label>
+                <input
+                  matInput
+                  name="gitDefaultBranch"
+                  [(ngModel)]="gitDefaultBranch"
+                  autocomplete="off"
+                />
+              </mat-form-field>
             </div>
 
-            @if (warehouses().length === 0) {
-              <p class="project-edit__hint">
-                {{ 'projects.noWarehousesHint' | translate }}
-              </p>
+            <mat-form-field appearance="outline" class="project-edit__field">
+              <mat-label>{{
+                "projects.git.subdirectory" | translate
+              }}</mat-label>
+              <input
+                matInput
+                name="gitSubdirectory"
+                [(ngModel)]="gitSubdirectory"
+                placeholder="transform"
+                autocomplete="off"
+              />
+              <mat-hint>{{
+                "projects.git.subdirectoryHint" | translate
+              }}</mat-hint>
+            </mat-form-field>
+
+            @if (gitProvider === "bitbucket") {
+              <mat-form-field appearance="outline" class="project-edit__field">
+                <mat-label>{{
+                  "projects.git.bitbucketUsername" | translate
+                }}</mat-label>
+                <input
+                  matInput
+                  name="gitUsername"
+                  [(ngModel)]="gitUsername"
+                  autocomplete="username"
+                />
+                <mat-hint>{{
+                  "projects.git.bitbucketUsernameHint" | translate
+                }}</mat-hint>
+              </mat-form-field>
             }
 
-            <div class="project-edit__section">
-              <div class="project-edit__section-header">
-                <h2 class="project-edit__section-title">{{ 'projects.git.title' | translate }}</h2>
-                @if (repoStatus(); as repo) {
-                  <span
-                    class="project-edit__repo-badge"
-                    [class.project-edit__repo-badge--connected]="repo.cloned"
-                  >
-                    {{
-                      (repo.cloned
-                        ? 'projects.git.cloned'
-                        : repo.configured
-                          ? 'projects.git.configured'
-                          : 'projects.git.notConfigured') | translate
-                    }}
-                  </span>
+            <mat-form-field appearance="outline" class="project-edit__field">
+              <mat-label>{{
+                "projects.git.accessToken" | translate
+              }}</mat-label>
+              <input
+                matInput
+                type="password"
+                name="gitToken"
+                [(ngModel)]="gitToken"
+                autocomplete="new-password"
+              />
+              <mat-hint>
+                @if (hasGitToken) {
+                  {{ "projects.git.savedTokenHint" | translate }}
+                } @else if (gitProvider === "bitbucket") {
+                  {{ "projects.git.bitbucketTokenHint" | translate }}
+                } @else {
+                  {{ "projects.git.privateTokenHint" | translate }}
+                }
+              </mat-hint>
+            </mat-form-field>
+
+            @if (hasGitToken) {
+              <label class="project-edit__checkbox">
+                <input
+                  type="checkbox"
+                  name="clearGitToken"
+                  [(ngModel)]="clearGitToken"
+                />
+                {{ "projects.git.clearToken" | translate }}
+              </label>
+            }
+
+            <mat-form-field appearance="outline" class="project-edit__field">
+              <mat-label>{{ "projects.dbt.path" | translate }}</mat-label>
+              <input
+                matInput
+                name="dbtProjectPath"
+                [(ngModel)]="dbtProjectPath"
+                placeholder="../mds-transform"
+                autocomplete="off"
+              />
+              <mat-hint>{{ "projects.dbt.pathHintEdit" | translate }}</mat-hint>
+            </mat-form-field>
+
+            <mat-form-field appearance="outline" class="project-edit__field">
+              <mat-label>{{ "projects.dbt.target" | translate }}</mat-label>
+              <input
+                matInput
+                name="dbtTarget"
+                [(ngModel)]="dbtTarget"
+                placeholder="dev"
+                autocomplete="off"
+              />
+              <mat-hint>{{
+                "projects.dbt.targetHintEdit" | translate
+              }}</mat-hint>
+            </mat-form-field>
+
+            @if (repoStatus(); as repo) {
+              <div class="project-edit__repo-status">
+                <p>
+                  <strong>{{
+                    "projects.git.repoStatus.branch" | translate
+                  }}</strong>
+                  {{ repo.branch || repo.defaultBranch || "—" }}
+                </p>
+                <p>
+                  <strong>{{
+                    "projects.git.repoStatus.commit" | translate
+                  }}</strong>
+                  {{ repo.commitSha?.slice(0, 7) || "—" }}
+                </p>
+                <p>
+                  <strong>{{
+                    "projects.git.repoStatus.lastSync" | translate
+                  }}</strong>
+                  {{
+                    repo.lastSyncAt
+                      ? formatDateTime(repo.lastSyncAt)
+                      : ("projects.git.repoStatus.never" | translate)
+                  }}
+                </p>
+                @if (repo.dbtProjectPath) {
+                  <p>
+                    <strong>{{
+                      "projects.git.repoStatus.dbtPath" | translate
+                    }}</strong>
+                    {{ repo.dbtProjectPath }}
+                  </p>
+                }
+                @if (repo.dbtTarget) {
+                  <p>
+                    <strong>{{
+                      "projects.git.repoStatus.dbtTarget" | translate
+                    }}</strong>
+                    {{ repo.dbtTarget }}
+                  </p>
                 }
               </div>
+            }
 
-              <mat-form-field appearance="outline" class="project-edit__field">
-                <mat-label>{{ 'projects.git.repositoryUrl' | translate }}</mat-label>
-                <input
-                  matInput
-                  name="gitRepoUrl"
-                  [ngModel]="gitRepoUrl"
-                  (ngModelChange)="onGitRepoUrlChange($event)"
-                  placeholder="https://github.com/org/dbt-project.git"
-                  autocomplete="off"
-                />
-              </mat-form-field>
+            <div class="project-edit__repo-actions">
+              <ld-button
+                type="button"
+                variant="outlined"
+                tone="neutral"
+                (click)="syncRepository()"
+                [disabled]="
+                  syncing() || desyncing() || saving() || !gitRepoUrl.trim()
+                "
+                [loading]="syncing()"
+              >
+                {{ "projects.git.sync" | translate }}
+              </ld-button>
 
-              <div class="project-edit__repo-row">
-                <mat-form-field appearance="outline" class="project-edit__field">
-                  <mat-label>{{ 'projects.git.provider' | translate }}</mat-label>
-                  <mat-select
-                    name="gitProvider"
-                    [ngModel]="gitProvider"
-                    (ngModelChange)="onGitProviderChange($event)"
-                  >
-                    <mat-option [value]="null">{{ 'projects.git.autoDetect' | translate }}</mat-option>
-                    @for (provider of gitProviders; track provider.value) {
-                      <mat-option [value]="provider.value">{{ provider.labelKey | translate }}</mat-option>
-                    }
-                  </mat-select>
-                </mat-form-field>
-
-                <mat-form-field appearance="outline" class="project-edit__field">
-                  <mat-label>{{ 'projects.git.defaultBranch' | translate }}</mat-label>
-                  <input
-                    matInput
-                    name="gitDefaultBranch"
-                    [(ngModel)]="gitDefaultBranch"
-                    autocomplete="off"
-                  />
-                </mat-form-field>
-              </div>
-
-              <mat-form-field appearance="outline" class="project-edit__field">
-                <mat-label>{{ 'projects.git.subdirectory' | translate }}</mat-label>
-                <input
-                  matInput
-                  name="gitSubdirectory"
-                  [(ngModel)]="gitSubdirectory"
-                  placeholder="transform"
-                  autocomplete="off"
-                />
-                <mat-hint>{{ 'projects.git.subdirectoryHint' | translate }}</mat-hint>
-              </mat-form-field>
-
-              @if (gitProvider === 'bitbucket') {
-                <mat-form-field appearance="outline" class="project-edit__field">
-                  <mat-label>{{ 'projects.git.bitbucketUsername' | translate }}</mat-label>
-                  <input
-                    matInput
-                    name="gitUsername"
-                    [(ngModel)]="gitUsername"
-                    autocomplete="username"
-                  />
-                  <mat-hint>{{ 'projects.git.bitbucketUsernameHint' | translate }}</mat-hint>
-                </mat-form-field>
-              }
-
-              <mat-form-field appearance="outline" class="project-edit__field">
-                <mat-label>{{ 'projects.git.accessToken' | translate }}</mat-label>
-                <input
-                  matInput
-                  type="password"
-                  name="gitToken"
-                  [(ngModel)]="gitToken"
-                  autocomplete="new-password"
-                />
-                <mat-hint>
-                  @if (hasGitToken) {
-                    {{ 'projects.git.savedTokenHint' | translate }}
-                  } @else if (gitProvider === 'bitbucket') {
-                    {{ 'projects.git.bitbucketTokenHint' | translate }}
-                  } @else {
-                    {{ 'projects.git.privateTokenHint' | translate }}
-                  }
-                </mat-hint>
-              </mat-form-field>
-
-              @if (hasGitToken) {
-                <label class="project-edit__checkbox">
-                  <input type="checkbox" name="clearGitToken" [(ngModel)]="clearGitToken" />
-                  {{ 'projects.git.clearToken' | translate }}
-                </label>
-              }
-
-              <mat-form-field appearance="outline" class="project-edit__field">
-                <mat-label>{{ 'projects.dbt.path' | translate }}</mat-label>
-                <input
-                  matInput
-                  name="dbtProjectPath"
-                  [(ngModel)]="dbtProjectPath"
-                  placeholder="../mds-transform"
-                  autocomplete="off"
-                />
-                <mat-hint>{{ 'projects.dbt.pathHintEdit' | translate }}</mat-hint>
-              </mat-form-field>
-
-              <mat-form-field appearance="outline" class="project-edit__field">
-                <mat-label>{{ 'projects.dbt.target' | translate }}</mat-label>
-                <input
-                  matInput
-                  name="dbtTarget"
-                  [(ngModel)]="dbtTarget"
-                  placeholder="dev"
-                  autocomplete="off"
-                />
-                <mat-hint>{{ 'projects.dbt.targetHintEdit' | translate }}</mat-hint>
-              </mat-form-field>
-
-              @if (repoStatus(); as repo) {
-                <div class="project-edit__repo-status">
-                  <p><strong>{{ 'projects.git.repoStatus.branch' | translate }}</strong> {{ repo.branch || repo.defaultBranch || '—' }}</p>
-                  <p><strong>{{ 'projects.git.repoStatus.commit' | translate }}</strong> {{ repo.commitSha?.slice(0, 7) || '—' }}</p>
-                  <p>
-                    <strong>{{ 'projects.git.repoStatus.lastSync' | translate }}</strong>
-                    {{ repo.lastSyncAt ? formatDateTime(repo.lastSyncAt) : ('projects.git.repoStatus.never' | translate) }}
-                  </p>
-                  @if (repo.dbtProjectPath) {
-                    <p><strong>{{ 'projects.git.repoStatus.dbtPath' | translate }}</strong> {{ repo.dbtProjectPath }}</p>
-                  }
-                  @if (repo.dbtTarget) {
-                    <p><strong>{{ 'projects.git.repoStatus.dbtTarget' | translate }}</strong> {{ repo.dbtTarget }}</p>
-                  }
-                </div>
-              }
-
-              <div class="project-edit__repo-actions">
+              @if (repoStatus()?.cloned) {
                 <button
                   mat-stroked-button
                   type="button"
-                  (click)="syncRepository()"
-                  [disabled]="syncing() || desyncing() || saving() || !gitRepoUrl.trim()"
+                  class="project-edit__desync-btn"
+                  (click)="desyncRepository()"
+                  [disabled]="syncing() || desyncing() || saving()"
                 >
-                  {{ (syncing() ? 'projects.git.syncing' : 'projects.git.sync') | translate }}
+                  {{
+                    (desyncing()
+                      ? "projects.git.removing"
+                      : "projects.git.remove"
+                    ) | translate
+                  }}
                 </button>
-
-                @if (repoStatus()?.cloned) {
-                  <button
-                    mat-stroked-button
-                    type="button"
-                    class="project-edit__desync-btn"
-                    (click)="desyncRepository()"
-                    [disabled]="syncing() || desyncing() || saving()"
-                  >
-                    {{ (desyncing() ? 'projects.git.removing' : 'projects.git.remove') | translate }}
-                  </button>
-                }
-              </div>
-            </div>
-
-            <div class="project-edit__actions">
-              <button mat-stroked-button type="button" (click)="cancel()" [disabled]="saving()">
-                {{ 'common.cancel' | translate }}
-              </button>
-              <button mat-flat-button type="submit" [disabled]="saving() || deleting()">
-                @if (saving()) {
-                  {{ 'projects.saving' | translate }}
-                } @else {
-                  {{ 'projects.edit.save' | translate }}
-                }
-              </button>
-            </div>
-          </form>
-
-          <section class="project-edit__danger-zone" aria-labelledby="project-delete-heading">
-            <h2 id="project-delete-heading" class="project-edit__danger-title">
-              {{ 'projects.edit.dangerTitle' | translate }}
-            </h2>
-            <p class="project-edit__danger-text">
-              {{ 'projects.edit.dangerText' | translate }}
-            </p>
-            <button
-              mat-stroked-button
-              type="button"
-              class="project-edit__delete-btn"
-              [disabled]="deleting() || saving() || syncing() || desyncing()"
-              (click)="deleteProject()"
-            >
-              @if (deleting()) {
-                {{ 'projects.deleting' | translate }}
-              } @else {
-                {{ 'projects.edit.delete' | translate }}
               }
-            </button>
-          </section>
-          }
+            </div>
+          </div>
 
-          @if (activeSettingsTab() === 'links') {
-            <section class="project-edit__links-panel">
-              <app-filterable-links-table
-                variant="project"
-                [links]="modelJoins()"
-                [loading]="linksLoading()"
-                [saving]="linksSaving()"
-                (addRequested)="openAddLinkDialog()"
-                (editRequested)="onEditLink($event)"
-                (deleteRequested)="onDeleteLink($event)"
-              />
-            </section>
-          }
-        }
-      </div>
+          <div class="project-edit__actions">
+            <ld-button
+              type="button"
+              variant="outlined"
+              tone="neutral"
+              (click)="cancel()"
+              [disabled]="saving()"
+            >
+              {{ "common.cancel" | translate }}
+            </ld-button>
+            <ld-button
+              type="submit"
+              [disabled]="saving() || deleting()"
+              [loading]="saving()"
+            >
+              {{ "projects.edit.save" | translate }}
+            </ld-button>
+          </div>
+        </form>
+
+        <section
+          class="project-edit__danger-zone"
+          aria-labelledby="project-delete-heading"
+        >
+          <h2 id="project-delete-heading" class="project-edit__danger-title">
+            {{ "projects.edit.dangerTitle" | translate }}
+          </h2>
+          <p class="project-edit__danger-text">
+            {{ "projects.edit.dangerText" | translate }}
+          </p>
+          <button
+            mat-stroked-button
+            type="button"
+            class="project-edit__delete-btn"
+            [disabled]="deleting() || saving() || syncing() || desyncing()"
+            (click)="deleteProject()"
+          >
+            @if (deleting()) {
+              {{ "projects.deleting" | translate }}
+            } @else {
+              {{ "projects.edit.delete" | translate }}
+            }
+          </button>
+        </section>
+      }
+
+      @if (activeSettingsTab() === "links") {
+        <section class="project-edit__links-panel">
+          <app-filterable-links-table
+            variant="project"
+            [links]="modelJoins()"
+            [loading]="linksLoading()"
+            [saving]="linksSaving()"
+            (addRequested)="openAddLinkDialog()"
+            (editRequested)="onEditLink($event)"
+            (deleteRequested)="onDeleteLink($event)"
+          />
+        </section>
+      }
+    }
+  </ld-page-frame>
 </section>
 
 @if (showLinkDialog()) {

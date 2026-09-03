@@ -1,234 +1,260 @@
 <section class="project-create">
-  <div class="page__container">
-    <header class="project-create__header">
-      <nav
-        class="project-create__breadcrumbs"
-        [attr.aria-label]="'common.breadcrumb' | translate"
+  <ld-page-frame>
+    <nav
+      class="project-create__breadcrumbs"
+      [attr.aria-label]="'common.breadcrumb' | translate"
+    >
+      <a routerLink="/projects" class="project-create__breadcrumb-link">{{
+        "nav.home" | translate
+      }}</a>
+      <mat-icon>chevron_right</mat-icon>
+      <a
+        routerLink="/settings/projects"
+        class="project-create__breadcrumb-link"
+        >{{ "projects.title" | translate }}</a
       >
-        <a routerLink="/projects" class="project-create__breadcrumb-link">{{ 'nav.home' | translate }}</a>
-        <mat-icon>chevron_right</mat-icon>
-        <a routerLink="/settings/projects" class="project-create__breadcrumb-link">{{ 'projects.title' | translate }}</a>
-        <mat-icon>chevron_right</mat-icon>
-        <span class="project-create__breadcrumb-current">{{ 'projects.create.title' | translate }}</span>
-      </nav>
-    </header>
+      <mat-icon>chevron_right</mat-icon>
+      <span class="project-create__breadcrumb-current">{{
+        "projects.create.title" | translate
+      }}</span>
+    </nav>
 
-        <h1 class="project-create__title">{{ 'projects.create.title' | translate }}</h1>
-        <p class="project-create__subtitle">
-          {{ 'projects.create.subtitle' | translate }}
-        </p>
+    <ld-page-header
+      [title]="'projects.create.title' | translate"
+      [subtitle]="'projects.create.subtitle' | translate"
+    />
 
-        @if (loading()) {
-          <div class="project-create__loading">
-            <mat-spinner diameter="32" />
-          </div>
-        } @else {
-          <form class="project-create__form" (ngSubmit)="submit()">
+    @if (loading()) {
+      <div class="project-create__loading">
+        <mat-spinner diameter="32" />
+      </div>
+    } @else {
+      <form class="project-create__form" (ngSubmit)="submit()">
+        <mat-form-field appearance="outline" class="project-create__field">
+          <mat-label>{{ "projects.fields.name" | translate }}</mat-label>
+          <input
+            matInput
+            name="name"
+            [(ngModel)]="name"
+            required
+            autocomplete="off"
+            [disabled]="submitting()"
+          />
+        </mat-form-field>
+
+        <div class="project-create__warehouse-row">
+          <mat-form-field appearance="outline" class="project-create__field">
+            <mat-label>{{ "projects.fields.warehouse" | translate }}</mat-label>
+            <mat-select
+              name="warehouseUuid"
+              [(ngModel)]="selectedWarehouseUuid"
+              [disabled]="submitting()"
+            >
+              <mat-option [value]="null">{{
+                "projects.fields.noWarehouse" | translate
+              }}</mat-option>
+              @for (warehouse of warehouses(); track warehouse.warehouseUuid) {
+                <mat-option [value]="warehouse.warehouseUuid">
+                  {{ warehouse.name }} ({{ warehouse.host }}:{{
+                    warehouse.port
+                  }})
+                </mat-option>
+              }
+            </mat-select>
+          </mat-form-field>
+
+          <ld-button
+            type="button"
+            class="project-create__create-warehouse-btn"
+            variant="outlined"
+            tone="neutral"
+            icon="add"
+            (click)="openCreateWarehouseDialog()"
+            [disabled]="submitting()"
+          >
+            {{ "warehouses.create" | translate }}
+          </ld-button>
+        </div>
+
+        @if (warehouses().length === 0) {
+          <p class="project-create__hint">
+            {{ "projects.noWarehousesHint" | translate }}
+          </p>
+        }
+
+        <div class="project-create__section">
+          <h2 class="project-create__section-title">
+            {{ "projects.git.title" | translate }}
+          </h2>
+          <p class="project-create__hint">
+            {{ "projects.git.subtitle" | translate }}
+          </p>
+
+          <mat-form-field appearance="outline" class="project-create__field">
+            <mat-label>{{
+              "projects.git.repositoryUrl" | translate
+            }}</mat-label>
+            <input
+              matInput
+              name="gitRepoUrl"
+              [ngModel]="gitRepoUrl"
+              (ngModelChange)="onGitRepoUrlChange($event)"
+              placeholder="https://github.com/org/dbt-project.git"
+              autocomplete="off"
+              [disabled]="submitting()"
+            />
+          </mat-form-field>
+
+          <div class="project-create__repo-row">
             <mat-form-field appearance="outline" class="project-create__field">
-              <mat-label>{{ 'projects.fields.name' | translate }}</mat-label>
+              <mat-label>{{ "projects.git.provider" | translate }}</mat-label>
+              <mat-select
+                name="gitProvider"
+                [ngModel]="gitProvider"
+                (ngModelChange)="onGitProviderChange($event)"
+                [disabled]="submitting()"
+              >
+                <mat-option [value]="null">{{
+                  "projects.git.autoDetect" | translate
+                }}</mat-option>
+                @for (provider of gitProviders; track provider.value) {
+                  <mat-option [value]="provider.value">{{
+                    provider.labelKey | translate
+                  }}</mat-option>
+                }
+              </mat-select>
+            </mat-form-field>
+
+            <mat-form-field appearance="outline" class="project-create__field">
+              <mat-label>{{
+                "projects.git.defaultBranch" | translate
+              }}</mat-label>
               <input
                 matInput
-                name="name"
-                [(ngModel)]="name"
-                required
+                name="gitDefaultBranch"
+                [(ngModel)]="gitDefaultBranch"
                 autocomplete="off"
                 [disabled]="submitting()"
               />
             </mat-form-field>
+          </div>
 
-            <div class="project-create__warehouse-row">
-              <mat-form-field appearance="outline" class="project-create__field">
-                <mat-label>{{ 'projects.fields.warehouse' | translate }}</mat-label>
-                <mat-select
-                  name="warehouseUuid"
-                  [(ngModel)]="selectedWarehouseUuid"
-                  [disabled]="submitting()"
-                >
-                  <mat-option [value]="null">{{ 'projects.fields.noWarehouse' | translate }}</mat-option>
-                  @for (warehouse of warehouses(); track warehouse.warehouseUuid) {
-                    <mat-option [value]="warehouse.warehouseUuid">
-                      {{ warehouse.name }} ({{ warehouse.host }}:{{ warehouse.port }})
-                    </mat-option>
-                  }
-                </mat-select>
-              </mat-form-field>
+          <mat-form-field appearance="outline" class="project-create__field">
+            <mat-label>{{ "projects.git.subdirectory" | translate }}</mat-label>
+            <input
+              matInput
+              name="gitSubdirectory"
+              [(ngModel)]="gitSubdirectory"
+              placeholder="transform"
+              autocomplete="off"
+              [disabled]="submitting()"
+            />
+            <mat-hint>{{
+              "projects.git.subdirectoryHint" | translate
+            }}</mat-hint>
+          </mat-form-field>
 
-              <button
-                mat-stroked-button
-                type="button"
-                class="project-create__create-warehouse-btn"
-                (click)="openCreateWarehouseDialog()"
+          @if (gitProvider === "bitbucket") {
+            <mat-form-field appearance="outline" class="project-create__field">
+              <mat-label>{{
+                "projects.git.bitbucketUsername" | translate
+              }}</mat-label>
+              <input
+                matInput
+                name="gitUsername"
+                [(ngModel)]="gitUsername"
+                autocomplete="username"
                 [disabled]="submitting()"
-              >
-                <mat-icon>add</mat-icon>
-                {{ 'warehouses.create' | translate }}
-              </button>
-            </div>
+              />
+              <mat-hint>{{
+                "projects.git.bitbucketUsernameHint" | translate
+              }}</mat-hint>
+            </mat-form-field>
+          }
 
-            @if (warehouses().length === 0) {
-              <p class="project-create__hint">
-                {{ 'projects.noWarehousesHint' | translate }}
-              </p>
-            }
-
-            <div class="project-create__section">
-              <h2 class="project-create__section-title">{{ 'projects.git.title' | translate }}</h2>
-              <p class="project-create__hint">
-                {{ 'projects.git.subtitle' | translate }}
-              </p>
-
-              <mat-form-field appearance="outline" class="project-create__field">
-                <mat-label>{{ 'projects.git.repositoryUrl' | translate }}</mat-label>
-                <input
-                  matInput
-                  name="gitRepoUrl"
-                  [ngModel]="gitRepoUrl"
-                  (ngModelChange)="onGitRepoUrlChange($event)"
-                  placeholder="https://github.com/org/dbt-project.git"
-                  autocomplete="off"
-                  [disabled]="submitting()"
-                />
-              </mat-form-field>
-
-              <div class="project-create__repo-row">
-                <mat-form-field appearance="outline" class="project-create__field">
-                  <mat-label>{{ 'projects.git.provider' | translate }}</mat-label>
-                  <mat-select
-                    name="gitProvider"
-                    [ngModel]="gitProvider"
-                    (ngModelChange)="onGitProviderChange($event)"
-                    [disabled]="submitting()"
-                  >
-                    <mat-option [value]="null">{{ 'projects.git.autoDetect' | translate }}</mat-option>
-                    @for (provider of gitProviders; track provider.value) {
-                      <mat-option [value]="provider.value">{{ provider.labelKey | translate }}</mat-option>
-                    }
-                  </mat-select>
-                </mat-form-field>
-
-                <mat-form-field appearance="outline" class="project-create__field">
-                  <mat-label>{{ 'projects.git.defaultBranch' | translate }}</mat-label>
-                  <input
-                    matInput
-                    name="gitDefaultBranch"
-                    [(ngModel)]="gitDefaultBranch"
-                    autocomplete="off"
-                    [disabled]="submitting()"
-                  />
-                </mat-form-field>
-              </div>
-
-              <mat-form-field appearance="outline" class="project-create__field">
-                <mat-label>{{ 'projects.git.subdirectory' | translate }}</mat-label>
-                <input
-                  matInput
-                  name="gitSubdirectory"
-                  [(ngModel)]="gitSubdirectory"
-                  placeholder="transform"
-                  autocomplete="off"
-                  [disabled]="submitting()"
-                />
-                <mat-hint>{{ 'projects.git.subdirectoryHint' | translate }}</mat-hint>
-              </mat-form-field>
-
-              @if (gitProvider === 'bitbucket') {
-                <mat-form-field appearance="outline" class="project-create__field">
-                  <mat-label>{{ 'projects.git.bitbucketUsername' | translate }}</mat-label>
-                  <input
-                    matInput
-                    name="gitUsername"
-                    [(ngModel)]="gitUsername"
-                    autocomplete="username"
-                    [disabled]="submitting()"
-                  />
-                  <mat-hint>{{ 'projects.git.bitbucketUsernameHint' | translate }}</mat-hint>
-                </mat-form-field>
+          <mat-form-field appearance="outline" class="project-create__field">
+            <mat-label>{{ "projects.git.accessToken" | translate }}</mat-label>
+            <input
+              matInput
+              type="password"
+              name="gitToken"
+              [(ngModel)]="gitToken"
+              autocomplete="new-password"
+              [disabled]="submitting()"
+            />
+            <mat-hint>
+              @if (gitProvider === "bitbucket") {
+                {{ "projects.git.bitbucketTokenHint" | translate }}
+              } @else {
+                {{ "projects.git.privateTokenHint" | translate }}
               }
+            </mat-hint>
+          </mat-form-field>
+        </div>
 
-              <mat-form-field appearance="outline" class="project-create__field">
-                <mat-label>{{ 'projects.git.accessToken' | translate }}</mat-label>
-                <input
-                  matInput
-                  type="password"
-                  name="gitToken"
-                  [(ngModel)]="gitToken"
-                  autocomplete="new-password"
-                  [disabled]="submitting()"
-                />
-                <mat-hint>
-                  @if (gitProvider === 'bitbucket') {
-                    {{ 'projects.git.bitbucketTokenHint' | translate }}
-                  } @else {
-                    {{ 'projects.git.privateTokenHint' | translate }}
-                  }
-                </mat-hint>
-              </mat-form-field>
-            </div>
+        <div class="project-create__section">
+          <h2 class="project-create__section-title">
+            {{ "projects.dbt.title" | translate }}
+          </h2>
+          <p class="project-create__hint">
+            {{ "projects.dbt.subtitle" | translate }}
+          </p>
 
-            <div class="project-create__section">
-              <h2 class="project-create__section-title">{{ 'projects.dbt.title' | translate }}</h2>
-              <p class="project-create__hint">
-                {{ 'projects.dbt.subtitle' | translate }}
-              </p>
+          <mat-form-field appearance="outline" class="project-create__field">
+            <mat-label>{{ "projects.dbt.path" | translate }}</mat-label>
+            <input
+              matInput
+              name="dbtProjectPath"
+              [(ngModel)]="dbtProjectPath"
+              placeholder="../mds-transform"
+              autocomplete="off"
+              [disabled]="submitting()"
+            />
+            <mat-hint>
+              {{ "projects.dbt.pathHint" | translate }}
+            </mat-hint>
+          </mat-form-field>
 
-              <mat-form-field appearance="outline" class="project-create__field">
-                <mat-label>{{ 'projects.dbt.path' | translate }}</mat-label>
-                <input
-                  matInput
-                  name="dbtProjectPath"
-                  [(ngModel)]="dbtProjectPath"
-                  placeholder="../mds-transform"
-                  autocomplete="off"
-                  [disabled]="submitting()"
-                />
-                <mat-hint>
-                  {{ 'projects.dbt.pathHint' | translate }}
-                </mat-hint>
-              </mat-form-field>
+          <mat-form-field appearance="outline" class="project-create__field">
+            <mat-label>{{ "projects.dbt.target" | translate }}</mat-label>
+            <input
+              matInput
+              name="dbtTarget"
+              [(ngModel)]="dbtTarget"
+              placeholder="dev"
+              autocomplete="off"
+              [disabled]="submitting()"
+            />
+            <mat-hint>
+              {{ "projects.dbt.targetHint" | translate }}
+            </mat-hint>
+          </mat-form-field>
+        </div>
 
-              <mat-form-field appearance="outline" class="project-create__field">
-                <mat-label>{{ 'projects.dbt.target' | translate }}</mat-label>
-                <input
-                  matInput
-                  name="dbtTarget"
-                  [(ngModel)]="dbtTarget"
-                  placeholder="dev"
-                  autocomplete="off"
-                  [disabled]="submitting()"
-                />
-                <mat-hint>
-                  {{ 'projects.dbt.targetHint' | translate }}
-                </mat-hint>
-              </mat-form-field>
-            </div>
-
-            @if (error()) {
-              <div class="project-create__error">{{ error() }}</div>
-            }
-
-            <div class="project-create__actions">
-              <button
-                mat-stroked-button
-                type="button"
-                (click)="cancel()"
-                [disabled]="submitting()"
-              >
-                {{ 'common.cancel' | translate }}
-              </button>
-              <button
-                mat-flat-button
-                type="submit"
-                class="project-create__submit-btn"
-                [disabled]="submitting() || !name.trim()"
-              >
-                @if (submitting()) {
-                  <mat-spinner diameter="18" />
-                } @else {
-                  {{ 'projects.create.submit' | translate }}
-                }
-              </button>
-            </div>
-          </form>
+        @if (error()) {
+          <div class="project-create__error">{{ error() }}</div>
         }
-  </div>
+
+        <div class="project-create__actions">
+          <ld-button
+            type="button"
+            variant="outlined"
+            tone="neutral"
+            (click)="cancel()"
+            [disabled]="submitting()"
+          >
+            {{ "common.cancel" | translate }}
+          </ld-button>
+          <ld-button
+            type="submit"
+            class="project-create__submit-btn"
+            [disabled]="submitting() || !name.trim()"
+            [loading]="submitting()"
+          >
+            {{ "projects.create.submit" | translate }}
+          </ld-button>
+        </div>
+      </form>
+    }
+  </ld-page-frame>
 </section>

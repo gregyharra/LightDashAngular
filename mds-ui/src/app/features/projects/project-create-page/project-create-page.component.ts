@@ -1,7 +1,6 @@
 import { Component, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
-import { MatButtonModule } from '@angular/material/button';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
@@ -14,6 +13,11 @@ import { GitProvider } from '../../../core/models/project.model';
 import { WarehouseListItem } from '../../../core/models/warehouse.model';
 import { ActiveProjectService } from '../../../core/services/active-project.service';
 import { WarehouseCreateDialogComponent } from '../../warehouses/warehouse-create-dialog/warehouse-create-dialog.component';
+import {
+  LdButtonComponent,
+  LdPageFrameComponent,
+  LdPageHeaderComponent,
+} from '../../../design-system';
 import { ProjectsService } from '../projects.service';
 import { WarehouseService } from '../warehouse.service';
 import { detectGitProvider } from '../git-provider.utils';
@@ -23,7 +27,6 @@ import { detectGitProvider } from '../git-provider.utils';
   imports: [
     FormsModule,
     RouterLink,
-    MatButtonModule,
     MatDialogModule,
     MatFormFieldModule,
     MatIconModule,
@@ -31,6 +34,9 @@ import { detectGitProvider } from '../git-provider.utils';
     MatProgressSpinnerModule,
     MatSelectModule,
     TranslatePipe,
+    LdButtonComponent,
+    LdPageFrameComponent,
+    LdPageHeaderComponent,
   ],
   templateUrl: './project-create-page.component.html',
   styleUrl: './project-create-page.component.scss',
@@ -59,12 +65,13 @@ export class ProjectCreatePageComponent {
   protected dbtTarget = '';
   private providerManuallySet = false;
 
-  protected readonly gitProviders: { value: GitProvider; labelKey: string }[] = [
-    { value: 'github', labelKey: 'projects.git.providers.github' },
-    { value: 'gitlab', labelKey: 'projects.git.providers.gitlab' },
-    { value: 'bitbucket', labelKey: 'projects.git.providers.bitbucket' },
-    { value: 'generic', labelKey: 'projects.git.providers.generic' },
-  ];
+  protected readonly gitProviders: { value: GitProvider; labelKey: string }[] =
+    [
+      { value: 'github', labelKey: 'projects.git.providers.github' },
+      { value: 'gitlab', labelKey: 'projects.git.providers.gitlab' },
+      { value: 'bitbucket', labelKey: 'projects.git.providers.bitbucket' },
+      { value: 'generic', labelKey: 'projects.git.providers.generic' },
+    ];
 
   constructor() {
     this.loadWarehouses();
@@ -164,7 +171,11 @@ export class ProjectCreatePageComponent {
           const currentProjects = this.activeProjectService.projects();
           this.activeProjectService.setProjects([...currentProjects, project]);
           this.activeProjectService.setActiveProject(project.projectUuid);
-          void this.router.navigate(['/projects', project.projectUuid, 'explore']);
+          void this.router.navigate([
+            '/projects',
+            project.projectUuid,
+            'explore',
+          ]);
         },
         error: (err) => {
           this.error.set(apiErrorMessage(err));

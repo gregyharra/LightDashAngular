@@ -1,11 +1,12 @@
-.project-create__header {
-  margin-bottom: var(--ld-spacing-md);
+ld-page-header {
+  margin-bottom: var(--ld-spacing-xl);
 }
 
 .project-create__breadcrumbs {
   display: inline-flex;
   align-items: center;
   gap: 4px;
+  margin-bottom: var(--ld-spacing-sm);
   font-size: var(--ld-font-size-sm);
   color: var(--ld-gray-6);
 
@@ -30,20 +31,6 @@
 .project-create__breadcrumb-current {
   color: var(--ld-gray-9);
   font-weight: 500;
-}
-
-.project-create__title {
-  margin: 0 0 var(--ld-spacing-xs);
-  font-size: 18px;
-  font-weight: 600;
-  line-height: 1.3;
-  color: var(--ld-gray-9);
-}
-
-.project-create__subtitle {
-  margin: 0 0 var(--ld-spacing-lg);
-  font-size: var(--ld-font-size-sm);
-  color: var(--ld-gray-6);
 }
 
 .project-create__loading {
@@ -81,14 +68,6 @@
 .project-create__create-warehouse-btn {
   flex-shrink: 0;
   margin-top: 8px;
-  height: 56px;
-
-  mat-icon {
-    width: 18px;
-    height: 18px;
-    font-size: 18px;
-    margin-right: 4px;
-  }
 }
 
 .project-create__hint {
@@ -115,14 +94,6 @@
 
 .project-create__submit-btn {
   min-width: 140px;
-  height: 36px;
-  background-color: var(--ld-foreground) !important;
-  color: var(--ld-gray-0) !important;
-  font-weight: 500;
-
-  mat-spinner {
-    margin: 0 auto;
-  }
 }
 
 .project-create__repo-row {
@@ -160,6 +131,5 @@
   .project-create__create-warehouse-btn {
     width: 100%;
     margin-top: 0;
-    height: 40px;
   }
 }

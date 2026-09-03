@@ -1,5 +1,5 @@
-.project-edit__header {
-  margin-bottom: var(--ld-spacing-lg);
+ld-page-header {
+  margin-bottom: var(--ld-spacing-xl);
 }
 
 .project-edit__breadcrumbs {
@@ -29,27 +29,6 @@
 
 .project-edit__breadcrumb-current {
   color: var(--ld-gray-8);
-}
-
-.project-edit__title-row {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: var(--ld-spacing-md);
-}
-
-.project-edit__title {
-  margin-bottom: var(--ld-spacing-xxs);
-  font-size: 18px;
-  font-weight: 600;
-  color: var(--ld-gray-9);
-}
-
-.project-edit__subtitle {
-  margin: 0;
-  font-size: var(--ld-font-size-sm);
-  color: var(--ld-gray-6);
 }
 
 .project-edit__loading {
@@ -101,14 +80,6 @@
 .project-edit__create-warehouse-btn {
   flex-shrink: 0;
   margin-top: 8px;
-  height: 56px;
-
-  mat-icon {
-    width: 18px;
-    height: 18px;
-    font-size: 18px;
-    margin-right: 4px;
-  }
 }
 
 .project-edit__hint {
@@ -235,7 +206,6 @@
   .project-edit__create-warehouse-btn {
     width: 100%;
     margin-top: 0;
-    height: 40px;
   }
 }
 

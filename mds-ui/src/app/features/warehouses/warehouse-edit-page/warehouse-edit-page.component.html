@@ -1,38 +1,34 @@
 <section class="warehouse-edit">
-  <div class="page__container">
-    <header class="warehouse-edit__header">
-      <nav
-        class="warehouse-edit__breadcrumbs"
-        [attr.aria-label]="'common.breadcrumb' | translate"
+  <ld-page-frame>
+    <nav
+      class="warehouse-edit__breadcrumbs"
+      [attr.aria-label]="'common.breadcrumb' | translate"
+    >
+      <a routerLink="/projects" class="warehouse-edit__breadcrumb-link">{{
+        "nav.home" | translate
+      }}</a>
+      <mat-icon>chevron_right</mat-icon>
+      <a
+        routerLink="/settings/warehouses"
+        class="warehouse-edit__breadcrumb-link"
+        >{{ "warehouses.title" | translate }}</a
       >
-        <a routerLink="/projects" class="warehouse-edit__breadcrumb-link">{{ 'nav.home' | translate }}</a>
-        <mat-icon>chevron_right</mat-icon>
-        <a routerLink="/settings/warehouses" class="warehouse-edit__breadcrumb-link">{{ 'warehouses.title' | translate }}</a>
-        <mat-icon>chevron_right</mat-icon>
-        <span class="warehouse-edit__breadcrumb-current">
-          @if (isCreateMode()) {
-            {{ 'warehouses.createVerb' | translate }}
-          } @else {
-            {{ 'warehouses.editVerb' | translate }}
-          }
-        </span>
-      </nav>
+      <mat-icon>chevron_right</mat-icon>
+      <span class="warehouse-edit__breadcrumb-current">
+        @if (isCreateMode()) {
+          {{ "warehouses.createVerb" | translate }}
+        } @else {
+          {{ "warehouses.editVerb" | translate }}
+        }
+      </span>
+    </nav>
 
-      <div class="warehouse-edit__title-row">
-        <div>
-          <h1 class="warehouse-edit__title">
-            @if (isCreateMode()) {
-              {{ 'warehouses.create' | translate }}
-            } @else {
-              {{ 'warehouses.edit' | translate }}
-            }
-          </h1>
-          <p class="warehouse-edit__subtitle">
-            {{ 'warehouses.editSubtitle' | translate }}
-          </p>
-        </div>
-      </div>
-    </header>
+    <ld-page-header
+      [title]="
+        (isCreateMode() ? 'warehouses.create' : 'warehouses.edit') | translate
+      "
+      [subtitle]="'warehouses.editSubtitle' | translate"
+    />
 
     <app-warehouse-form
       [mode]="isCreateMode() ? 'create' : 'edit'"
@@ -40,5 +36,5 @@
       (saved)="onSaved()"
       (cancelled)="onCancelled()"
     />
-  </div>
+  </ld-page-frame>
 </section>

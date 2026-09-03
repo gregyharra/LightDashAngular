@@ -11,7 +11,10 @@ import { MatSelectModule } from '@angular/material/select';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { apiErrorMessage } from '../../../core/api/lightdash-api.service';
 import { LanguageService } from '../../../core/i18n/language.service';
-import { GitProvider, ProjectRepoStatus } from '../../../core/models/project.model';
+import {
+  GitProvider,
+  ProjectRepoStatus,
+} from '../../../core/models/project.model';
 import { WarehouseListItem } from '../../../core/models/warehouse.model';
 import { ActiveProjectService } from '../../../core/services/active-project.service';
 import { ProjectDetail, ProjectsService } from '../projects.service';
@@ -28,6 +31,11 @@ import {
   ModelJoinView,
   ModelLinkOption,
 } from '../../../core/models/model-join.model';
+import {
+  LdButtonComponent,
+  LdPageFrameComponent,
+  LdPageHeaderComponent,
+} from '../../../design-system';
 import { ConfirmDialogComponent } from '../../../shared/confirm-dialog/confirm-dialog.component';
 
 type ProjectSettingsTab = 'configuration' | 'links';
@@ -45,6 +53,9 @@ type ProjectSettingsTab = 'configuration' | 'links';
     MatProgressSpinnerModule,
     MatSelectModule,
     TranslatePipe,
+    LdButtonComponent,
+    LdPageFrameComponent,
+    LdPageHeaderComponent,
     FilterableLinksTableComponent,
     LinkDialogComponent,
   ],
@@ -73,7 +84,8 @@ export class ProjectEditPageComponent {
   protected readonly success = signal<string | null>(null);
   protected readonly repoStatus = signal<ProjectRepoStatus | null>(null);
   protected readonly warehouses = signal<WarehouseListItem[]>([]);
-  protected readonly activeSettingsTab = signal<ProjectSettingsTab>('configuration');
+  protected readonly activeSettingsTab =
+    signal<ProjectSettingsTab>('configuration');
   protected readonly lineage = signal<ProjectLineage | null>(null);
   protected readonly modelJoins = signal<ModelJoinView[]>([]);
   protected readonly linksLoading = signal(false);
@@ -102,12 +114,13 @@ export class ProjectEditPageComponent {
     });
   }
 
-  protected readonly gitProviders: { value: GitProvider; labelKey: string }[] = [
-    { value: 'github', labelKey: 'projects.git.providers.github' },
-    { value: 'gitlab', labelKey: 'projects.git.providers.gitlab' },
-    { value: 'bitbucket', labelKey: 'projects.git.providers.bitbucket' },
-    { value: 'generic', labelKey: 'projects.git.providers.generic' },
-  ];
+  protected readonly gitProviders: { value: GitProvider; labelKey: string }[] =
+    [
+      { value: 'github', labelKey: 'projects.git.providers.github' },
+      { value: 'gitlab', labelKey: 'projects.git.providers.gitlab' },
+      { value: 'bitbucket', labelKey: 'projects.git.providers.bitbucket' },
+      { value: 'generic', labelKey: 'projects.git.providers.generic' },
+    ];
 
   protected readonly modelLinkOptions = computed<ModelLinkOption[]>(() => {
     const lineage = this.lineage();
@@ -199,7 +212,8 @@ export class ProjectEditPageComponent {
     this.selectedWarehouseUuid = project.warehouseUuid ?? null;
     this.gitRepoUrl = project.gitRepoUrl ?? '';
     this.gitDefaultBranch = project.gitDefaultBranch ?? 'main';
-    this.gitProvider = project.gitProvider ?? detectGitProvider(project.gitRepoUrl ?? '');
+    this.gitProvider =
+      project.gitProvider ?? detectGitProvider(project.gitRepoUrl ?? '');
     this.gitSubdirectory = project.gitSubdirectory ?? '';
     this.gitUsername = project.gitUsername ?? '';
     this.dbtProjectPath = project.dbtProjectPath ?? '';
@@ -211,7 +225,11 @@ export class ProjectEditPageComponent {
     this.activeProjectService.setProjects(
       this.activeProjectService.projects().map((item) =>
         item.projectUuid === project.projectUuid
-          ? { ...item, name: project.name, warehouseUuid: project.warehouseUuid ?? null }
+          ? {
+              ...item,
+              name: project.name,
+              warehouseUuid: project.warehouseUuid ?? null,
+            }
           : item,
       ),
     );
@@ -329,7 +347,9 @@ export class ProjectEditPageComponent {
       return;
     }
 
-    const confirmed = confirm(this.translate.instant('projects.git.removeConfirm'));
+    const confirmed = confirm(
+      this.translate.instant('projects.git.removeConfirm'),
+    );
     if (!confirmed) {
       return;
     }
@@ -471,7 +491,9 @@ export class ProjectEditPageComponent {
       return;
     }
 
-    const confirmed = confirm(this.translate.instant('projects.edit.deleteConfirm'));
+    const confirmed = confirm(
+      this.translate.instant('projects.edit.deleteConfirm'),
+    );
     if (!confirmed) {
       return;
     }

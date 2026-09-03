@@ -1,5 +1,5 @@
-.warehouse-edit__header {
-  margin-bottom: var(--ld-spacing-lg);
+ld-page-header {
+  margin-bottom: var(--ld-spacing-xl);
 }
 
 .warehouse-edit__breadcrumbs {
@@ -29,17 +29,4 @@
 
 .warehouse-edit__breadcrumb-current {
   color: var(--ld-gray-8);
-}
-
-.warehouse-edit__title {
-  margin-bottom: var(--ld-spacing-xxs);
-  font-size: 18px;
-  font-weight: 600;
-  color: var(--ld-gray-9);
-}
-
-.warehouse-edit__subtitle {
-  margin: 0;
-  font-size: var(--ld-font-size-sm);
-  color: var(--ld-gray-6);
 }
