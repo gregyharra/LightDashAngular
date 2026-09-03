@@ -37,7 +37,7 @@
 
 .auth-card__error {
   margin: 0;
-  color: #b3261e;
+  color: var(--mat-sys-error);
   font-size: 0.875rem;
 }
 
@@ -47,7 +47,7 @@
   font-size: 0.8125rem;
 }
 
-button[mat-flat-button] {
+ld-button {
   white-space: nowrap;
   align-self: flex-start;
 }

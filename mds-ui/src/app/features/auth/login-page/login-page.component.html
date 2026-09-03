@@ -17,9 +17,9 @@
       <p class="auth-card__error">{{ error() }}</p>
     }
 
-    <button mat-flat-button color="primary" type="submit" [disabled]="submitting()">
+    <ld-button type="submit" [disabled]="submitting()">
       {{ (submitting() ? 'auth.signingIn' : 'auth.signIn') | translate }}
-    </button>
+    </ld-button>
 
     <p class="auth-card__hint">
       {{ 'auth.forgotHint' | translate }}
