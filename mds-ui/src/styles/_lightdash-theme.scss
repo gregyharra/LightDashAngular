@@ -93,4 +93,10 @@
   --ld-space-lg: var(--ld-spacing-lg);
   --ld-space-xl: var(--ld-spacing-xl);
   --ld-space-xxl: var(--ld-spacing-xxl);
+
+  /* Button metrics — owned by DpfButton (shared/ui) */
+  --ld-button-height: 2.25rem; /* 36px */
+  --ld-button-padding-inline: 1rem; /* 16px */
+  --ld-button-gap: var(--ld-space-xs);
+  --ld-button-icon-size: 1.125rem; /* 18px */
 }

@@ -30,8 +30,15 @@ describe('DpfButtonComponent', () => {
     expect(host.classList.contains('dpf-button--neutral')).toBeTrue();
   });
 
-  it('disables the inner button when disabled or loading', () => {
+  it('disables the inner button when loading', () => {
     fixture.componentRef.setInput('loading', true);
+    fixture.detectChanges();
+    const btn = fixture.debugElement.query(By.css('button')).nativeElement as HTMLButtonElement;
+    expect(btn.disabled).toBeTrue();
+  });
+
+  it('disables the inner button when disabled', () => {
+    fixture.componentRef.setInput('disabled', true);
     fixture.detectChanges();
     const btn = fixture.debugElement.query(By.css('button')).nativeElement as HTMLButtonElement;
     expect(btn.disabled).toBeTrue();
