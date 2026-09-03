@@ -90,6 +90,9 @@ describe('TableHubPageComponent chrome', () => {
     const pageFrame = fixture.debugElement.query(By.css('ld-page-frame'));
     expect(pageFrame).toBeTruthy();
     expect(pageFrame.componentInstance.wide()).toBeTrue();
+    const frameContent = pageFrame.query(By.css('.ld-page-frame__container'))
+      .nativeElement as HTMLElement;
+    expect(getComputedStyle(frameContent).paddingLeft).toBe('20px');
     expect(fixture.debugElement.query(By.css('ld-empty-state'))).toBeTruthy();
     expect(fixture.debugElement.query(By.css('.table-hub__empty'))).toBeNull();
   });

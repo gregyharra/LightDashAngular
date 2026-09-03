@@ -141,12 +141,19 @@ describe('TablesWorkspacePageComponent chrome', () => {
 
   it('keeps the shared run widget and uses an Ld save action', async () => {
     await setup('model.orders');
+    (fixture.nativeElement as HTMLElement).style.width = '800px';
+    fixture.detectChanges();
 
     expect(
       fixture.debugElement.query(By.css('app-run-query-button')),
     ).toBeTruthy();
-    expect(
-      fixture.debugElement.query(By.css('ld-button.tables-workspace__toolbar-btn')),
-    ).toBeTruthy();
+    const saveButton = fixture.debugElement.query(
+      By.css('ld-button.tables-workspace__toolbar-btn'),
+    );
+    expect(saveButton).toBeTruthy();
+    const innerButton = saveButton.query(By.css('button'))
+      .nativeElement as HTMLButtonElement;
+    expect(getComputedStyle(saveButton.nativeElement).width).toBe('32px');
+    expect(getComputedStyle(innerButton).width).toBe('32px');
   });
 });

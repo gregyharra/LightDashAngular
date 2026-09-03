@@ -143,13 +143,28 @@ button.tables-workspace__toolbar-btn {
     display: none;
   }
 
-  .tables-workspace__toolbar-btn {
+  button.tables-workspace__toolbar-btn,
+  ld-button.tables-workspace__toolbar-btn {
     width: 32px;
     min-width: 32px;
     padding: 0;
+    flex-shrink: 0;
+    white-space: nowrap;
+  }
 
+  button.tables-workspace__toolbar-btn {
     .mdc-button__label {
       gap: 0;
+    }
+  }
+
+  ld-button.tables-workspace__toolbar-btn {
+    ::ng-deep > button {
+      width: 32px;
+      min-width: 32px;
+      height: 32px;
+      padding: 0;
+      white-space: nowrap;
     }
   }
 }
