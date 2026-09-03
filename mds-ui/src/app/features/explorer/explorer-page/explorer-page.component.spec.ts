@@ -90,7 +90,7 @@ describe('ExplorerPageComponent chrome', () => {
     expect(fixture.debugElement.query(By.css('.explorer-page__empty'))).toBeNull();
   });
 
-  it('keeps the shared run widget and uses an Ld create action', async () => {
+  it('keeps the shared run widget and uses a Dpf create action', async () => {
     await setup('orders');
 
     expect(

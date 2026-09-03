@@ -139,7 +139,7 @@ describe('TablesWorkspacePageComponent chrome', () => {
     ).toBeNull();
   });
 
-  it('keeps the shared run widget and uses an Ld save action', async () => {
+  it('keeps the shared run widget and uses a Dpf save action', async () => {
     await setup('model.orders');
     (fixture.nativeElement as HTMLElement).style.width = '800px';
     fixture.detectChanges();

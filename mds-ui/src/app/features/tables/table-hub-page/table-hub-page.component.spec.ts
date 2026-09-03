@@ -97,7 +97,7 @@ describe('TableHubPageComponent chrome', () => {
     expect(fixture.debugElement.query(By.css('.table-hub__empty'))).toBeNull();
   });
 
-  it('uses Ld buttons for page-level explore and save actions', async () => {
+  it('uses Dpf buttons for page-level explore and save actions', async () => {
     await setup('model.orders');
 
     expect(
