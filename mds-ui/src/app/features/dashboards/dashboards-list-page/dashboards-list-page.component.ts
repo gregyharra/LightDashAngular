@@ -1,6 +1,5 @@
 import { Component, computed, inject, signal } from '@angular/core';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
-import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
@@ -14,8 +13,12 @@ import { ProjectBrowseNavComponent } from '../../../layout/project-browse-nav/pr
 import {
   ColumnFilterValue,
   DashboardColumnFilters,
+  LdButtonComponent,
   LdContentListColumnHeaderComponent,
   LdContentListFilterChipsComponent,
+  LdEmptyStateComponent,
+  LdPageFrameComponent,
+  LdPageHeaderComponent,
   collectUniqueSpaces,
   createEmptyDashboardColumnFilters,
   emptyDateFilter,
@@ -35,14 +38,17 @@ import {
   selector: 'app-dashboards-list-page',
   imports: [
     RouterLink,
-    MatButtonModule,
     MatIconModule,
     MatProgressSpinnerModule,
     TranslatePipe,
     ResizableSidebarDirective,
     ProjectBrowseNavComponent,
+    LdButtonComponent,
     LdContentListColumnHeaderComponent,
     LdContentListFilterChipsComponent,
+    LdEmptyStateComponent,
+    LdPageFrameComponent,
+    LdPageHeaderComponent,
   ],
   templateUrl: './dashboards-list-page.component.html',
   styleUrl: './dashboards-list-page.component.scss',
@@ -57,7 +63,9 @@ export class DashboardsListPageComponent {
   private readonly activeProjectService = inject(ActiveProjectService);
 
   protected readonly projectUuid = signal<string | null>(null);
-  protected readonly dashboards = signal<DashboardBasicDetailsWithTileTypes[]>([]);
+  protected readonly dashboards = signal<DashboardBasicDetailsWithTileTypes[]>(
+    [],
+  );
   protected readonly loading = signal(true);
   protected readonly error = signal<string | null>(null);
   protected readonly columnFilters = signal<DashboardColumnFilters>(
@@ -134,7 +142,10 @@ export class DashboardsListPageComponent {
       },
       error: (err) => {
         this.error.set(
-          this.apiErrorService.showTransient(err, this.translate.instant('dashboards.loadError')),
+          this.apiErrorService.showTransient(
+            err,
+            this.translate.instant('dashboards.loadError'),
+          ),
         );
         this.loading.set(false);
       },
@@ -204,6 +215,11 @@ export class DashboardsListPageComponent {
       return;
     }
 
-    void this.router.navigate(['/projects', projectUuid, 'dashboards', 'create']);
+    void this.router.navigate([
+      '/projects',
+      projectUuid,
+      'dashboards',
+      'create',
+    ]);
   }
 }

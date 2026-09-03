@@ -1,6 +1,5 @@
 import { Component, computed, inject, signal } from '@angular/core';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
-import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
@@ -14,8 +13,12 @@ import { ProjectBrowseNavComponent } from '../../../layout/project-browse-nav/pr
 import {
   ChartColumnFilters,
   ColumnFilterValue,
+  LdButtonComponent,
   LdContentListColumnHeaderComponent,
   LdContentListFilterChipsComponent,
+  LdEmptyStateComponent,
+  LdPageFrameComponent,
+  LdPageHeaderComponent,
   collectUniqueSpaces,
   collectUniqueValues,
   createEmptyChartColumnFilters,
@@ -40,14 +43,17 @@ const CHART_KIND_LABELS: Record<string, string> = {
   selector: 'app-charts-list-page',
   imports: [
     RouterLink,
-    MatButtonModule,
     MatIconModule,
     MatProgressSpinnerModule,
     TranslatePipe,
     ResizableSidebarDirective,
     ProjectBrowseNavComponent,
+    LdButtonComponent,
     LdContentListColumnHeaderComponent,
     LdContentListFilterChipsComponent,
+    LdEmptyStateComponent,
+    LdPageFrameComponent,
+    LdPageHeaderComponent,
   ],
   templateUrl: './charts-list-page.component.html',
   styleUrl: './charts-list-page.component.scss',
@@ -65,7 +71,9 @@ export class ChartsListPageComponent {
   protected readonly charts = signal<SavedChartBasic[]>([]);
   protected readonly loading = signal(true);
   protected readonly error = signal<string | null>(null);
-  protected readonly columnFilters = signal<ChartColumnFilters>(createEmptyChartColumnFilters());
+  protected readonly columnFilters = signal<ChartColumnFilters>(
+    createEmptyChartColumnFilters(),
+  );
 
   protected readonly availableSpaces = computed(() =>
     collectUniqueSpaces(this.charts(), (chart) => chart.spaceName),
@@ -77,10 +85,12 @@ export class ChartsListPageComponent {
 
   protected readonly typeOptions = computed(() => {
     this.languageService.language();
-    return collectUniqueValues(this.charts(), (chart) => chart.chartKind).map((kind) => ({
-      value: kind,
-      label: this.chartKindLabel(kind),
-    }));
+    return collectUniqueValues(this.charts(), (chart) => chart.chartKind).map(
+      (kind) => ({
+        value: kind,
+        label: this.chartKindLabel(kind),
+      }),
+    );
   });
 
   protected readonly filteredCharts = computed(() =>
@@ -133,7 +143,10 @@ export class ChartsListPageComponent {
       },
       error: (err) => {
         this.error.set(
-          this.apiErrorService.showTransient(err, this.translate.instant('charts.loadError')),
+          this.apiErrorService.showTransient(
+            err,
+            this.translate.instant('charts.loadError'),
+          ),
         );
         this.loading.set(false);
       },
@@ -208,4 +221,12 @@ export class ChartsListPageComponent {
       });
   }
 
+  protected openCreatePage(): void {
+    const projectUuid = this.projectUuid();
+    if (!projectUuid) {
+      return;
+    }
+
+    void this.router.navigate(['/projects', projectUuid, 'charts', 'new']);
+  }
 }

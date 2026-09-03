@@ -12,22 +12,24 @@
 
   <div class="page-layout__content">
     <section class="explorer-list">
-      <div class="page__container page__container--wide">
-        <header class="explorer-list__header page-header__toolbar">
-          <nav
-            class="explorer-list__breadcrumbs"
-            [attr.aria-label]="'charts.breadcrumb' | translate"
-          >
-            <a routerLink="/projects" class="explorer-list__breadcrumb-link">
-              {{ 'nav.home' | translate }}
-            </a>
-            <mat-icon>chevron_right</mat-icon>
-            <span class="explorer-list__breadcrumb-current">{{ 'tables.title' | translate }}</span>
-          </nav>
-        </header>
+      <ld-page-frame [wide]="true">
+        <nav
+          class="explorer-list__breadcrumbs"
+          [attr.aria-label]="'charts.breadcrumb' | translate"
+        >
+          <a routerLink="/projects" class="explorer-list__breadcrumb-link">
+            {{ "nav.home" | translate }}
+          </a>
+          <mat-icon>chevron_right</mat-icon>
+          <span class="explorer-list__breadcrumb-current">{{
+            "tables.title" | translate
+          }}</span>
+        </nav>
 
-        <h1 class="explorer-list__title">{{ 'tables.title' | translate }}</h1>
-        <p class="explorer-list__subtitle">{{ 'explorer.selectModelToQuery' | translate }}</p>
+        <ld-page-header
+          [title]="'tables.title' | translate"
+          [subtitle]="'explorer.selectModelToQuery' | translate"
+        />
 
         @if (loading()) {
           <div class="explorer-list__loading">
@@ -36,10 +38,10 @@
         } @else if (error()) {
           <div class="explorer-list__error">{{ error() }}</div>
         } @else if (explores().length === 0) {
-          <div class="explorer-list__empty">
-            <mat-icon>table_chart</mat-icon>
-            <p>{{ 'explorer.noExplores' | translate }}</p>
-          </div>
+          <ld-empty-state
+            icon="table_chart"
+            [title]="'explorer.noExplores' | translate"
+          />
         } @else {
           <div class="explorer-list__grid">
             @for (explore of explores(); track explore.name) {
@@ -52,9 +54,13 @@
                   <mat-icon>table_chart</mat-icon>
                 </div>
                 <div class="explorer-list__card-body">
-                  <span class="explorer-list__card-name">{{ explore.label }}</span>
+                  <span class="explorer-list__card-name">{{
+                    explore.label
+                  }}</span>
                   @if (explore.description) {
-                    <span class="explorer-list__card-description">{{ explore.description }}</span>
+                    <span class="explorer-list__card-description">{{
+                      explore.description
+                    }}</span>
                   }
                   <span class="explorer-list__card-meta">
                     {{ explore.databaseName }}.{{ explore.schemaName }}
@@ -67,12 +73,14 @@
                     </div>
                   }
                 </div>
-                <mat-icon class="explorer-list__card-chevron">chevron_right</mat-icon>
+                <mat-icon class="explorer-list__card-chevron"
+                  >chevron_right</mat-icon
+                >
               </button>
             }
           </div>
         }
-      </div>
+      </ld-page-frame>
     </section>
   </div>
 </div>

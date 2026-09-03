@@ -12,32 +12,30 @@
 
   <div class="page-layout__content">
     <section class="dashboards-list">
-      <div class="page__container page__container--wide">
-        <header class="dashboards-list__header page-header__toolbar">
-          <nav
-            class="dashboards-list__breadcrumbs"
-            [attr.aria-label]="'dashboards.breadcrumb' | translate"
-          >
-            <a routerLink="/projects" class="dashboards-list__breadcrumb-link">
-              {{ 'nav.home' | translate }}
-            </a>
-            <mat-icon>chevron_right</mat-icon>
-            <span class="dashboards-list__breadcrumb-current">
-              {{ 'dashboards.all' | translate }}
-            </span>
-          </nav>
+      <ld-page-frame [wide]="true">
+        <nav
+          class="dashboards-list__breadcrumbs"
+          [attr.aria-label]="'dashboards.breadcrumb' | translate"
+        >
+          <a routerLink="/projects" class="dashboards-list__breadcrumb-link">
+            {{ "nav.home" | translate }}
+          </a>
+          <mat-icon>chevron_right</mat-icon>
+          <span class="dashboards-list__breadcrumb-current">
+            {{ "dashboards.all" | translate }}
+          </span>
+        </nav>
 
-          <button
-            mat-flat-button
-            class="dashboards-list__create-btn"
+        <ld-page-header [title]="'dashboards.title' | translate">
+          <ld-button
+            ldActions
+            type="button"
+            icon="add"
             (click)="openCreatePage()"
           >
-            <mat-icon>add</mat-icon>
-            {{ 'dashboards.create.action' | translate }}
-          </button>
-        </header>
-
-        <h1 class="dashboards-list__title">{{ 'dashboards.title' | translate }}</h1>
+            {{ "dashboards.create.action" | translate }}
+          </ld-button>
+        </ld-page-header>
 
         @if (loading()) {
           <div class="dashboards-list__loading">
@@ -46,14 +44,19 @@
         } @else if (error()) {
           <div class="dashboards-list__error">{{ error() }}</div>
         } @else if (dashboards().length === 0) {
-          <div class="dashboards-list__empty">
-            <mat-icon>dashboard</mat-icon>
-            <p>{{ 'dashboards.empty' | translate }}</p>
-            <button mat-flat-button class="dashboards-list__create-btn" (click)="openCreatePage()">
-              <mat-icon>add</mat-icon>
-              {{ 'dashboards.create.action' | translate }}
-            </button>
-          </div>
+          <ld-empty-state
+            icon="dashboard"
+            [title]="'dashboards.empty' | translate"
+          >
+            <ld-button
+              ldCta
+              type="button"
+              icon="add"
+              (click)="openCreatePage()"
+            >
+              {{ "dashboards.create.action" | translate }}
+            </ld-button>
+          </ld-empty-state>
         } @else {
           <ld-content-list-filter-chips
             [chips]="activeFilterChips()"
@@ -62,90 +65,96 @@
           />
 
           @if (filteredDashboards().length === 0) {
-            <div class="dashboards-list__empty dashboards-list__empty--filtered">
-              <mat-icon>search_off</mat-icon>
-              <p>
-                @if (hasActiveFilters()) {
-                  {{ 'dashboards.noFilterMatches' | translate }}
-                } @else {
-                  {{ 'dashboards.notFound' | translate }}
-                }
-              </p>
-            </div>
+            <ld-empty-state
+              icon="search_off"
+              [title]="
+                (hasActiveFilters()
+                  ? 'dashboards.noFilterMatches'
+                  : 'dashboards.notFound'
+                ) | translate
+              "
+            />
           } @else {
-          <div class="dashboards-list__table-wrap">
-            <table class="dashboards-list__table">
-              <thead>
-                <tr>
-                  <th scope="col">
-                    <ld-content-list-column-header
-                      [label]="'dashboards.fields.name' | translate"
-                      filterType="text"
-                      [textPlaceholder]="'dashboards.search' | translate"
-                      [value]="columnFilters().name"
-                      (valueChange)="updateColumnFilter('name', $event)"
-                    />
-                  </th>
-                  <th scope="col">
-                    <ld-content-list-column-header
-                      [label]="'dashboards.fields.space' | translate"
-                      filterType="select"
-                      [options]="spaceOptions()"
-                      [value]="columnFilters().space"
-                      (valueChange)="updateColumnFilter('space', $event)"
-                    />
-                  </th>
-                  <th scope="col">
-                    <ld-content-list-column-header
-                      [label]="'dashboards.fields.lastEdited' | translate"
-                      filterType="date"
-                      [value]="columnFilters().lastEdited"
-                      (valueChange)="updateColumnFilter('lastEdited', $event)"
-                    />
-                  </th>
-                  <th scope="col">
-                    <ld-content-list-column-header
-                      [label]="'dashboards.fields.views' | translate"
-                      filterType="number"
-                      [value]="columnFilters().views"
-                      (valueChange)="updateColumnFilter('views', $event)"
-                    />
-                  </th>
-                </tr>
-              </thead>
-              <tbody>
-                @for (dashboard of filteredDashboards(); track dashboard.uuid) {
-                  <tr
-                    class="dashboards-list__row"
-                    tabindex="0"
-                    role="link"
-                    (click)="openDashboard(dashboard.uuid)"
-                    (keydown.enter)="openDashboard(dashboard.uuid)"
-                  >
-                    <td>
-                      <div class="dashboards-list__name-cell">
-                        <mat-icon class="dashboards-list__item-icon">dashboard</mat-icon>
-                        <div>
-                          <span class="dashboards-list__item-name">{{ dashboard.name }}</span>
-                          @if (dashboard.description) {
-                            <span class="dashboards-list__item-description">
-                              {{ dashboard.description }}
-                            </span>
-                          }
-                        </div>
-                      </div>
-                    </td>
-                    <td>{{ spaceName(dashboard.spaceName) }}</td>
-                    <td>{{ formatDate(dashboard.updatedAt) }}</td>
-                    <td>{{ dashboard.views }}</td>
+            <div class="dashboards-list__table-wrap">
+              <table class="dashboards-list__table">
+                <thead>
+                  <tr>
+                    <th scope="col">
+                      <ld-content-list-column-header
+                        [label]="'dashboards.fields.name' | translate"
+                        filterType="text"
+                        [textPlaceholder]="'dashboards.search' | translate"
+                        [value]="columnFilters().name"
+                        (valueChange)="updateColumnFilter('name', $event)"
+                      />
+                    </th>
+                    <th scope="col">
+                      <ld-content-list-column-header
+                        [label]="'dashboards.fields.space' | translate"
+                        filterType="select"
+                        [options]="spaceOptions()"
+                        [value]="columnFilters().space"
+                        (valueChange)="updateColumnFilter('space', $event)"
+                      />
+                    </th>
+                    <th scope="col">
+                      <ld-content-list-column-header
+                        [label]="'dashboards.fields.lastEdited' | translate"
+                        filterType="date"
+                        [value]="columnFilters().lastEdited"
+                        (valueChange)="updateColumnFilter('lastEdited', $event)"
+                      />
+                    </th>
+                    <th scope="col">
+                      <ld-content-list-column-header
+                        [label]="'dashboards.fields.views' | translate"
+                        filterType="number"
+                        [value]="columnFilters().views"
+                        (valueChange)="updateColumnFilter('views', $event)"
+                      />
+                    </th>
                   </tr>
-                }
-              </tbody>
-            </table>
-          </div>
+                </thead>
+                <tbody>
+                  @for (
+                    dashboard of filteredDashboards();
+                    track dashboard.uuid
+                  ) {
+                    <tr
+                      class="dashboards-list__row"
+                      tabindex="0"
+                      role="link"
+                      (click)="openDashboard(dashboard.uuid)"
+                      (keydown.enter)="openDashboard(dashboard.uuid)"
+                    >
+                      <td>
+                        <div class="dashboards-list__name-cell">
+                          <mat-icon class="dashboards-list__item-icon"
+                            >dashboard</mat-icon
+                          >
+                          <div>
+                            <span class="dashboards-list__item-name">{{
+                              dashboard.name
+                            }}</span>
+                            @if (dashboard.description) {
+                              <span class="dashboards-list__item-description">
+                                {{ dashboard.description }}
+                              </span>
+                            }
+                          </div>
+                        </div>
+                      </td>
+                      <td>{{ spaceName(dashboard.spaceName) }}</td>
+                      <td>{{ formatDate(dashboard.updatedAt) }}</td>
+                      <td>{{ dashboard.views }}</td>
+                    </tr>
+                  }
+                </tbody>
+              </table>
+            </div>
           }
         }
-      </div>
+      </ld-page-frame>
     </section>
   </div>
 </div>

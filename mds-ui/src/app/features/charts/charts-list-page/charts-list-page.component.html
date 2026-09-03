@@ -12,29 +12,30 @@
 
   <div class="page-layout__content">
     <section class="charts-list">
-      <div class="page__container page__container--wide">
-        <header class="charts-list__header page-header__toolbar">
-          <nav class="charts-list__breadcrumbs" [attr.aria-label]="'charts.breadcrumb' | translate">
-            <a routerLink="/projects" class="charts-list__breadcrumb-link">
-              {{ 'nav.home' | translate }}
-            </a>
-            <mat-icon>chevron_right</mat-icon>
-            <span class="charts-list__breadcrumb-current">
-              {{ 'charts.all' | translate }}
-            </span>
-          </nav>
-
-          <a
-            mat-flat-button
-            class="charts-list__create-btn"
-            [routerLink]="['/projects', projectUuid(), 'charts', 'new']"
-          >
-            <mat-icon>add</mat-icon>
-            {{ 'charts.create' | translate }}
+      <ld-page-frame [wide]="true">
+        <nav
+          class="charts-list__breadcrumbs"
+          [attr.aria-label]="'charts.breadcrumb' | translate"
+        >
+          <a routerLink="/projects" class="charts-list__breadcrumb-link">
+            {{ "nav.home" | translate }}
           </a>
-        </header>
+          <mat-icon>chevron_right</mat-icon>
+          <span class="charts-list__breadcrumb-current">
+            {{ "charts.all" | translate }}
+          </span>
+        </nav>
 
-        <h1 class="charts-list__title">{{ 'charts.title' | translate }}</h1>
+        <ld-page-header [title]="'charts.title' | translate">
+          <ld-button
+            ldActions
+            type="button"
+            icon="add"
+            (click)="openCreatePage()"
+          >
+            {{ "charts.create" | translate }}
+          </ld-button>
+        </ld-page-header>
 
         @if (loading()) {
           <div class="charts-list__loading">
@@ -43,18 +44,16 @@
         } @else if (error()) {
           <div class="charts-list__error">{{ error() }}</div>
         } @else if (charts().length === 0) {
-          <div class="charts-list__empty">
-            <mat-icon>bar_chart</mat-icon>
-            <p>{{ 'charts.empty' | translate }}</p>
-            <a
-              mat-flat-button
-              class="charts-list__create-btn"
-              [routerLink]="['/projects', projectUuid(), 'charts', 'new']"
+          <ld-empty-state icon="bar_chart" [title]="'charts.empty' | translate">
+            <ld-button
+              ldCta
+              type="button"
+              icon="add"
+              (click)="openCreatePage()"
             >
-              <mat-icon>add</mat-icon>
-              {{ 'charts.create' | translate }}
-            </a>
-          </div>
+              {{ "charts.create" | translate }}
+            </ld-button>
+          </ld-empty-state>
         } @else {
           <ld-content-list-filter-chips
             [chips]="activeFilterChips()"
@@ -63,110 +62,118 @@
           />
 
           @if (filteredCharts().length === 0) {
-            <div class="charts-list__empty charts-list__empty--filtered">
-              <mat-icon>search_off</mat-icon>
-              <p>
-                @if (hasActiveFilters()) {
-                  {{ 'charts.noFilterMatches' | translate }}
-                } @else {
-                  {{ 'charts.notFound' | translate }}
-                }
-              </p>
-            </div>
+            <ld-empty-state
+              icon="search_off"
+              [title]="
+                (hasActiveFilters()
+                  ? 'charts.noFilterMatches'
+                  : 'charts.notFound'
+                ) | translate
+              "
+            />
           } @else {
-          <div class="charts-list__table-wrap">
-            <table class="charts-list__table">
-              <thead>
-                <tr>
-                  <th scope="col">
-                    <ld-content-list-column-header
-                      [label]="'charts.fields.name' | translate"
-                      filterType="text"
-                      [textPlaceholder]="'charts.search' | translate"
-                      [value]="columnFilters().name"
-                      (valueChange)="updateColumnFilter('name', $event)"
-                    />
-                  </th>
-                  <th scope="col">
-                    <ld-content-list-column-header
-                      [label]="'charts.fields.type' | translate"
-                      filterType="select"
-                      [options]="typeOptions()"
-                      [value]="columnFilters().type"
-                      (valueChange)="updateColumnFilter('type', $event)"
-                    />
-                  </th>
-                  <th scope="col">
-                    <ld-content-list-column-header
-                      [label]="'charts.fields.table' | translate"
-                      filterType="text"
-                      [textPlaceholder]="'tables.search' | translate"
-                      [value]="columnFilters().table"
-                      (valueChange)="updateColumnFilter('table', $event)"
-                    />
-                  </th>
-                  <th scope="col">
-                    <ld-content-list-column-header
-                      [label]="'charts.fields.space' | translate"
-                      filterType="select"
-                      [options]="spaceOptions()"
-                      [value]="columnFilters().space"
-                      (valueChange)="updateColumnFilter('space', $event)"
-                    />
-                  </th>
-                  <th scope="col">
-                    <ld-content-list-column-header
-                      [label]="'charts.fields.lastEdited' | translate"
-                      filterType="date"
-                      [value]="columnFilters().lastEdited"
-                      (valueChange)="updateColumnFilter('lastEdited', $event)"
-                    />
-                  </th>
-                  <th scope="col">
-                    <ld-content-list-column-header
-                      [label]="'charts.fields.views' | translate"
-                      filterType="number"
-                      [value]="columnFilters().views"
-                      (valueChange)="updateColumnFilter('views', $event)"
-                    />
-                  </th>
-                </tr>
-              </thead>
-              <tbody>
-                @for (chart of filteredCharts(); track chart.uuid) {
-                  <tr
-                    class="charts-list__row"
-                    tabindex="0"
-                    role="link"
-                    [routerLink]="['/projects', projectUuid(), 'charts', chart.uuid]"
-                    (keydown.enter)="openChart(chart.uuid)"
-                  >
-                    <td>
-                      <div class="charts-list__name-cell">
-                        <mat-icon class="charts-list__item-icon">bar_chart</mat-icon>
-                        <div>
-                          <span class="charts-list__item-name">{{ chart.name }}</span>
-                          @if (chart.description) {
-                            <span class="charts-list__item-description">
-                              {{ chart.description }}
-                            </span>
-                          }
-                        </div>
-                      </div>
-                    </td>
-                    <td>{{ chartKindLabel(chart.chartKind) }}</td>
-                    <td>{{ chart.tableName }}</td>
-                    <td>{{ chart.spaceName }}</td>
-                    <td>{{ formatDate(chart.updatedAt) }}</td>
-                    <td>{{ chart.views }}</td>
+            <div class="charts-list__table-wrap">
+              <table class="charts-list__table">
+                <thead>
+                  <tr>
+                    <th scope="col">
+                      <ld-content-list-column-header
+                        [label]="'charts.fields.name' | translate"
+                        filterType="text"
+                        [textPlaceholder]="'charts.search' | translate"
+                        [value]="columnFilters().name"
+                        (valueChange)="updateColumnFilter('name', $event)"
+                      />
+                    </th>
+                    <th scope="col">
+                      <ld-content-list-column-header
+                        [label]="'charts.fields.type' | translate"
+                        filterType="select"
+                        [options]="typeOptions()"
+                        [value]="columnFilters().type"
+                        (valueChange)="updateColumnFilter('type', $event)"
+                      />
+                    </th>
+                    <th scope="col">
+                      <ld-content-list-column-header
+                        [label]="'charts.fields.table' | translate"
+                        filterType="text"
+                        [textPlaceholder]="'tables.search' | translate"
+                        [value]="columnFilters().table"
+                        (valueChange)="updateColumnFilter('table', $event)"
+                      />
+                    </th>
+                    <th scope="col">
+                      <ld-content-list-column-header
+                        [label]="'charts.fields.space' | translate"
+                        filterType="select"
+                        [options]="spaceOptions()"
+                        [value]="columnFilters().space"
+                        (valueChange)="updateColumnFilter('space', $event)"
+                      />
+                    </th>
+                    <th scope="col">
+                      <ld-content-list-column-header
+                        [label]="'charts.fields.lastEdited' | translate"
+                        filterType="date"
+                        [value]="columnFilters().lastEdited"
+                        (valueChange)="updateColumnFilter('lastEdited', $event)"
+                      />
+                    </th>
+                    <th scope="col">
+                      <ld-content-list-column-header
+                        [label]="'charts.fields.views' | translate"
+                        filterType="number"
+                        [value]="columnFilters().views"
+                        (valueChange)="updateColumnFilter('views', $event)"
+                      />
+                    </th>
                   </tr>
-                }
-              </tbody>
-            </table>
-          </div>
+                </thead>
+                <tbody>
+                  @for (chart of filteredCharts(); track chart.uuid) {
+                    <tr
+                      class="charts-list__row"
+                      tabindex="0"
+                      role="link"
+                      [routerLink]="[
+                        '/projects',
+                        projectUuid(),
+                        'charts',
+                        chart.uuid,
+                      ]"
+                      (keydown.enter)="openChart(chart.uuid)"
+                    >
+                      <td>
+                        <div class="charts-list__name-cell">
+                          <mat-icon class="charts-list__item-icon"
+                            >bar_chart</mat-icon
+                          >
+                          <div>
+                            <span class="charts-list__item-name">{{
+                              chart.name
+                            }}</span>
+                            @if (chart.description) {
+                              <span class="charts-list__item-description">
+                                {{ chart.description }}
+                              </span>
+                            }
+                          </div>
+                        </div>
+                      </td>
+                      <td>{{ chartKindLabel(chart.chartKind) }}</td>
+                      <td>{{ chart.tableName }}</td>
+                      <td>{{ chart.spaceName }}</td>
+                      <td>{{ formatDate(chart.updatedAt) }}</td>
+                      <td>{{ chart.views }}</td>
+                    </tr>
+                  }
+                </tbody>
+              </table>
+            </div>
           }
         }
-      </div>
+      </ld-page-frame>
     </section>
   </div>
 </div>

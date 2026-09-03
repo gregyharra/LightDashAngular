@@ -1,6 +1,5 @@
 import { Component, inject, signal } from '@angular/core';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
-import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
@@ -10,17 +9,24 @@ import { ExploreSummary } from '../../../core/models/explore.model';
 import { ExplorerService } from '../explorer.service';
 import { ResizableSidebarDirective } from '../../../layout/resizable-sidebar/resizable-sidebar.directive';
 import { ProjectBrowseNavComponent } from '../../../layout/project-browse-nav/project-browse-nav.component';
+import {
+  LdEmptyStateComponent,
+  LdPageFrameComponent,
+  LdPageHeaderComponent,
+} from '../../../design-system';
 
 @Component({
   selector: 'app-explorer-list-page',
   imports: [
     RouterLink,
-    MatButtonModule,
     MatIconModule,
     MatProgressSpinnerModule,
     ResizableSidebarDirective,
     ProjectBrowseNavComponent,
     TranslatePipe,
+    LdEmptyStateComponent,
+    LdPageFrameComponent,
+    LdPageHeaderComponent,
   ],
   templateUrl: './explorer-list-page.component.html',
   styleUrl: './explorer-list-page.component.scss',
@@ -62,7 +68,10 @@ export class ExplorerListPageComponent {
       },
       error: (err) => {
         this.error.set(
-          this.apiErrorService.showTransient(err, this.translate.instant('explorer.loadExploresError')),
+          this.apiErrorService.showTransient(
+            err,
+            this.translate.instant('explorer.loadExploresError'),
+          ),
         );
         this.loading.set(false);
       },
@@ -75,11 +84,6 @@ export class ExplorerListPageComponent {
       return;
     }
 
-    void this.router.navigate([
-      '/projects',
-      projectUuid,
-      'tables',
-      tableId,
-    ]);
+    void this.router.navigate(['/projects', projectUuid, 'tables', tableId]);
   }
 }
