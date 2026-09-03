@@ -37,7 +37,9 @@ dpf-page-header {
   display: flex;
   flex-direction: column;
   gap: var(--ld-spacing-md);
-  max-width: 480px;
+  width: 100%;
+  max-width: none;
+  box-sizing: border-box;
   padding: var(--ld-spacing-lg);
   border: 1px solid var(--ld-color-border);
   border-radius: var(--ld-radius-md);
