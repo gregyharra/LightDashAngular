@@ -27,3 +27,11 @@ Complete.
 ## Concerns
 
 None.
+
+## Review fix: page header spacing
+
+- Confirmed `LdPageHeader` owns no outer margin while the projects hub applies page-level `margin-bottom: var(--ld-spacing-xl)`.
+- Added the same page-scoped spacing to warehouses and users.
+- TDD red: both computed-style assertions reported `0px` instead of `24px`.
+- TDD green: targeted ChromeHeadless run passed, 4 tests.
+- IDE diagnostics: no errors in either touched page directory.

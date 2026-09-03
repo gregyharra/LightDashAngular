@@ -56,4 +56,10 @@ describe('WarehousesPageComponent', () => {
       fixture.debugElement.query(By.css('ld-page-header ld-button[ldActions]')),
     ).toBeTruthy();
   });
+
+  it('adds page spacing below the design-system header', () => {
+    const header = fixture.debugElement.query(By.css('ld-page-header'));
+
+    expect(getComputedStyle(header.nativeElement).marginBottom).toBe('24px');
+  });
 });
