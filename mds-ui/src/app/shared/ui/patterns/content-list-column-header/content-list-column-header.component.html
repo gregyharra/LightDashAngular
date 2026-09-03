@@ -23,7 +23,7 @@
       @switch (filterType()) {
         @case ('text') {
           <label class="dpf-content-list-column-header__field">
-            <span class="dpf-content-list-column-header__fiedpf-label">
+            <span class="dpf-content-list-column-header__field-label">
               {{ 'filters.contains' | translate }}
             </span>
             <input
@@ -51,7 +51,7 @@
         }
         @case ('date') {
           <label class="dpf-content-list-column-header__field">
-            <span class="dpf-content-list-column-header__fiedpf-label">{{ 'filters.from' | translate }}</span>
+            <span class="dpf-content-list-column-header__field-label">{{ 'filters.from' | translate }}</span>
             <input
               class="dpf-content-list-column-header__input"
               type="date"
@@ -60,7 +60,7 @@
             />
           </label>
           <label class="dpf-content-list-column-header__field">
-            <span class="dpf-content-list-column-header__fiedpf-label">{{ 'filters.to' | translate }}</span>
+            <span class="dpf-content-list-column-header__field-label">{{ 'filters.to' | translate }}</span>
             <input
               class="dpf-content-list-column-header__input"
               type="date"
@@ -71,7 +71,7 @@
         }
         @case ('number') {
           <label class="dpf-content-list-column-header__field">
-            <span class="dpf-content-list-column-header__fiedpf-label">
+            <span class="dpf-content-list-column-header__field-label">
               {{ 'filters.operator' | translate }}
             </span>
             <select
@@ -89,7 +89,7 @@
           @if (numberNeedsTwoValues()) {
             <div class="dpf-content-list-column-header__number-range">
               <label class="dpf-content-list-column-header__field">
-                <span class="dpf-content-list-column-header__fiedpf-label">
+                <span class="dpf-content-list-column-header__field-label">
                   {{ 'filters.min' | translate }}
                 </span>
                 <input
@@ -102,7 +102,7 @@
                 />
               </label>
               <label class="dpf-content-list-column-header__field">
-                <span class="dpf-content-list-column-header__fiedpf-label">
+                <span class="dpf-content-list-column-header__field-label">
                   {{ 'filters.max' | translate }}
                 </span>
                 <input
@@ -117,7 +117,7 @@
             </div>
           } @else {
             <label class="dpf-content-list-column-header__field">
-              <span class="dpf-content-list-column-header__fiedpf-label">
+              <span class="dpf-content-list-column-header__field-label">
                 {{ 'filters.value' | translate }}
               </span>
               <input
