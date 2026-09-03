@@ -1,35 +1,39 @@
 import { Component, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
-import { MatButtonModule } from '@angular/material/button';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
-import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatSelectModule } from '@angular/material/select';
 import { TranslatePipe } from '@ngx-translate/core';
 import { apiErrorMessage } from '../../../core/api/lightdash-api.service';
 import { Space } from '../../../core/models/space.model';
 import { ActiveProjectService } from '../../../core/services/active-project.service';
+import {
+  LdButtonComponent,
+  LdPageFrameComponent,
+  LdPageHeaderComponent,
+} from '../../../design-system';
+import { ProjectBrowseNavComponent } from '../../../layout/project-browse-nav/project-browse-nav.component';
+import { ResizableSidebarDirective } from '../../../layout/resizable-sidebar/resizable-sidebar.directive';
 import { SpaceService } from '../../spaces/space.service';
 import { DashboardService } from '../dashboard.service';
-import { ResizableSidebarDirective } from '../../../layout/resizable-sidebar/resizable-sidebar.directive';
-import { ProjectBrowseNavComponent } from '../../../layout/project-browse-nav/project-browse-nav.component';
 
 @Component({
   selector: 'app-dashboard-create-page',
   imports: [
     FormsModule,
     RouterLink,
-    MatButtonModule,
     MatFormFieldModule,
     MatIconModule,
     MatInputModule,
-    MatProgressSpinnerModule,
     MatSelectModule,
     TranslatePipe,
     ResizableSidebarDirective,
     ProjectBrowseNavComponent,
+    LdButtonComponent,
+    LdPageFrameComponent,
+    LdPageHeaderComponent,
   ],
   templateUrl: './dashboard-create-page.component.html',
   styleUrl: './dashboard-create-page.component.scss',

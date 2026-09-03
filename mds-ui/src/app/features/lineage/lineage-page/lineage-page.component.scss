@@ -19,48 +19,43 @@
   min-height: 0;
 }
 
-.lineage-page__header {
+.lineage-page__header-frame {
+  box-sizing: border-box;
   flex-shrink: 0;
   padding: var(--ld-spacing-lg) var(--ld-spacing-lg) var(--ld-spacing-md);
-  border-bottom: 1px solid var(--ld-gray-2);
-  background: var(--ld-background);
+  border-bottom: 1px solid var(--ld-color-border);
+  background: var(--ld-color-bg);
 }
 
 .lineage-page__breadcrumbs {
   display: inline-flex;
   align-items: center;
   gap: 4px;
-  margin-bottom: var(--ld-spacing-xs);
+  margin-bottom: var(--ld-spacing-sm);
   font-size: var(--ld-font-size-sm);
-  color: var(--ld-breadcrumb);
+  color: var(--ld-color-muted);
 
   mat-icon {
     width: 16px;
     height: 16px;
     font-size: 16px;
-    color: var(--ld-breadcrumb-sep);
+    color: var(--ld-gray-5);
   }
 }
 
 .lineage-page__breadcrumb-link {
-  color: var(--ld-breadcrumb);
+  color: var(--ld-gray-7);
   text-decoration: none;
 
   &:hover {
-    color: var(--ld-navy);
+    color: var(--ld-color-brand);
     text-decoration: underline;
   }
 }
 
 .lineage-page__breadcrumb-current {
-  color: var(--ld-navy);
+  color: var(--ld-gray-9);
   font-weight: 500;
-}
-
-.lineage-page__title {
-  margin: 0;
-  font-size: 24px;
-  font-weight: 600;
 }
 
 .lineage-page__subtitle {

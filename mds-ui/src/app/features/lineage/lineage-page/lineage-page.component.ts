@@ -3,9 +3,8 @@ import { ActivatedRoute, RouterLink } from '@angular/router';
 import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
-import { LanguageService } from '../../../core/i18n/language.service';
-import { ActiveProjectService } from '../../../core/services/active-project.service';
 import { ApiErrorService } from '../../../core/api/api-error.service';
+import { LanguageService } from '../../../core/i18n/language.service';
 import {
   DbtTreeNode,
   LineageDetailTab,
@@ -15,13 +14,18 @@ import {
   ProjectLineage,
   SelectedColumnRef,
 } from '../../../core/models/lineage.model';
-import { FolderSearchPanelComponent } from '../folder-search-panel/folder-search-panel.component';
-import { LineageService } from '../lineage.service';
-import { LineageGraphComponent } from '../lineage-graph/lineage-graph.component';
-import { LineageDetailPanelComponent } from '../lineage-detail-panel/lineage-detail-panel.component';
-import { findTreeNodeByLineageId } from '../dbt-tree-utils';
-import { ResizableSidebarDirective } from '../../../layout/resizable-sidebar/resizable-sidebar.directive';
+import { ActiveProjectService } from '../../../core/services/active-project.service';
+import {
+  LdPageFrameComponent,
+  LdPageHeaderComponent,
+} from '../../../design-system';
 import { ProjectBrowseNavComponent } from '../../../layout/project-browse-nav/project-browse-nav.component';
+import { ResizableSidebarDirective } from '../../../layout/resizable-sidebar/resizable-sidebar.directive';
+import { findTreeNodeByLineageId } from '../dbt-tree-utils';
+import { FolderSearchPanelComponent } from '../folder-search-panel/folder-search-panel.component';
+import { LineageDetailPanelComponent } from '../lineage-detail-panel/lineage-detail-panel.component';
+import { LineageGraphComponent } from '../lineage-graph/lineage-graph.component';
+import { LineageService } from '../lineage.service';
 
 @Component({
   selector: 'app-lineage-page',
@@ -35,6 +39,8 @@ import { ProjectBrowseNavComponent } from '../../../layout/project-browse-nav/pr
     ResizableSidebarDirective,
     ProjectBrowseNavComponent,
     TranslatePipe,
+    LdPageFrameComponent,
+    LdPageHeaderComponent,
   ],
   templateUrl: './lineage-page.component.html',
   styleUrl: './lineage-page.component.scss',

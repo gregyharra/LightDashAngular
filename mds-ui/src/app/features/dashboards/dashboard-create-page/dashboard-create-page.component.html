@@ -12,33 +12,31 @@
 
   <div class="page-layout__content">
     <section class="dashboard-create">
-      <div class="page__container">
-        <header class="dashboard-create__header">
-          <nav
-            class="dashboard-create__breadcrumbs"
-            [attr.aria-label]="'dashboards.breadcrumb' | translate"
+      <ld-page-frame>
+        <nav
+          class="dashboard-create__breadcrumbs"
+          [attr.aria-label]="'dashboards.breadcrumb' | translate"
+        >
+          <a routerLink="/projects" class="dashboard-create__breadcrumb-link">
+            {{ 'nav.home' | translate }}
+          </a>
+          <mat-icon>chevron_right</mat-icon>
+          <a
+            class="dashboard-create__breadcrumb-link"
+            [routerLink]="['/projects', projectUuid(), 'dashboards']"
           >
-            <a routerLink="/projects" class="dashboard-create__breadcrumb-link">
-              {{ 'nav.home' | translate }}
-            </a>
-            <mat-icon>chevron_right</mat-icon>
-            <a
-              class="dashboard-create__breadcrumb-link"
-              [routerLink]="['/projects', projectUuid(), 'dashboards']"
-            >
-              {{ 'dashboards.title' | translate }}
-            </a>
-            <mat-icon>chevron_right</mat-icon>
-            <span class="dashboard-create__breadcrumb-current">
-              {{ 'dashboards.create.action' | translate }}
-            </span>
-          </nav>
-        </header>
+            {{ 'dashboards.title' | translate }}
+          </a>
+          <mat-icon>chevron_right</mat-icon>
+          <span class="dashboard-create__breadcrumb-current">
+            {{ 'dashboards.create.action' | translate }}
+          </span>
+        </nav>
 
-        <h1 class="dashboard-create__title">{{ 'dashboards.create.action' | translate }}</h1>
-        <p class="dashboard-create__subtitle">
-          {{ 'dashboards.create.subtitle' | translate }}
-        </p>
+        <ld-page-header
+          [title]="'dashboards.create.action' | translate"
+          [subtitle]="'dashboards.create.subtitle' | translate"
+        />
 
         <form class="dashboard-create__form" (ngSubmit)="submit()">
           <mat-form-field appearance="outline" class="dashboard-create__field">
@@ -82,30 +80,26 @@
           }
 
           <div class="dashboard-create__actions">
-            <button
-              mat-stroked-button
+            <ld-button
               type="button"
-              class="dashboard-create__cancel-btn"
+              variant="outlined"
+              tone="neutral"
               (click)="cancel()"
               [disabled]="submitting()"
             >
               {{ 'common.cancel' | translate }}
-            </button>
-            <button
-              mat-flat-button
+            </ld-button>
+            <ld-button
               type="submit"
               class="dashboard-create__submit-btn"
               [disabled]="submitting() || !name.trim()"
+              [loading]="submitting()"
             >
-              @if (submitting()) {
-                <mat-spinner diameter="18" />
-              } @else {
-                {{ 'dashboards.create.action' | translate }}
-              }
-            </button>
+              {{ 'dashboards.create.action' | translate }}
+            </ld-button>
           </div>
         </form>
-      </div>
+      </ld-page-frame>
     </section>
   </div>
 </div>
