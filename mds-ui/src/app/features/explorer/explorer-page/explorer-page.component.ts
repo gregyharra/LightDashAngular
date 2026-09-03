@@ -69,6 +69,11 @@ import { ResizableSidebarDirective } from '../../../layout/resizable-sidebar/res
 import { ProjectBrowseNavComponent } from '../../../layout/project-browse-nav/project-browse-nav.component';
 import { RunQueryButtonComponent } from '../../../shared/run-query-button/run-query-button.component';
 import { SqlHighlightComponent } from '../../../shared/sql-highlight/sql-highlight.component';
+import {
+  LdButtonComponent,
+  LdEmptyStateComponent,
+  LdPageFrameComponent,
+} from '../../../design-system';
 
 const RESULTS_PAGE_SIZE_OPTIONS = [10, 25, 50, 100];
 const RESULTS_DEFAULT_PAGE_SIZE = 25;
@@ -91,6 +96,9 @@ const RESULTS_DEFAULT_PAGE_SIZE = 25;
     ProjectBrowseNavComponent,
     RunQueryButtonComponent,
     SqlHighlightComponent,
+    LdButtonComponent,
+    LdEmptyStateComponent,
+    LdPageFrameComponent,
   ],
   templateUrl: './explorer-page.component.html',
   styleUrl: './explorer-page.component.scss',

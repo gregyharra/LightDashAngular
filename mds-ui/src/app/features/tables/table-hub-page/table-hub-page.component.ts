@@ -1,7 +1,7 @@
 import { ENTER } from '@angular/cdk/keycodes';
 import { Component, computed, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { ActivatedRoute, Router, RouterLink } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { MatButtonModule } from '@angular/material/button';
 import { MatButtonToggleModule } from '@angular/material/button-toggle';
 import { MatChipInputEvent, MatChipsModule } from '@angular/material/chips';
@@ -62,6 +62,9 @@ import {
   ColumnFilterType,
   ColumnFilterValue,
   LdContentListColumnHeaderComponent,
+  LdButtonComponent,
+  LdEmptyStateComponent,
+  LdPageFrameComponent,
   NumberFilterValue,
   SelectFilterValue,
   SelectOption,
@@ -114,7 +117,6 @@ const ENABLE_TABLE_HUB_TAG_EDITING = false;
   selector: 'app-table-hub-page',
   imports: [
     FormsModule,
-    RouterLink,
     MatButtonModule,
     MatButtonToggleModule,
     MatChipsModule,
@@ -123,7 +125,10 @@ const ENABLE_TABLE_HUB_TAG_EDITING = false;
     MatProgressSpinnerModule,
     TranslatePipe,
     AddAttributeDialogComponent,
+    LdButtonComponent,
     LdContentListColumnHeaderComponent,
+    LdEmptyStateComponent,
+    LdPageFrameComponent,
     FilterableLinksTableComponent,
     FolderSearchPanelComponent,
     LineageGraphComponent,

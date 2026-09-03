@@ -117,22 +117,26 @@
                   (run)="runQuery()"
                   (limitChange)="setQueryRowLimit($event)"
                 />
-                <button
-                  mat-stroked-button
+                <ld-button
                   class="tables-workspace__toolbar-btn"
                   type="button"
-                  [attr.aria-label]="'explorer.saveChart' | translate"
-                  [matTooltip]="'explorer.saveChart' | translate"
+                  variant="outlined"
+                  tone="neutral"
+                  icon="save"
+                  [loading]="saveChartLoading()"
                   [disabled]="!canSaveChart()"
                   (click)="openSaveChartDialog()"
                 >
-                  @if (saveChartLoading()) {
-                    <mat-spinner diameter="18" />
-                  } @else {
-                    <mat-icon>save</mat-icon>
-                  }
-                  <span class="tables-workspace__toolbar-btn-label">{{ 'explorer.saveChart' | translate }}</span>
-                </button>
+                  <span class="tables-workspace__toolbar-btn-a11y">
+                    {{ 'explorer.saveChart' | translate }}
+                  </span>
+                  <span
+                    class="tables-workspace__toolbar-btn-label"
+                    aria-hidden="true"
+                  >
+                    {{ 'explorer.saveChart' | translate }}
+                  </span>
+                </ld-button>
               }
               <button
                 mat-icon-button
@@ -209,23 +213,23 @@
                 </mat-expansion-panel-header>
 
                 @if (!tableId()) {
-                  <div class="tables-workspace__panel-empty tables-workspace__panel-empty--centered">
-                    <mat-icon>bar_chart</mat-icon>
-                    <h2>{{ 'explorer.selectTable' | translate }}</h2>
-                    <p>{{ 'explorer.selectTableToConfigure' | translate }}</p>
-                  </div>
+                  <ld-empty-state
+                    icon="bar_chart"
+                    [title]="'explorer.selectTable' | translate"
+                    [body]="'explorer.selectTableToConfigure' | translate"
+                  />
                 } @else if (exploreError()) {
-                  <div class="tables-workspace__panel-empty tables-workspace__panel-empty--centered">
-                    <mat-icon>error_outline</mat-icon>
-                    <h2>{{ 'explorer.unableToLoadTable' | translate }}</h2>
-                    <p>{{ exploreError() }}</p>
-                  </div>
+                  <ld-empty-state
+                    icon="error_outline"
+                    [title]="'explorer.unableToLoadTable' | translate"
+                    [body]="exploreError()"
+                  />
                 } @else if (!explore() && !exploreLoading() && !isExploreableNode()) {
-                  <div class="tables-workspace__panel-empty tables-workspace__panel-empty--centered">
-                    <mat-icon>info</mat-icon>
-                    <h2>{{ 'explorer.selectDbtModel' | translate }}</h2>
-                    <p>{{ 'explorer.selectDbtModelFields' | translate }}</p>
-                  </div>
+                  <ld-empty-state
+                    icon="info"
+                    [title]="'explorer.selectDbtModel' | translate"
+                    [body]="'explorer.selectDbtModelFields' | translate"
+                  />
                 } @else if (exploreLoading() || !explore()) {
                   <div class="tables-workspace__panel-loading">
                     <mat-spinner diameter="32" />
@@ -243,27 +247,30 @@
                           {{ queryError() }}
                         </div>
                       } @else if (!hasRunQuery()) {
-                        <div class="tables-workspace__chart-viz-state">
-                          <mat-icon>bar_chart</mat-icon>
-                          <h2>{{ 'explorer.pickMetricDimensions' | translate }}</h2>
-                          <p>{{ 'explorer.chartQuestionExamples' | translate }}</p>
-                        </div>
+                        <ld-empty-state
+                          class="tables-workspace__chart-viz-state"
+                          icon="bar_chart"
+                          [title]="'explorer.pickMetricDimensions' | translate"
+                          [body]="'explorer.chartQuestionExamples' | translate"
+                        />
                       } @else if (
                         chartKind() !== 'table' &&
                         chartKind() !== 'big_number' &&
                         (selectedDimensionList().length === 0 || selectedMetricList().length === 0)
                       ) {
-                        <div class="tables-workspace__chart-viz-state">
-                          <mat-icon>bar_chart</mat-icon>
-                          <h2>{{ 'explorer.addDimensionMetric' | translate }}</h2>
-                          <p>{{ 'explorer.chartNeedsDimensionMetric' | translate }}</p>
-                        </div>
+                        <ld-empty-state
+                          class="tables-workspace__chart-viz-state"
+                          icon="bar_chart"
+                          [title]="'explorer.addDimensionMetric' | translate"
+                          [body]="'explorer.chartNeedsDimensionMetric' | translate"
+                        />
                       } @else if (!canRenderChart()) {
-                        <div class="tables-workspace__chart-viz-state">
-                          <mat-icon>search_off</mat-icon>
-                          <h2>{{ 'explorer.noResultsToChart' | translate }}</h2>
-                          <p>{{ 'explorer.adjustFieldsFilters' | translate }}</p>
-                        </div>
+                        <ld-empty-state
+                          class="tables-workspace__chart-viz-state"
+                          icon="search_off"
+                          [title]="'explorer.noResultsToChart' | translate"
+                          [body]="'explorer.adjustFieldsFilters' | translate"
+                        />
                       } @else {
                         <app-chart-visualization
                           [chartConfig]="chartConfig()"
@@ -296,19 +303,19 @@
                 </mat-expansion-panel-header>
 
                 @if (!tableId()) {
-                  <div class="tables-workspace__panel-empty tables-workspace__panel-empty--centered">
-                    <mat-icon>table_rows</mat-icon>
-                    <h2>{{ 'explorer.selectTable' | translate }}</h2>
-                    <p>{{ 'explorer.selectTableToRun' | translate }}</p>
-                  </div>
+                  <ld-empty-state
+                    icon="table_rows"
+                    [title]="'explorer.selectTable' | translate"
+                    [body]="'explorer.selectTableToRun' | translate"
+                  />
                 } @else if (exploreError()) {
                   <div class="tables-workspace__panel-error">{{ exploreError() }}</div>
                 } @else if (!explore() && !exploreLoading() && !isExploreableNode()) {
-                  <div class="tables-workspace__panel-empty tables-workspace__panel-empty--centered">
-                    <mat-icon>info</mat-icon>
-                    <h2>{{ 'explorer.selectDbtModel' | translate }}</h2>
-                    <p>{{ 'explorer.selectDbtModelFields' | translate }}</p>
-                  </div>
+                  <ld-empty-state
+                    icon="info"
+                    [title]="'explorer.selectDbtModel' | translate"
+                    [body]="'explorer.selectDbtModelFields' | translate"
+                  />
                 } @else if (exploreLoading() || !explore()) {
                   <div class="tables-workspace__panel-loading">
                     <mat-spinner diameter="32" />
@@ -321,17 +328,17 @@
                 } @else if (queryError()) {
                   <div class="tables-workspace__panel-error">{{ queryError() }}</div>
                 } @else if (!hasRunQuery()) {
-                  <div class="tables-workspace__panel-empty tables-workspace__panel-empty--centered">
-                    <mat-icon>table_view</mat-icon>
-                    <h2>{{ 'explorer.pickMetricDimensions' | translate }}</h2>
-                    <p>{{ 'explorer.selectFieldsThenRun' | translate }}</p>
-                  </div>
+                  <ld-empty-state
+                    icon="table_view"
+                    [title]="'explorer.pickMetricDimensions' | translate"
+                    [body]="'explorer.selectFieldsThenRun' | translate"
+                  />
                 } @else if (resultRows().length === 0) {
-                  <div class="tables-workspace__panel-empty tables-workspace__panel-empty--centered">
-                    <mat-icon>search_off</mat-icon>
-                    <h2>{{ 'explorer.noResults' | translate }}</h2>
-                    <p>{{ 'explorer.adjustFieldsFilters' | translate }}</p>
-                  </div>
+                  <ld-empty-state
+                    icon="search_off"
+                    [title]="'explorer.noResults' | translate"
+                    [body]="'explorer.adjustFieldsFilters' | translate"
+                  />
                 } @else {
                   <div class="tables-workspace__results-table-wrap">
                     <table

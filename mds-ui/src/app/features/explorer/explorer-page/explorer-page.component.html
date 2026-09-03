@@ -50,7 +50,7 @@
         <mat-spinner diameter="32" />
       </div>
     } @else if (error()) {
-      <div class="explorer-page__error page__container">
+      <ld-page-frame class="explorer-page__error">
         <p>{{ error() }}</p>
         @if (tableId()) {
           <a
@@ -60,10 +60,10 @@
             {{ 'explorer.back' | translate }}
           </a>
         }
-      </div>
+      </ld-page-frame>
     } @else if (!tableId()) {
       <section class="explorer-page explorer-page--picker">
-        <div class="page__container page__container--wide">
+        <ld-page-frame class="explorer-page__frame" [wide]="true">
           <header class="explorer-page__header">
             <nav
               class="explorer-page__breadcrumbs"
@@ -93,15 +93,15 @@
           }
 
           @if (explores().length === 0) {
-            <div class="explorer-page__empty">
-              <mat-icon>table_chart</mat-icon>
-              <p>{{ 'explorer.noExplores' | translate }}</p>
-            </div>
+            <ld-empty-state
+              icon="table_chart"
+              [title]="'explorer.noExplores' | translate"
+            />
           } @else if (filteredExplores().length === 0) {
-            <div class="explorer-page__empty">
-              <mat-icon>search</mat-icon>
-              <p>{{ 'explorer.noModelsMatch' | translate }}</p>
-            </div>
+            <ld-empty-state
+              icon="search"
+              [title]="'explorer.noModelsMatch' | translate"
+            />
           } @else {
             <div class="explorer-page__sections">
               @for (section of exploreSections(); track section.key) {
@@ -145,12 +145,12 @@
               }
             </div>
           }
-        </div>
+        </ld-page-frame>
       </section>
     } @else {
       @if (explore(); as exploreData) {
       <section class="explorer-page">
-        <div class="page__container page__container--wide">
+        <ld-page-frame class="explorer-page__frame" [wide]="true">
           <header class="explorer-page__header explorer-page__header--workspace">
             <nav
               class="explorer-page__breadcrumbs"
@@ -199,17 +199,15 @@
                   {{ 'export.excel' | translate }}
                 </button>
               </mat-menu>
-              <button
-                mat-flat-button
-                color="primary"
+              <ld-button
                 type="button"
                 class="explorer-page__action-btn"
+                icon="insert_chart"
                 [disabled]="!canCreateChart()"
                 (click)="createChartFromData()"
               >
-                <mat-icon>insert_chart</mat-icon>
                 {{ 'explorer.createChartFromData' | translate }}
-              </button>
+              </ld-button>
             </div>
           </header>
 
@@ -309,7 +307,7 @@
               </div>
             </div>
           </div>
-        </div>
+        </ld-page-frame>
       </section>
       }
     }

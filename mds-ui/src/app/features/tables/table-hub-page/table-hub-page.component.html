@@ -31,13 +31,14 @@
           (nodeSelected)="onNodeSelected($event)"
         />
 
-        <div class="table-hub__main">
+        <ld-page-frame class="table-hub__main" [wide]="true">
           @if (!tableId()) {
-            <section class="table-hub__empty">
-              <h1 class="table-hub__title">{{ 'tables.title' | translate }}</h1>
-              <p class="table-hub__subtitle">
-                {{ 'tables.selectModel' | translate }}
-              </p>
+            <section class="table-hub__picker">
+              <ld-empty-state
+                icon="table_chart"
+                [title]="'tables.title' | translate"
+                [body]="'tables.selectModel' | translate"
+              />
               @if (quality(); as q) {
                 <div class="table-hub__quality">
                   <p class="table-hub__quality-score">
@@ -81,21 +82,28 @@
                   <p class="table-hub__path">{{ entry()!.dbtPath }}</p>
                 }
               </div>
-              <button
-                mat-flat-button
+              <ld-button
                 type="button"
                 class="table-hub__explore-btn"
-                [attr.aria-label]="'tables.exploreData' | translate"
+                icon="bar_chart"
                 (click)="exploreInCharts()"
               >
-                <mat-icon>bar_chart</mat-icon>
-                <span class="table-hub__explore-label table-hub__explore-label--full">
+                <span class="table-hub__explore-a11y">
                   {{ 'tables.exploreData' | translate }}
                 </span>
-                <span class="table-hub__explore-label table-hub__explore-label--short">
+                <span
+                  class="table-hub__explore-label table-hub__explore-label--full"
+                  aria-hidden="true"
+                >
+                  {{ 'tables.exploreData' | translate }}
+                </span>
+                <span
+                  class="table-hub__explore-label table-hub__explore-label--short"
+                  aria-hidden="true"
+                >
                   {{ 'tables.explore' | translate }}
                 </span>
-              </button>
+              </ld-button>
             </header>
 
             <div class="table-hub__tabs" role="tablist">
@@ -219,14 +227,15 @@
                   }
                 </dl>
 
-                <button
-                  mat-flat-button
+                <ld-button
+                  class="table-hub__save-btn"
                   type="button"
+                  [loading]="saving()"
                   [disabled]="saving()"
                   (click)="saveOverview()"
                 >
                   {{ 'tables.saveOverview' | translate }}
-                </button>
+                </ld-button>
               </section>
             }
 
@@ -494,7 +503,7 @@
               </section>
             }
           }
-        </div>
+        </ld-page-frame>
       }
     </div>
   </div>

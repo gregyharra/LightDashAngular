@@ -91,7 +91,7 @@
   margin-left: auto;
 }
 
-.tables-workspace__toolbar-btn {
+button.tables-workspace__toolbar-btn {
   height: 32px;
   min-width: 32px;
   flex-shrink: 0;
@@ -115,6 +115,17 @@
     margin: 0;
     flex-shrink: 0;
   }
+}
+
+.tables-workspace__toolbar-btn-a11y {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
 }
 
 .tables-workspace__toolbar-btn-label {

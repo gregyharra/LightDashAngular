@@ -1,7 +1,7 @@
 import { Component, computed, effect, inject, signal, viewChild } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { Store } from '@ngrx/store';
-import { ActivatedRoute, Router, RouterLink } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { forkJoin } from 'rxjs';
 import { MatButtonModule } from '@angular/material/button';
 import { MatDialog } from '@angular/material/dialog';
@@ -93,11 +93,14 @@ import {
   CustomMetricDialogData,
   CustomMetricDialogResult,
 } from '../custom-metric/custom-metric-dialog.component';
+import {
+  LdButtonComponent,
+  LdEmptyStateComponent,
+} from '../../../design-system';
 
 @Component({
   selector: 'app-tables-workspace-page',
   imports: [
-    RouterLink,
     MatButtonModule,
     MatExpansionModule,
     MatIconModule,
@@ -116,6 +119,8 @@ import {
     SqlHighlightComponent,
     ResizableSidebarDirective,
     ProjectBrowseNavComponent,
+    LdButtonComponent,
+    LdEmptyStateComponent,
   ],
   templateUrl: './tables-workspace-page.component.html',
   styleUrl: './tables-workspace-page.component.scss',
