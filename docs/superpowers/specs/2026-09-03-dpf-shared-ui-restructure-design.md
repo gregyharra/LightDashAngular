@@ -1,7 +1,7 @@
 # Data Platform UI kit restructure (`shared/ui`)
 
 **Date:** 2026-09-03  
-**Status:** Draft — awaiting user review before implementation plan  
+**Status:** Approved — implementation plan in `docs/superpowers/plans/2026-09-03-dpf-shared-ui-restructure.md`  
 **Scope:** `mds-ui` only  
 **Supersedes (partially):** location + naming decisions in `2026-09-02-design-system-design.md` (tokens + Material-wrapper strategy remain)
 
