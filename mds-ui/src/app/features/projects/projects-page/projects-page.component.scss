@@ -66,7 +66,7 @@ ld-page-header {
     left: 0;
     height: 5px;
     border-radius: 12px 12px 0 0;
-    background: var(--ld-navy);
+    background: var(--ld-color-brand);
   }
 
   &:hover {
@@ -79,7 +79,7 @@ ld-page-header {
   }
 
   &--active {
-    border-color: color-mix(in srgb, var(--ld-navy) 28%, var(--ld-gray-2));
+    border-color: color-mix(in srgb, var(--ld-color-brand) 28%, var(--ld-gray-2));
   }
 }
 
@@ -94,7 +94,7 @@ ld-page-header {
 .domain-card__title {
   margin: 0;
   overflow: hidden;
-  color: var(--ld-navy);
+  color: var(--ld-color-brand);
   font-size: 1.05rem;
   font-weight: 700;
   line-height: 1.3;
@@ -116,7 +116,7 @@ ld-page-header {
   align-items: center;
   align-self: flex-end;
   margin-top: 8px;
-  color: var(--ld-navy);
+  color: var(--ld-color-brand);
 
   mat-icon {
     width: 18px;
@@ -151,7 +151,7 @@ ld-page-header {
     left: 0;
     height: 4px;
     border-radius: var(--ld-radius-md) var(--ld-radius-md) 0 0;
-    background: var(--ld-navy);
+    background: var(--ld-color-brand);
   }
 
   &:hover {
@@ -160,17 +160,17 @@ ld-page-header {
   }
 
   &:focus-visible {
-    border-color: var(--ld-navy);
+    border-color: var(--ld-color-brand);
     box-shadow: 0 0 0 2px rgba(30, 58, 138, 0.25);
   }
 
   &--active {
-    border-color: color-mix(in srgb, var(--ld-navy) 28%, var(--ld-gray-2));
-    background-color: color-mix(in srgb, var(--ld-navy) 4%, var(--ld-background));
+    border-color: color-mix(in srgb, var(--ld-color-brand) 28%, var(--ld-gray-2));
+    background-color: color-mix(in srgb, var(--ld-color-brand) 4%, var(--ld-background));
     box-shadow: var(--ld-shadow-subtle);
 
     &:hover {
-      border-color: color-mix(in srgb, var(--ld-navy) 28%, var(--ld-gray-2));
+      border-color: color-mix(in srgb, var(--ld-color-brand) 28%, var(--ld-gray-2));
     }
   }
 }
@@ -198,15 +198,15 @@ ld-page-header {
   font-size: var(--ld-font-size-sm);
   font-weight: 500;
   line-height: 1.3;
-  color: var(--ld-navy);
+  color: var(--ld-color-brand);
 }
 
 .project-card__badge {
   flex-shrink: 0;
   padding: 2px 8px;
   border-radius: var(--ld-radius-sm);
-  background-color: color-mix(in srgb, var(--ld-navy) 12%, transparent);
-  color: var(--ld-navy);
+  background-color: color-mix(in srgb, var(--ld-color-brand) 12%, transparent);
+  color: var(--ld-color-brand);
   font-size: 11px;
   font-weight: 600;
   text-transform: none;
@@ -297,10 +297,10 @@ ld-page-header {
   }
 
   .project-card:hover & {
-    color: var(--ld-navy);
+    color: var(--ld-color-brand);
   }
 }
 
 .project-card--active .project-card__action {
-  color: var(--ld-navy);
+  color: var(--ld-color-brand);
 }

@@ -99,7 +99,7 @@
   text-decoration: none;
 
   &:hover {
-    color: var(--ld-navy);
+    color: var(--ld-color-brand);
     text-decoration: underline;
   }
 }
@@ -117,7 +117,7 @@
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  color: var(--ld-navy);
+  color: var(--ld-color-brand);
   font-weight: 500;
 }
 
@@ -211,13 +211,13 @@ button.chart-view__action-btn {
   line-height: 1;
 
   &.mat-mdc-outlined-button {
-    border-color: var(--ld-navy) !important;
-    color: var(--ld-navy) !important;
+    border-color: var(--ld-color-brand) !important;
+    color: var(--ld-color-brand) !important;
   }
 
   &.mat-mdc-unelevated-button,
   &.mat-primary {
-    background-color: var(--ld-navy) !important;
+    background-color: var(--ld-color-brand) !important;
     color: #fff !important;
   }
 

@@ -112,8 +112,8 @@ button.dashboard-view__icon-action {
   height: 32px !important;
   padding: 0 12px !important;
   border-radius: var(--ld-radius-pill) !important;
-  border-color: var(--ld-navy) !important;
-  color: var(--ld-navy) !important;
+  border-color: var(--ld-color-brand) !important;
+  color: var(--ld-color-brand) !important;
   font-size: var(--ld-font-size-sm);
 
   mat-icon {
@@ -490,8 +490,8 @@ button.dashboard-edit__action-btn {
   height: 32px !important;
   padding: 0 14px !important;
   border-radius: var(--ld-radius-pill) !important;
-  border-color: var(--ld-navy) !important;
-  color: var(--ld-navy) !important;
+  border-color: var(--ld-color-brand) !important;
+  color: var(--ld-color-brand) !important;
   font-size: var(--ld-font-size-sm);
 
   mat-icon {
@@ -502,7 +502,7 @@ button.dashboard-edit__action-btn {
   }
 
   &:hover:not([disabled]) {
-    background-color: color-mix(in srgb, var(--ld-navy) 6%, #fff) !important;
+    background-color: color-mix(in srgb, var(--ld-color-brand) 6%, #fff) !important;
   }
 }
 
