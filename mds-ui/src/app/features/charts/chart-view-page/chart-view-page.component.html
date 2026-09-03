@@ -89,14 +89,13 @@
         @if (configureMode()) {
           <header class="chart-view__config-mode-header">
             <h2 class="chart-view__panel-title">{{ 'explorer.configure' | translate }}</h2>
-            <button
-              mat-icon-button
-              type="button"
+            <ld-icon-button
+              class="chart-view__config-close"
+              icon="close"
               [attr.aria-label]="'explorer.closeConfigureAria' | translate"
+              [ariaLabel]="'explorer.closeConfigureAria' | translate"
               (click)="closeConfigureMode()"
-            >
-              <mat-icon>close</mat-icon>
-            </button>
+            />
           </header>
           <div class="chart-view__config-mode-body">
             <app-tables-chart-config-panel
@@ -162,10 +161,12 @@
         <mat-spinner diameter="32" />
       </div>
     } @else if (error()) {
-      <div class="chart-view__error page__container">{{ error() }}</div>
+      <ld-page-frame [wide]="true">
+        <div class="chart-view__error">{{ error() }}</div>
+      </ld-page-frame>
     } @else if (chart() || isCreateMode()) {
       <section class="chart-view">
-        <div class="page__container page__container--wide">
+        <ld-page-frame class="chart-view__frame" [wide]="true">
           <header class="chart-view__header">
             <nav class="chart-view__breadcrumbs" [attr.aria-label]="'charts.breadcrumb' | translate">
               <a routerLink="/projects" class="chart-view__breadcrumb-link">{{ 'nav.home' | translate }}</a>
@@ -180,16 +181,13 @@
               <span class="chart-view__breadcrumb-current-wrap">
                 <span class="chart-view__breadcrumb-current">{{ displayName() }}</span>
                 @if (editMode()) {
-                  <button
-                    mat-icon-button
-                    type="button"
+                  <ld-icon-button
                     class="chart-view__breadcrumb-edit"
-                    [attr.aria-label]="'charts.workspace.editNameDescriptionAria' | translate"
+                    icon="edit"
+                    [ariaLabel]="'charts.workspace.editNameDescriptionAria' | translate"
                     [matTooltip]="'charts.workspace.editNameDescription' | translate"
                     (click)="openChartDetailsDialog()"
-                  >
-                    <mat-icon>edit</mat-icon>
-                  </button>
+                  />
                 }
               </span>
             </nav>
@@ -206,54 +204,49 @@
                     (limitChange)="setQueryRowLimit($event)"
                   />
                 }
-                <button
-                  mat-stroked-button
+                <ld-button
                   type="button"
-                  class="chart-view__action-btn"
+                  class="chart-view__action-btn chart-view__configure-btn"
+                  variant="outlined"
+                  tone="neutral"
                   [attr.aria-pressed]="configureMode()"
                   (click)="toggleConfigureMode()"
+                  [icon]="configureMode() ? 'close' : 'tune'"
                 >
-                  <mat-icon>{{ configureMode() ? 'close' : 'tune' }}</mat-icon>
                   {{
                     (configureMode()
                       ? 'explorer.closeConfigure'
                       : 'explorer.configureChart') | translate
                   }}
-                </button>
-                <button
-                  mat-stroked-button
+                </ld-button>
+                <ld-button
                   type="button"
                   class="chart-view__action-btn chart-view__save-btn"
+                  variant="outlined"
+                  tone="neutral"
                   [disabled]="!canSave() || saveLoading()"
+                  [loading]="saveLoading()"
+                  icon="save"
                   (click)="saveChart()"
                 >
-                  @if (saveLoading()) {
-                    <mat-spinner diameter="18" />
-                  } @else {
-                    <mat-icon>save</mat-icon>
-                  }
                   {{ 'common.save' | translate }}
-                </button>
-                <button
-                  mat-flat-button
-                  color="primary"
+                </ld-button>
+                <ld-button
                   type="button"
-                  class="chart-view__action-btn"
+                  class="chart-view__action-btn chart-view__done-btn"
                   (click)="onDoneClick()"
                 >
                   {{ 'charts.workspace.done' | translate }}
-                </button>
+                </ld-button>
               } @else {
-                <button
-                  mat-flat-button
-                  color="primary"
+                <ld-button
                   type="button"
-                  class="chart-view__action-btn"
+                  class="chart-view__action-btn chart-view__edit-btn"
                   (click)="enterEditMode()"
+                  icon="edit"
                 >
-                  <mat-icon>edit</mat-icon>
                   {{ 'dashboards.workspace.edit' | translate }}
-                </button>
+                </ld-button>
                 @if (chartExportPlacement(editMode()) === 'header') {
                   <button
                     mat-stroked-button
@@ -462,7 +455,7 @@
             </div>
               </div>
           </div>
-        </div>
+        </ld-page-frame>
       </section>
     }
   </div>

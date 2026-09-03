@@ -31,8 +31,9 @@
       [class.dashboard-view__header]="!editMode()"
       [class.dashboard-edit__header]="editMode()"
     >
+      <ld-page-frame [wide]="true">
       <div
-        class="page__container page__container--wide page-header--compact-padding"
+        class="page-header--compact-padding"
         [class.dashboard-view__header-inner]="!editMode()"
         [class.dashboard-edit__header-inner]="editMode()"
       >
@@ -162,55 +163,46 @@
                 }
               </mat-menu>
 
-              <button
-                mat-stroked-button
+              <ld-button
                 type="button"
                 class="dashboard-edit__action-btn page-header__action-btn--labeled page-header__action-btn--cancel"
+                variant="outlined"
+                tone="neutral"
                 (click)="cancelEdit()"
                 [disabled]="saving()"
-                [attr.aria-label]="'common.cancel' | translate"
+                icon="close"
               >
-                <mat-icon>close</mat-icon>
                 <span class="page-header__action-label page-header__action-btn--cancel-label">{{ 'common.cancel' | translate }}</span>
-              </button>
-              <button
-                mat-flat-button
+              </ld-button>
+              <ld-button
                 type="button"
                 class="dashboard-edit__save-btn page-header__action-btn--labeled"
                 (click)="saveDashboard()"
                 [disabled]="saving() || !draft()?.name?.trim()"
+                [loading]="saving()"
+                icon="save"
               >
-                @if (saving()) {
-                  <mat-spinner diameter="18" />
-                } @else {
-                  <mat-icon>save</mat-icon>
-                }
-                @if (!saving()) {
-                  <span class="page-header__action-label">{{ 'common.save' | translate }}</span>
-                }
-              </button>
+                <span class="page-header__action-label">{{ 'common.save' | translate }}</span>
+              </ld-button>
             } @else {
-              <button
-                mat-flat-button
+              <ld-button
                 type="button"
                 class="dashboard-view__edit-btn page-header__action-btn--labeled"
                 (click)="enterEditMode()"
+                icon="edit"
               >
-                <mat-icon>edit</mat-icon>
                 <span class="page-header__action-label">{{ 'dashboards.workspace.edit' | translate }}</span>
-              </button>
+              </ld-button>
 
-              <button
-                type="button"
-                mat-stroked-button
+              <ld-icon-button
                 class="dashboard-view__icon-action"
+                [class.dashboard-view__spin]="refreshing()"
                 [disabled]="refreshing()"
                 (click)="refreshDashboard()"
-                [attr.aria-label]="'dashboards.workspace.refresh' | translate"
+                icon="refresh"
+                [ariaLabel]="'dashboards.workspace.refresh' | translate"
                 [matTooltip]="'dashboards.workspace.refresh' | translate"
-              >
-                <mat-icon [class.dashboard-view__spin]="refreshing()">refresh</mat-icon>
-              </button>
+              />
 
               <button
                 type="button"
@@ -255,12 +247,11 @@
                 </button>
               </mat-menu>
 
-              <button
-                type="button"
-                mat-stroked-button
+              <ld-icon-button
                 class="dashboard-view__icon-action"
                 (click)="toggleFullscreen()"
-                [attr.aria-label]="
+                [icon]="isFullscreen() ? 'fullscreen_exit' : 'fullscreen'"
+                [ariaLabel]="
                   (isFullscreen()
                     ? 'dashboards.workspace.exitFullscreen'
                     : 'dashboards.workspace.enterFullscreen') | translate
@@ -270,9 +261,7 @@
                     ? 'dashboards.workspace.exitFullscreen'
                     : 'dashboards.workspace.fullscreen') | translate
                 "
-              >
-                <mat-icon>{{ isFullscreen() ? 'fullscreen_exit' : 'fullscreen' }}</mat-icon>
-              </button>
+              />
 
               <button
                 type="button"
@@ -428,6 +417,7 @@
           </div>
         }
       </div>
+      </ld-page-frame>
     </header>
 
     <app-dashboard-filters-bar
@@ -443,7 +433,7 @@
     />
 
     <div [class.dashboard-view__content]="!editMode()" [class.dashboard-edit__content]="editMode()">
-      <div class="page__container page__container--wide">
+      <ld-page-frame [wide]="true">
         <div
           #dashboardGrid
           [class.dashboard-view__grid]="!editMode()"
@@ -685,7 +675,7 @@
             }
           }
         </div>
-      </div>
+      </ld-page-frame>
     </div>
 
     @if (!editMode() && showScrollTop()) {

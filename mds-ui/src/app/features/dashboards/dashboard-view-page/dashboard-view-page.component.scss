@@ -100,27 +100,14 @@
 }
 
 .dashboard-view__edit-btn {
-  height: 32px !important;
-  padding: 0 14px !important;
-  border-radius: var(--ld-radius-pill) !important;
-  background-color: var(--ld-navy) !important;
-  color: #fff !important;
-  font-size: var(--ld-font-size-sm);
-  font-weight: 500;
-
-  mat-icon {
-    width: 16px;
-    height: 16px;
-    font-size: 16px;
-    margin-right: 4px;
-  }
-
-  &:hover {
-    background-color: var(--ld-navy-ink) !important;
-  }
+  flex-shrink: 0;
 }
 
 .dashboard-view__icon-action {
+  flex-shrink: 0;
+}
+
+button.dashboard-view__icon-action {
   min-width: 0 !important;
   height: 32px !important;
   padding: 0 12px !important;
@@ -165,7 +152,9 @@
 }
 
 .dashboard-view__spin {
-  animation: dashboard-view-spin 0.8s linear infinite;
+  ::ng-deep mat-icon {
+    animation: dashboard-view-spin 0.8s linear infinite;
+  }
 }
 
 @keyframes dashboard-view-spin {
@@ -494,6 +483,10 @@
 }
 
 .dashboard-edit__action-btn {
+  flex-shrink: 0;
+}
+
+button.dashboard-edit__action-btn {
   height: 32px !important;
   padding: 0 14px !important;
   border-radius: var(--ld-radius-pill) !important;
@@ -516,28 +509,6 @@
 .dashboard-edit__save-btn {
   flex-shrink: 0;
   min-width: 72px;
-  height: 32px !important;
-  padding: 0 14px !important;
-  border-radius: var(--ld-radius-pill) !important;
-  background-color: var(--ld-navy) !important;
-  color: #fff !important;
-  font-size: var(--ld-font-size-sm);
-  font-weight: 500;
-
-  mat-icon {
-    width: 16px;
-    height: 16px;
-    font-size: 16px;
-    margin-right: 4px;
-  }
-
-  mat-spinner {
-    margin: 0 auto;
-  }
-
-  &:hover:not([disabled]) {
-    background-color: var(--ld-navy-ink) !important;
-  }
 }
 
 .dashboard-edit__tabs {

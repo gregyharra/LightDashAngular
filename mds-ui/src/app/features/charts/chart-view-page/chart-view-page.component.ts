@@ -117,6 +117,11 @@ import {
   selectEntries,
 } from '../../../core/store';
 import { combineLatest, forkJoin } from 'rxjs';
+import {
+  LdButtonComponent,
+  LdIconButtonComponent,
+  LdPageFrameComponent,
+} from '../../../design-system';
 
 type TableFieldGroup = {
   trackKey: string;
@@ -155,6 +160,9 @@ const RESULTS_DEFAULT_PAGE_SIZE = 25;
     RunQueryButtonComponent,
     ChartFieldsAccordionComponent,
     SqlHighlightComponent,
+    LdButtonComponent,
+    LdIconButtonComponent,
+    LdPageFrameComponent,
   ],
   templateUrl: './chart-view-page.component.html',
   styleUrl: './chart-view-page.component.scss',

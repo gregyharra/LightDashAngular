@@ -11,7 +11,7 @@ import {
 } from '@angular/core';
 import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 import { FormsModule } from '@angular/forms';
-import { ActivatedRoute, RouterLink } from '@angular/router';
+import { ActivatedRoute } from '@angular/router';
 import { MatButtonModule } from '@angular/material/button';
 import { MatDialog } from '@angular/material/dialog';
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -62,6 +62,11 @@ import { DashboardTileGridInteractionDirective } from '../dashboard-tile-grid-in
 import { getLoomEmbedUrl } from '../dashboard-loom.utils';
 import { ResizableSidebarDirective } from '../../../layout/resizable-sidebar/resizable-sidebar.directive';
 import { ProjectBrowseNavComponent } from '../../../layout/project-browse-nav/project-browse-nav.component';
+import {
+  LdButtonComponent,
+  LdIconButtonComponent,
+  LdPageFrameComponent,
+} from '../../../design-system';
 
 type DraftState = {
   name: string;
@@ -77,7 +82,6 @@ type DraftState = {
   imports: [
     NgStyle,
     FormsModule,
-    RouterLink,
     MatButtonModule,
     MatFormFieldModule,
     MatIconModule,
@@ -93,6 +97,9 @@ type DraftState = {
     DragDropModule,
     ResizableSidebarDirective,
     ProjectBrowseNavComponent,
+    LdButtonComponent,
+    LdIconButtonComponent,
+    LdPageFrameComponent,
   ],
   templateUrl: './dashboard-view-page.component.html',
   styleUrls: ['./dashboard-view-page.component.scss'],
