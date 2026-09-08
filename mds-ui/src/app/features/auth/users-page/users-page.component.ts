@@ -1,4 +1,4 @@
-import { Component, OnInit, inject, signal } from '@angular/core';
+import { Component, OnInit, computed, inject, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import {
@@ -21,6 +21,7 @@ import {
   ManagedUser,
   UpdateUserPayload,
 } from '../../../core/services/auth.service';
+import { AppStateService } from '../../../core/services/app-state.service';
 
 type UserFormValue = {
   email: string;
@@ -283,14 +284,20 @@ export class TemporaryPasswordDialogComponent {
   styleUrl: './users-page.component.scss',
 })
 export class UsersPageComponent implements OnInit {
+  private readonly appState = inject(AppStateService);
   private readonly auth = inject(AuthService);
   private readonly dialog = inject(MatDialog);
   private readonly translate = inject(TranslateService);
 
+  protected readonly ssoEnabled = this.appState.ssoEnabled;
   protected readonly loading = signal(true);
   protected readonly error = signal<string | null>(null);
   protected readonly users = signal<ManagedUser[]>([]);
-  protected readonly displayedColumns = ['name', 'email', 'role', 'status', 'actions'];
+  protected readonly displayedColumns = computed(() =>
+    this.ssoEnabled()
+      ? ['name', 'email', 'role', 'status']
+      : ['name', 'email', 'role', 'status', 'actions'],
+  );
 
   ngOnInit(): void {
     this.reload();

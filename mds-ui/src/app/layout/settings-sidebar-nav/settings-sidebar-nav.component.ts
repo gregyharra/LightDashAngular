@@ -54,14 +54,16 @@ import { ChangePasswordDialogComponent } from '../navbar/navbar-user-menu.compon
           <span class="settings-nav__item-label">{{ 'settings.users' | translate }}</span>
         </a>
       }
-      <button
-        type="button"
-        class="page-sidebar__link page-sidebar__link--clickable"
-        (click)="changePassword()"
-      >
-        <mat-icon fontIcon="lock" aria-hidden="true"></mat-icon>
-        <span class="settings-nav__item-label">{{ 'settings.changePassword' | translate }}</span>
-      </button>
+      @if (!appState.passwordAuthDisabled()) {
+        <button
+          type="button"
+          class="page-sidebar__link page-sidebar__link--clickable"
+          (click)="changePassword()"
+        >
+          <mat-icon fontIcon="lock" aria-hidden="true"></mat-icon>
+          <span class="settings-nav__item-label">{{ 'settings.changePassword' | translate }}</span>
+        </button>
+      }
       <button
         type="button"
         class="page-sidebar__link page-sidebar__link--clickable"

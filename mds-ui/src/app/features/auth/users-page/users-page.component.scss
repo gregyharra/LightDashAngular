@@ -21,6 +21,12 @@
   color: rgba(0, 0, 0, 0.6);
 }
 
+.users__sso-note {
+  margin: 0.5rem 0 0;
+  color: rgba(0, 0, 0, 0.65);
+  line-height: 1.4;
+}
+
 .users__create-btn {
   flex-shrink: 0;
   white-space: nowrap;

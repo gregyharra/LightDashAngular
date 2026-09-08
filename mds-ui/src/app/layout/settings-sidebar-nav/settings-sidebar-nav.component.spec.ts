@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, signal } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { By } from '@angular/platform-browser';
 import { provideRouter } from '@angular/router';
@@ -23,8 +23,11 @@ class SettingsNavHostComponent {
 
 describe('SettingsSidebarNavComponent', () => {
   let fixture: ComponentFixture<SettingsNavHostComponent>;
+  const passwordAuthDisabled = signal(false);
 
   beforeEach(async () => {
+    passwordAuthDisabled.set(false);
+
     await TestBed.configureTestingModule({
       imports: [SettingsNavHostComponent],
       providers: [
@@ -35,6 +38,7 @@ describe('SettingsSidebarNavComponent', () => {
           useValue: {
             user: () => ({ email: 'demo@lightdash.com' }),
             isAdmin: () => true,
+            passwordAuthDisabled: passwordAuthDisabled.asReadonly(),
           },
         },
         {
@@ -85,5 +89,14 @@ describe('SettingsSidebarNavComponent', () => {
     expect(
       fixture.debugElement.query(By.css('[data-testid="settings-language-select"]')),
     ).toBeNull();
+  });
+
+  it('hides change password when password authentication is disabled', () => {
+    passwordAuthDisabled.set(true);
+    fixture.detectChanges();
+
+    expect((fixture.nativeElement as HTMLElement).textContent).not.toContain(
+      'Changer le mot de passe',
+    );
   });
 });
