@@ -17,6 +17,8 @@ dependencies = [
   "pydantic-settings>=2.6.0",
   "python-multipart>=0.0.17",
   "cryptography>=44.0.0",
+  "httpx>=0.28.0",
+  "PyJWT[crypto]>=2.10.0",
   "trino>=0.336.0",
   "xlsxwriter>=3.2.0",
   "sqlglot>=20.0.0",
@@ -27,7 +29,6 @@ dependencies = [
 [project.optional-dependencies]
 dev = [
   "pytest>=8.3.0",
-  "httpx>=0.28.0",
   "ruff>=0.8.0",
 ]
 dbt = [
