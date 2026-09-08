@@ -144,6 +144,123 @@ def test_health_sso_mode_skips_setup_and_disables_password_authentication(
     assert results["auth"]["disablePasswordAuthentication"] is True
 
 
+@pytest.mark.parametrize(
+    ("path", "payload"),
+    [
+        (
+            "/api/v1/setup",
+            {
+                "email": "admin@example.com",
+                "firstName": "Ada",
+                "lastName": "Admin",
+                "password": "admin-password-1",
+            },
+        ),
+        (
+            "/api/v1/login",
+            {"email": "admin@example.com", "password": "admin-password-1"},
+        ),
+        (
+            "/api/v1/user/password/reset",
+            {"token": "reset-token", "newPassword": "new-password-1"},
+        ),
+    ],
+)
+def test_sso_mode_rejects_public_password_routes(
+    monkeypatch: pytest.MonkeyPatch,
+    path: str,
+    payload: dict[str, object],
+):
+    monkeypatch.setattr(settings, "auth_mode", "sso")
+
+    with TestClient(app) as client:
+        response = client.post(path, json=payload)
+
+    assert response.status_code == 403
+    assert response.json()["error"]["message"] == "Password authentication is disabled"
+
+
+def test_sso_mode_rejects_admin_password_and_role_mutations(
+    monkeypatch: pytest.MonkeyPatch,
+):
+    with TestClient(app) as client:
+        client.post(
+            "/api/v1/setup",
+            json={
+                "email": "admin@example.com",
+                "firstName": "Ada",
+                "lastName": "Admin",
+                "password": "admin-password-1",
+            },
+        )
+        created = client.post(
+            "/api/v1/users",
+            json={
+                "email": "member@example.com",
+                "firstName": "Moe",
+                "lastName": "Member",
+                "password": "member-password-1",
+                "role": "member",
+            },
+        )
+        member_uuid = created.json()["results"]["userUuid"]
+        monkeypatch.setattr(settings, "auth_mode", "sso")
+
+        responses = [
+            client.post(
+                "/api/v1/user/password",
+                json={
+                    "currentPassword": "admin-password-1",
+                    "newPassword": "admin-password-2",
+                },
+            ),
+            client.post(
+                "/api/v1/users",
+                json={
+                    "email": "second@example.com",
+                    "firstName": "Second",
+                    "lastName": "Member",
+                    "role": "member",
+                },
+            ),
+            client.patch(
+                f"/api/v1/users/{member_uuid}",
+                json={"role": "admin"},
+            ),
+            client.patch(
+                f"/api/v1/users/{member_uuid}",
+                json={"password": "new-member-password"},
+            ),
+            client.patch(
+                f"/api/v1/users/{member_uuid}",
+                json={"resetPassword": True},
+            ),
+        ]
+
+        for response in responses:
+            assert response.status_code == 403
+            assert (
+                response.json()["error"]["message"]
+                == "Password authentication is disabled"
+            )
+
+        listing = client.get("/api/v1/users")
+        assert listing.status_code == 200
+
+        profile_update = client.patch(
+            f"/api/v1/users/{member_uuid}",
+            json={"firstName": "Moira"},
+        )
+        assert profile_update.status_code == 200
+        assert profile_update.json()["results"]["firstName"] == "Moira"
+
+        deactivate = client.delete(f"/api/v1/users/{member_uuid}")
+        assert deactivate.status_code == 200
+
+        logout = client.post("/api/v1/logout")
+        assert logout.status_code == 200
+
+
 def test_member_cannot_create_warehouse_admin_can():
     with TestClient(app) as client:
         client.post(

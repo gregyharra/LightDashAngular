@@ -2,11 +2,12 @@ from __future__ import annotations
 
 import uuid as uuid_lib
 
-from fastapi import APIRouter, HTTPException, Request, Response
+from fastapi import APIRouter, Depends, HTTPException, Request, Response
 from sqlalchemy.orm import Session
 
 from mds.api.deps import AdminUser, CurrentUser, OptionalUser
 from mds.api.envelope import ok
+from mds.config import settings
 from mds.db.models import User
 from mds.db.session import get_db
 from mds.schemas.auth import (
@@ -34,9 +35,16 @@ from mds.services.auth.sessions import (
     delete_user_sessions,
     set_session_cookie,
 )
-from fastapi import Depends
 
 router = APIRouter(tags=["auth"])
+
+
+def require_local_auth() -> None:
+    if settings.is_sso:
+        raise HTTPException(
+            status_code=403,
+            detail="Password authentication is disabled",
+        )
 
 
 def _normalize_email(email: str) -> str:
@@ -51,7 +59,7 @@ def _count_admins(db: Session) -> int:
     )
 
 
-@router.post("/setup")
+@router.post("/setup", dependencies=[Depends(require_local_auth)])
 def setup(
     body: SetupRequest,
     response: Response,
@@ -92,7 +100,7 @@ def setup(
     return ok(user_payload(user))
 
 
-@router.post("/login")
+@router.post("/login", dependencies=[Depends(require_local_auth)])
 def login(
     body: LoginRequest,
     response: Response,
@@ -132,7 +140,7 @@ def logout(
     return ok(None)
 
 
-@router.post("/user/password")
+@router.post("/user/password", dependencies=[Depends(require_local_auth)])
 def change_own_password(
     body: ChangePasswordRequest,
     response: Response,
@@ -152,7 +160,7 @@ def change_own_password(
     return ok(None)
 
 
-@router.post("/user/password/reset")
+@router.post("/user/password/reset", dependencies=[Depends(require_local_auth)])
 def reset_password_with_token(
     body: ResetPasswordRequest,
     response: Response,
@@ -192,7 +200,7 @@ def list_users(admin: AdminUser, db: Session = Depends(get_db)):
     return ok([user_list_item(u) for u in users])
 
 
-@router.post("/users")
+@router.post("/users", dependencies=[Depends(require_local_auth)])
 def create_user(
     body: UserCreateRequest,
     admin: AdminUser,
@@ -240,6 +248,9 @@ def update_user(
     db: Session = Depends(get_db),
 ):
     del admin
+    if body.role is not None or body.password is not None or body.reset_password:
+        require_local_auth()
+
     try:
         target_id = uuid_lib.UUID(user_uuid)
     except ValueError as exc:
