@@ -28,7 +28,7 @@
 | `mds-backend/src/mds/db/models.py` | User OIDC columns |
 | `mds-backend/src/mds/db/session.py` | Lightweight `ALTER` for new columns + unique index |
 | `mds-backend/src/mds/services/auth/oidc.py` | Discovery, PKCE, state store, token exchange, claim/group mapping |
-| `mds-backend/src/mds/routers/oidc.py` (or extend `auth.py`) | Mounted at `/api/auth`: `GET /login`, `GET /callback` |
+| `mds-backend/src/mds/routers/oidc.py` (or extend `auth.py`) | Same router mounted at `/api/auth` and `/api/v1/auth`: `GET /login`, `GET /callback` |
 | `mds-backend/src/mds/routers/auth.py` | Gate password + user mutation routes when SSO |
 | `mds-backend/src/mds/routers/platform.py` | Health `authMode` / `ssoEnabled` / `disablePasswordAuthentication` |
 | `mds-backend/tests/test_oidc*.py` | Unit + integration with mocked IdP |
@@ -111,9 +111,9 @@
 - Modify: `mds-backend/README.md` (endpoints + env)
 
 **Steps:**
-1. Mount OIDC router at prefix `/api/auth` (not `/api/v1`) in `main.py`.
-2. `GET /api/auth/login?redirect=` — 404/403 if not SSO; else redirect to IdP.
-3. `GET /api/auth/callback` — validate state; exchange; map role; if `None` redirect to `{APP_ORIGIN}/login?error=not_provisioned`. Default `OIDC_REDIRECT_URI` / MyIAM registration must be `{API_PUBLIC_URL}/api/auth/callback`.
+1. Mount the same OIDC router at prefixes `/api/auth` and `/api/v1/auth` in `main.py` (both login and callback aliases).
+2. `GET /api/auth/login?redirect=` and `GET /api/v1/auth/login?redirect=` — 404/403 if not SSO; else redirect to IdP.
+3. `GET /api/auth/callback` (canonical) and `GET /api/v1/auth/callback` (alias) — validate state; exchange; map role; if `None` redirect to `{APP_ORIGIN}/login?error=not_provisioned`. Default `OIDC_REDIRECT_URI` / MyIAM registration must be `{API_PUBLIC_URL}/api/auth/callback`.
 3. Upsert user:
    - Find by `(issuer, sub)`; else by email if single match and unlinked; else create.
    - Set `auth_provider=oidc`, sync `role`, names, email; `password_hash=""` if new.

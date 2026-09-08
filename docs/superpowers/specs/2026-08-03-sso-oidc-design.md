@@ -93,15 +93,15 @@ Group membership is **never** editable from MDS. Admins manage access only in My
 
 ## OIDC flow
 
-1. User opens `/login` → UI navigates to `GET /api/auth/login` (optional `redirect` query).
+1. User opens `/login` → UI navigates to `GET /api/auth/login` or `GET /api/v1/auth/login` (optional `redirect` query). Both paths are equivalent aliases of the same handler.
 2. Backend redirects to IdP authorize endpoint (PKCE `code_challenge`, `state` + nonce bound server-side).
-3. IdP redirects to `GET /api/auth/callback?code=&state=` (register this exact URI in MyIAM).
+3. IdP redirects to `GET /api/auth/callback?code=&state=` (register this exact URI in MyIAM). Alias `GET /api/v1/auth/callback` is also accepted by the API, but **`OIDC_REDIRECT_URI` / IdP registration should use `/api/auth/callback`** as the canonical redirect.
 4. Backend exchanges code, validates ID token (issuer, audience, signature, nonce), reads claims + groups.
 5. Map groups → allow/deny + role; upsert local `User`.
 6. `create_session` + set `mds_session` cookie; redirect to app (`redirect` or `/projects`).
 7. Logout: delete MDS session + clear cookie; optionally call IdP end-session URL if configured.
 
-OIDC auth routes are mounted at **`/api/auth/*`** (not under `/api/v1`), so the IdP redirect URI stays stable and short.
+OIDC auth routes are mounted at **`/api/auth/*`** and aliased at **`/api/v1/auth/*`** so either login URL works.
 
 ### Required config (env)
 
@@ -133,8 +133,10 @@ In `AUTH_MODE=sso`, missing required OIDC settings → **fail fast at startup** 
 
 | Method | Path | Notes |
 |--------|------|-------|
-| GET | `/api/auth/login` | Start authorize redirect |
-| GET | `/api/auth/callback` | Finish login, set cookie (IdP redirect URI) |
+| GET | `/api/auth/login` | Start authorize redirect (canonical for UI) |
+| GET | `/api/v1/auth/login` | Alias of the same login handler |
+| GET | `/api/auth/callback` | Finish login, set cookie (canonical IdP redirect URI) |
+| GET | `/api/v1/auth/callback` | Alias of the same callback handler |
 | GET | `/api/v1/health` | Add `authMode` / `ssoEnabled` / password-disabled flag |
 | POST | `/api/v1/login`, `/api/v1/setup`, password endpoints | 403 when `AUTH_MODE=sso` |
 | POST | `/api/v1/users`, PATCH role / password-reset admin | 403 when `AUTH_MODE=sso` |
