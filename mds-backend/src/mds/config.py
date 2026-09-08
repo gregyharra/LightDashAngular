@@ -191,6 +191,13 @@ class Settings(BaseSettings):
         default="local",
         description="Authentication surface: local passwords or OIDC SSO.",
     )
+    oidc_provisioning: Literal["groups", "existing"] = Field(
+        default="groups",
+        description=(
+            "SSO user allow policy: groups maps IdP groups to roles; "
+            "existing only signs in users already present in the MDS database."
+        ),
+    )
     oidc_issuer: Optional[str] = None
     oidc_client_id: Optional[str] = None
     oidc_client_secret: Optional[str] = None
@@ -233,14 +240,14 @@ class Settings(BaseSettings):
         if not self.is_sso:
             return self
 
-        required_fields = (
+        required_fields = [
             "oidc_issuer",
             "oidc_client_id",
             "oidc_client_secret",
             "oidc_redirect_uri",
-            "oidc_admin_group",
-            "oidc_member_group",
-        )
+        ]
+        if self.oidc_provisioning == "groups":
+            required_fields.extend(["oidc_admin_group", "oidc_member_group"])
         missing = [
             field_name.upper()
             for field_name in required_fields
@@ -255,6 +262,10 @@ class Settings(BaseSettings):
     @property
     def is_sso(self) -> bool:
         return self.auth_mode == "sso"
+
+    @property
+    def oidc_uses_groups(self) -> bool:
+        return self.is_sso and self.oidc_provisioning == "groups"
 
     @property
     def database_url_for_display(self) -> str:

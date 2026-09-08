@@ -30,6 +30,7 @@ export const mockHealth = {
   askAiEnabled: false,
   authMode: 'local' as const,
   ssoEnabled: false,
+  oidcProvisioning: null,
   latest: { version: '0.0.0-mock' },
   rudder: { dataPlaneUrl: '', writeKey: '' },
   sentry: {

@@ -431,3 +431,63 @@ def test_existing_subject_can_login_without_email_verified_claim(mock_idp: MockI
 
     assert response.headers["location"] == f"{APP_ORIGIN}/projects"
     assert "mds_session=" in response.headers.get("set-cookie", "")
+
+
+def test_existing_provisioning_allows_precreated_user_and_keeps_role(
+    mock_idp: MockIdP, monkeypatch: pytest.MonkeyPatch
+):
+    monkeypatch.setattr(settings, "oidc_provisioning", "existing")
+    mock_idp.groups = []  # groups ignored in existing mode
+    db = SessionLocal()
+    try:
+        db.add(
+            User(
+                uuid=uuid_lib.uuid4(),
+                email=mock_idp.email,
+                first_name="Pre",
+                last_name="Created",
+                role="admin",
+                password_hash="",
+                is_active=True,
+            )
+        )
+        db.commit()
+    finally:
+        db.close()
+
+    with TestClient(app) as client:
+        state = _begin_login(client, mock_idp)
+        response = _complete_login(client, state)
+
+    assert response.status_code == 307
+    assert response.headers["location"] == f"{APP_ORIGIN}/projects"
+    assert "mds_session=" in response.headers.get("set-cookie", "")
+
+    db = SessionLocal()
+    try:
+        user = db.query(User).one()
+        assert user.role == "admin"
+        assert user.oidc_sub == mock_idp.subject
+        assert user.auth_provider == "oidc"
+    finally:
+        db.close()
+
+
+def test_existing_provisioning_denies_unknown_email(
+    mock_idp: MockIdP, monkeypatch: pytest.MonkeyPatch
+):
+    monkeypatch.setattr(settings, "oidc_provisioning", "existing")
+    mock_idp.groups = ["mds-admins"]  # still denied — not in MDS DB
+
+    with TestClient(app) as client:
+        state = _begin_login(client, mock_idp)
+        response = _complete_login(client, state)
+
+    assert response.status_code == 307
+    assert response.headers["location"] == f"{APP_ORIGIN}/login?error=not_provisioned"
+    assert "mds_session=" not in response.headers.get("set-cookie", "")
+    db = SessionLocal()
+    try:
+        assert db.query(User).count() == 0
+    finally:
+        db.close()

@@ -29,6 +29,13 @@ export class AppStateService {
   readonly isSetupComplete = computed(() => !!this.healthSignal()?.isSetupComplete);
   readonly authMode = computed(() => this.healthSignal()?.authMode ?? 'local');
   readonly ssoEnabled = computed(() => !!this.healthSignal()?.ssoEnabled);
+  readonly oidcProvisioning = computed(
+    () => this.healthSignal()?.oidcProvisioning ?? null,
+  );
+  /** True when SSO and IdP groups own membership (users page read-only). */
+  readonly idpDirectoryManaged = computed(
+    () => this.ssoEnabled() && this.oidcProvisioning() === 'groups',
+  );
   readonly passwordAuthDisabled = computed(
     () => !!this.healthSignal()?.auth?.disablePasswordAuthentication,
   );

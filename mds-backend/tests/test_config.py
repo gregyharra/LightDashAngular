@@ -209,3 +209,23 @@ def test_required_fields_without_defaults_would_fail(clean_settings_env: None) -
         "dbt_project_path",
         "encryption_key",
     }
+
+
+def test_sso_existing_provisioning_does_not_require_groups(
+    clean_settings_env: None, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    for key, value in {
+        "AUTH_MODE": "sso",
+        "OIDC_PROVISIONING": "existing",
+        "OIDC_ISSUER": "https://idp.example.com",
+        "OIDC_CLIENT_ID": "mds",
+        "OIDC_CLIENT_SECRET": "secret",
+        "OIDC_REDIRECT_URI": "https://api.example.com/api/auth/callback",
+    }.items():
+        monkeypatch.setenv(key, value)
+
+    settings = Settings(_env_file="nonexistent.env")
+    assert settings.is_sso is True
+    assert settings.oidc_provisioning == "existing"
+    assert settings.oidc_uses_groups is False
+    assert settings.oidc_admin_group is None

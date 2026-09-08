@@ -79,6 +79,7 @@ def health(
             "askAiEnabled": settings.ask_ai_enabled,
             "authMode": settings.auth_mode,
             "ssoEnabled": settings.is_sso,
+            "oidcProvisioning": settings.oidc_provisioning if settings.is_sso else None,
             "latest": {"version": "0.1.0-mds"},
             "query": {
                 "maxPageSize": 2500,

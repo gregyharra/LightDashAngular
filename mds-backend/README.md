@@ -110,8 +110,11 @@ is an equivalent alias only.
 
 #### Required env vars (`AUTH_MODE=sso`)
 
+**Groups mode** (default — when eLDAP / MyIAM groups exist):
+
 ```env
 AUTH_MODE=sso
+OIDC_PROVISIONING=groups
 OIDC_ISSUER=https://myiam.example.com
 OIDC_CLIENT_ID=mds
 OIDC_CLIENT_SECRET=change-me
@@ -119,6 +122,26 @@ OIDC_REDIRECT_URI=http://localhost:8080/api/auth/callback
 OIDC_ADMIN_GROUP=mds-admins
 OIDC_MEMBER_GROUP=mds-members
 ```
+
+**Existing-user mode** (interim — no eLDAP groups yet; MDS DB is the allow-list):
+
+```env
+AUTH_MODE=sso
+OIDC_PROVISIONING=existing
+OIDC_ISSUER=https://ssoforms.dev.echonet/affwebservices/CASSO/oidc/YOUR_ARTIFACT
+OIDC_CLIENT_ID=...
+OIDC_CLIENT_SECRET=...
+OIDC_REDIRECT_URI=http://localhost:8080/api/auth/callback
+OIDC_SCOPES=openid profile email
+```
+
+Company machine setup with `existing`:
+
+1. Start once with `AUTH_MODE=local`, complete `/setup`, create users whose **corporate email** matches the IdP email claim (admin/member roles in MDS).
+2. Switch to the `existing` block above and restart the API.
+3. Users sign in with SSO; unknown emails get `not_provisioned`. Roles stay as stored in MDS (not overwritten by groups).
+4. Admins can still create/edit users in Settings → Users (no temp passwords); password login stays off.
+5. When eLDAP groups are ready, set `OIDC_PROVISIONING=groups` and the two group env vars.
 
 Optional overrides (see `.env.example`):
 

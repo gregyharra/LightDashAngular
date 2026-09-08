@@ -113,7 +113,13 @@ def _callback_redirect(path: str) -> RedirectResponse:
     return response
 
 
-def _upsert_user(db: Session, claims: OIDCClaims, role: str) -> User:
+def _upsert_user(db: Session, claims: OIDCClaims, role: str | None) -> User:
+    """Link or create a local user from OIDC claims.
+
+    When ``role`` is None (``OIDC_PROVISIONING=existing``), the user must already
+    exist; their stored MDS role is kept. When ``role`` is set (groups mode),
+    missing users are JIT-created and role is synced from IdP groups.
+    """
     email = claims.email.strip().lower()
     if not email or "@" not in email:
         raise OIDCError("OIDC email claim is invalid")
@@ -140,6 +146,8 @@ def _upsert_user(db: Session, claims: OIDCClaims, role: str) -> User:
             raise OIDCError("OIDC email is ambiguous")
 
     if user is None:
+        if role is None:
+            raise OIDCError("OIDC user is not provisioned")
         user = User(
             uuid=uuid_lib.uuid4(),
             email=email,
@@ -162,7 +170,8 @@ def _upsert_user(db: Session, claims: OIDCClaims, role: str) -> User:
             user.first_name = claims.first_name
         if claims.last_name is not None:
             user.last_name = claims.last_name
-        user.role = role
+        if role is not None:
+            user.role = role
         user.oidc_issuer = settings.oidc_issuer
         user.oidc_sub = claims.subject
         user.auth_provider = "oidc"
@@ -211,18 +220,29 @@ def oidc_callback(
     redirect_path = _consume_redirect(state)
     try:
         claims = _get_client().exchange_code(code, state)
-        role = resolve_role_from_groups(
-            claims.groups,
-            settings.oidc_admin_group,
-            settings.oidc_member_group,
-        )
-        if role is None:
-            return _callback_redirect("/login?error=not_provisioned")
+        role: str | None
+        if settings.oidc_provisioning == "groups":
+            role = resolve_role_from_groups(
+                claims.groups,
+                settings.oidc_admin_group,
+                settings.oidc_member_group,
+            )
+            if role is None:
+                return _callback_redirect("/login?error=not_provisioned")
+        else:
+            # existing-user mode: ignore IdP groups; MDS DB is the allow-list.
+            role = None
 
         user = _upsert_user(db, claims, role)
         session = create_session(db, user)
         db.commit()
-    except (OIDCError, SQLAlchemyError):
+    except OIDCError as exc:
+        db.rollback()
+        if str(exc) == "OIDC user is not provisioned":
+            return _callback_redirect("/login?error=not_provisioned")
+        logger.exception("OIDC callback failed")
+        return _callback_redirect("/login?error=sso_failed")
+    except SQLAlchemyError:
         db.rollback()
         logger.exception("OIDC callback failed")
         return _callback_redirect("/login?error=sso_failed")

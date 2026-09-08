@@ -290,11 +290,13 @@ export class UsersPageComponent implements OnInit {
   private readonly translate = inject(TranslateService);
 
   protected readonly ssoEnabled = this.appState.ssoEnabled;
+  protected readonly idpDirectoryManaged = this.appState.idpDirectoryManaged;
+  protected readonly passwordAuthDisabled = this.appState.passwordAuthDisabled;
   protected readonly loading = signal(true);
   protected readonly error = signal<string | null>(null);
   protected readonly users = signal<ManagedUser[]>([]);
   protected readonly displayedColumns = computed(() =>
-    this.ssoEnabled()
+    this.idpDirectoryManaged()
       ? ['name', 'email', 'role', 'status']
       : ['name', 'email', 'role', 'status', 'actions'],
   );

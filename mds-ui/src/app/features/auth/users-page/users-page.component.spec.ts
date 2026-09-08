@@ -9,7 +9,8 @@ import { UsersPageComponent } from './users-page.component';
 
 describe('UsersPageComponent', () => {
   let fixture: ComponentFixture<UsersPageComponent>;
-  const ssoEnabled = signal(false);
+  const idpDirectoryManaged = signal(false);
+  const passwordAuthDisabled = signal(false);
   const users: ManagedUser[] = [
     {
       userUuid: 'user-1',
@@ -23,7 +24,8 @@ describe('UsersPageComponent', () => {
   ];
 
   beforeEach(async () => {
-    ssoEnabled.set(false);
+    idpDirectoryManaged.set(false);
+    passwordAuthDisabled.set(false);
 
     await TestBed.configureTestingModule({
       imports: [UsersPageComponent, NoopAnimationsModule],
@@ -31,7 +33,11 @@ describe('UsersPageComponent', () => {
         provideTranslateService({ fallbackLang: 'en', lang: 'en' }),
         {
           provide: AppStateService,
-          useValue: { ssoEnabled: ssoEnabled.asReadonly() },
+          useValue: {
+            ssoEnabled: signal(false).asReadonly(),
+            idpDirectoryManaged: idpDirectoryManaged.asReadonly(),
+            passwordAuthDisabled: passwordAuthDisabled.asReadonly(),
+          },
         },
         {
           provide: AuthService,
@@ -67,7 +73,7 @@ describe('UsersPageComponent', () => {
     return fixture.nativeElement as HTMLElement;
   }
 
-  it('renders the local user-management actions when SSO is disabled', () => {
+  it('renders the local user-management actions when IdP directory is not managed', () => {
     const page = render();
 
     expect(page.textContent).toContain('Create user');
@@ -76,8 +82,19 @@ describe('UsersPageComponent', () => {
     expect(page.textContent).toContain('Deactivate');
   });
 
-  it('renders a read-only directory with the role column when SSO is enabled', () => {
-    ssoEnabled.set(true);
+  it('keeps create/edit when SSO uses existing-user provisioning', () => {
+    passwordAuthDisabled.set(true);
+    const page = render();
+
+    expect(page.textContent).toContain('Create user');
+    expect(page.textContent).toContain('Edit');
+    expect(page.textContent).not.toContain('Reset password');
+    expect(page.textContent).toContain('Deactivate');
+  });
+
+  it('renders a read-only directory when IdP groups manage membership', () => {
+    idpDirectoryManaged.set(true);
+    passwordAuthDisabled.set(true);
     const page = render();
 
     expect(page.textContent).toContain('View workspace users.');

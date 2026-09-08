@@ -47,6 +47,15 @@ def require_local_auth() -> None:
         )
 
 
+def require_local_or_directory_auth() -> None:
+    """Allow when local, or when SSO uses MDS DB as the user allow-list."""
+    if settings.is_sso and settings.oidc_provisioning == "groups":
+        raise HTTPException(
+            status_code=403,
+            detail="Password authentication is disabled",
+        )
+
+
 def _normalize_email(email: str) -> str:
     return email.strip().lower()
 
@@ -200,7 +209,7 @@ def list_users(admin: AdminUser, db: Session = Depends(get_db)):
     return ok([user_list_item(u) for u in users])
 
 
-@router.post("/users", dependencies=[Depends(require_local_auth)])
+@router.post("/users", dependencies=[Depends(require_local_or_directory_auth)])
 def create_user(
     body: UserCreateRequest,
     admin: AdminUser,
@@ -218,26 +227,42 @@ def create_user(
     if not first_name or not last_name:
         raise HTTPException(status_code=400, detail="First and last name are required")
 
-    plain = body.password if body.password else generate_password()
-    try:
-        validate_password_strength(plain)
-    except ValueError as exc:
-        raise HTTPException(status_code=400, detail=str(exc)) from exc
+    temporary_password: str | None = None
+    if settings.is_sso and settings.oidc_provisioning == "existing":
+        # Directory allow-list for SSO: no local password; user signs in via IdP.
+        user = User(
+            uuid=uuid_lib.uuid4(),
+            email=email,
+            first_name=first_name,
+            last_name=last_name,
+            role=body.role,
+            password_hash="",
+            is_active=True,
+            must_change_password=False,
+            auth_provider="local",
+        )
+    else:
+        plain = body.password if body.password else generate_password()
+        try:
+            validate_password_strength(plain)
+        except ValueError as exc:
+            raise HTTPException(status_code=400, detail=str(exc)) from exc
+        user = User(
+            uuid=uuid_lib.uuid4(),
+            email=email,
+            first_name=first_name,
+            last_name=last_name,
+            role=body.role,
+            password_hash=hash_password(plain),
+            is_active=True,
+            must_change_password=True,
+        )
+        temporary_password = plain
 
-    user = User(
-        uuid=uuid_lib.uuid4(),
-        email=email,
-        first_name=first_name,
-        last_name=last_name,
-        role=body.role,
-        password_hash=hash_password(plain),
-        is_active=True,
-        must_change_password=True,
-    )
     db.add(user)
     db.commit()
     db.refresh(user)
-    return ok(user_list_item(user, temporary_password=plain))
+    return ok(user_list_item(user, temporary_password=temporary_password))
 
 
 @router.patch("/users/{user_uuid}")
@@ -248,8 +273,10 @@ def update_user(
     db: Session = Depends(get_db),
 ):
     del admin
-    if body.role is not None or body.password is not None or body.reset_password:
+    if body.password is not None or body.reset_password:
         require_local_auth()
+    if body.role is not None:
+        require_local_or_directory_auth()
 
     try:
         target_id = uuid_lib.UUID(user_uuid)

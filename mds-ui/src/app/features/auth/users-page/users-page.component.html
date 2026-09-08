@@ -4,13 +4,13 @@
       <div class="users__title-block">
         <h1 class="users__title">{{ 'users.title' | translate }}</h1>
         <p class="users__subtitle">
-          {{ (ssoEnabled() ? 'users.ssoSubtitle' : 'users.subtitle') | translate }}
+          {{ (idpDirectoryManaged() ? 'users.ssoSubtitle' : 'users.subtitle') | translate }}
         </p>
-        @if (ssoEnabled()) {
+        @if (idpDirectoryManaged()) {
           <p class="users__sso-note">{{ 'users.ssoManaged' | translate }}</p>
         }
       </div>
-      @if (!ssoEnabled()) {
+      @if (!idpDirectoryManaged()) {
         <button mat-flat-button class="users__create-btn" type="button" (click)="openCreate()">
           <mat-icon>person_add</mat-icon>
           {{ 'users.create.button' | translate }}
@@ -47,7 +47,7 @@
                 {{ (user.isActive ? 'users.status.active' : 'users.status.inactive') | translate }}
               </td>
             </ng-container>
-            @if (!ssoEnabled()) {
+            @if (!idpDirectoryManaged()) {
               <ng-container matColumnDef="actions">
                 <th mat-header-cell *matHeaderCellDef></th>
                 <td mat-cell *matCellDef="let user" class="users__actions-cell">
@@ -61,15 +61,17 @@
                       <mat-icon>edit</mat-icon>
                       {{ 'users.edit.button' | translate }}
                     </button>
-                    <button
-                      mat-stroked-button
-                      type="button"
-                      class="users__action-btn"
-                      (click)="resetPassword(user)"
-                    >
-                      <mat-icon>lock_reset</mat-icon>
-                      {{ 'users.password.resetButton' | translate }}
-                    </button>
+                    @if (!passwordAuthDisabled()) {
+                      <button
+                        mat-stroked-button
+                        type="button"
+                        class="users__action-btn"
+                        (click)="resetPassword(user)"
+                      >
+                        <mat-icon>lock_reset</mat-icon>
+                        {{ 'users.password.resetButton' | translate }}
+                      </button>
+                    }
                     @if (user.isActive) {
                       <button
                         mat-stroked-button

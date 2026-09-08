@@ -23,6 +23,8 @@ export type HealthResults = {
   healthy?: boolean;
   authMode: 'local' | 'sso';
   ssoEnabled: boolean;
+  /** Present when SSO is enabled: groups = IdP allow-list; existing = MDS user DB. */
+  oidcProvisioning?: 'groups' | 'existing' | null;
   auth?: {
     disablePasswordAuthentication: boolean;
   };
