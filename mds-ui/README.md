@@ -17,7 +17,7 @@ npm start
 
 Open `http://localhost:4200`. The dev server may auto-open the browser.
 
-Default `src/environments/environment.ts` has **`useMockApi: false`**, so the app talks to the backend via `proxy.conf.json` (port `8080`). On a fresh database you will land on **`/setup`** (create first admin), then use **`/login`** thereafter.
+Default `src/environments/environment.ts` has **`useMockApi: false`**, so the app talks to the backend via `proxy.conf.json` (port `8080`). On a fresh database you will land on **`/setup`** (create first admin), then use **`/login`** thereafter — unless the backend runs with **`AUTH_MODE=sso`** (see below).
 
 If port 4200 is already in use, stop the existing process (`lsof -i :4200`) or run `ng serve --port 4201` and open the matching URL.
 
@@ -31,6 +31,19 @@ If port 4200 is already in use, stop the existing process (`lsof -i :4200`) or r
 ### Mock mode (no backend)
 
 Set `useMockApi: true` in `src/environments/environment.ts`. Requests to `/api/v1/*` (and related) are intercepted and served from in-memory fixtures in `src/app/core/mock/`. Useful for UI-only work; mock auth routes exist but do not mirror full production auth.
+
+### Auth mode (`local` vs `sso`)
+
+The UI reads `authMode` and `ssoEnabled` from `GET /api/v1/health` (via `AppStateService`).
+
+| Backend `AUTH_MODE` | Login page | `/setup` | Users admin (`/settings/users`) |
+|---|---|---|---|
+| `local` (default) | Email + password form | First-run admin when DB empty | Create user, role edit, password reset |
+| `sso` | **Sign in with SSO** button → `GET /api/auth/login` | Skipped — guards treat setup as complete | Read-only list; IdP manages access |
+
+SSO error query params on `/login`: `error=not_provisioned` (user not in admin/member group),
+`error=sso_failed` (invalid state/token). Configure OIDC env vars in `mds-backend/.env`
+(see `mds-backend/README.md` and `.env.example`).
 
 ## Main routes
 
@@ -59,7 +72,7 @@ src/app/
 
 ## Migration phases
 
-See [MIGRATION.md](./MIGRATION.md) for the full route inventory, stack mapping, and phased plan. Login/setup/password reset and Settings shell are implemented; CASL/SSO/OpenFGA are design-only (see `docs/superpowers/specs/`).
+See [MIGRATION.md](./MIGRATION.md) for the full route inventory, stack mapping, and phased plan. Login/setup/password reset, OIDC SSO, and Settings shell are implemented; CASL/OpenFGA remain design-only (see `docs/superpowers/specs/`).
 
 ## Reference source
 

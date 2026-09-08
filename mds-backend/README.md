@@ -81,29 +81,105 @@ Set `APP_ORIGIN` / `PUBLIC_APP_URL` if the Angular app is not on the first `CORS
 
 ### OIDC SSO
 
-Set `AUTH_MODE=sso` to use generic OpenID Connect login. SSO mode requires:
+Set `AUTH_MODE=sso` to use generic OpenID Connect login (Authorization Code + PKCE).
+When SSO is enabled, local password auth is disabled — the product is SSO-only.
+
+Copy the OIDC block from `.env.example` and fill in values from your IdP (MyIAM or
+any OIDC provider). Missing required OIDC settings cause **fail-fast at startup**;
+the API never silently falls back to password login.
+
+#### MyIAM / IdP registration
+
+Register this **canonical redirect URI** with the identity provider (must match
+`OIDC_REDIRECT_URI` exactly):
+
+```text
+{API_PUBLIC_URL}/api/auth/callback
+```
+
+Examples:
+
+| Environment | `OIDC_REDIRECT_URI` |
+|---|---|
+| Local dev | `http://localhost:8080/api/auth/callback` |
+| Production | `https://api.example.com/api/auth/callback` |
+
+Login and callback handlers are mounted at **`/api/auth/*`** and aliased at
+**`/api/v1/auth/*`**. Use `/api/auth/callback` for IdP registration; the v1 path
+is an equivalent alias only.
+
+#### Required env vars (`AUTH_MODE=sso`)
 
 ```env
 AUTH_MODE=sso
-OIDC_ISSUER=https://idp.example.com
+OIDC_ISSUER=https://myiam.example.com
 OIDC_CLIENT_ID=mds
 OIDC_CLIENT_SECRET=change-me
-OIDC_REDIRECT_URI=https://api.example.com/api/auth/callback
+OIDC_REDIRECT_URI=http://localhost:8080/api/auth/callback
 OIDC_ADMIN_GROUP=mds-admins
 OIDC_MEMBER_GROUP=mds-members
-
-# Optional claim/scope overrides:
-# OIDC_SCOPES="openid email profile"
-# OIDC_GROUPS_CLAIM=groups
-# OIDC_EMAIL_CLAIM=email
-# OIDC_EMAIL_VERIFIED_CLAIM=email_verified
 ```
 
-Register the canonical callback `{API_PUBLIC_URL}/api/auth/callback` with the
-identity provider. Login and callback are available under both `/api/auth/*`
-and `/api/v1/auth/*`. Successful callbacks issue the regular `mds_session`
-cookie. OIDC users are linked by issuer/subject (or an unlinked matching email),
-and their role and profile are refreshed from claims on every login.
+Optional overrides (see `.env.example`):
+
+| Variable | Default | Purpose |
+|---|---|---|
+| `OIDC_SCOPES` | `openid email profile` | Add groups scope if MyIAM requires it |
+| `OIDC_GROUPS_CLAIM` | `groups` | Claim name containing group membership |
+| `OIDC_EMAIL_CLAIM` | `email` | Email claim for linking / display |
+| `OIDC_EMAIL_VERIFIED_CLAIM` | `email_verified` | Require verified email when present |
+| `OIDC_END_SESSION_URL` | — | Optional IdP logout URL (RP-initiated logout not required for v1) |
+
+`APP_ORIGIN` / `PUBLIC_APP_URL` remain the browser origin for post-login redirects
+(defaults to the first `CORS_ORIGINS` value).
+
+#### Two-group model (IdP-authoritative)
+
+MyIAM / eLDAP group membership gates platform access. Map two configured group
+values via env; the platform **never** edits roles or group membership in SSO mode.
+
+| IdP group (env value) | MDS role | Sign-in |
+|---|---|---|
+| `OIDC_ADMIN_GROUP` | `admin` | Allowed |
+| `OIDC_MEMBER_GROUP` | `member` | Allowed |
+| Neither | — | Denied → `/login?error=not_provisioned` |
+| Both | `admin` | Allowed (**admin wins**) |
+
+**Important:** values in `OIDC_ADMIN_GROUP` and `OIDC_MEMBER_GROUP` must match
+the groups claim **exactly** as emitted by MyIAM (case-sensitive string match
+against `OIDC_GROUPS_CLAIM`, default `groups`). On every successful SSO login the
+backend syncs role and profile from claims; moving a user between groups in the
+IdP updates their role on the next login.
+
+OIDC users are linked by `(oidc_issuer, oidc_sub)` (or an unlinked matching email),
+then issued the regular `mds_session` cookie.
+
+#### `AUTH_MODE=local` vs `sso`
+
+| Capability | `local` (default) | `sso` |
+|---|---|---|
+| Login UI | Email + password | SSO button only |
+| `POST /api/v1/setup` | First admin when DB empty | Disabled (403) |
+| `POST /api/v1/login` | Password sign-in | Disabled (403) |
+| Password change / reset | Available | Disabled (403) |
+| Create user / PATCH role | Admin UI + API | Disabled (403) — IdP owns membership |
+| Users page | Full admin controls | Read-only list |
+| `/setup` route | Shown when no users | Skipped — first admin via admin-group SSO |
+| Session cookie | `mds_session` | `mds_session` (after OIDC callback) |
+| `GET /api/v1/health` | `authMode: "local"` | `authMode: "sso"`, `ssoEnabled: true` |
+
+#### Manual smoke checklist
+
+After enabling SSO (or verifying local mode still works):
+
+- [ ] `AUTH_MODE=local`: existing setup/login/password flows still work.
+- [ ] `AUTH_MODE=sso` with mock or real MyIAM: login button redirects to IdP.
+- [ ] Admin-group user lands in app as `admin`; member-group as `member`.
+- [ ] User in neither group sees not-provisioned error; no session cookie.
+- [ ] Moving user from member→admin group updates role on next login.
+- [ ] Users page: no create / role edit / password reset in SSO mode.
+- [ ] `/setup` not reachable / redirects away when SSO.
+- [ ] Chromium + Firefox login page OK; no horizontal scroll.
 
 OpenFGA / OPA / CASL are **not** implemented yet — see `docs/superpowers/specs/2026-08-03-*-design.md`.
 

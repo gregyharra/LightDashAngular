@@ -632,7 +632,7 @@ Trino must expose the schemas dbt materializes (`jaffle_shop.marts.*`, etc.). Fo
 | Explores | Hand-crafted dimensions/metrics | Semantic layer from dbt + config |
 | Query results | In-memory fake rows | Trino execution |
 | dbt refresh | Mock job UUID | Real mds-worker job |
-| Auth | Mock user always logged in | Session/OIDC |
+| Auth | Mock user always logged in | Cookie session; optional OIDC SSO (`AUTH_MODE=sso`) |
 | Embedded dbt in UI | `src/app/core/mock/dbt/jaffle_shop/` | **Reference only** — production source is mds-transform |
 
 ---
@@ -649,7 +649,20 @@ The earlier `MDS_BACKEND_PLATFORM_SETUP.md` mixed in:
 
 ---
 
-## 13. Related files in mds-ui
+## 13. OIDC SSO (optional)
+
+When `AUTH_MODE=sso`, the backend disables password login and provisions users from
+OIDC claims. Configure env vars in `mds-backend/.env` (see `mds-backend/.env.example`
+and `mds-backend/README.md`).
+
+- Register **`{API_PUBLIC_URL}/api/auth/callback`** in MyIAM (canonical; `/api/v1/auth/callback` is an alias).
+- Map two IdP groups via `OIDC_ADMIN_GROUP` / `OIDC_MEMBER_GROUP` (exact string match on the groups claim).
+- UI login shows an SSO button only; `/setup` is skipped; users admin is read-only.
+- Full behavior matrix and smoke checklist: `mds-backend/README.md` § OIDC SSO.
+
+---
+
+## 14. Related files in mds-ui
 
 | Purpose | Path |
 |---|---|
@@ -664,7 +677,7 @@ The earlier `MDS_BACKEND_PLATFORM_SETUP.md` mixed in:
 
 ---
 
-## 14. Open decisions
+## 15. Open decisions
 
 1. **Semantic layer format** — Lightdash meta vs custom MDS YAML vs auto-explore (§4.5)
 2. **Column lineage** — Required for v1 or defer?
