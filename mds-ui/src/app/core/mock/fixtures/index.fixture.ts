@@ -28,6 +28,8 @@ export const mockHealth = {
   isSetupComplete: true,
   requiresOrgRegistration: false,
   askAiEnabled: false,
+  authMode: 'local' as const,
+  ssoEnabled: false,
   latest: { version: '0.0.0-mock' },
   rudder: { dataPlaneUrl: '', writeKey: '' },
   sentry: {

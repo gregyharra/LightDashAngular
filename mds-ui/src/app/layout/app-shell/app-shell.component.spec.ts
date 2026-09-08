@@ -56,6 +56,9 @@ describe('AppShellComponent navbar identity', () => {
       version: 'test',
       isAuthenticated: true,
       askAiEnabled: false,
+      authMode: 'local',
+      ssoEnabled: false,
+      auth: { disablePasswordAuthentication: false },
     });
 
     await TestBed.configureTestingModule({
@@ -219,6 +222,9 @@ describe('AppShellComponent navbar identity', () => {
       version: 'test',
       isAuthenticated: true,
       askAiEnabled: true,
+      authMode: 'local',
+      ssoEnabled: false,
+      auth: { disablePasswordAuthentication: false },
     });
     fixture.detectChanges();
 

@@ -29,6 +29,18 @@ def clean_settings_env(monkeypatch: pytest.MonkeyPatch) -> None:
         "LOG_LEVEL",
         "LOG_SQL_QUERIES",
         "ASK_AI_ENABLED",
+        "AUTH_MODE",
+        "OIDC_ISSUER",
+        "OIDC_CLIENT_ID",
+        "OIDC_CLIENT_SECRET",
+        "OIDC_REDIRECT_URI",
+        "OIDC_SCOPES",
+        "OIDC_GROUPS_CLAIM",
+        "OIDC_ADMIN_GROUP",
+        "OIDC_MEMBER_GROUP",
+        "OIDC_END_SESSION_URL",
+        "OIDC_EMAIL_CLAIM",
+        "OIDC_EMAIL_VERIFIED_CLAIM",
     ):
         monkeypatch.delenv(key, raising=False)
 
@@ -53,6 +65,12 @@ def test_settings_defaults_without_env_file(clean_settings_env: None) -> None:
     assert settings.query_max_workers == 8
     assert settings.query_result_cache_ttl_seconds == 300
     assert settings.ask_ai_enabled is False
+    assert settings.auth_mode == "local"
+    assert settings.is_sso is False
+    assert settings.oidc_scopes == "openid email profile"
+    assert settings.oidc_groups_claim == "groups"
+    assert settings.oidc_email_claim == "email"
+    assert settings.oidc_email_verified_claim == "email_verified"
     assert settings.effective_encryption_key == DEV_ENCRYPTION_KEY
     assert settings.cors_origin_list == ["http://localhost:4200"]
 
@@ -104,6 +122,49 @@ def test_public_app_url_prefers_app_origin(
     monkeypatch.setenv("APP_ORIGIN", "https://app.example.com/")
     settings = Settings(_env_file="nonexistent.env")
     assert settings.public_app_url == "https://app.example.com"
+
+
+def test_sso_settings_require_oidc_configuration(
+    clean_settings_env: None, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    monkeypatch.setenv("AUTH_MODE", "sso")
+
+    with pytest.raises(ValidationError) as exc_info:
+        Settings(_env_file="nonexistent.env")
+
+    message = str(exc_info.value)
+    for field_name in (
+        "OIDC_ISSUER",
+        "OIDC_CLIENT_ID",
+        "OIDC_CLIENT_SECRET",
+        "OIDC_REDIRECT_URI",
+        "OIDC_ADMIN_GROUP",
+        "OIDC_MEMBER_GROUP",
+    ):
+        assert field_name in message
+
+
+def test_sso_settings_accept_complete_oidc_configuration(
+    clean_settings_env: None, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    oidc_values = {
+        "AUTH_MODE": "sso",
+        "OIDC_ISSUER": "https://idp.example.com",
+        "OIDC_CLIENT_ID": "mds",
+        "OIDC_CLIENT_SECRET": "secret",
+        "OIDC_REDIRECT_URI": "https://api.example.com/api/v1/auth/oidc/callback",
+        "OIDC_ADMIN_GROUP": "mds-admins",
+        "OIDC_MEMBER_GROUP": "mds-members",
+    }
+    for key, value in oidc_values.items():
+        monkeypatch.setenv(key, value)
+
+    settings = Settings(_env_file="nonexistent.env")
+
+    assert settings.is_sso is True
+    assert settings.oidc_issuer == "https://idp.example.com"
+    assert settings.oidc_admin_group == "mds-admins"
+    assert settings.oidc_member_group == "mds-members"
 
 
 def test_resolve_relative_sqlite_database_url(clean_settings_env: None) -> None:

@@ -109,6 +109,9 @@ def test_health_setup_and_auth_flags():
         results = before.json()["results"]
         assert results["isSetupComplete"] is False
         assert results["isAuthenticated"] is False
+        assert results["authMode"] == "local"
+        assert results["ssoEnabled"] is False
+        assert results["auth"]["disablePasswordAuthentication"] is False
 
         client.post(
             "/api/v1/setup",
@@ -123,6 +126,22 @@ def test_health_setup_and_auth_flags():
         results = after.json()["results"]
         assert results["isSetupComplete"] is True
         assert results["isAuthenticated"] is True
+
+
+def test_health_sso_mode_skips_setup_and_disables_password_authentication(
+    monkeypatch: pytest.MonkeyPatch,
+):
+    monkeypatch.setattr(settings, "auth_mode", "sso")
+
+    with TestClient(app) as client:
+        response = client.get("/api/v1/health")
+
+    assert response.status_code == 200
+    results = response.json()["results"]
+    assert results["isSetupComplete"] is True
+    assert results["authMode"] == "sso"
+    assert results["ssoEnabled"] is True
+    assert results["auth"]["disablePasswordAuthentication"] is True
 
 
 def test_member_cannot_create_warehouse_admin_can():

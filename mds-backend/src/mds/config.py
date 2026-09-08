@@ -5,7 +5,7 @@ from pathlib import Path
 from typing import Literal, Optional
 from urllib.parse import urlsplit, urlunsplit
 
-from pydantic import AliasChoices, Field, field_validator
+from pydantic import AliasChoices, Field, field_validator, model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 from sqlalchemy.engine.url import make_url
 
@@ -187,12 +187,34 @@ class Settings(BaseSettings):
             "(defaults to the first CORS origin, then http://localhost:4200)."
         ),
     )
+    auth_mode: Literal["local", "sso"] = Field(
+        default="local",
+        description="Authentication surface: local passwords or OIDC SSO.",
+    )
+    oidc_issuer: Optional[str] = None
+    oidc_client_id: Optional[str] = None
+    oidc_client_secret: Optional[str] = None
+    oidc_redirect_uri: Optional[str] = None
+    oidc_scopes: str = "openid email profile"
+    oidc_groups_claim: str = "groups"
+    oidc_admin_group: Optional[str] = None
+    oidc_member_group: Optional[str] = None
+    oidc_end_session_url: Optional[str] = None
+    oidc_email_claim: str = "email"
+    oidc_email_verified_claim: str = "email_verified"
 
     @field_validator(
         "dbt_artifacts_path",
         "encryption_key",
         "openai_api_key",
         "app_origin",
+        "oidc_issuer",
+        "oidc_client_id",
+        "oidc_client_secret",
+        "oidc_redirect_uri",
+        "oidc_admin_group",
+        "oidc_member_group",
+        "oidc_end_session_url",
         mode="before",
     )
     @classmethod
@@ -205,6 +227,34 @@ class Settings(BaseSettings):
     @classmethod
     def _resolve_relative_sqlite_url(cls, value: str) -> str:
         return resolve_database_url(value)
+
+    @model_validator(mode="after")
+    def _validate_sso_config(self) -> Settings:
+        if not self.is_sso:
+            return self
+
+        required_fields = (
+            "oidc_issuer",
+            "oidc_client_id",
+            "oidc_client_secret",
+            "oidc_redirect_uri",
+            "oidc_admin_group",
+            "oidc_member_group",
+        )
+        missing = [
+            field_name.upper()
+            for field_name in required_fields
+            if not getattr(self, field_name)
+        ]
+        if missing:
+            raise ValueError(
+                "AUTH_MODE=sso requires the following settings: " + ", ".join(missing)
+            )
+        return self
+
+    @property
+    def is_sso(self) -> bool:
+        return self.auth_mode == "sso"
 
     @property
     def database_url_for_display(self) -> str:

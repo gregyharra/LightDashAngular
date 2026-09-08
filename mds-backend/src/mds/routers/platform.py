@@ -74,9 +74,11 @@ def health(
             "version": "0.1.0-mds",
             "localDbtEnabled": True,
             "isAuthenticated": user is not None,
-            "isSetupComplete": user_count > 0,
+            "isSetupComplete": settings.is_sso or user_count > 0,
             "requiresOrgRegistration": False,
             "askAiEnabled": settings.ask_ai_enabled,
+            "authMode": settings.auth_mode,
+            "ssoEnabled": settings.is_sso,
             "latest": {"version": "0.1.0-mds"},
             "query": {
                 "maxPageSize": 2500,
@@ -92,7 +94,7 @@ def health(
                 "maxTabsPerDashboard": 20,
                 "disableSentryTracking": False,
             },
-            "auth": {"disablePasswordAuthentication": False},
+            "auth": {"disablePasswordAuthentication": settings.is_sso},
         }
     )
 

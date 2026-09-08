@@ -21,6 +21,11 @@ export type HealthResults = {
   isAuthenticated: boolean;
   isSetupComplete?: boolean;
   healthy?: boolean;
+  authMode: 'local' | 'sso';
+  ssoEnabled: boolean;
+  auth: {
+    disablePasswordAuthentication: boolean;
+  };
   /** Product flag from the API; Ask AI is shown only when true. */
   askAiEnabled?: boolean;
   query?: {
