@@ -17,6 +17,7 @@ from mds.routers.dashboards import router as dashboards_router
 from mds.routers.dictionary import router as dictionary_router
 from mds.routers.exports import router as exports_router
 from mds.routers.model_joins import router as model_joins_router
+from mds.routers.oidc import router as oidc_router
 from mds.routers.platform import router as platform_router
 from mds.routers.query import router as query_router
 from mds.routers.saved import router as saved_router
@@ -56,6 +57,8 @@ app.add_middleware(
 app.add_exception_handler(StarletteHTTPException, http_exception_handler)
 app.add_exception_handler(RequestValidationError, validation_exception_handler)
 
+app.include_router(oidc_router, prefix="/api/auth")
+app.include_router(oidc_router, prefix="/api/v1/auth")
 app.include_router(auth_router, prefix="/api/v1")
 app.include_router(platform_router, prefix="/api/v1")
 app.include_router(semantic_router, prefix="/api/v1")

@@ -79,7 +79,33 @@ The command prints a **reset URL** (open it to choose a new password) and a temp
 
 Set `APP_ORIGIN` / `PUBLIC_APP_URL` if the Angular app is not on the first `CORS_ORIGINS` value (default `http://localhost:4200`).
 
-SSO / OpenFGA / OPA / CASL are **not** implemented yet — see `docs/superpowers/specs/2026-08-03-*-design.md`.
+### OIDC SSO
+
+Set `AUTH_MODE=sso` to use generic OpenID Connect login. SSO mode requires:
+
+```env
+AUTH_MODE=sso
+OIDC_ISSUER=https://idp.example.com
+OIDC_CLIENT_ID=mds
+OIDC_CLIENT_SECRET=change-me
+OIDC_REDIRECT_URI=https://api.example.com/api/auth/callback
+OIDC_ADMIN_GROUP=mds-admins
+OIDC_MEMBER_GROUP=mds-members
+
+# Optional claim/scope overrides:
+# OIDC_SCOPES="openid email profile"
+# OIDC_GROUPS_CLAIM=groups
+# OIDC_EMAIL_CLAIM=email
+# OIDC_EMAIL_VERIFIED_CLAIM=email_verified
+```
+
+Register the canonical callback `{API_PUBLIC_URL}/api/auth/callback` with the
+identity provider. Login and callback are available under both `/api/auth/*`
+and `/api/v1/auth/*`. Successful callbacks issue the regular `mds_session`
+cookie. OIDC users are linked by issuer/subject (or an unlinked matching email),
+and their role and profile are refreshed from claims on every login.
+
+OpenFGA / OPA / CASL are **not** implemented yet — see `docs/superpowers/specs/2026-08-03-*-design.md`.
 
 ## Implemented endpoints
 
@@ -89,6 +115,8 @@ SSO / OpenFGA / OPA / CASL are **not** implemented yet — see `docs/superpowers
 |---|---|---|
 | GET | `/api/v1/health` | Bootstrap; `isAuthenticated`, `isSetupComplete`, `askAiEnabled` |
 | GET | `/api/v1/user` | Current session user (or `{}` if anonymous) |
+| GET | `/api/auth/login`, `/api/v1/auth/login` | Start OIDC SSO login |
+| GET | `/api/auth/callback`, `/api/v1/auth/callback` | Complete OIDC SSO login |
 | POST | `/api/v1/setup` | First admin only (when no users exist) |
 | POST | `/api/v1/login` / `/logout` | Session cookie |
 | POST | `/api/v1/user/password` | Change own password |
