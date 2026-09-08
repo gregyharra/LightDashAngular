@@ -126,6 +126,49 @@ def test_id_token_validation_failures(oidc_server, claim_overrides, error):
         client.exchange_code("code", state)
 
 
+def test_trailing_slash_issuer_is_preserved_for_validation():
+    issuer = f"{ISSUER}/"
+    client, requests, sign_token = _make_oidc_server(issuer)
+    query = parse_qs(urlparse(client.create_authorization_url()).query)
+    nonce = query["nonce"][0]
+
+    claims = client.validate_id_token(sign_token({"nonce": nonce}), expected_nonce=nonce)
+
+    assert client.issuer == issuer
+    assert claims["iss"] == issuer
+    assert requests[0] == ("GET", f"{ISSUER}/.well-known/openid-configuration")
+
+
+@pytest.mark.parametrize("azp", [None, "another-client"])
+def test_multi_audience_token_requires_matching_azp(oidc_server, azp):
+    client, _, sign_token = oidc_server
+    query = parse_qs(urlparse(client.create_authorization_url()).query)
+    nonce = query["nonce"][0]
+    overrides = {"aud": [CLIENT_ID, "another-audience"], "nonce": nonce}
+    if azp is not None:
+        overrides["azp"] = azp
+
+    with pytest.raises(OIDCError, match="azp"):
+        client.validate_id_token(sign_token(overrides), expected_nonce=nonce)
+
+
+def test_multi_audience_token_accepts_matching_azp(oidc_server):
+    client, _, sign_token = oidc_server
+    query = parse_qs(urlparse(client.create_authorization_url()).query)
+    nonce = query["nonce"][0]
+    token = sign_token(
+        {
+            "aud": [CLIENT_ID, "another-audience"],
+            "azp": CLIENT_ID,
+            "nonce": nonce,
+        }
+    )
+
+    claims = client.validate_id_token(token, expected_nonce=nonce)
+
+    assert claims["azp"] == CLIENT_ID
+
+
 def test_rejects_token_signed_by_unknown_key(oidc_server):
     client, _, _ = oidc_server
     query = parse_qs(urlparse(client.create_authorization_url()).query)
@@ -144,6 +187,10 @@ def test_rejects_token_signed_by_unknown_key(oidc_server):
 
 @pytest.fixture
 def oidc_server():
+    return _make_oidc_server()
+
+
+def _make_oidc_server(issuer=ISSUER):
     key = rsa.generate_private_key(public_exponent=65537, key_size=2048)
     public_numbers = key.public_key().public_numbers()
     jwk = {
@@ -164,10 +211,10 @@ def oidc_server():
             if url.endswith("openid-configuration"):
                 return _response(
                     {
-                        "issuer": ISSUER,
-                        "authorization_endpoint": f"{ISSUER}/authorize",
-                        "token_endpoint": f"{ISSUER}/token",
-                        "jwks_uri": f"{ISSUER}/jwks",
+                        "issuer": issuer,
+                        "authorization_endpoint": f"{issuer.rstrip('/')}/authorize",
+                        "token_endpoint": f"{issuer.rstrip('/')}/token",
+                        "jwks_uri": f"{issuer.rstrip('/')}/jwks",
                         "id_token_signing_alg_values_supported": ["RS256"],
                     }
                 )
@@ -179,7 +226,7 @@ def oidc_server():
 
     http_client = FakeHTTPClient()
     client = OIDCClient(
-        issuer=ISSUER,
+        issuer=issuer,
         client_id=CLIENT_ID,
         client_secret=CLIENT_SECRET,
         redirect_uri=REDIRECT_URI,
@@ -191,7 +238,7 @@ def oidc_server():
     )
 
     def sign_token(overrides):
-        claims = _base_claims(overrides.get("nonce", "nonce"))
+        claims = _base_claims(overrides.get("nonce", "nonce"), issuer=issuer)
         claims.update(overrides)
         token = jwt.encode(
             claims,
@@ -205,9 +252,9 @@ def oidc_server():
     return client, requests, sign_token
 
 
-def _base_claims(nonce):
+def _base_claims(nonce, *, issuer=ISSUER):
     return {
-        "iss": ISSUER,
+        "iss": issuer,
         "aud": CLIENT_ID,
         "sub": "subject",
         "nonce": nonce,

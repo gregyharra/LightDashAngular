@@ -118,7 +118,7 @@ class OIDCClient:
         http_client: Any | None = None,
         state_store: OIDCStateStore | None = None,
     ) -> None:
-        self.issuer = issuer.rstrip("/")
+        self.issuer = issuer
         self.client_id = client_id
         self.client_secret = client_secret
         self.redirect_uri = redirect_uri
@@ -159,11 +159,12 @@ class OIDCClient:
         if self._discovery_document is not None:
             return self._discovery_document
 
-        document = self._get_json(f"{self.issuer}/.well-known/openid-configuration")
+        discovery_url = f"{self.issuer.rstrip('/')}/.well-known/openid-configuration"
+        document = self._get_json(discovery_url)
         required = ("issuer", "authorization_endpoint", "token_endpoint", "jwks_uri")
         if any(not isinstance(document.get(key), str) for key in required):
             raise OIDCError("OIDC discovery document is missing required endpoints")
-        if document["issuer"].rstrip("/") != self.issuer:
+        if document["issuer"] != self.issuer:
             raise OIDCError("OIDC discovery issuer does not match configured issuer")
         self._discovery_document = document
         return document
@@ -244,6 +245,15 @@ class OIDCClient:
             raise OIDCError("ID token audience is invalid") from exc
         except jwt.PyJWTError as exc:
             raise OIDCError("ID token signature or claims are invalid") from exc
+
+        audience = claims.get("aud")
+        authorized_party = claims.get("azp")
+        if (
+            isinstance(audience, list)
+            and len(audience) > 1
+            and "azp" not in claims
+        ) or ("azp" in claims and authorized_party != self.client_id):
+            raise OIDCError("ID token authorized party (azp) is invalid")
 
         nonce = claims.get("nonce")
         if not isinstance(nonce, str) or not secrets.compare_digest(nonce, expected_nonce):
