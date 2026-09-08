@@ -45,6 +45,12 @@ def _column_is_not_null(inspector, table: str, column: str) -> bool:
     return False
 
 
+def _table_has_index(inspector, table: str, index_name: str) -> bool:
+    if not inspector.has_table(table):
+        return False
+    return index_name in {idx["name"] for idx in inspector.get_indexes(table)}
+
+
 def _migrate_auth_columns() -> None:
     """Add password / reset columns on users for existing databases."""
     inspector = inspect(engine)
@@ -111,6 +117,42 @@ def _migrate_auth_columns() -> None:
                         "TIMESTAMP WITH TIME ZONE"
                     )
                 )
+        if "oidc_issuer" not in user_columns:
+            if is_sqlite:
+                connection.exec_driver_sql(
+                    "ALTER TABLE users ADD COLUMN oidc_issuer VARCHAR(512)"
+                )
+            else:
+                connection.execute(text("ALTER TABLE users ADD COLUMN oidc_issuer VARCHAR(512)"))
+        if "oidc_sub" not in user_columns:
+            if is_sqlite:
+                connection.exec_driver_sql("ALTER TABLE users ADD COLUMN oidc_sub VARCHAR(255)")
+            else:
+                connection.execute(text("ALTER TABLE users ADD COLUMN oidc_sub VARCHAR(255)"))
+        if "auth_provider" not in user_columns:
+            if is_sqlite:
+                connection.exec_driver_sql(
+                    "ALTER TABLE users ADD COLUMN auth_provider VARCHAR(32) "
+                    "NOT NULL DEFAULT 'local'"
+                )
+            else:
+                connection.execute(
+                    text(
+                        "ALTER TABLE users ADD COLUMN auth_provider VARCHAR(32) "
+                        "NOT NULL DEFAULT 'local'"
+                    )
+                )
+
+        if not _table_has_index(inspector, "users", "uq_users_oidc_issuer_sub"):
+            partial_unique_index = (
+                "CREATE UNIQUE INDEX uq_users_oidc_issuer_sub ON users "
+                "(oidc_issuer, oidc_sub) "
+                "WHERE oidc_issuer IS NOT NULL AND oidc_sub IS NOT NULL"
+            )
+            if is_sqlite:
+                connection.exec_driver_sql(partial_unique_index)
+            else:
+                connection.execute(text(partial_unique_index))
 
 
 def _migrate_additive_schema() -> None:

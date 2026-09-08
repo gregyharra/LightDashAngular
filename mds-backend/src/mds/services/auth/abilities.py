@@ -32,6 +32,7 @@ def user_payload(user) -> dict:
         "avatarGradient": None,
         "abilityRules": ability_rules_for_role(user.role),
         "mustChangePassword": bool(getattr(user, "must_change_password", False)),
+        "authProvider": getattr(user, "auth_provider", "local"),
         "updatedAt": created,
         "createdAt": created,
         "impersonation": None,
