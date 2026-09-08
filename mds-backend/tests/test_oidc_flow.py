@@ -3,6 +3,7 @@ from __future__ import annotations
 import os
 import uuid as uuid_lib
 from dataclasses import dataclass, field
+from datetime import datetime, timedelta, timezone
 from time import time
 from urllib.parse import parse_qs, urlsplit
 
@@ -32,6 +33,7 @@ class MockIdP:
     groups: list[str] = field(default_factory=lambda: ["mds-members"])
     subject: str = "subject-1"
     email: str = "person@example.com"
+    email_verified: bool | None = True
     given_name: str = "Pat"
     family_name: str = "Person"
     nonce: str = ""
@@ -84,20 +86,22 @@ def mock_idp(monkeypatch: pytest.MonkeyPatch) -> MockIdP:
             return httpx.Response(200, json={"keys": [public_jwk]})
         if request.url.path == "/token":
             now = int(time())
+            claims = {
+                "iss": ISSUER,
+                "aud": CLIENT_ID,
+                "sub": state.subject,
+                "email": state.email,
+                "given_name": state.given_name,
+                "family_name": state.family_name,
+                "groups": state.groups,
+                "nonce": state.nonce,
+                "iat": now,
+                "exp": now + 300,
+            }
+            if state.email_verified is not None:
+                claims["email_verified"] = state.email_verified
             token = jwt.encode(
-                {
-                    "iss": ISSUER,
-                    "aud": CLIENT_ID,
-                    "sub": state.subject,
-                    "email": state.email,
-                    "email_verified": True,
-                    "given_name": state.given_name,
-                    "family_name": state.family_name,
-                    "groups": state.groups,
-                    "nonce": state.nonce,
-                    "iat": now,
-                    "exp": now + 300,
-                },
+                claims,
                 private_key,
                 algorithm="RS256",
                 headers={"kid": "test-key"},
@@ -201,6 +205,30 @@ def test_member_login_creates_user_and_session_cookie(mock_idp: MockIdP):
         db.close()
 
 
+@pytest.mark.parametrize("cookie_value", [None, "mismatched-state"])
+def test_callback_rejects_missing_or_mismatched_state_cookie(
+    cookie_value: str | None,
+    mock_idp: MockIdP,
+):
+    with TestClient(app) as client:
+        state = _begin_login(client, mock_idp)
+        client.cookies.delete("mds_oidc_state")
+        if cookie_value is not None:
+            client.cookies.set("mds_oidc_state", cookie_value)
+        response = _complete_login(client, state)
+
+    assert response.status_code == 307
+    assert response.headers["location"] == f"{APP_ORIGIN}/login?error=sso_failed"
+    assert "mds_session=" not in response.headers.get("set-cookie", "")
+
+    db = SessionLocal()
+    try:
+        assert db.query(User).count() == 0
+        assert db.query(UserSession).count() == 0
+    finally:
+        db.close()
+
+
 def test_admin_login_via_callback_alias(mock_idp: MockIdP):
     mock_idp.groups = ["mds-members", "mds-admins"]
     with TestClient(app) as client:
@@ -273,6 +301,58 @@ def test_unsafe_redirect_falls_back_to_projects(
 
 
 def test_existing_unlinked_email_is_linked_and_inactive_user_is_denied(mock_idp: MockIdP):
+    reset_expiry = datetime.now(timezone.utc) + timedelta(hours=1)
+    db = SessionLocal()
+    try:
+        db.add(
+            User(
+                uuid=uuid_lib.uuid4(),
+                email=mock_idp.email,
+                first_name="Local",
+                last_name="User",
+                role="admin",
+                password_hash="hashed-local-password",
+                is_active=True,
+                must_change_password=True,
+                password_reset_token_hash="reset-token-hash",
+                password_reset_expires_at=reset_expiry,
+            )
+        )
+        db.commit()
+    finally:
+        db.close()
+
+    with TestClient(app) as client:
+        state = _begin_login(client, mock_idp)
+        assert _complete_login(client, state).status_code == 307
+
+    db = SessionLocal()
+    try:
+        user = db.query(User).one()
+        assert user.oidc_sub == mock_idp.subject
+        assert user.auth_provider == "oidc"
+        assert user.password_hash == "hashed-local-password"
+        assert user.must_change_password is False
+        assert user.password_reset_token_hash is None
+        assert user.password_reset_expires_at is None
+        user.is_active = False
+        db.commit()
+    finally:
+        db.close()
+
+    with TestClient(app) as client:
+        state = _begin_login(client, mock_idp)
+        denied = _complete_login(client, state)
+
+    assert denied.headers["location"] == f"{APP_ORIGIN}/login?error=sso_failed"
+
+
+@pytest.mark.parametrize("email_verified", [None, False])
+def test_unverified_email_cannot_link_or_create_user(
+    email_verified: bool | None,
+    mock_idp: MockIdP,
+):
+    mock_idp.email_verified = email_verified
     db = SessionLocal()
     try:
         db.add(
@@ -292,21 +372,62 @@ def test_existing_unlinked_email_is_linked_and_inactive_user_is_denied(mock_idp:
 
     with TestClient(app) as client:
         state = _begin_login(client, mock_idp)
-        assert _complete_login(client, state).status_code == 307
+        response = _complete_login(client, state)
 
+    assert response.headers["location"] == f"{APP_ORIGIN}/login?error=sso_failed"
+    assert "mds_session=" not in response.headers.get("set-cookie", "")
     db = SessionLocal()
     try:
         user = db.query(User).one()
-        assert user.oidc_sub == mock_idp.subject
-        assert user.auth_provider == "oidc"
-        assert user.password_hash == "hashed-local-password"
-        user.is_active = False
+        assert user.oidc_issuer is None
+        assert user.oidc_sub is None
+        assert db.query(UserSession).count() == 0
+    finally:
+        db.close()
+
+
+def test_missing_email_verified_claim_cannot_create_user(mock_idp: MockIdP):
+    mock_idp.email_verified = None
+
+    with TestClient(app) as client:
+        state = _begin_login(client, mock_idp)
+        response = _complete_login(client, state)
+
+    assert response.headers["location"] == f"{APP_ORIGIN}/login?error=sso_failed"
+    assert "mds_session=" not in response.headers.get("set-cookie", "")
+    db = SessionLocal()
+    try:
+        assert db.query(User).count() == 0
+        assert db.query(UserSession).count() == 0
+    finally:
+        db.close()
+
+
+def test_existing_subject_can_login_without_email_verified_claim(mock_idp: MockIdP):
+    db = SessionLocal()
+    try:
+        db.add(
+            User(
+                uuid=uuid_lib.uuid4(),
+                email=mock_idp.email,
+                first_name="Existing",
+                last_name="SSO",
+                role="member",
+                password_hash="",
+                is_active=True,
+                oidc_issuer=ISSUER,
+                oidc_sub=mock_idp.subject,
+                auth_provider="oidc",
+            )
+        )
         db.commit()
     finally:
         db.close()
 
+    mock_idp.email_verified = None
     with TestClient(app) as client:
         state = _begin_login(client, mock_idp)
-        denied = _complete_login(client, state)
+        response = _complete_login(client, state)
 
-    assert denied.headers["location"] == f"{APP_ORIGIN}/login?error=sso_failed"
+    assert response.headers["location"] == f"{APP_ORIGIN}/projects"
+    assert "mds_session=" in response.headers.get("set-cookie", "")

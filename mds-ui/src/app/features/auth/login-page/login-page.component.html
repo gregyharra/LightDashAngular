@@ -8,7 +8,7 @@
     }
 
     @if (ssoMode()) {
-      <a mat-flat-button class="auth-card__sso" [href]="ssoLoginUrl">
+      <a mat-flat-button color="primary" class="auth-card__sso" [href]="ssoLoginUrl">
         {{ 'auth.signInWithSso' | translate }}
       </a>
     } @else {

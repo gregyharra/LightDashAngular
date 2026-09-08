@@ -94,6 +94,7 @@ describe('LoginPageComponent', () => {
     ) as HTMLAnchorElement;
     expect(action).toBeTruthy();
     expect(action.textContent?.trim()).toBe('Sign in with SSO');
+    expect(action.getAttribute('color')).toBe('primary');
     expect(action.getAttribute('href')).toBe(
       '/api/auth/login?redirect=%2Fprojects%2Fproject-1%2Fexplore%3Ftab%3Dmetrics',
     );

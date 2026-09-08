@@ -248,6 +248,7 @@
   "users": {
     "title": "Users",
     "subtitle": "Create and manage workspace users.",
+    "ssoSubtitle": "View workspace users.",
     "ssoManaged": "Access and roles are managed by your identity provider.",
     "loadError": "Failed to load users",
     "createError": "Failed to create user",

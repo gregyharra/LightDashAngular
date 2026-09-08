@@ -248,6 +248,7 @@
   "users": {
     "title": "Utilisateurs",
     "subtitle": "Créez et gérez les utilisateurs de l'espace de travail.",
+    "ssoSubtitle": "Consultez les utilisateurs de l'espace de travail.",
     "ssoManaged": "Les accès et les rôles sont gérés par votre fournisseur d'identité.",
     "loadError": "Impossible de charger les utilisateurs",
     "createError": "Impossible de créer l'utilisateur",

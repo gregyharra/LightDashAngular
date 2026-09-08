@@ -30,7 +30,7 @@ export class AppStateService {
   readonly authMode = computed(() => this.healthSignal()?.authMode ?? 'local');
   readonly ssoEnabled = computed(() => !!this.healthSignal()?.ssoEnabled);
   readonly passwordAuthDisabled = computed(
-    () => !!this.healthSignal()?.auth.disablePasswordAuthentication,
+    () => !!this.healthSignal()?.auth?.disablePasswordAuthentication,
   );
   readonly isAdmin = computed(() => this.userSignal()?.role === 'admin');
   readonly mustChangePassword = computed(() => !!this.userSignal()?.mustChangePassword);

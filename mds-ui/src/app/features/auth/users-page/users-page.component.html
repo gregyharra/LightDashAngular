@@ -3,7 +3,9 @@
     <header class="users__header">
       <div class="users__title-block">
         <h1 class="users__title">{{ 'users.title' | translate }}</h1>
-        <p class="users__subtitle">{{ 'users.subtitle' | translate }}</p>
+        <p class="users__subtitle">
+          {{ (ssoEnabled() ? 'users.ssoSubtitle' : 'users.subtitle') | translate }}
+        </p>
         @if (ssoEnabled()) {
           <p class="users__sso-note">{{ 'users.ssoManaged' | translate }}</p>
         }

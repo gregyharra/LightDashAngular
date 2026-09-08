@@ -44,6 +44,7 @@ describe('UsersPageComponent', () => {
       users: {
         title: 'Users',
         subtitle: 'Create and manage workspace users.',
+        ssoSubtitle: 'View workspace users.',
         ssoManaged: 'Access and roles are managed by your identity provider.',
         fields: {
           name: 'Name',
@@ -79,7 +80,9 @@ describe('UsersPageComponent', () => {
     ssoEnabled.set(true);
     const page = render();
 
+    expect(page.textContent).toContain('View workspace users.');
     expect(page.textContent).toContain('Access and roles are managed by your identity provider.');
+    expect(page.textContent).not.toContain('Create and manage workspace users.');
     expect(page.textContent).toContain('Role');
     expect(page.textContent).toContain('admin');
     expect(page.textContent).not.toContain('Create user');

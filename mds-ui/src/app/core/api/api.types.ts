@@ -23,7 +23,7 @@ export type HealthResults = {
   healthy?: boolean;
   authMode: 'local' | 'sso';
   ssoEnabled: boolean;
-  auth: {
+  auth?: {
     disablePasswordAuthentication: boolean;
   };
   /** Product flag from the API; Ask AI is shown only when true. */
