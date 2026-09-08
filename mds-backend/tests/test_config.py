@@ -152,7 +152,7 @@ def test_sso_settings_accept_complete_oidc_configuration(
         "OIDC_ISSUER": "https://idp.example.com",
         "OIDC_CLIENT_ID": "mds",
         "OIDC_CLIENT_SECRET": "secret",
-        "OIDC_REDIRECT_URI": "https://api.example.com/api/v1/auth/oidc/callback",
+        "OIDC_REDIRECT_URI": "https://api.example.com/api/auth/callback",
         "OIDC_ADMIN_GROUP": "mds-admins",
         "OIDC_MEMBER_GROUP": "mds-members",
     }
