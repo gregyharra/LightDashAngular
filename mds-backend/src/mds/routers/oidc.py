@@ -21,7 +21,7 @@ from mds.services.auth.oidc import (
     OIDCError,
     resolve_role_from_groups,
 )
-from mds.services.auth.sessions import SESSION_COOKIE_NAME, create_session
+from mds.services.auth.sessions import create_session, set_session_cookie
 
 logger = logging.getLogger(__name__)
 
@@ -86,18 +86,6 @@ def _consume_redirect(state: str) -> str:
 
 def _app_redirect(path: str) -> RedirectResponse:
     return RedirectResponse(f"{settings.public_app_url}{path}")
-
-
-def _set_session_cookie(response: RedirectResponse, session_id: uuid_lib.UUID) -> None:
-    response.set_cookie(
-        key=SESSION_COOKIE_NAME,
-        value=str(session_id),
-        httponly=True,
-        samesite="lax",
-        secure=settings.session_cookie_secure or settings.environment == "production",
-        path="/",
-        max_age=settings.session_ttl_hours * 3600,
-    )
 
 
 def _upsert_user(db: Session, claims: OIDCClaims, role: str) -> User:
@@ -203,5 +191,5 @@ def oidc_callback(
         return _app_redirect("/login?error=sso_failed")
 
     response = _app_redirect(redirect_path)
-    _set_session_cookie(response, session.id)
+    set_session_cookie(response, session.id)
     return response

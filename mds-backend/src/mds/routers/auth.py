@@ -7,7 +7,6 @@ from sqlalchemy.orm import Session
 
 from mds.api.deps import AdminUser, CurrentUser, OptionalUser
 from mds.api.envelope import ok
-from mds.config import settings
 from mds.db.models import User
 from mds.db.session import get_db
 from mds.schemas.auth import (
@@ -29,29 +28,15 @@ from mds.services.auth.passwords import (
 )
 from mds.services.auth.sessions import (
     SESSION_COOKIE_NAME,
+    clear_session_cookie,
     create_session,
     delete_session,
     delete_user_sessions,
+    set_session_cookie,
 )
 from fastapi import Depends
 
 router = APIRouter(tags=["auth"])
-
-
-def _set_session_cookie(response: Response, session_id: uuid_lib.UUID) -> None:
-    response.set_cookie(
-        key=SESSION_COOKIE_NAME,
-        value=str(session_id),
-        httponly=True,
-        samesite="lax",
-        secure=settings.session_cookie_secure or settings.environment == "production",
-        path="/",
-        max_age=settings.session_ttl_hours * 3600,
-    )
-
-
-def _clear_session_cookie(response: Response) -> None:
-    response.delete_cookie(key=SESSION_COOKIE_NAME, path="/")
 
 
 def _normalize_email(email: str) -> str:
@@ -103,7 +88,7 @@ def setup(
     db.commit()
     db.refresh(user)
 
-    _set_session_cookie(response, session.id)
+    set_session_cookie(response, session.id)
     return ok(user_payload(user))
 
 
@@ -126,7 +111,7 @@ def login(
     db.commit()
     db.refresh(user)
 
-    _set_session_cookie(response, session.id)
+    set_session_cookie(response, session.id)
     return ok(user_payload(user))
 
 
@@ -143,7 +128,7 @@ def logout(
             db.commit()
         except ValueError:
             pass
-    _clear_session_cookie(response)
+    clear_session_cookie(response)
     return ok(None)
 
 
@@ -163,7 +148,7 @@ def change_own_password(
 
     session = create_session(db, user)
     db.commit()
-    _set_session_cookie(response, session.id)
+    set_session_cookie(response, session.id)
     return ok(None)
 
 
@@ -196,7 +181,7 @@ def reset_password_with_token(
     session = create_session(db, target)
     db.commit()
     db.refresh(target)
-    _set_session_cookie(response, session.id)
+    set_session_cookie(response, session.id)
     return ok(user_payload(target))
 
 

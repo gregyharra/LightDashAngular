@@ -4,11 +4,28 @@ import uuid as uuid_lib
 from datetime import datetime, timedelta, timezone
 
 from sqlalchemy.orm import Session
+from starlette.responses import Response
 
 from mds.config import settings
 from mds.db.models import User, UserSession
 
 SESSION_COOKIE_NAME = "mds_session"
+
+
+def set_session_cookie(response: Response, session_id: uuid_lib.UUID) -> None:
+    response.set_cookie(
+        key=SESSION_COOKIE_NAME,
+        value=str(session_id),
+        httponly=True,
+        samesite="lax",
+        secure=settings.session_cookie_secure or settings.environment == "production",
+        path="/",
+        max_age=settings.session_ttl_hours * 3600,
+    )
+
+
+def clear_session_cookie(response: Response) -> None:
+    response.delete_cookie(key=SESSION_COOKIE_NAME, path="/")
 
 
 def create_session(db: Session, user: User) -> UserSession:
