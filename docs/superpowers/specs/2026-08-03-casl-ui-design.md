@@ -82,8 +82,9 @@ Keep `isAdmin()` as a deprecated computed during migration (`role === 'admin' ||
 When health reports `authMode === 'sso'` (or `ssoEnabled`):
 
 - Hide Change password  
-- Hide any “temporary password” copy that implies password login (admin provisioning UX may still show “user must sign in via SSO”)  
+- Hide any “temporary password” copy that implies password login  
 - Login page: SSO CTA only  
+- Users page: read-only directory — no create user, no role edit, no temp/reset password (MyIAM / eLDAP own membership; see SSO spec)
 
 These are presentation flags from health/config, not CASL subjects (unless we add `can('manage', 'Password')` inverted by the server — prefer explicit `authMode` for clarity).
 
