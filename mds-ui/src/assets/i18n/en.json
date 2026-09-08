@@ -18,6 +18,7 @@
     "email": "Email",
     "password": "Password",
     "signIn": "Sign in",
+    "signInWithSso": "Sign in with SSO",
     "signingIn": "Signing in…",
     "forgotHint": "Forgot your password? Ask an admin to reset it — they will give you a reset link (or a temporary password that requires choosing a new one).",
     "setupTitle": "Create admin account",
@@ -40,6 +41,8 @@
       "passwordsDoNotMatch": "Passwords do not match",
       "createAdmin": "Could not create admin account",
       "invalidCredentials": "Invalid email or password",
+      "ssoFailed": "SSO sign-in failed. Please try again.",
+      "notProvisioned": "Your account is not provisioned for this workspace.",
       "invalidResetLink": "This reset link is missing or invalid. Ask an admin to issue a new one.",
       "setPassword": "Could not set a new password",
       "changePassword": "Could not change password"

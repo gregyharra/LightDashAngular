@@ -1,28 +1,36 @@
 <div class="auth-page">
-  <form class="auth-card" [formGroup]="form" (ngSubmit)="submit()">
+  <div class="auth-card">
     <h1 class="auth-card__title">{{ 'auth.signInTitle' | translate }}</h1>
     <p class="auth-card__subtitle">{{ 'auth.signInSubtitle' | translate }}</p>
 
-    <mat-form-field appearance="outline" class="auth-card__full">
-      <mat-label>{{ 'auth.email' | translate }}</mat-label>
-      <input matInput type="email" formControlName="email" autocomplete="username" />
-    </mat-form-field>
-
-    <mat-form-field appearance="outline" class="auth-card__full">
-      <mat-label>{{ 'auth.password' | translate }}</mat-label>
-      <input matInput type="password" formControlName="password" autocomplete="current-password" />
-    </mat-form-field>
-
     @if (error()) {
-      <p class="auth-card__error">{{ error() }}</p>
+      <p class="auth-card__error" role="alert">{{ error() }}</p>
     }
 
-    <button mat-flat-button color="primary" type="submit" [disabled]="submitting()">
-      {{ (submitting() ? 'auth.signingIn' : 'auth.signIn') | translate }}
-    </button>
+    @if (ssoMode()) {
+      <a mat-flat-button class="auth-card__sso" [href]="ssoLoginUrl">
+        {{ 'auth.signInWithSso' | translate }}
+      </a>
+    } @else {
+      <form class="auth-card__form" [formGroup]="form" (ngSubmit)="submit()">
+        <mat-form-field appearance="outline" class="auth-card__full">
+          <mat-label>{{ 'auth.email' | translate }}</mat-label>
+          <input matInput type="email" formControlName="email" autocomplete="username" />
+        </mat-form-field>
 
-    <p class="auth-card__hint">
-      {{ 'auth.forgotHint' | translate }}
-    </p>
-  </form>
+        <mat-form-field appearance="outline" class="auth-card__full">
+          <mat-label>{{ 'auth.password' | translate }}</mat-label>
+          <input matInput type="password" formControlName="password" autocomplete="current-password" />
+        </mat-form-field>
+
+        <button mat-flat-button color="primary" type="submit" [disabled]="submitting()">
+          {{ (submitting() ? 'auth.signingIn' : 'auth.signIn') | translate }}
+        </button>
+
+        <p class="auth-card__hint">
+          {{ 'auth.forgotHint' | translate }}
+        </p>
+      </form>
+    }
+  </div>
 </div>

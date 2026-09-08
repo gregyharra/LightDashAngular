@@ -9,6 +9,14 @@ function redirectIfMustChangePassword(appState: AppStateService, router: Router)
   return null;
 }
 
+function isSetupComplete(appState: AppStateService): boolean {
+  return (
+    appState.isSetupComplete() ||
+    appState.ssoEnabled() ||
+    appState.authMode() === 'sso'
+  );
+}
+
 export const authGuard: CanActivateFn = async (_route, state) => {
   const appState = inject(AppStateService);
   const router = inject(Router);
@@ -17,7 +25,7 @@ export const authGuard: CanActivateFn = async (_route, state) => {
     await appState.bootstrap();
   }
 
-  if (!appState.isSetupComplete()) {
+  if (!isSetupComplete(appState)) {
     return router.createUrlTree(['/setup']);
   }
 
@@ -43,7 +51,7 @@ export const guestGuard: CanActivateFn = async () => {
     await appState.bootstrap();
   }
 
-  if (!appState.isSetupComplete()) {
+  if (!isSetupComplete(appState)) {
     return router.createUrlTree(['/setup']);
   }
 
@@ -66,7 +74,7 @@ export const resetPasswordGuard: CanActivateFn = async (route) => {
     await appState.bootstrap();
   }
 
-  if (!appState.isSetupComplete()) {
+  if (!isSetupComplete(appState)) {
     return router.createUrlTree(['/setup']);
   }
 
@@ -86,7 +94,7 @@ export const setupGuard: CanActivateFn = async () => {
     await appState.bootstrap();
   }
 
-  if (appState.isSetupComplete()) {
+  if (isSetupComplete(appState)) {
     if (appState.isAuthenticated()) {
       const mustChange = redirectIfMustChangePassword(appState, router);
       if (mustChange) {

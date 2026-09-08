@@ -18,6 +18,7 @@
     "email": "E-mail",
     "password": "Mot de passe",
     "signIn": "Se connecter",
+    "signInWithSso": "Se connecter avec le SSO",
     "signingIn": "Connexion…",
     "forgotHint": "Mot de passe oublié ? Demandez à un administrateur de le réinitialiser. Il vous remettra un lien de réinitialisation (ou un mot de passe temporaire qui vous obligera à en choisir un nouveau).",
     "setupTitle": "Créer un compte administrateur",
@@ -40,6 +41,8 @@
       "passwordsDoNotMatch": "Les mots de passe ne correspondent pas",
       "createAdmin": "Impossible de créer le compte administrateur",
       "invalidCredentials": "E-mail ou mot de passe incorrect",
+      "ssoFailed": "Échec de la connexion SSO. Veuillez réessayer.",
+      "notProvisioned": "Votre compte n’est pas provisionné pour cet espace de travail.",
       "invalidResetLink": "Ce lien de réinitialisation est manquant ou invalide. Demandez-en un nouveau à un administrateur.",
       "setPassword": "Impossible de définir un nouveau mot de passe",
       "changePassword": "Impossible de modifier le mot de passe"
