@@ -93,13 +93,15 @@ Group membership is **never** editable from MDS. Admins manage access only in My
 
 ## OIDC flow
 
-1. User opens `/login` → UI navigates to `GET /api/v1/auth/oidc/login` (optional `redirect` query).
+1. User opens `/login` → UI navigates to `GET /api/auth/login` (optional `redirect` query).
 2. Backend redirects to IdP authorize endpoint (PKCE `code_challenge`, `state` + nonce bound server-side).
-3. IdP redirects to `GET /api/v1/auth/oidc/callback?code=&state=`.
+3. IdP redirects to `GET /api/auth/callback?code=&state=` (register this exact URI in MyIAM).
 4. Backend exchanges code, validates ID token (issuer, audience, signature, nonce), reads claims + groups.
 5. Map groups → allow/deny + role; upsert local `User`.
 6. `create_session` + set `mds_session` cookie; redirect to app (`redirect` or `/projects`).
 7. Logout: delete MDS session + clear cookie; optionally call IdP end-session URL if configured.
+
+OIDC auth routes are mounted at **`/api/auth/*`** (not under `/api/v1`), so the IdP redirect URI stays stable and short.
 
 ### Required config (env)
 
@@ -107,7 +109,7 @@ Group membership is **never** editable from MDS. Admins manage access only in My
 - `OIDC_ISSUER` (discovery base / issuer URL)
 - `OIDC_CLIENT_ID`
 - `OIDC_CLIENT_SECRET` (confidential client)
-- `OIDC_REDIRECT_URI` (typically `{API_PUBLIC_URL}/api/v1/auth/oidc/callback`)
+- `OIDC_REDIRECT_URI` (must match IdP registration; typically `{API_PUBLIC_URL}/api/auth/callback`)
 - `OIDC_SCOPES` (default `openid email profile`; add groups scope if MyIAM requires it)
 - `OIDC_GROUPS_CLAIM` (default `groups`)
 - `OIDC_ADMIN_GROUP` — exact string match against a groups claim value
@@ -131,11 +133,11 @@ In `AUTH_MODE=sso`, missing required OIDC settings → **fail fast at startup** 
 
 | Method | Path | Notes |
 |--------|------|-------|
-| GET | `/api/v1/auth/oidc/login` | Start authorize redirect |
-| GET | `/api/v1/auth/oidc/callback` | Finish login, set cookie |
+| GET | `/api/auth/login` | Start authorize redirect |
+| GET | `/api/auth/callback` | Finish login, set cookie (IdP redirect URI) |
 | GET | `/api/v1/health` | Add `authMode` / `ssoEnabled` / password-disabled flag |
-| POST | `/login`, `/setup`, password endpoints | 403 when `AUTH_MODE=sso` |
-| POST | `/users`, PATCH role / password-reset admin | 403 when `AUTH_MODE=sso` |
+| POST | `/api/v1/login`, `/api/v1/setup`, password endpoints | 403 when `AUTH_MODE=sso` |
+| POST | `/api/v1/users`, PATCH role / password-reset admin | 403 when `AUTH_MODE=sso` |
 
 Logout stays `POST /logout`; IdP RP-initiated logout is optional later.
 
