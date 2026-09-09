@@ -9,33 +9,42 @@
     @for (filter of filters(); track filter.id) {
       @if (editingFilterId() !== filter.id) {
         <div class="tables-filters-panel__chip">
-          <button
-            type="button"
-            class="tables-filters-panel__chip-body"
-            [attr.aria-label]="
-              'explorer.filter.edit'
-                | translate: { summary: formatFilterSummary(filter) }
-            "
-            (click)="startEditFilter(filter)"
-          >
-            <span class="tables-filters-panel__chip-label">{{ filter.label }}</span>
-            <span class="tables-filters-panel__chip-value">
-              {{ formatFilterSummary(filter).replace(filter.label + ' ', '') }}
-            </span>
-          </button>
-          <button
-            type="button"
-            class="tables-filters-panel__chip-remove"
-            [attr.aria-label]="'explorer.filter.remove' | translate"
-            (click)="removeFilter($event, filter.id)"
-          >
-            <mat-icon>close</mat-icon>
-          </button>
+          @if (editable()) {
+            <button
+              type="button"
+              class="tables-filters-panel__chip-body"
+              [attr.aria-label]="
+                'explorer.filter.edit'
+                  | translate: { summary: formatFilterSummary(filter) }
+              "
+              (click)="startEditFilter(filter)"
+            >
+              <span class="tables-filters-panel__chip-label">{{ filter.label }}</span>
+              <span class="tables-filters-panel__chip-value">
+                {{ formatFilterSummary(filter).replace(filter.label + ' ', '') }}
+              </span>
+            </button>
+            <button
+              type="button"
+              class="tables-filters-panel__chip-remove"
+              [attr.aria-label]="'explorer.filter.remove' | translate"
+              (click)="removeFilter($event, filter.id)"
+            >
+              <mat-icon>close</mat-icon>
+            </button>
+          } @else {
+            <div class="tables-filters-panel__chip-body tables-filters-panel__chip-body--readonly">
+              <span class="tables-filters-panel__chip-label">{{ filter.label }}</span>
+              <span class="tables-filters-panel__chip-value">
+                {{ formatFilterSummary(filter).replace(filter.label + ' ', '') }}
+              </span>
+            </div>
+          }
         </div>
       }
     }
 
-    @if (draftOpen()) {
+    @if (editable() && draftOpen()) {
       <div class="tables-filters-panel__draft">
         <mat-form-field appearance="outline" subscriptSizing="dynamic">
           <mat-label>{{ 'explorer.filter.field' | translate }}</mat-label>
@@ -128,7 +137,7 @@
     }
   </div>
 
-  @if (!draftOpen() && dimensions().length > 0) {
+  @if (editable() && !draftOpen() && dimensions().length > 0) {
     <button
       mat-stroked-button
       type="button"

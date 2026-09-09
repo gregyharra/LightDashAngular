@@ -311,6 +311,7 @@
                     <app-tables-filters-panel
                       [dimensions]="filterableDimensions()"
                       [filters]="dimensionFilters()"
+                      [editable]="editMode()"
                       (filtersChange)="onDimensionFiltersChange($event)"
                     />
                   } @else {

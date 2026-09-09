@@ -1,4 +1,4 @@
-import { Component, computed, inject, input, output, signal } from '@angular/core';
+import { Component, computed, effect, inject, input, output, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -45,6 +45,8 @@ export class TablesFiltersPanelComponent {
 
   readonly dimensions = input<FilterableDimension[]>([]);
   readonly filters = input<DashboardDimensionFilter[]>([]);
+  /** When false, filters are display-only (no add / edit / remove). */
+  readonly editable = input(true);
 
   readonly filtersChange = output<DashboardDimensionFilter[]>();
 
@@ -57,6 +59,14 @@ export class TablesFiltersPanelComponent {
   protected readonly draftUnitOfTime = signal<DashboardFilterUnitOfTime>('months');
 
   protected readonly unitOfTimeOptions = FILTER_UNIT_OF_TIME_OPTIONS;
+
+  constructor() {
+    effect(() => {
+      if (!this.editable()) {
+        this.cancelDraft();
+      }
+    });
+  }
 
   protected readonly draftDimension = computed(() => {
     const fieldId = this.draftFieldId();
@@ -113,6 +123,9 @@ export class TablesFiltersPanelComponent {
   }
 
   protected startAddFilter(): void {
+    if (!this.editable()) {
+      return;
+    }
     const firstDimension = this.dimensions()[0];
     this.draftOpen.set(true);
     this.editingFilterId.set(null);
@@ -128,6 +141,9 @@ export class TablesFiltersPanelComponent {
   }
 
   protected startEditFilter(filter: DashboardDimensionFilter): void {
+    if (!this.editable()) {
+      return;
+    }
     this.draftOpen.set(true);
     this.editingFilterId.set(filter.id);
     this.draftFieldId.set(filter.target.fieldId);
@@ -160,6 +176,9 @@ export class TablesFiltersPanelComponent {
   }
 
   protected applyDraftFilter(): void {
+    if (!this.editable()) {
+      return;
+    }
     const dimension = this.draftDimension();
     if (!dimension || !this.canApplyDraft()) {
       return;
@@ -197,6 +216,9 @@ export class TablesFiltersPanelComponent {
 
   protected removeFilter(event: Event, filterId: string): void {
     event.stopPropagation();
+    if (!this.editable()) {
+      return;
+    }
     if (this.editingFilterId() === filterId) {
       this.cancelDraft();
     }

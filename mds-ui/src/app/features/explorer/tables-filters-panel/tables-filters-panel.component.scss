@@ -52,6 +52,15 @@
   &:hover {
     background-color: var(--ld-gray-1);
   }
+
+  &--readonly {
+    cursor: default;
+    padding-right: 12px;
+
+    &:hover {
+      background-color: transparent;
+    }
+  }
 }
 
 .tables-filters-panel__chip-label {

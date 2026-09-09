@@ -402,7 +402,10 @@ export class ChartViewPageComponent {
     if (!explore) {
       return [];
     }
-    return getFilterableDimensions(explore);
+    const selected = this.selectedDimensions();
+    return getFilterableDimensions(explore).filter((dimension) =>
+      selected.has(dimension.fieldId),
+    );
   });
 
   protected readonly displayedColumns = computed(() => {
@@ -661,6 +664,9 @@ export class ChartViewPageComponent {
   }
 
   protected onDimensionFiltersChange(filters: DashboardDimensionFilter[]): void {
+    if (!this.editMode()) {
+      return;
+    }
     this.dimensionFilters.set(filters);
   }
 
@@ -1181,6 +1187,9 @@ export class ChartViewPageComponent {
     const next = new Set(this.selectedDimensions());
     if (next.has(fieldId)) {
       next.delete(fieldId);
+      this.dimensionFilters.update((filters) =>
+        filters.filter((filter) => filter.target.fieldId !== fieldId),
+      );
     } else {
       next.add(fieldId);
     }
