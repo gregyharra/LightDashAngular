@@ -91,7 +91,7 @@ Recommendation: option 1 for parity, option 2 long-term for API typing.
 
 Production LightDash serves the frontend static bundle from the backend container. At cutover:
 
-1. Build Angular: `npm run build` → `dist/lightdash-angular/browser/`
+1. Build the Nx shell app: `npm run build` → `dist/apps/shell/browser/`
 2. Replace the React build artifact in the backend Docker image / static mount.
 3. Verify all routes fall back to `index.html` (SPA).
 
