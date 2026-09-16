@@ -223,6 +223,10 @@ Approach: **host-first vertical slices**. Each step ends with boundary lint + un
 | MF local serve complexity | Document Nx serve targets; keep smoke e2e on composed app |
 | Facade migration churn | Thin facades wrapping existing services first; deepen stores per remote |
 
+## Related specs
+
+- `2026-09-02-design-system-design.md` — identity kit under `src/app/design-system/`. During this migration, that kit moves with shell/shared (likely `apps/shell` styles + `libs/shared` or a dedicated `type:shared` lib). Update paths in that spec when the extract lands; no change to its product goals.
+
 ## Open follow-ups (not blocking)
 
 - Optional domain scopes (`workspace`, `admin`, …) after global libs stabilize.
