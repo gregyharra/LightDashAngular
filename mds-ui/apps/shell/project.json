@@ -63,6 +63,7 @@
         ],
         "styles": [
           "@angular/material/prebuilt-themes/azure-blue.css",
+          "apps/shell/src/styles/tailwind.css",
           "apps/shell/src/styles.scss"
         ],
         "scripts": []
@@ -130,6 +131,7 @@
         ],
         "styles": [
           "@angular/material/prebuilt-themes/azure-blue.css",
+          "apps/shell/src/styles/tailwind.css",
           "apps/shell/src/styles.scss"
         ],
         "scripts": []
