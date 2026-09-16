@@ -14,8 +14,8 @@ import { ProjectBrowseNavComponent } from '../../../layout/project-browse-nav/pr
 import {
   ContentListColumnHeaderComponent,
   ColumnFilterValue,
-} from '../../../ui/content-list-column-header/content-list-column-header.component';
-import { ContentListFilterChipsComponent } from '../../../ui/content-list-filter-chips/content-list-filter-chips.component';
+} from '@mds-ui/shared';
+import { ContentListFilterChipsComponent } from '@mds-ui/shared';
 import {
   DashboardColumnFilters,
   collectUniqueSpaces,
@@ -31,7 +31,7 @@ import {
   parseSpaceFilterValue,
   sharedSpaceFilterValue,
   spaceFilterValue,
-} from '../../../ui/content-list-filter.utils';
+} from '@mds-ui/shared';
 
 @Component({
   selector: 'app-dashboards-list-page',

@@ -105,11 +105,11 @@
 
             <div class="tables-workspace__toolbar-actions">
               @if (explore()) {
-                <app-time-travel-control
+                <mds-time-travel-control
                   [value]="timeTravel()"
                   (valueChange)="onTimeTravelChange($event)"
                 />
-                <app-run-query-button
+                <mds-run-query-button
                   [limit]="queryRowLimit()"
                   [maxLimit]="maxQueryLimit()"
                   [disabled]="selectedFieldList().length === 0"
@@ -160,7 +160,7 @@
           <div class="tables-workspace__sections">
             @if (queryWarnings().length > 0) {
               <div class="tables-workspace__warnings">
-                <app-query-warnings-banner [warnings]="queryWarnings()" />
+                <mds-query-warnings-banner [warnings]="queryWarnings()" />
               </div>
             }
             <mat-accordion class="tables-workspace__accordion" multi>
@@ -378,7 +378,7 @@
                     <p>{{ 'explorer.selectFieldsForSql' | translate }}</p>
                   </div>
                 } @else {
-                  <app-sql-highlight
+                  <mds-sql-highlight
                     [sql]="displaySql()"
                     [ariaLabel]="'explorer.generatedSql' | translate"
                   />

@@ -2,7 +2,7 @@ import { Component, computed, input } from '@angular/core';
 import { tokenizeSql } from './sql-tokenizer';
 
 @Component({
-  selector: 'app-sql-highlight',
+  selector: 'mds-sql-highlight',
   templateUrl: './sql-highlight.component.html',
   styleUrl: './sql-highlight.component.scss',
 })

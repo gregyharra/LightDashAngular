@@ -33,7 +33,7 @@ export type ColumnFilterValue =
   | NumberFilterValue;
 
 @Component({
-  selector: 'app-content-list-column-header',
+  selector: 'mds-content-list-column-header',
   imports: [
     FormsModule,
     MatButtonModule,

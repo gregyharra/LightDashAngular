@@ -22,7 +22,7 @@ export type ChartFieldsAccordionGroup = {
  * Shared so Explore can render the same collapsible model sections.
  */
 @Component({
-  selector: 'app-chart-fields-accordion',
+  selector: 'mds-chart-fields-accordion',
   imports: [MatExpansionModule, MatIconModule, MatTooltipModule, TranslatePipe],
   templateUrl: './chart-fields-accordion.component.html',
   styleUrl: './chart-fields-accordion.component.scss',

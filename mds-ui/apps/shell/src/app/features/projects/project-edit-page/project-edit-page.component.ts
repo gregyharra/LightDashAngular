@@ -32,7 +32,7 @@ import { FilterableLinksTableComponent } from '../../tables/filterable-links-tab
 import { LinkDialogComponent } from '../../tables/link-dialog/link-dialog.component';
 import { ModelJoinsService } from '../../tables/model-joins.service';
 
-import { ConfirmDialogComponent } from '../../../shared/confirm-dialog/confirm-dialog.component';
+import { ConfirmDialogComponent } from '@mds-ui/shared';
 
 type ProjectSettingsTab = 'configuration' | 'links';
 

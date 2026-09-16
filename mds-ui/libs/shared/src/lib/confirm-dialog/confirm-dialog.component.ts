@@ -18,7 +18,7 @@ export type ConfirmDialogData = {
 export type ConfirmDialogResult = true | undefined;
 
 @Component({
-  selector: 'app-confirm-dialog',
+  selector: 'mds-confirm-dialog',
   imports: [MatButtonModule, MatDialogModule, TranslatePipe],
   template: `
     <h2 mat-dialog-title>

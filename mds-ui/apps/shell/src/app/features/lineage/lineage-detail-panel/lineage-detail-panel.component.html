@@ -312,7 +312,7 @@
             </p>
           }
           @if (displaySql(); as sql) {
-            <app-sql-highlight [sql]="sql" [ariaLabel]="'tables.modelSql' | translate" />
+            <mds-sql-highlight [sql]="sql" [ariaLabel]="'tables.modelSql' | translate" />
           }
         } @else {
           <p class="lineage-detail__empty">{{ 'lineage.detail.noSql' | translate }}</p>

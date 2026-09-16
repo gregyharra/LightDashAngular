@@ -82,7 +82,7 @@
       <div class="tables-fields-panel__error">{{ exploreError() }}</div>
     } @else if (hasExplore()) {
       <div class="tables-fields-panel__fields">
-        <app-chart-fields-accordion
+        <mds-chart-fields-accordion
           [fieldGroups]="fieldGroups()"
           [selectedFieldIds]="selectedFieldIds()"
           [showEmpty]="!!fieldSearch().trim()"

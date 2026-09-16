@@ -35,6 +35,7 @@
   <mat-menu #settingsMenu="matMenu" class="run-query-button__menu" xPosition="before">
     <div
       class="run-query-button__popover"
+      tabindex="-1"
       (click)="$event.stopPropagation()"
       (keydown)="$event.stopPropagation()"
     >

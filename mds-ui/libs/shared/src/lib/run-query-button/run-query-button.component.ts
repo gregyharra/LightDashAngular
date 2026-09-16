@@ -12,10 +12,10 @@ import { LanguageService } from '@mds-ui/core';
 import {
   clampQueryLimit,
   resolveMaxQueryLimit,
-} from '../../features/explorer/query-limit.utils';
+} from './query-limit.utils';
 
 @Component({
-  selector: 'app-run-query-button',
+  selector: 'mds-run-query-button',
   imports: [
     FormsModule,
     MatButtonModule,

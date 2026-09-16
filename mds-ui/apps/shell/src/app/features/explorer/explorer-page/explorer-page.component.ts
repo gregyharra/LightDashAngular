@@ -69,8 +69,8 @@ import { ExportService } from '../../export/export.service';
 import { startExport } from '../../export/start-export';
 import { ResizableSidebarDirective } from '../../../layout/resizable-sidebar/resizable-sidebar.directive';
 import { ProjectBrowseNavComponent } from '../../../layout/project-browse-nav/project-browse-nav.component';
-import { RunQueryButtonComponent } from '../../../shared/run-query-button/run-query-button.component';
-import { SqlHighlightComponent } from '../../../shared/sql-highlight/sql-highlight.component';
+import { RunQueryButtonComponent } from '@mds-ui/shared';
+import { SqlHighlightComponent } from '@mds-ui/shared';
 
 const RESULTS_PAGE_SIZE_OPTIONS = [10, 25, 50, 100];
 const RESULTS_DEFAULT_PAGE_SIZE = 25;

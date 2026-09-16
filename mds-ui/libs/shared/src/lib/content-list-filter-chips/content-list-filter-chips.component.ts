@@ -4,7 +4,7 @@ import { TranslatePipe } from '@ngx-translate/core';
 import { ActiveFilterChip } from '../content-list-filter.utils';
 
 @Component({
-  selector: 'app-content-list-filter-chips',
+  selector: 'mds-content-list-filter-chips',
   imports: [MatIconModule, TranslatePipe],
   templateUrl: './content-list-filter-chips.component.html',
   styleUrl: './content-list-filter-chips.component.scss',

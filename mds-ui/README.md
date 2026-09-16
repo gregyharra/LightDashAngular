@@ -46,16 +46,14 @@ Set `useMockApi: true` in `apps/shell/src/environments/environment.ts`. Requests
 ## Nx project layout
 
 ```
-apps/shell/             # Nx application project (tagged type:app)
+apps/shell/              # Nx application project (tagged type:app)
   src/app/
-    core/
-      api/           # LightdashApiService, types
-      guards/        # auth / guest / admin / setup / reset-password
-      interceptors/  # mock + auth (401 → login)
-      mock/          # Mock interceptor, router, fixtures
-      services/      # AppStateService, AuthService
-    features/        # auth, projects, settings, charts, dashboards, explorer, …
-    layout/          # App shell, navbar, settings sidebar
+    features/            # auth, projects, settings, charts, dashboards, explorer, …
+    layout/              # App shell, navbar, settings sidebar
+libs/
+  models/                # Shared domain types and pure model utilities (type:models)
+  core/                  # API, auth, state, guards, interceptors, i18n (type:core)
+  shared/                # Reusable UI components and presentation utilities (type:shared)
 ```
 
 ## Migration phases

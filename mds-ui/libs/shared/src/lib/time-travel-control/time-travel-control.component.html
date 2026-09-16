@@ -3,12 +3,12 @@
   [class.time-travel-control--compact]="compact()"
   [class.time-travel-control--active]="!!resolveValue()"
 >
-  <label class="time-travel-control__label">
+  <span class="time-travel-control__label">
     <mat-icon>history</mat-icon>
     @if (!compact()) {
       <span>{{ 'timeTravel.label' | translate }}</span>
     }
-  </label>
+  </span>
 
   <input
     class="time-travel-control__input"

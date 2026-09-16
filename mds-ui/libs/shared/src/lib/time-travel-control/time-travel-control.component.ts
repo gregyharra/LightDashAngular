@@ -8,10 +8,10 @@ import {
   formatTimeTravelLabel,
   fromDatetimeLocalValue,
   toDatetimeLocalValue,
-} from '../../features/explorer/time-travel.utils';
+} from './time-travel-control.utils';
 
 @Component({
-  selector: 'app-time-travel-control',
+  selector: 'mds-time-travel-control',
   imports: [FormsModule, MatButtonModule, MatIconModule, TranslatePipe],
   templateUrl: './time-travel-control.component.html',
   styleUrl: './time-travel-control.component.scss',

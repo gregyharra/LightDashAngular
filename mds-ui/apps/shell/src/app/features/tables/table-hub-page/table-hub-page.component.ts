@@ -49,18 +49,18 @@ import { FilterableLinksTableComponent } from '../filterable-links-table/filtera
 import { LinkDialogComponent } from '../link-dialog/link-dialog.component';
 import { ModelJoinsService } from '../model-joins.service';
 
-import { ConfirmDialogComponent } from '../../../shared/confirm-dialog/confirm-dialog.component';
-import { SqlHighlightComponent } from '../../../shared/sql-highlight/sql-highlight.component';
+import { ConfirmDialogComponent } from '@mds-ui/shared';
+import { SqlHighlightComponent } from '@mds-ui/shared';
 import {
   ModelSqlViewMode,
   preferredModelSqlViewMode,
   resolveModelSqlDisplay,
-} from '../../../shared/sql-highlight/model-sql-view';
+} from '@mds-ui/shared';
 import {
   ColumnFilterType,
   ColumnFilterValue,
   ContentListColumnHeaderComponent,
-} from '../../../ui/content-list-column-header/content-list-column-header.component';
+} from '@mds-ui/shared';
 import {
   NumberFilterValue,
   SelectFilterValue,
@@ -74,7 +74,7 @@ import {
   matchesNumberFilter,
   matchesSelectFilter,
   matchesTextFilter,
-} from '../../../ui/content-list-filter.utils';
+} from '@mds-ui/shared';
 
 type HubTab = 'overview' | 'columns' | 'links' | 'lineage' | 'sql';
 

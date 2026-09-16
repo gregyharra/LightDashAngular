@@ -135,7 +135,7 @@
           </div>
         } @else {
           <div class="chart-view__fields-scroll">
-            <app-chart-fields-accordion
+            <mds-chart-fields-accordion
               [fieldGroups]="filteredTableGroups()"
               [selectedFieldIds]="selectedFieldIds()"
               [showEmpty]="!!fieldSearch().trim()"
@@ -197,7 +197,7 @@
             <div class="chart-view__title-actions">
               @if (editMode()) {
                 @if (explore()) {
-                  <app-run-query-button
+                  <mds-run-query-button
                     [limit]="queryRowLimit()"
                     [maxLimit]="maxQueryLimit()"
                     [disabled]="!canRunQuery()"
@@ -444,7 +444,7 @@
                   </mat-expansion-panel-header>
 
                   @if (displaySql(); as sql) {
-                    <app-sql-highlight
+                    <mds-sql-highlight
                       [sql]="sql"
                       [ariaLabel]="'explorer.chartSqlAria' | translate"
                     />

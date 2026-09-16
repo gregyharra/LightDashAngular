@@ -3,7 +3,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { QueryWarning } from '@mds-ui/models';
 
 @Component({
-  selector: 'app-query-warnings-banner',
+  selector: 'mds-query-warnings-banner',
   imports: [MatIconModule],
   templateUrl: './query-warnings-banner.component.html',
   styleUrl: './query-warnings-banner.component.scss',

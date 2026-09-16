@@ -16,7 +16,7 @@ import { Subject } from 'rxjs';
 import { debounceTime, distinctUntilChanged } from 'rxjs/operators';
 
 @Component({
-  selector: 'app-content-list-filter-bar',
+  selector: 'mds-content-list-filter-bar',
   imports: [
     FormsModule,
     MatFormFieldModule,

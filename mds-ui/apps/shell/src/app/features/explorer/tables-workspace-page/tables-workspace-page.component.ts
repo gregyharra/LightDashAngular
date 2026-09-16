@@ -73,10 +73,10 @@ import {
 import { mergeTimeTravelIntoMetricQuery } from '../time-travel.utils';
 import { getFilterableDimensions } from '../tables-filters-panel/tables-filters.utils';
 import { TablesFiltersPanelComponent } from '../tables-filters-panel/tables-filters-panel.component';
-import { TimeTravelControlComponent } from '../../../shared/time-travel-control/time-travel-control.component';
-import { QueryWarningsBannerComponent } from '../../../shared/query-warnings-banner/query-warnings-banner.component';
-import { RunQueryButtonComponent } from '../../../shared/run-query-button/run-query-button.component';
-import { SqlHighlightComponent } from '../../../shared/sql-highlight/sql-highlight.component';
+import { TimeTravelControlComponent } from '@mds-ui/shared';
+import { QueryWarningsBannerComponent } from '@mds-ui/shared';
+import { RunQueryButtonComponent } from '@mds-ui/shared';
+import { SqlHighlightComponent } from '@mds-ui/shared';
 import { AppStateService } from '@mds-ui/core';
 import { ChartService } from '../../charts/chart.service';
 import {

@@ -21,6 +21,9 @@
       ],
       "@mds-ui/core": [
         "./libs/core/src/index.ts"
+      ],
+      "@mds-ui/shared": [
+        "./libs/shared/src/index.ts"
       ]
     }
   },

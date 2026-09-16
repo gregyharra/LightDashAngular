@@ -21,7 +21,7 @@ import {
 import {
   ChartFieldsAccordionComponent,
   ChartFieldsAccordionGroup,
-} from '../../../shared/chart-fields-accordion/chart-fields-accordion.component';
+} from '@mds-ui/shared';
 
 export type TablesFieldGroup = ChartFieldsAccordionGroup & {
   dimensions: { fieldId: FieldId; label: string; type?: string }[];

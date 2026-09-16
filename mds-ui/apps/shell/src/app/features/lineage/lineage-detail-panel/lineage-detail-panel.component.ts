@@ -44,12 +44,12 @@ import {
   inferColumnTransformation,
 } from '../column-transformation.utils';
 import { TransformationChipComponent } from '../transformation-chip/transformation-chip.component';
-import { SqlHighlightComponent } from '../../../shared/sql-highlight/sql-highlight.component';
+import { SqlHighlightComponent } from '@mds-ui/shared';
 import {
   ModelSqlViewMode,
   preferredModelSqlViewMode,
   resolveModelSqlDisplay,
-} from '../../../shared/sql-highlight/model-sql-view';
+} from '@mds-ui/shared';
 
 type DetailTab = LineageDetailTab;
 type ColumnSortKey = 'name' | 'type';
