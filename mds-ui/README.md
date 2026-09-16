@@ -4,7 +4,7 @@ Angular + Material frontend for the MDS Data Platform. Lives in the **mds-ui/** 
 
 ## Prerequisites
 
-- Node.js 18.19+ or 20+
+- Node.js **^20.19**, **^22.12**, or **>=24** (matches `@angular/cli` / Nx 23; use `nvm use` in `mds-ui/` — see `.nvmrc`)
 - For real API mode: running **mds-backend** + Postgres (see repo root README)
 
 ## Quick start
@@ -24,7 +24,7 @@ If port 4200 is already in use, stop the existing process (`lsof -i :4200`) or r
 ### Real backend (default)
 
 1. Start postgres + backend (see repo root README; install backend with `pip install -e ".[dev,dbt]"`).
-2. Keep `useMockApi: false` in `mds-ui/apps/shell/src/environments/environment.ts`.
+2. Keep `useMockApi: false` in `apps/shell/src/environments/environment.ts`.
 3. Complete `/setup` once, or sign in at `/login`.
 4. Browse projects at `/projects`. Workspace admin (projects, warehouses, users) lives under **`/settings/*`**.
 
