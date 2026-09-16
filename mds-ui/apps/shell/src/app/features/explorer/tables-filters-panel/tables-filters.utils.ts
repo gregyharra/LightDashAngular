@@ -10,7 +10,7 @@ import {
   getFieldId,
 } from '@mds-ui/models';
 
-import { getDateAnchor } from '@mds-ui/core';
+import { getDateAnchor } from '../time-travel.utils';
 import { createUuid } from '@mds-ui/core';
 
 export type FilterableDimension = {

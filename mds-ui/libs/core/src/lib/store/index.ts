@@ -12,6 +12,7 @@ export function provideAppStore(): EnvironmentProviders[] {
 }
 
 export * from './chart-query/chart-query.actions';
+export * from './chart-query/chart-query.adapter';
 export * from './chart-query/chart-query.models';
 export * from './chart-query/chart-query.selectors';
 export * from './chart-query/chart-query.utils';

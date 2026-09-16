@@ -14,7 +14,7 @@ import {
 import {
   formatDashboardFilterSummary,
   formatDateZoomLabel,
-} from '@mds-ui/core';
+} from '../dashboard-filters';
 import { TimeTravelControlComponent } from '../../../shared/time-travel-control/time-travel-control.component';
 import { FilterableDimension } from '../../explorer/tables-filters-panel/tables-filters.utils';
 import {

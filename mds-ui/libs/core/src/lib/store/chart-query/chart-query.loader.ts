@@ -16,13 +16,7 @@ import {
   MOCK_CHART_5_UUID,
   MOCK_CHART_6_UUID,
 } from '../../mock/fixtures/ids.fixture';
-import { ChartService } from '../../services/chart.service';
-import { ExplorerService } from '../../services/explorer.service';
-import {
-  applyDashboardContextToMetricQuery,
-  mergeDashboardFiltersIntoMetricQuery,
-} from '../../utils/dashboard-filters';
-import { mergeTimeTravelIntoMetricQuery } from '../../utils/time-travel.utils';
+import { CHART_QUERY_ADAPTER } from './chart-query.adapter';
 import {
   ChartQueryKeyInput,
   ChartQuerySnapshot,
@@ -33,8 +27,7 @@ import {
 
 @Injectable({ providedIn: 'root' })
 export class ChartQueryLoader {
-  private readonly chartService = inject(ChartService);
-  private readonly explorerService = inject(ExplorerService);
+  private readonly adapter = inject(CHART_QUERY_ADAPTER);
 
   load(input: ChartQueryKeyInput): Observable<ChartQuerySnapshot> {
     switch (input.kind) {
@@ -52,7 +45,7 @@ export class ChartQueryLoader {
   ): Observable<ChartQuerySnapshot> {
     const bypassCache = input.bypassCache ?? false;
 
-    return this.chartService.get(input.projectUuid, input.savedChartUuid).pipe(
+    return this.adapter.getChart(input.projectUuid, input.savedChartUuid).pipe(
       switchMap((chart) => {
         const chartConfig = this.normalizeDashboardChartConfig(
           chart.chartConfig,
@@ -60,18 +53,18 @@ export class ChartQueryLoader {
         );
         const bigNumberComparison = getBigNumberComparison(input.savedChartUuid);
 
-        return this.explorerService
+        return this.adapter
           .getExplore(input.projectUuid, chart.tableName)
           .pipe(
             switchMap((explore) => {
-              const metricQuery = applyDashboardContextToMetricQuery(
+              const metricQuery = this.adapter.applyDashboardContext(
                 chart.metricQuery,
                 input.dashboardFilters,
                 input.timeTravel,
                 explore,
               );
 
-              return this.explorerService
+              return this.adapter
                 .runQuery(input.projectUuid, metricQuery, { bypassCache })
                 .pipe(
                   switchMap((results) => {
@@ -102,24 +95,24 @@ export class ChartQueryLoader {
   ): Observable<ChartQuerySnapshot> {
     const bypassCache = input.bypassCache ?? false;
 
-    return this.chartService.get(input.projectUuid, input.savedChartUuid).pipe(
+    return this.adapter.getChart(input.projectUuid, input.savedChartUuid).pipe(
       switchMap((chart) => {
         const chartConfig = this.normalizeDashboardChartConfig(
           chart.chartConfig,
           chart.metricQuery,
         );
 
-        return this.explorerService
+        return this.adapter
           .getExplore(input.projectUuid, chart.tableName)
           .pipe(
             switchMap((explore) => {
-              const metricQuery = mergeDashboardFiltersIntoMetricQuery(
+              const metricQuery = this.adapter.mergeDashboardFilters(
                 chart.metricQuery,
                 input.dimensionFilters,
                 explore,
               );
 
-              return this.explorerService.runQuery(
+              return this.adapter.runQuery(
                 input.projectUuid,
                 metricQuery,
                 { bypassCache },
@@ -136,12 +129,12 @@ export class ChartQueryLoader {
   ): Observable<ChartQuerySnapshot> {
     const bypassCache = input.bypassCache ?? false;
 
-    return this.explorerService
+    return this.adapter
       .getExplore(input.projectUuid, input.metricQuery.exploreName)
       .pipe(
         switchMap((explore) => {
-          const metricQuery = mergeTimeTravelIntoMetricQuery(
-            mergeDashboardFiltersIntoMetricQuery(
+          const metricQuery = this.adapter.mergeTimeTravel(
+            this.adapter.mergeDashboardFilters(
               input.metricQuery,
               input.dimensionFilters,
               explore,
@@ -149,7 +142,7 @@ export class ChartQueryLoader {
             input.timeTravel,
           );
 
-          return this.explorerService.runQuery(input.projectUuid, metricQuery, {
+          return this.adapter.runQuery(input.projectUuid, metricQuery, {
             bypassCache,
           });
         }),

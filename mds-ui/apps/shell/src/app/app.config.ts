@@ -11,6 +11,8 @@ import { provideTranslateHttpLoader } from '@ngx-translate/http-loader';
 import {
   AppStateService,
   authInterceptor,
+  CHART_QUERY_ADAPTER,
+  ChartQueryAdapter,
   LanguageService,
   MOCK_API_ENABLED,
   mockApiInterceptor,
@@ -19,12 +21,38 @@ import {
 
 import { routes } from './app.routes';
 import { environment } from '../environments/environment';
+import { ChartService } from './features/charts/chart.service';
+import {
+  applyDashboardContextToMetricQuery,
+  mergeDashboardFiltersIntoMetricQuery,
+} from './features/dashboards/dashboard-filters';
+import { ExplorerService } from './features/explorer/explorer.service';
+import { mergeTimeTravelIntoMetricQuery } from './features/explorer/time-travel.utils';
 
 registerLocaleData(localeFr);
 
 export const appConfig: ApplicationConfig = {
   providers: [
     provideZoneChangeDetection({ eventCoalescing: true }),
+    {
+      provide: CHART_QUERY_ADAPTER,
+      useFactory: (): ChartQueryAdapter => {
+        const chartService = inject(ChartService);
+        const explorerService = inject(ExplorerService);
+
+        return {
+          getChart: (projectUuid, chartUuid) =>
+            chartService.get(projectUuid, chartUuid),
+          getExplore: (projectUuid, tableId) =>
+            explorerService.getExplore(projectUuid, tableId),
+          runQuery: (projectUuid, metricQuery, options) =>
+            explorerService.runQuery(projectUuid, metricQuery, options),
+          applyDashboardContext: applyDashboardContextToMetricQuery,
+          mergeDashboardFilters: mergeDashboardFiltersIntoMetricQuery,
+          mergeTimeTravel: mergeTimeTravelIntoMetricQuery,
+        };
+      },
+    },
     ...provideAppStore(),
     provideRouter(routes),
     provideAnimationsAsync(),

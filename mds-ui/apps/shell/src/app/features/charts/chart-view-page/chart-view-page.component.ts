@@ -51,7 +51,7 @@ import {
   LineageNode,
 } from '@mds-ui/models';
 
-import { ChartService } from '@mds-ui/core';
+import { ChartService } from '../chart.service';
 import {
   ChartDetailsDialogComponent,
   ChartDetailsDialogData,
@@ -62,7 +62,7 @@ import {
   SaveChartDialogData,
   SaveChartDialogResult,
 } from '../save-chart-dialog/save-chart-dialog.component';
-import { ExplorerService } from '@mds-ui/core';
+import { ExplorerService } from '../../explorer/explorer.service';
 import {
   CreateChartFromExploreState,
   readCreateFromExploreState,
@@ -78,7 +78,7 @@ import {
   exploreHasFields,
   isExploreableDbtTreeNode,
   resolveExploreNameForSelection,
-} from '@mds-ui/core';
+} from '../../explorer/explore-from-dbt.utils';
 import {
   clampQueryLimit,
   resolveCsvMaxLimit,
@@ -106,7 +106,7 @@ import {
   enrichDashboardFilterLabels,
   extractDashboardFiltersFromMetricQuery,
   mergeDashboardFiltersIntoMetricQuery,
-} from '@mds-ui/core';
+} from '../../dashboards/dashboard-filters';
 import {
   ChartQueryActions,
   ChartQueryEntry,

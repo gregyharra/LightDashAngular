@@ -9,7 +9,7 @@ import {
 } from '@mds-ui/models';
 
 import { buildFiltersWhereClause } from './tables-filters-panel/tables-filters.utils';
-import { resolveSqlTableWithTimeTravel } from '@mds-ui/core';
+import { resolveSqlTableWithTimeTravel } from './time-travel.utils';
 
 type ResolvedField = {
   tableName: string;

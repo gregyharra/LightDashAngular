@@ -3,11 +3,27 @@ import {
   MetricQuery,
   QueryWarning,
 } from '@mds-ui/models';
-import {
-  buildTimeTravelActiveWarning,
-  formatTimeTravelLabel,
-  resolveEffectiveTemporalType,
-} from '../../utils/time-travel.utils';
+
+function formatTimeTravelLabel(isoTimestamp: string): string {
+  const date = new Date(isoTimestamp);
+  if (Number.isNaN(date.getTime())) {
+    return isoTimestamp;
+  }
+
+  const activeLanguage =
+    typeof document === 'undefined' ? 'en' : document.documentElement.lang;
+  const locale = activeLanguage.toLowerCase().startsWith('fr')
+    ? 'fr-FR'
+    : 'en-US';
+
+  return date.toLocaleString(locale, {
+    year: 'numeric',
+    month: 'short',
+    day: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+  });
+}
 
 export function exploreSupportsTimeTravel(explore: Explore): boolean {
   const baseTable = explore.tables[explore.baseTable];
@@ -15,7 +31,7 @@ export function exploreSupportsTimeTravel(explore: Explore): boolean {
     return false;
   }
 
-  return resolveEffectiveTemporalType(baseTable.temporalType) !== 'none';
+  return (baseTable.temporalType ?? 'iceberg') !== 'none';
 }
 
 export function filterRowsByAsOf<T extends Record<string, unknown>>(
@@ -40,7 +56,13 @@ export function buildMockTimeTravelWarnings(
     return [];
   }
 
-  const warnings: QueryWarning[] = [buildTimeTravelActiveWarning(timeTravel)];
+  const warnings: QueryWarning[] = [
+    {
+      code: 'TIME_TRAVEL_ACTIVE',
+      message: `Viewing data as of ${formatTimeTravelLabel(timeTravel.asOfTimestamp)}. Results may differ from live data.`,
+      severity: 'info',
+    },
+  ];
 
   if (explore && !exploreSupportsTimeTravel(explore)) {
     warnings.push({

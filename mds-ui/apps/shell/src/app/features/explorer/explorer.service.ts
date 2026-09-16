@@ -2,7 +2,7 @@ import { Injectable, inject } from '@angular/core';
 import { TranslateService } from '@ngx-translate/core';
 import { Observable, shareReplay, switchMap, tap, throwError, timer } from 'rxjs';
 import { map } from 'rxjs/operators';
-import { LightdashApiService, toApiError } from '../api/lightdash-api.service';
+import { LightdashApiService, toApiError } from '@mds-ui/core';
 import {
   AsyncQueryPollResponse,
   ExecuteAsyncMetricQueryResponse,

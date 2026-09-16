@@ -15,7 +15,7 @@ import {
   DashboardFilterOperator,
   DashboardFilterUnitOfTime,
 } from '@mds-ui/models';
-import { formatFilterOperator } from '@mds-ui/core';
+import { formatFilterOperator } from '../dashboard-filters';
 import {
   FILTER_UNIT_OF_TIME_OPTIONS,
   FilterableDimension,

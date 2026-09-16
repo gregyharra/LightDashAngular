@@ -28,7 +28,7 @@ import {
   LineageNode,
 } from '@mds-ui/models';
 
-import { ExplorerService } from '@mds-ui/core';
+import { ExplorerService } from '../explorer.service';
 import { LineageService } from '../../lineage/lineage.service';
 import { FolderSearchPanelComponent } from '../../lineage/folder-search-panel/folder-search-panel.component';
 import { findTreeNodeByLineageId } from '../../lineage/dbt-tree-utils';
@@ -37,7 +37,7 @@ import {
   findExploreForLineageNode,
 } from '../explore-lineage.utils';
 import { groupExploresByTags } from '../explore-sections.utils';
-import { resolveExploreNameForSelection } from '@mds-ui/core';
+import { resolveExploreNameForSelection } from '../explore-from-dbt.utils';
 import {
   CREATE_FROM_EXPLORE_STATE_KEY,
   CreateChartFromExploreState,

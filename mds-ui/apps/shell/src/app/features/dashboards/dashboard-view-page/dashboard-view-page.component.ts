@@ -38,8 +38,8 @@ import {
 
 import { mockSqlCharts, MockSqlChartBasic } from '@mds-ui/core';
 import { createUuid } from '@mds-ui/core';
-import { ChartService } from '@mds-ui/core';
-import { ExplorerService } from '@mds-ui/core';
+import { ChartService } from '../../charts/chart.service';
+import { ExplorerService } from '../../explorer/explorer.service';
 import {
   FilterableDimension,
   getFilterableDimensions,

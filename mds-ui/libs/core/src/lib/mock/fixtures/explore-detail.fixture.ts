@@ -1,10 +1,136 @@
-import { Explore, getFieldId } from '@mds-ui/models';
 import {
-  buildExploreFromLineageNode,
-  resolveLineageNodeForExploreRequest,
-} from '../../utils/explore-from-dbt.utils';
+  CompiledTable,
+  DimensionType,
+  Explore,
+  LineageColumn,
+  LineageNode,
+  Metric,
+  getFieldId,
+} from '@mds-ui/models';
 import { fctOrdersExplore } from './explore-fct-orders.fixture';
 import { mockLineage } from './lineage.fixture';
+
+function formatWords(value: string): string {
+  return value
+    .split('_')
+    .filter(Boolean)
+    .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+    .join(' ');
+}
+
+function mapWarehouseType(warehouseType: string): DimensionType {
+  const normalized = warehouseType.toLowerCase();
+  if (normalized.includes('bool')) return 'boolean';
+  if (normalized === 'date') return 'date';
+  if (normalized.includes('timestamp') || normalized.includes('datetime')) {
+    return 'timestamp';
+  }
+  if (
+    normalized.includes('int') ||
+    normalized.includes('decimal') ||
+    normalized.includes('numeric') ||
+    normalized.includes('float') ||
+    normalized.includes('double') ||
+    normalized.includes('real') ||
+    normalized === 'number'
+  ) {
+    return 'number';
+  }
+  return 'string';
+}
+
+function buildExploreFromLineageNode(node: LineageNode): Explore {
+  const tableName = node.name;
+  const tableLabel = formatWords(node.name);
+  const columns = node.columns ?? [];
+  const dimensions = Object.fromEntries(
+    columns.map((column) => [
+      column.name,
+      {
+        fieldType: 'dimension' as const,
+        type: mapWarehouseType(column.type),
+        name: column.name,
+        label: formatWords(column.name),
+        table: tableName,
+        tableLabel,
+        sql: `\${TABLE}.${column.name}`,
+        hidden: false,
+        description: column.description,
+      },
+    ]),
+  );
+  const metrics: Record<string, Metric> = {};
+  if (columns.length > 0) {
+    const countColumn =
+      columns.find((column) => /(^id$|_id$|_count$)/i.test(column.name)) ??
+      columns[0];
+    metrics['row_count'] = {
+      fieldType: 'metric',
+      type: 'count',
+      name: 'row_count',
+      label: 'Row count',
+      table: tableName,
+      tableLabel,
+      sql: `\${TABLE}.${countColumn.name}`,
+      hidden: false,
+      description: `Count of rows in ${tableLabel}`,
+    };
+    const sumColumn = columns.find(
+      (column: LineageColumn) =>
+        mapWarehouseType(column.type) === 'number' &&
+        /amount|revenue|price|cost|total|spend|quantity|count|value/i.test(
+          column.name,
+        ),
+    );
+    if (sumColumn) {
+      const metricName = `total_${sumColumn.name}`;
+      metrics[metricName] = {
+        fieldType: 'metric',
+        type: 'sum',
+        name: metricName,
+        label: `Total ${formatWords(sumColumn.name)}`,
+        table: tableName,
+        tableLabel,
+        sql: `\${TABLE}.${sumColumn.name}`,
+        hidden: false,
+        description: `Sum of ${formatWords(sumColumn.name)}`,
+      };
+    }
+  }
+
+  const compiledTable: CompiledTable = {
+    name: tableName,
+    label: tableLabel,
+    database: node.database,
+    schema: node.schema,
+    sqlTable: `${node.schema}.${tableName}`,
+    description: node.description,
+    temporalType: node.type === 'seed' ? 'none' : 'iceberg',
+    dimensions,
+    metrics,
+  };
+
+  return {
+    name: tableName,
+    label: tableLabel,
+    tags: node.tags ?? [],
+    description: node.description,
+    baseTable: tableName,
+    targetDatabase: 'trino',
+    joinedTables: [],
+    tables: { [tableName]: compiledTable },
+  };
+}
+
+function resolveLineageNodeForExploreRequest(
+  nodes: LineageNode[],
+  tableId: string,
+): LineageNode | undefined {
+  return (
+    nodes.find((node) => node.id === tableId) ??
+    nodes.find((node) => node.name === tableId)
+  );
+}
 
 const ordersTable = {
   name: 'orders',

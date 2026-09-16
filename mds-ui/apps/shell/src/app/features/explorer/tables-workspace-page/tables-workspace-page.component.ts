@@ -59,10 +59,10 @@ import {
   formatModelLabel,
   isExploreableDbtTreeNode,
   resolveExploreNameForSelection,
-} from '@mds-ui/core';
+} from '../explore-from-dbt.utils';
 import { buildMetricQuerySql } from '../metric-query-sql.utils';
-import { ExplorerService } from '@mds-ui/core';
-import { mergeDashboardFiltersIntoMetricQuery } from '@mds-ui/core';
+import { ExplorerService } from '../explorer.service';
+import { mergeDashboardFiltersIntoMetricQuery } from '../../dashboards/dashboard-filters';
 import {
   ChartQueryActions,
   ChartQueryEntry,
@@ -70,7 +70,7 @@ import {
   chartQueryKey,
   selectEntries,
 } from '@mds-ui/core';
-import { mergeTimeTravelIntoMetricQuery } from '@mds-ui/core';
+import { mergeTimeTravelIntoMetricQuery } from '../time-travel.utils';
 import { getFilterableDimensions } from '../tables-filters-panel/tables-filters.utils';
 import { TablesFiltersPanelComponent } from '../tables-filters-panel/tables-filters-panel.component';
 import { TimeTravelControlComponent } from '../../../shared/time-travel-control/time-travel-control.component';
@@ -78,7 +78,7 @@ import { QueryWarningsBannerComponent } from '../../../shared/query-warnings-ban
 import { RunQueryButtonComponent } from '../../../shared/run-query-button/run-query-button.component';
 import { SqlHighlightComponent } from '../../../shared/sql-highlight/sql-highlight.component';
 import { AppStateService } from '@mds-ui/core';
-import { ChartService } from '@mds-ui/core';
+import { ChartService } from '../../charts/chart.service';
 import {
   clampQueryLimit,
   resolveMaxQueryLimit,

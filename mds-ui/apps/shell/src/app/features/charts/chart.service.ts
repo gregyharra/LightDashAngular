@@ -1,6 +1,6 @@
 import { Injectable, inject } from '@angular/core';
 import { Observable, of, shareReplay, tap } from 'rxjs';
-import { LightdashApiService } from '../api/lightdash-api.service';
+import { LightdashApiService } from '@mds-ui/core';
 import {
   CreateSavedChartPayload,
   SavedChart,
