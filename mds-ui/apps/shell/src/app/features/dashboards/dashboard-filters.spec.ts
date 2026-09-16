@@ -5,8 +5,11 @@ import {
   formatFilterOperator,
   mergeDashboardFiltersIntoMetricQuery,
 } from './dashboard-filters';
-import { Explore, MetricQuery } from '../../core/models/explore.model';
-import { DashboardDimensionFilter } from '../../core/models/dashboard.model';
+import {
+  Explore,
+  MetricQuery,
+  DashboardDimensionFilter,
+} from '@mds-ui/models';
 
 const baseQuery: MetricQuery = {
   exploreName: 'orders',

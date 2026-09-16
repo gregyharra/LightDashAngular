@@ -1,6 +1,8 @@
 import { EChartsOption } from 'echarts';
-import { SankeyChartConfigBody } from '../../../core/models/chart.model';
-import { QueryResults } from '../../../core/models/explore.model';
+import {
+  SankeyChartConfigBody,
+  QueryResults,
+} from '@mds-ui/models';
 
 export type BuildSankeyArgs = {
   results: QueryResults;

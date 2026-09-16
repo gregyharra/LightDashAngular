@@ -6,7 +6,7 @@ import {
   Dashboard,
   DashboardBasicDetailsWithTileTypes,
   UpdateDashboardPayload,
-} from '../../core/models/dashboard.model';
+} from '@mds-ui/models';
 
 @Injectable({ providedIn: 'root' })
 export class DashboardService {

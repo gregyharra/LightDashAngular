@@ -1,6 +1,6 @@
 import { Component, computed, input } from '@angular/core';
 import { TranslatePipe } from '@ngx-translate/core';
-import { ColumnTransformationType } from '../../../core/models/lineage.model';
+import { ColumnTransformationType } from '@mds-ui/models';
 import {
   TRANSFORMATION_SHORT_LABELS,
   TransformationChipMode,

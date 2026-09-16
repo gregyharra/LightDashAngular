@@ -2,7 +2,7 @@ import {
   Explore,
   MetricQuery,
   QueryWarning,
-} from '../../models/explore.model';
+} from '@mds-ui/models';
 import {
   buildTimeTravelActiveWarning,
   formatTimeTravelLabel,

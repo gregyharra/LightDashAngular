@@ -1,6 +1,8 @@
 import { EChartsOption } from 'echarts';
-import { GaugeChartConfigBody } from '../../../core/models/chart.model';
-import { QueryResults } from '../../../core/models/explore.model';
+import {
+  GaugeChartConfigBody,
+  QueryResults,
+} from '@mds-ui/models';
 
 export type BuildGaugeArgs = {
   results: QueryResults;

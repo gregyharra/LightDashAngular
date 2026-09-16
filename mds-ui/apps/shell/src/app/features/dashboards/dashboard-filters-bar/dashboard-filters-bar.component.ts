@@ -8,8 +8,9 @@ import {
   DashboardConfig,
   DashboardDimensionFilter,
   DateZoomGranularity,
-} from '../../../core/models/dashboard.model';
-import { TimeTravelConfig } from '../../../core/models/explore.model';
+  TimeTravelConfig,
+} from '@mds-ui/models';
+
 import {
   formatDashboardFilterSummary,
   formatDateZoomLabel,

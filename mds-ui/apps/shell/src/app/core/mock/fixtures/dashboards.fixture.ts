@@ -4,7 +4,7 @@ import {
   DashboardTab,
   DashboardTile,
   DashboardTileTypes,
-} from '../../models/dashboard.model';
+} from '@mds-ui/models';
 import {
   MOCK_CHART_2_UUID,
   MOCK_CHART_3_UUID,

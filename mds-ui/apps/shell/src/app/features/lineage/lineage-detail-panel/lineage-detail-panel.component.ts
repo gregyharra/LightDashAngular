@@ -26,7 +26,7 @@ import {
   LineageEdge,
   LineageNode,
   SelectedColumnRef,
-} from '../../../core/models/lineage.model';
+} from '@mds-ui/models';
 import { ActiveProjectService } from '../../../core/services/active-project.service';
 import {
   explorePath,

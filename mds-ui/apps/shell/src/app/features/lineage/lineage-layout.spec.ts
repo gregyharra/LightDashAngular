@@ -1,4 +1,4 @@
-import { LineageEdge, LineageNode } from '../../core/models/lineage.model';
+import { LineageEdge, LineageNode } from '@mds-ui/models';
 import { getCollapsedNodeHeight, LINEAGE_NODE_WIDTH } from './lineage-column-utils';
 import {
   layoutLineageNodes,

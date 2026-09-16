@@ -3,8 +3,13 @@ import {
   DashboardFilterOperator,
   DashboardFilterSettings,
   DashboardFilterUnitOfTime,
-} from '../../../core/models/dashboard.model';
-import { DimensionType, Explore, FieldId, TimeTravelConfig, getFieldId } from '../../../core/models/explore.model';
+  DimensionType,
+  Explore,
+  FieldId,
+  TimeTravelConfig,
+  getFieldId,
+} from '@mds-ui/models';
+
 import { getDateAnchor } from '../time-travel.utils';
 import { createUuid } from '../../../core/utils/uuid';
 

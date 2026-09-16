@@ -7,7 +7,7 @@ import {
   DictionaryListResponse,
   DictionaryModelUpdate,
   DictionaryQuality,
-} from '../../core/models/dictionary.model';
+} from '@mds-ui/models';
 
 @Injectable({ providedIn: 'root' })
 export class DictionaryService {

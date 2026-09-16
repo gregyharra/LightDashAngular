@@ -4,7 +4,7 @@ import {
   ChartLegendPlacement,
   ChartStackMode,
   DEFAULT_CHART_DISPLAY_CONFIG,
-} from '../../../core/models/chart.model';
+} from '@mds-ui/models';
 
 export type TablesChartTypeOption = {
   value: ChartKind;

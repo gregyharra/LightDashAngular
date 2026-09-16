@@ -1,4 +1,4 @@
-import { ColumnLineageEdge, LineageColumn, LineageNode } from '../../core/models/lineage.model';
+import { ColumnLineageEdge, LineageColumn, LineageNode } from '@mds-ui/models';
 import {
   inferColumnTransformation,
   transformationTranslationKey,

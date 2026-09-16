@@ -1,5 +1,8 @@
-import { FunnelChartConfigBody } from '../../../core/models/chart.model';
-import { QueryResults } from '../../../core/models/explore.model';
+import {
+  FunnelChartConfigBody,
+  QueryResults,
+} from '@mds-ui/models';
+
 import { buildFunnelOption } from './build-funnel-option';
 
 const results: QueryResults = {

@@ -10,8 +10,11 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatSelectModule } from '@angular/material/select';
 import { TranslatePipe } from '@ngx-translate/core';
 import { apiErrorMessage } from '../../../core/api/lightdash-api.service';
-import { GitProvider } from '../../../core/models/project.model';
-import { WarehouseListItem } from '../../../core/models/warehouse.model';
+import {
+  GitProvider,
+  WarehouseListItem,
+} from '@mds-ui/models';
+
 import { ActiveProjectService } from '../../../core/services/active-project.service';
 import { WarehouseCreateDialogComponent } from '../../warehouses/warehouse-create-dialog/warehouse-create-dialog.component';
 import { ProjectsService } from '../projects.service';

@@ -1,7 +1,7 @@
 import { Injectable, inject } from '@angular/core';
 import { Observable } from 'rxjs';
 import { LightdashApiService } from '../../core/api/lightdash-api.service';
-import { Space } from '../../core/models/space.model';
+import { Space } from '@mds-ui/models';
 
 @Injectable({ providedIn: 'root' })
 export class SpaceService {

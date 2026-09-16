@@ -35,14 +35,17 @@ import {
   testMockWarehouseConnection,
   updateMockWarehouse,
 } from './fixtures/warehouse.fixture';
-import { MetricQuery } from '../models/explore.model';
 import {
+  MetricQuery,
   ChartConfig,
   ChartKind,
   normalizeChartConfig,
-} from '../models/chart.model';
-import { chartKindFromConfig } from '../models/chart-config.utils';
-import { WarehouseCreate, WarehouseTestConnection, WarehouseUpdate } from '../models/warehouse.model';
+  chartKindFromConfig,
+  WarehouseCreate,
+  WarehouseTestConnection,
+  WarehouseUpdate,
+} from '@mds-ui/models';
+
 import { MockRequest, MockRoute } from './mock-api.types';
 import { createUuid } from '../utils/uuid';
 

@@ -1,4 +1,4 @@
-import { ExploreSummary } from '../../models/explore.model';
+import { ExploreSummary } from '@mds-ui/models';
 
 /** Summary explores keyed by explore name (matches LightDash API shape). */
 export const mockExplores: Record<string, ExploreSummary> = {

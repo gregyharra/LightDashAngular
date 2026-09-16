@@ -1,5 +1,8 @@
-import { TreemapChartConfigBody } from '../../../core/models/chart.model';
-import { QueryResults } from '../../../core/models/explore.model';
+import {
+  TreemapChartConfigBody,
+  QueryResults,
+} from '@mds-ui/models';
+
 import { buildTreemapOption } from './build-treemap-option';
 
 const results: QueryResults = {

@@ -1,5 +1,8 @@
-import { GaugeChartConfigBody } from '../../../core/models/chart.model';
-import { QueryResults } from '../../../core/models/explore.model';
+import {
+  GaugeChartConfigBody,
+  QueryResults,
+} from '@mds-ui/models';
+
 import { buildGaugeOption } from './build-gauge-option';
 
 const results: QueryResults = {

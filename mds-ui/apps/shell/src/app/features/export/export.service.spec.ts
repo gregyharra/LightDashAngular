@@ -1,7 +1,7 @@
 import { TestBed } from '@angular/core/testing';
 import { of } from 'rxjs';
 import { LightdashApiService } from '../../core/api/lightdash-api.service';
-import { MetricQuery } from '../../core/models/explore.model';
+import { MetricQuery } from '@mds-ui/models';
 import { ExportRequestBody } from './export.models';
 import { ExportService } from './export.service';
 

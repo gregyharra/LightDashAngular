@@ -1,8 +1,13 @@
 import { TestBed } from '@angular/core/testing';
 import { of, throwError } from 'rxjs';
-import { SavedChartBasic } from '../../core/models/chart.model';
-import { DashboardBasicDetailsWithTileTypes, DashboardTileTypes } from '../../core/models/dashboard.model';
-import { LineageNode, ProjectLineage } from '../../core/models/lineage.model';
+import {
+  SavedChartBasic,
+  DashboardBasicDetailsWithTileTypes,
+  DashboardTileTypes,
+  LineageNode,
+  ProjectLineage,
+} from '@mds-ui/models';
+
 import { ChartService } from '../../features/charts/chart.service';
 import { DashboardService } from '../../features/dashboards/dashboard.service';
 import { LineageService } from '../../features/lineage/lineage.service';

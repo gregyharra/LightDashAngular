@@ -7,7 +7,7 @@ import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { LanguageService } from '../../../core/i18n/language.service';
 import { ActiveProjectService } from '../../../core/services/active-project.service';
 import { ApiErrorService } from '../../../core/api/api-error.service';
-import { DashboardBasicDetailsWithTileTypes } from '../../../core/models/dashboard.model';
+import { DashboardBasicDetailsWithTileTypes } from '@mds-ui/models';
 import { DashboardService } from '../dashboard.service';
 import { ResizableSidebarDirective } from '../../../layout/resizable-sidebar/resizable-sidebar.directive';
 import { ProjectBrowseNavComponent } from '../../../layout/project-browse-nav/project-browse-nav.component';

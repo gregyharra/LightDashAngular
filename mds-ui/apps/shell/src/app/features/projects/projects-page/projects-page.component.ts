@@ -11,7 +11,7 @@ import { LanguageService } from '../../../core/i18n/language.service';
 import { ActiveProjectService } from '../../../core/services/active-project.service';
 import { AppStateService } from '../../../core/services/app-state.service';
 import { ApiErrorService } from '../../../core/api/api-error.service';
-import { ProjectSummary } from '../../../core/models/project.model';
+import { ProjectSummary } from '@mds-ui/models';
 import { ProjectsService } from '../projects.service';
 
 const WAREHOUSE_LABELS: Record<string, string> = {

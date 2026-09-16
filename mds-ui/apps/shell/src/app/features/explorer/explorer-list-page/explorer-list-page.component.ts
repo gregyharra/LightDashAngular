@@ -6,7 +6,7 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { ActiveProjectService } from '../../../core/services/active-project.service';
 import { ApiErrorService } from '../../../core/api/api-error.service';
-import { ExploreSummary } from '../../../core/models/explore.model';
+import { ExploreSummary } from '@mds-ui/models';
 import { ExplorerService } from '../explorer.service';
 import { ResizableSidebarDirective } from '../../../layout/resizable-sidebar/resizable-sidebar.directive';
 import { ProjectBrowseNavComponent } from '../../../layout/project-browse-nav/project-browse-nav.component';

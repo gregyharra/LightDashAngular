@@ -24,7 +24,7 @@ import {
   LineageNodePosition,
   LineageViewMode,
   SelectedColumnRef,
-} from '../../../core/models/lineage.model';
+} from '@mds-ui/models';
 import {
   LINEAGE_COLUMN_ROW_HEIGHT,
   LINEAGE_NODE_FOOTER_HEIGHT,

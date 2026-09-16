@@ -5,9 +5,11 @@ import { TranslatePipe } from '@ngx-translate/core';
 import {
   BigNumberComparison,
   ChartConfig,
-} from '../../../core/models/chart.model';
-import { chartKindFromConfig } from '../../../core/models/chart-config.utils';
-import { FieldId, QueryResults } from '../../../core/models/explore.model';
+  chartKindFromConfig,
+  FieldId,
+  QueryResults,
+} from '@mds-ui/models';
+
 import { buildCartesianOption } from '../echarts/build-cartesian-option';
 import { buildFunnelOption } from '../echarts/build-funnel-option';
 import { buildPieOption } from '../echarts/build-pie-option';

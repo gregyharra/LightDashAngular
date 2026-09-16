@@ -4,7 +4,7 @@ import { provideRouter, Router } from '@angular/router';
 import { Store } from '@ngrx/store';
 import { provideTranslateService, TranslateService } from '@ngx-translate/core';
 import { ActiveProjectService } from '../../core/services/active-project.service';
-import { ProjectSummary } from '../../core/models/project.model';
+import { ProjectSummary } from '@mds-ui/models';
 import { NavbarProjectSwitcherComponent } from './navbar-project-switcher.component';
 
 const PROJECT_A: ProjectSummary = {

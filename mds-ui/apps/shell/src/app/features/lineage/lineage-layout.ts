@@ -4,7 +4,7 @@ import {
   LineageNodePosition,
   LineageNodeType,
   LineageViewMode,
-} from '../../core/models/lineage.model';
+} from '@mds-ui/models';
 import {
   getCollapsedNodeHeight,
   getExpandedNodeHeight,

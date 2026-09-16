@@ -1,5 +1,8 @@
-import { CartesianChartConfigBody } from '../../../core/models/chart.model';
-import { QueryResults } from '../../../core/models/explore.model';
+import {
+  CartesianChartConfigBody,
+  QueryResults,
+} from '@mds-ui/models';
+
 import { buildCartesianOption } from './build-cartesian-option';
 
 const results: QueryResults = {

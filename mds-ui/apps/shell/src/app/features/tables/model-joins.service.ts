@@ -5,7 +5,7 @@ import {
   ModelJoinCreate,
   ModelJoinUpdate,
   ModelJoinView,
-} from '../../core/models/model-join.model';
+} from '@mds-ui/models';
 
 @Injectable({ providedIn: 'root' })
 export class ModelJoinsService {

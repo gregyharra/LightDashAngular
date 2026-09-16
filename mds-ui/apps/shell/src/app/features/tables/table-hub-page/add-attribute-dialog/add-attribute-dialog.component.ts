@@ -8,7 +8,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
-import { CustomAttributeType } from '../../../../core/models/dictionary.model';
+import { CustomAttributeType } from '@mds-ui/models';
 
 export type AddAttributeDialogResult = {
   name: string;

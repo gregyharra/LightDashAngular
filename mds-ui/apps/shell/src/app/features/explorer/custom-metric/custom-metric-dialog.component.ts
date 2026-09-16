@@ -14,7 +14,7 @@ import {
   AdditionalMetric,
   FieldId,
   MetricAggregation,
-} from '../../../core/models/explore.model';
+} from '@mds-ui/models';
 import {
   buildAdditionalMetric,
   isValidCustomMetricName,

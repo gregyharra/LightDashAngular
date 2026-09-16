@@ -5,7 +5,7 @@ import {
   GitProvider,
   ProjectRepoStatus,
   ProjectSummary,
-} from '../../core/models/project.model';
+} from '@mds-ui/models';
 
 export interface ProjectDetail extends ProjectSummary {
   warehouseUuid?: string | null;

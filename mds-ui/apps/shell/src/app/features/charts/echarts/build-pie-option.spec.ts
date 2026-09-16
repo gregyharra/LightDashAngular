@@ -1,5 +1,8 @@
-import { PieChartConfigBody } from '../../../core/models/chart.model';
-import { QueryResults } from '../../../core/models/explore.model';
+import {
+  PieChartConfigBody,
+  QueryResults,
+} from '@mds-ui/models';
+
 import { buildPieOption } from './build-pie-option';
 
 const results: QueryResults = {

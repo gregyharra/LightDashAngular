@@ -1,11 +1,13 @@
-import { DbtTreeNode, LineageColumn, LineageNode } from '../../core/models/lineage.model';
 import {
+  DbtTreeNode,
+  LineageColumn,
+  LineageNode,
   CompiledTable,
   Dimension,
   DimensionType,
   Explore,
   Metric,
-} from '../../core/models/explore.model';
+} from '@mds-ui/models';
 
 export function isExploreableDbtTreeNode(node?: DbtTreeNode | null): boolean {
   return (

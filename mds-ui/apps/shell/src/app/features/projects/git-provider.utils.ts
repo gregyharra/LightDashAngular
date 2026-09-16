@@ -1,4 +1,4 @@
-import { GitProvider } from '../../core/models/project.model';
+import { GitProvider } from '@mds-ui/models';
 
 export function detectGitProvider(url: string): GitProvider | null {
   const trimmed = url.trim();

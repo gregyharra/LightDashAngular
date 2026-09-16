@@ -1,6 +1,6 @@
 import { Component, computed, input } from '@angular/core';
 import { MatIconModule } from '@angular/material/icon';
-import { QueryWarning } from '../../core/models/explore.model';
+import { QueryWarning } from '@mds-ui/models';
 
 @Component({
   selector: 'app-query-warnings-banner',

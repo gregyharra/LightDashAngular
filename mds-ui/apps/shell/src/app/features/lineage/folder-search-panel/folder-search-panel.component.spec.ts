@@ -1,7 +1,7 @@
 import { ComponentFixture, TestBed, fakeAsync, tick } from '@angular/core/testing';
 import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 import { provideTranslateService } from '@ngx-translate/core';
-import { DbtTreeNode } from '../../../core/models/lineage.model';
+import { DbtTreeNode } from '@mds-ui/models';
 import { FolderSearchPanelComponent } from './folder-search-panel.component';
 
 function folder(name: string, children: DbtTreeNode[], path = name): DbtTreeNode {

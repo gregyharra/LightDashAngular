@@ -8,7 +8,7 @@ import {
   WarehouseTestConnection,
   WarehouseTestResult,
   WarehouseUpdate,
-} from '../../core/models/warehouse.model';
+} from '@mds-ui/models';
 
 @Injectable({ providedIn: 'root' })
 export class WarehouseService {

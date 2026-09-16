@@ -4,7 +4,7 @@ import {
   WarehouseListItem,
   WarehouseTestConnection,
   WarehouseUpdate,
-} from '../../models/warehouse.model';
+} from '@mds-ui/models';
 import { createUuid } from '../../utils/uuid';
 
 const warehouses = new Map<string, { warehouse: Warehouse; password?: string }>();

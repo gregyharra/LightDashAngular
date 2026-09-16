@@ -11,7 +11,7 @@ import {
   ExploresMap,
   MetricQuery,
   QueryResults,
-} from '../../core/models/explore.model';
+} from '@mds-ui/models';
 
 export type RunQueryOptions = {
   bypassCache?: boolean;

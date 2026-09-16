@@ -11,8 +11,11 @@ import { MatSlideToggleModule } from '@angular/material/slide-toggle';
 import { MatTabsModule } from '@angular/material/tabs';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { TranslatePipe } from '@ngx-translate/core';
-import { ChartKind } from '../../../core/models/chart.model';
-import { FieldId } from '../../../core/models/explore.model';
+import {
+  ChartKind,
+  FieldId,
+} from '@mds-ui/models';
+
 import {
   clampQueryLimit,
   resolveMaxQueryLimit,

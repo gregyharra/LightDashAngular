@@ -3,7 +3,7 @@ import {
   QueryWarning,
   TemporalTableType,
   TimeTravelConfig,
-} from '../../core/models/explore.model';
+} from '@mds-ui/models';
 
 export function mergeTimeTravelIntoMetricQuery(
   metricQuery: MetricQuery,

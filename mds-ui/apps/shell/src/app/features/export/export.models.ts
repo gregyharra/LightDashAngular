@@ -1,4 +1,4 @@
-import { MetricQuery } from '../../core/models/explore.model';
+import { MetricQuery } from '@mds-ui/models';
 
 export type ExportFormat = 'csv' | 'xlsx';
 

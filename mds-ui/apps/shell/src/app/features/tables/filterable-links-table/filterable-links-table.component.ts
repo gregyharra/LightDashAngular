@@ -7,7 +7,7 @@ import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import {
   LinkDialogMode,
   ModelJoinView,
-} from '../../../core/models/model-join.model';
+} from '@mds-ui/models';
 import { filterModelJoinViews } from '../model-links.utils';
 
 @Component({

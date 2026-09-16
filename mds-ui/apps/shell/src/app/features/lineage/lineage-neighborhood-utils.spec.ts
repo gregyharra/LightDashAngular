@@ -1,4 +1,4 @@
-import { LineageEdge } from '../../core/models/lineage.model';
+import { LineageEdge } from '@mds-ui/models';
 import {
   collectManualNeighborIds,
   emptyManualNeighborhood,

@@ -20,12 +20,6 @@ import {
   DictionaryColumn,
   DictionaryEntry,
   DictionaryQuality,
-} from '../../../core/models/dictionary.model';
-import {
-  AddAttributeDialogComponent,
-  AddAttributeDialogResult,
-} from './add-attribute-dialog/add-attribute-dialog.component';
-import {
   ColumnTransformationType,
   LineageColumn,
   LineageGraphMode,
@@ -34,7 +28,15 @@ import {
   ProjectLineage,
   DbtTreeNode,
   SelectedColumnRef,
-} from '../../../core/models/lineage.model';
+  LinkDialogSavePayload,
+  ModelJoinView,
+  ModelLinkOption,
+} from '@mds-ui/models';
+import {
+  AddAttributeDialogComponent,
+  AddAttributeDialogResult,
+} from './add-attribute-dialog/add-attribute-dialog.component';
+
 import { inferColumnTransformation } from '../../lineage/column-transformation.utils';
 import { FolderSearchPanelComponent } from '../../lineage/folder-search-panel/folder-search-panel.component';
 import { LineageGraphComponent } from '../../lineage/lineage-graph/lineage-graph.component';
@@ -46,11 +48,7 @@ import { DictionaryService } from '../dictionary.service';
 import { FilterableLinksTableComponent } from '../filterable-links-table/filterable-links-table.component';
 import { LinkDialogComponent } from '../link-dialog/link-dialog.component';
 import { ModelJoinsService } from '../model-joins.service';
-import {
-  LinkDialogSavePayload,
-  ModelJoinView,
-  ModelLinkOption,
-} from '../../../core/models/model-join.model';
+
 import { ConfirmDialogComponent } from '../../../shared/confirm-dialog/confirm-dialog.component';
 import { SqlHighlightComponent } from '../../../shared/sql-highlight/sql-highlight.component';
 import {

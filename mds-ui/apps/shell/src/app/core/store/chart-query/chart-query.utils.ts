@@ -4,8 +4,10 @@ import {
   MetricQueryCacheInput,
   SavedChartViewCacheInput,
 } from './chart-query.models';
-import { DashboardDimensionFilter } from '../../models/dashboard.model';
-import { MetricQuery } from '../../models/explore.model';
+import {
+  DashboardDimensionFilter,
+  MetricQuery,
+} from '@mds-ui/models';
 
 function normalizeFilters(filters: DashboardDimensionFilter[]) {
   return filters.map((filter) => ({

@@ -3,7 +3,7 @@ import { FormsModule } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { TranslatePipe } from '@ngx-translate/core';
-import { TimeTravelConfig } from '../../core/models/explore.model';
+import { TimeTravelConfig } from '@mds-ui/models';
 import {
   formatTimeTravelLabel,
   fromDatetimeLocalValue,

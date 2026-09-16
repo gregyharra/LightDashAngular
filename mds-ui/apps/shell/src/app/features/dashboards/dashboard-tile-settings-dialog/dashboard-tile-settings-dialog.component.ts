@@ -16,7 +16,7 @@ import {
   DashboardTab,
   DashboardTile,
   DashboardTileTypes,
-} from '../../../core/models/dashboard.model';
+} from '@mds-ui/models';
 import { isValidLoomUrl } from '../dashboard-loom.utils';
 
 export type DashboardTileSettingsDialogData = {

@@ -2,7 +2,7 @@ import {
   ColumnLineageEdge,
   LineageColumn,
   LineageNode,
-} from '../../core/models/lineage.model';
+} from '@mds-ui/models';
 
 /** Compact node header + one row per column when expanded in column view. */
 export const LINEAGE_NODE_HEADER_HEIGHT = 56;

@@ -6,7 +6,7 @@ import {
   SavedChart,
   SavedChartBasic,
   UpdateSavedChartPayload,
-} from '../../core/models/chart.model';
+} from '@mds-ui/models';
 
 @Injectable({ providedIn: 'root' })
 export class ChartService {

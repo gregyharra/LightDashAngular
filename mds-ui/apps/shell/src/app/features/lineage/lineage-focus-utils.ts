@@ -1,4 +1,4 @@
-import { LineageEdge, LineageNode } from '../../core/models/lineage.model';
+import { LineageEdge, LineageNode } from '@mds-ui/models';
 
 export type LineageHopDepth = number;
 

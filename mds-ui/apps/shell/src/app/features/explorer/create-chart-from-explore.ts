@@ -1,11 +1,11 @@
 import { Router } from '@angular/router';
-import { DashboardDimensionFilter } from '../../core/models/dashboard.model';
 import {
+  DashboardDimensionFilter,
   AdditionalMetric,
   FieldId,
   MetricQueryFilter,
   TimeTravelConfig,
-} from '../../core/models/explore.model';
+} from '@mds-ui/models';
 
 export const CREATE_FROM_EXPLORE_STATE_KEY = 'createFromExplore';
 

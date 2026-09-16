@@ -6,7 +6,7 @@ import { TranslatePipe } from '@ngx-translate/core';
 import {
   ExploreJoinIssue,
   FieldId,
-} from '../../core/models/explore.model';
+} from '@mds-ui/models';
 
 /** Model section for chart edit / Explore fields sidebars. */
 export type ChartFieldsAccordionGroup = {

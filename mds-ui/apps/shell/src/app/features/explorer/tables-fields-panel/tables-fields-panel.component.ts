@@ -17,7 +17,7 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import {
   FieldId,
-} from '../../../core/models/explore.model';
+} from '@mds-ui/models';
 import {
   ChartFieldsAccordionComponent,
   ChartFieldsAccordionGroup,

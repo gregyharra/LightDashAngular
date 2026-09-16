@@ -11,23 +11,18 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatTableModule } from '@angular/material/table';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
-import { DashboardDimensionFilter } from '../../../core/models/dashboard.model';
-import { DbtTreeNode, LineageNode } from '../../../core/models/lineage.model';
 import {
+  DashboardDimensionFilter,
+  DbtTreeNode,
+  LineageNode,
   ChartConfig,
   ChartKind,
   defaultConfigForType,
-} from '../../../core/models/chart.model';
-import {
   applyChartKindChange,
   applyChartPanelPatch,
   chartKindFromConfig,
   ChartConfigCache,
   toChartPanelView,
-} from '../../../core/models/chart-config.utils';
-import { ActiveProjectService } from '../../../core/services/active-project.service';
-import { apiErrorMessage } from '../../../core/api/lightdash-api.service';
-import {
   AdditionalMetric,
   Explore,
   ExploreSummary,
@@ -37,7 +32,11 @@ import {
   QueryWarning,
   TimeTravelConfig,
   getFieldId,
-} from '../../../core/models/explore.model';
+} from '@mds-ui/models';
+
+import { ActiveProjectService } from '../../../core/services/active-project.service';
+import { apiErrorMessage } from '../../../core/api/lightdash-api.service';
+
 import { FolderSearchPanelComponent } from '../../lineage/folder-search-panel/folder-search-panel.component';
 import { findTreeNodeByLineageId } from '../../lineage/dbt-tree-utils';
 import { LineageService } from '../../lineage/lineage.service';

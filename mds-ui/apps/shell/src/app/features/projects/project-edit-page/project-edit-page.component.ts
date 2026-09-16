@@ -11,23 +11,27 @@ import { MatSelectModule } from '@angular/material/select';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { apiErrorMessage } from '../../../core/api/lightdash-api.service';
 import { LanguageService } from '../../../core/i18n/language.service';
-import { GitProvider, ProjectRepoStatus } from '../../../core/models/project.model';
-import { WarehouseListItem } from '../../../core/models/warehouse.model';
+import {
+  GitProvider,
+  ProjectRepoStatus,
+  WarehouseListItem,
+  ProjectLineage,
+  LinkDialogSavePayload,
+  ModelJoinView,
+  ModelLinkOption,
+} from '@mds-ui/models';
+
 import { ActiveProjectService } from '../../../core/services/active-project.service';
 import { ProjectDetail, ProjectsService } from '../projects.service';
 import { WarehouseService } from '../warehouse.service';
 import { WarehouseCreateDialogComponent } from '../../warehouses/warehouse-create-dialog/warehouse-create-dialog.component';
 import { detectGitProvider } from '../git-provider.utils';
 import { LineageService } from '../../lineage/lineage.service';
-import { ProjectLineage } from '../../../core/models/lineage.model';
+
 import { FilterableLinksTableComponent } from '../../tables/filterable-links-table/filterable-links-table.component';
 import { LinkDialogComponent } from '../../tables/link-dialog/link-dialog.component';
 import { ModelJoinsService } from '../../tables/model-joins.service';
-import {
-  LinkDialogSavePayload,
-  ModelJoinView,
-  ModelLinkOption,
-} from '../../../core/models/model-join.model';
+
 import { ConfirmDialogComponent } from '../../../shared/confirm-dialog/confirm-dialog.component';
 
 type ProjectSettingsTab = 'configuration' | 'links';

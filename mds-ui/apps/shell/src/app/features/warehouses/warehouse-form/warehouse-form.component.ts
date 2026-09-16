@@ -16,7 +16,7 @@ import {
   WarehouseType,
   WAREHOUSE_TYPE_OPTIONS,
   WarehouseUpdate,
-} from '../../../core/models/warehouse.model';
+} from '@mds-ui/models';
 import { WarehouseService } from '../../projects/warehouse.service';
 
 @Component({

@@ -4,8 +4,10 @@ import {
   ChartConfig,
   ChartKind,
   normalizeChartConfig,
-} from '../../models/chart.model';
-import { MetricQuery } from '../../models/explore.model';
+  MetricQuery,
+  getFieldId,
+} from '@mds-ui/models';
+
 import {
   MOCK_CHART_2_UUID,
   MOCK_CHART_3_UUID,
@@ -25,7 +27,7 @@ import {
   MOCK_SPACE_UUID,
   MOCK_USER_UUID,
 } from './ids.fixture';
-import { getFieldId } from '../../models/explore.model';
+
 import { createUuid } from '../../utils/uuid';
 
 const SPACE_NAMES: Record<string, string> = {

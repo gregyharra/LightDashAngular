@@ -25,23 +25,19 @@ import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { LanguageService } from '../../../core/i18n/language.service';
 import { ActiveProjectService } from '../../../core/services/active-project.service';
 import { apiErrorMessage } from '../../../core/api/lightdash-api.service';
-import { DashboardDimensionFilter } from '../../../core/models/dashboard.model';
 import {
+  DashboardDimensionFilter,
   ChartConfig,
   ChartDisplayConfig,
   ChartKind,
   SavedChart,
   defaultConfigForType,
   normalizeChartConfig,
-} from '../../../core/models/chart.model';
-import {
   applyChartKindChange,
   applyChartPanelPatch,
   chartKindFromConfig,
   ChartConfigCache,
   toChartPanelView,
-} from '../../../core/models/chart-config.utils';
-import {
   AdditionalMetric,
   Explore,
   ExploreSummary,
@@ -51,8 +47,10 @@ import {
   QueryResults,
   TimeTravelConfig,
   getFieldId,
-} from '../../../core/models/explore.model';
-import { DbtTreeNode, LineageNode } from '../../../core/models/lineage.model';
+  DbtTreeNode,
+  LineageNode,
+} from '@mds-ui/models';
+
 import { ChartService } from '../chart.service';
 import {
   ChartDetailsDialogComponent,

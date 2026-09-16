@@ -14,7 +14,7 @@ import { of } from 'rxjs';
 import { HealthResults } from '../../core/api/api.types';
 import { AppStateService } from '../../core/services/app-state.service';
 import { ActiveProjectService } from '../../core/services/active-project.service';
-import { ProjectSummary } from '../../core/models/project.model';
+import { ProjectSummary } from '@mds-ui/models';
 import { AiAssistantPanelComponent } from '../../features/ai/ai-assistant-panel/ai-assistant-panel.component';
 import { AiAssistantUiService } from '../../features/ai/ai-assistant-ui.service';
 import { ProjectsService } from '../../features/projects/projects.service';

@@ -2,8 +2,8 @@ import { EChartsOption } from 'echarts';
 import {
   ChartLegendPlacement,
   PieChartConfigBody,
-} from '../../../core/models/chart.model';
-import { QueryResults } from '../../../core/models/explore.model';
+  QueryResults,
+} from '@mds-ui/models';
 
 const PIE_COLORS = [
   '#7262ff',

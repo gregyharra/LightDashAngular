@@ -1,7 +1,7 @@
 import { Injectable, computed, inject, signal } from '@angular/core';
 import { Store } from '@ngrx/store';
 import { ChartQueryActions } from '../store';
-import { ProjectSummary } from '../models/project.model';
+import { ProjectSummary } from '@mds-ui/models';
 
 @Injectable({ providedIn: 'root' })
 export class ActiveProjectService {

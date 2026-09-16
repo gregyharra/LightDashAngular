@@ -18,7 +18,7 @@ import { FormsModule } from '@angular/forms';
 import { MatIconModule } from '@angular/material/icon';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { TranslatePipe } from '@ngx-translate/core';
-import { DbtTreeNode, LineageNode } from '../../../core/models/lineage.model';
+import { DbtTreeNode, LineageNode } from '@mds-ui/models';
 import {
   buildSchemaGroupedTree,
   collectSelectableNodes,

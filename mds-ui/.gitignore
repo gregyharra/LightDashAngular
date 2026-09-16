@@ -1,2 +1,4 @@
 .nx/
 out-tsc/
+
+.angular

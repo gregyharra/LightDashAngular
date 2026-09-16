@@ -10,7 +10,7 @@ import {
   DashboardDimensionFilter,
   DashboardFilterOperator,
   DashboardFilterUnitOfTime,
-} from '../../../core/models/dashboard.model';
+} from '@mds-ui/models';
 import {
   formatDashboardFilterSummary,
   formatFilterOperator,

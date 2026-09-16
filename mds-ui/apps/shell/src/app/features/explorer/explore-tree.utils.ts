@@ -1,5 +1,7 @@
-import { DbtTreeNode } from '../../core/models/lineage.model';
-import { ExploreSummary } from '../../core/models/explore.model';
+import {
+  DbtTreeNode,
+  ExploreSummary,
+} from '@mds-ui/models';
 
 function folder(name: string, path: string, children: DbtTreeNode[]): DbtTreeNode {
   return { id: path, name, path, type: 'folder', children };

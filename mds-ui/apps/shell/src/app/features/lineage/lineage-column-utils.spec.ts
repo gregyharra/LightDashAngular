@@ -17,7 +17,7 @@ import {
   ColumnLineageEdge,
   LineageColumn,
   LineageNode,
-} from '../../core/models/lineage.model';
+} from '@mds-ui/models';
 
 function makeNode(columns: LineageColumn[]): LineageNode {
   return {

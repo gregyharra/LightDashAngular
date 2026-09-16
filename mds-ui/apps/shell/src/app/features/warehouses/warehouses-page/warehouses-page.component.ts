@@ -8,7 +8,7 @@ import { LanguageService } from '../../../core/i18n/language.service';
 import {
   WAREHOUSE_TYPE_LABELS,
   WarehouseListItem,
-} from '../../../core/models/warehouse.model';
+} from '@mds-ui/models';
 import { ApiErrorService } from '../../../core/api/api-error.service';
 import { WarehouseService } from '../../projects/warehouse.service';
 

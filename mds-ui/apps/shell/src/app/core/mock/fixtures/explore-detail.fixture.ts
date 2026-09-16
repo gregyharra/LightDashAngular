@@ -1,4 +1,4 @@
-import { Explore, getFieldId } from '../../models/explore.model';
+import { Explore, getFieldId } from '@mds-ui/models';
 import {
   buildExploreFromLineageNode,
   resolveLineageNodeForExploreRequest,

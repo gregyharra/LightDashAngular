@@ -1,4 +1,4 @@
-import { DEFAULT_CHART_DISPLAY_CONFIG } from '../../core/models/chart.model';
+import { DEFAULT_CHART_DISPLAY_CONFIG } from '@mds-ui/models';
 
 /** Matches backend / health `query.defaultLimit` when health is unavailable. */
 export const DEFAULT_QUERY_LIMIT = DEFAULT_CHART_DISPLAY_CONFIG.rowLimit;

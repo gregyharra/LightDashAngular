@@ -1,9 +1,12 @@
-import { BigNumberComparison, ChartConfig } from '../../models/chart.model';
 import {
+  BigNumberComparison,
+  ChartConfig,
   DashboardDimensionFilter,
   DateZoomGranularity,
-} from '../../models/dashboard.model';
-import { MetricQuery, QueryResults, TimeTravelConfig } from '../../models/explore.model';
+  MetricQuery,
+  QueryResults,
+  TimeTravelConfig,
+} from '@mds-ui/models';
 
 export type ChartQuerySnapshot = {
   queryResults: QueryResults;

@@ -3,8 +3,9 @@ import {
   CartesianChartConfigBody,
   ChartKind,
   ChartLegendPlacement,
-} from '../../../core/models/chart.model';
-import { FieldId, QueryResults } from '../../../core/models/explore.model';
+  FieldId,
+  QueryResults,
+} from '@mds-ui/models';
 
 const SERIES_COLORS = ['#7262ff', '#e67700', '#12b886', '#5c7cfa', '#fab005'];
 

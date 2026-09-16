@@ -24,8 +24,8 @@ import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { LanguageService } from '../../../core/i18n/language.service';
 import { ActiveProjectService } from '../../../core/services/active-project.service';
 import { apiErrorMessage } from '../../../core/api/lightdash-api.service';
-import { SavedChartBasic } from '../../../core/models/chart.model';
 import {
+  SavedChartBasic,
   Dashboard,
   DashboardConfig,
   DashboardDimensionFilter,
@@ -33,8 +33,9 @@ import {
   DashboardTile,
   DashboardTileTypes,
   DateZoomGranularity,
-} from '../../../core/models/dashboard.model';
-import { TimeTravelConfig } from '../../../core/models/explore.model';
+  TimeTravelConfig,
+} from '@mds-ui/models';
+
 import { mockSqlCharts, MockSqlChartBasic } from '../../../core/mock/fixtures/sql-charts.fixture';
 import { createUuid } from '../../../core/utils/uuid';
 import { ChartService } from '../../charts/chart.service';

@@ -5,7 +5,7 @@ import {
   resolveSqlTableWithTimeTravel,
   toDatetimeLocalValue,
 } from './time-travel.utils';
-import { MetricQuery } from '../../core/models/explore.model';
+import { MetricQuery } from '@mds-ui/models';
 
 const baseQuery: MetricQuery = {
   exploreName: 'orders',

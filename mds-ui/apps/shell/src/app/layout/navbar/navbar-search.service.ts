@@ -8,14 +8,15 @@ import {
   shareReplay,
   tap,
 } from 'rxjs';
-import { SavedChartBasic } from '../../core/models/chart.model';
-import { DashboardBasicDetailsWithTileTypes } from '../../core/models/dashboard.model';
 import {
+  SavedChartBasic,
+  DashboardBasicDetailsWithTileTypes,
   ColumnLineageEdge,
   ColumnTransformationType,
   LineageColumn,
   LineageNode,
-} from '../../core/models/lineage.model';
+} from '@mds-ui/models';
+
 import { ChartService } from '../../features/charts/chart.service';
 import { DashboardService } from '../../features/dashboards/dashboard.service';
 import { inferColumnTransformation } from '../../features/lineage/column-transformation.utils';

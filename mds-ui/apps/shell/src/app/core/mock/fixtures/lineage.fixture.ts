@@ -1,5 +1,5 @@
 import { MOCK_PROJECT_UUID } from './ids.fixture';
-import { ColumnLineageEdge, LineageColumn, LineageNode, ProjectLineage } from '../../models/lineage.model';
+import { ColumnLineageEdge, LineageColumn, LineageNode, ProjectLineage } from '@mds-ui/models';
 
 const CATALOG = 'jaffle_shop';
 const DATABASE = 'jaffle_shop';

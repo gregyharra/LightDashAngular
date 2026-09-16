@@ -14,7 +14,7 @@ import {
   LineageViewMode,
   ProjectLineage,
   SelectedColumnRef,
-} from '../../../core/models/lineage.model';
+} from '@mds-ui/models';
 import { FolderSearchPanelComponent } from '../folder-search-panel/folder-search-panel.component';
 import { LineageService } from '../lineage.service';
 import { LineageGraphComponent } from '../lineage-graph/lineage-graph.component';

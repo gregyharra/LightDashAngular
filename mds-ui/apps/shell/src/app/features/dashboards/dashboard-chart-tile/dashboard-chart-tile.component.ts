@@ -8,12 +8,12 @@ import {
   BigNumberComparison,
   ChartConfig,
   defaultConfigForType,
-} from '../../../core/models/chart.model';
-import {
   DashboardDimensionFilter,
   DateZoomGranularity,
-} from '../../../core/models/dashboard.model';
-import { QueryResults, TimeTravelConfig } from '../../../core/models/explore.model';
+  QueryResults,
+  TimeTravelConfig,
+} from '@mds-ui/models';
+
 import {
   ChartQueryActions,
   ChartQueryEntry,

@@ -3,13 +3,12 @@ import {
   DashboardFilterOperator,
   DashboardFilterSettings,
   DateZoomGranularity,
-} from '../../core/models/dashboard.model';
-import {
   Explore,
   MetricQuery,
   TimeTravelConfig,
   getFieldId,
-} from '../../core/models/explore.model';
+} from '@mds-ui/models';
+
 import { createUuid } from '../../core/utils/uuid';
 import { mergeTimeTravelIntoMetricQuery } from '../explorer/time-travel.utils';
 

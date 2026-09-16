@@ -5,7 +5,7 @@ import {
   MatDialogRef,
 } from '@angular/material/dialog';
 import { TranslatePipe } from '@ngx-translate/core';
-import { Warehouse } from '../../../core/models/warehouse.model';
+import { Warehouse } from '@mds-ui/models';
 import { WarehouseFormComponent } from '../warehouse-form/warehouse-form.component';
 
 export type WarehouseCreateDialogData = {

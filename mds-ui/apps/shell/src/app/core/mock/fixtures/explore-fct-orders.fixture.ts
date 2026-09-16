@@ -1,4 +1,4 @@
-import { Explore } from '../../models/explore.model';
+import { Explore } from '@mds-ui/models';
 
 const fctOrdersTable = {
   name: 'fct_orders',

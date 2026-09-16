@@ -1,5 +1,5 @@
 import { Observable, of, Subject, throwError } from 'rxjs';
-import { MetricQuery } from '../../core/models/explore.model';
+import { MetricQuery } from '@mds-ui/models';
 import { ExportDialogComponent } from './export-dialog.component';
 import { ExportPollResult } from './export.models';
 import { startExport, StartExportOptions } from './start-export';

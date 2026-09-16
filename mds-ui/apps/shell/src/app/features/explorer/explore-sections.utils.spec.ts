@@ -1,4 +1,4 @@
-import { ExploreSummary } from '../../core/models/explore.model';
+import { ExploreSummary } from '@mds-ui/models';
 import {
   formatTagLabel,
   groupExploresByTags,

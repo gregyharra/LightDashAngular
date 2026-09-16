@@ -1,6 +1,8 @@
 import { EChartsOption } from 'echarts';
-import { TreemapChartConfigBody } from '../../../core/models/chart.model';
-import { QueryResults } from '../../../core/models/explore.model';
+import {
+  TreemapChartConfigBody,
+  QueryResults,
+} from '@mds-ui/models';
 
 const TREEMAP_COLORS = [
   '#7262ff',

@@ -5,8 +5,9 @@ import {
   Metric,
   TimeTravelConfig,
   getFieldId,
-} from '../../core/models/explore.model';
-import { DashboardDimensionFilter } from '../../core/models/dashboard.model';
+  DashboardDimensionFilter,
+} from '@mds-ui/models';
+
 import { buildFiltersWhereClause } from './tables-filters-panel/tables-filters.utils';
 import { resolveSqlTableWithTimeTravel } from './time-travel.utils';
 

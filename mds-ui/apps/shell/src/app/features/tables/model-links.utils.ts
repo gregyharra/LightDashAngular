@@ -1,7 +1,7 @@
 import {
   ModelJoinOrigin,
   ModelJoinView,
-} from '../../core/models/model-join.model';
+} from '@mds-ui/models';
 
 export function originLabel(origin: ModelJoinOrigin): string {
   return origin === 'dbt' ? 'dbt meta' : 'custom';

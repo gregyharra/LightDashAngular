@@ -12,7 +12,7 @@ import {
   LinkDialogSavePayload,
   ModelJoinView,
   ModelLinkOption,
-} from '../../../core/models/model-join.model';
+} from '@mds-ui/models';
 
 const JOIN_TYPE_OPTIONS = [
   { value: 'left', label: 'tables.links.joinTypes.left' },

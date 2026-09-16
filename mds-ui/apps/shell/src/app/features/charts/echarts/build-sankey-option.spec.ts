@@ -1,5 +1,8 @@
-import { SankeyChartConfigBody } from '../../../core/models/chart.model';
-import { QueryResults } from '../../../core/models/explore.model';
+import {
+  SankeyChartConfigBody,
+  QueryResults,
+} from '@mds-ui/models';
+
 import { buildSankeyOption } from './build-sankey-option';
 
 const results: QueryResults = {

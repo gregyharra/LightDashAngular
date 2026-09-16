@@ -1,7 +1,7 @@
 import { Injectable, inject } from '@angular/core';
 import { Observable } from 'rxjs';
 import { LightdashApiService } from '../../core/api/lightdash-api.service';
-import { ProjectDbtTree, ProjectLineage } from '../../core/models/lineage.model';
+import { ProjectDbtTree, ProjectLineage } from '@mds-ui/models';
 
 @Injectable({ providedIn: 'root' })
 export class LineageService {

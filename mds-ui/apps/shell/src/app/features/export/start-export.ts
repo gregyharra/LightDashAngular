@@ -1,7 +1,7 @@
 import { EMPTY, isObservable, Observable, of, timer } from 'rxjs';
 import { catchError, switchMap, take, tap } from 'rxjs/operators';
 import { apiErrorMessage } from '../../core/api/lightdash-api.service';
-import { MetricQuery } from '../../core/models/explore.model';
+import { MetricQuery } from '@mds-ui/models';
 import {
   ExportDialogComponent,
   ExportDialogData,

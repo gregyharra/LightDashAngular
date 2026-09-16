@@ -8,7 +8,7 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { ActiveProjectService } from '../../../core/services/active-project.service';
 import { apiErrorMessage } from '../../../core/api/lightdash-api.service';
-import { AiChatMode } from '../../../core/models/ai.model';
+import { AiChatMode } from '@mds-ui/models';
 import { AiAssistantService } from '../ai-assistant.service';
 import { AiAssistantUiService } from '../ai-assistant-ui.service';
 

@@ -1,5 +1,5 @@
 import { Injectable, signal } from '@angular/core';
-import { AiChatMode, AiChatMessage, AiProposedChart } from '../../core/models/ai.model';
+import { AiChatMode, AiChatMessage, AiProposedChart } from '@mds-ui/models';
 
 @Injectable({ providedIn: 'root' })
 export class AiAssistantUiService {

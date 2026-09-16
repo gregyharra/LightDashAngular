@@ -16,16 +16,18 @@ import { LanguageService } from '../../../core/i18n/language.service';
 import { ActiveProjectService } from '../../../core/services/active-project.service';
 import { AppStateService } from '../../../core/services/app-state.service';
 import { apiErrorMessage } from '../../../core/api/lightdash-api.service';
-import { DashboardDimensionFilter } from '../../../core/models/dashboard.model';
 import {
+  DashboardDimensionFilter,
   Explore,
   ExploreSummary,
   FieldId,
   QueryResults,
   TimeTravelConfig,
   getFieldId,
-} from '../../../core/models/explore.model';
-import { DbtTreeNode, LineageNode } from '../../../core/models/lineage.model';
+  DbtTreeNode,
+  LineageNode,
+} from '@mds-ui/models';
+
 import { ExplorerService } from '../explorer.service';
 import { LineageService } from '../../lineage/lineage.service';
 import { FolderSearchPanelComponent } from '../../lineage/folder-search-panel/folder-search-panel.component';

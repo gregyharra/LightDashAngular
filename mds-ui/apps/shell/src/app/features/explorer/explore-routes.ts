@@ -1,4 +1,4 @@
-import { LineageNode } from '../../core/models/lineage.model';
+import { LineageNode } from '@mds-ui/models';
 
 export function explorePath(projectUuid: string, tableId: string): string[] {
   return ['/projects', projectUuid, 'explore', tableId];

@@ -1,4 +1,4 @@
-import { DbtTreeNode } from '../../core/models/lineage.model';
+import { DbtTreeNode } from '@mds-ui/models';
 import {
   UNSPECIFIED_SCHEMA_LABEL,
   buildSchemaGroupedTree,

@@ -3,7 +3,7 @@ import {
   ColumnTransformationType,
   LineageColumn,
   LineageNode,
-} from '../../core/models/lineage.model';
+} from '@mds-ui/models';
 import { columnNamesEqual, findColumnByName } from './lineage-column-utils';
 
 export type TransformationChipMode = 'compact' | 'full';

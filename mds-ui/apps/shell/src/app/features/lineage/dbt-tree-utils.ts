@@ -1,4 +1,4 @@
-import { DbtTreeNode } from '../../core/models/lineage.model';
+import { DbtTreeNode } from '@mds-ui/models';
 
 export interface FlatDbtTreeItem {
   node: DbtTreeNode;

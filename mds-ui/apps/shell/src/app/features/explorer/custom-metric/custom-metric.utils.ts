@@ -2,7 +2,7 @@ import {
   AdditionalMetric,
   FieldId,
   MetricAggregation,
-} from '../../../core/models/explore.model';
+} from '@mds-ui/models';
 
 export type CustomMetricDraft = {
   name: string;

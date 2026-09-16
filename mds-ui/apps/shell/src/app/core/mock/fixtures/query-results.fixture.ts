@@ -6,7 +6,7 @@ import {
   QueryResults,
   ResultRow,
   getFieldId,
-} from '../../models/explore.model';
+} from '@mds-ui/models';
 import { getExploreDetail, ordersExplore } from './explore-detail.fixture';
 import { fctOrdersExplore } from './explore-fct-orders.fixture';
 import {

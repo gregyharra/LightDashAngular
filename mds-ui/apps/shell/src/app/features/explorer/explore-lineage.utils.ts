@@ -1,5 +1,7 @@
-import { DbtTreeNode } from '../../core/models/lineage.model';
-import { ExploreSummary } from '../../core/models/explore.model';
+import {
+  DbtTreeNode,
+  ExploreSummary,
+} from '@mds-ui/models';
 
 export function findExploreForLineageNode(
   explores: ExploreSummary[],

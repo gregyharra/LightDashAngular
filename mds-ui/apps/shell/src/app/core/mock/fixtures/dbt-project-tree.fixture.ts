@@ -1,5 +1,5 @@
 import { MOCK_PROJECT_UUID } from './ids.fixture';
-import { DbtTreeNode, ProjectDbtTree } from '../../models/lineage.model';
+import { DbtTreeNode, ProjectDbtTree } from '@mds-ui/models';
 
 function leaf(
   name: string,

@@ -5,9 +5,12 @@ import {
   BigNumberComparison,
   defaultConfigForType,
   normalizeChartConfig,
-} from '../../models/chart.model';
-import { applyChartPanelPatch } from '../../models/chart-config.utils';
-import { FieldId, MetricQuery, QueryResults } from '../../models/explore.model';
+  applyChartPanelPatch,
+  FieldId,
+  MetricQuery,
+  QueryResults,
+} from '@mds-ui/models';
+
 import {
   MOCK_CHART_4_UUID,
   MOCK_CHART_5_UUID,
