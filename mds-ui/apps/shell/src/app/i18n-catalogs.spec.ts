@@ -1,5 +1,5 @@
-import en from '../../../assets/i18n/en.json';
-import fr from '../../../assets/i18n/fr.json';
+import en from '../assets/i18n/en.json';
+import fr from '../assets/i18n/fr.json';
 
 function keys(obj: unknown, prefix = ''): string[] {
   if (obj === null || typeof obj !== 'object') return [prefix];

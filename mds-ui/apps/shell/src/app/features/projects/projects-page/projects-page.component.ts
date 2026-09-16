@@ -7,10 +7,10 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { map } from 'rxjs';
-import { LanguageService } from '../../../core/i18n/language.service';
-import { ActiveProjectService } from '../../../core/services/active-project.service';
-import { AppStateService } from '../../../core/services/app-state.service';
-import { ApiErrorService } from '../../../core/api/api-error.service';
+import { LanguageService } from '@mds-ui/core';
+import { ActiveProjectService } from '@mds-ui/core';
+import { AppStateService } from '@mds-ui/core';
+import { ApiErrorService } from '@mds-ui/core';
 import { ProjectSummary } from '@mds-ui/models';
 import { ProjectsService } from '../projects.service';
 

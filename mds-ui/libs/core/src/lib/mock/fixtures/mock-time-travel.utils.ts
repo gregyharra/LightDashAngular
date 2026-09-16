@@ -7,7 +7,7 @@ import {
   buildTimeTravelActiveWarning,
   formatTimeTravelLabel,
   resolveEffectiveTemporalType,
-} from '../../../features/explorer/time-travel.utils';
+} from '../../utils/time-travel.utils';
 
 export function exploreSupportsTimeTravel(explore: Explore): boolean {
   const baseTable = explore.tables[explore.baseTable];

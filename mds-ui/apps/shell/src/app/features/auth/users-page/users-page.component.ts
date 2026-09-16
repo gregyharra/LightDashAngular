@@ -14,13 +14,13 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatSelectModule } from '@angular/material/select';
 import { MatTableModule } from '@angular/material/table';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
-import { apiErrorMessage } from '../../../core/api/lightdash-api.service';
+import { apiErrorMessage } from '@mds-ui/core';
 import {
   AuthService,
   CreateUserPayload,
   ManagedUser,
   UpdateUserPayload,
-} from '../../../core/services/auth.service';
+} from '@mds-ui/core';
 
 type UserFormValue = {
   email: string;

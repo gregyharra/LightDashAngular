@@ -1,6 +1,6 @@
 import { Injectable, inject } from '@angular/core';
 import { Observable } from 'rxjs';
-import { LightdashApiService } from '../../core/api/lightdash-api.service';
+import { LightdashApiService } from '@mds-ui/core';
 import {
   ExportCreateResult,
   ExportPollResult,

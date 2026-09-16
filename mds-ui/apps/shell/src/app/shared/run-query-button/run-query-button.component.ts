@@ -8,7 +8,7 @@ import { MatMenuModule } from '@angular/material/menu';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
-import { LanguageService } from '../../core/i18n/language.service';
+import { LanguageService } from '@mds-ui/core';
 import {
   clampQueryLimit,
   resolveMaxQueryLimit,

@@ -9,13 +9,13 @@ import { MatInputModule } from '@angular/material/input';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatSelectModule } from '@angular/material/select';
 import { TranslatePipe } from '@ngx-translate/core';
-import { apiErrorMessage } from '../../../core/api/lightdash-api.service';
+import { apiErrorMessage } from '@mds-ui/core';
 import {
   GitProvider,
   WarehouseListItem,
 } from '@mds-ui/models';
 
-import { ActiveProjectService } from '../../../core/services/active-project.service';
+import { ActiveProjectService } from '@mds-ui/core';
 import { WarehouseCreateDialogComponent } from '../../warehouses/warehouse-create-dialog/warehouse-create-dialog.component';
 import { ProjectsService } from '../projects.service';
 import { WarehouseService } from '../warehouse.service';

@@ -4,10 +4,10 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
-import { ActiveProjectService } from '../../../core/services/active-project.service';
-import { ApiErrorService } from '../../../core/api/api-error.service';
+import { ActiveProjectService } from '@mds-ui/core';
+import { ApiErrorService } from '@mds-ui/core';
 import { ExploreSummary } from '@mds-ui/models';
-import { ExplorerService } from '../explorer.service';
+import { ExplorerService } from '@mds-ui/core';
 import { ResizableSidebarDirective } from '../../../layout/resizable-sidebar/resizable-sidebar.directive';
 import { ProjectBrowseNavComponent } from '../../../layout/project-browse-nav/project-browse-nav.component';
 

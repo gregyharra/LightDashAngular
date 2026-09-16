@@ -3,8 +3,8 @@ import { Router, RouterLink, RouterLinkActive } from '@angular/router';
 import { MatDialog } from '@angular/material/dialog';
 import { MatIconModule } from '@angular/material/icon';
 import { TranslatePipe } from '@ngx-translate/core';
-import { AppStateService } from '../../core/services/app-state.service';
-import { AuthService } from '../../core/services/auth.service';
+import { AppStateService } from '@mds-ui/core';
+import { AuthService } from '@mds-ui/core';
 import { ChangePasswordDialogComponent } from '../navbar/navbar-user-menu.component';
 
 @Component({

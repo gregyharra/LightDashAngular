@@ -12,10 +12,10 @@ import { PageEvent } from '@angular/material/paginator';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
-import { LanguageService } from '../../../core/i18n/language.service';
-import { ActiveProjectService } from '../../../core/services/active-project.service';
-import { AppStateService } from '../../../core/services/app-state.service';
-import { apiErrorMessage } from '../../../core/api/lightdash-api.service';
+import { LanguageService } from '@mds-ui/core';
+import { ActiveProjectService } from '@mds-ui/core';
+import { AppStateService } from '@mds-ui/core';
+import { apiErrorMessage } from '@mds-ui/core';
 import {
   DashboardDimensionFilter,
   Explore,
@@ -28,7 +28,7 @@ import {
   LineageNode,
 } from '@mds-ui/models';
 
-import { ExplorerService } from '../explorer.service';
+import { ExplorerService } from '@mds-ui/core';
 import { LineageService } from '../../lineage/lineage.service';
 import { FolderSearchPanelComponent } from '../../lineage/folder-search-panel/folder-search-panel.component';
 import { findTreeNodeByLineageId } from '../../lineage/dbt-tree-utils';
@@ -37,7 +37,7 @@ import {
   findExploreForLineageNode,
 } from '../explore-lineage.utils';
 import { groupExploresByTags } from '../explore-sections.utils';
-import { resolveExploreNameForSelection } from '../explore-from-dbt.utils';
+import { resolveExploreNameForSelection } from '@mds-ui/core';
 import {
   CREATE_FROM_EXPLORE_STATE_KEY,
   CreateChartFromExploreState,
@@ -48,7 +48,7 @@ import {
   ChartQueryKeyInput,
   chartQueryKey,
   selectEntries,
-} from '../../../core/store';
+} from '@mds-ui/core';
 import {
   clampQueryLimit,
   DEFAULT_QUERY_LIMIT,

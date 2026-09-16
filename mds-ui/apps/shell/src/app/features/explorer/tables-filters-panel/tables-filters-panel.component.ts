@@ -14,7 +14,7 @@ import {
 import {
   formatDashboardFilterSummary,
   formatFilterOperator,
-} from '../../dashboards/dashboard-filters';
+} from '@mds-ui/core';
 import {
   FILTER_UNIT_OF_TIME_OPTIONS,
   FilterableDimension,

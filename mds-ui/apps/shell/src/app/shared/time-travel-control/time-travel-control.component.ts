@@ -8,7 +8,7 @@ import {
   formatTimeTravelLabel,
   fromDatetimeLocalValue,
   toDatetimeLocalValue,
-} from '../../features/explorer/time-travel.utils';
+} from '@mds-ui/core';
 
 @Component({
   selector: 'app-time-travel-control',

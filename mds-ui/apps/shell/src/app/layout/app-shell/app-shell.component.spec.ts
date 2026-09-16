@@ -11,9 +11,9 @@ import {
   TranslateService,
 } from '@ngx-translate/core';
 import { of } from 'rxjs';
-import { HealthResults } from '../../core/api/api.types';
-import { AppStateService } from '../../core/services/app-state.service';
-import { ActiveProjectService } from '../../core/services/active-project.service';
+import { HealthResults } from '@mds-ui/core';
+import { AppStateService } from '@mds-ui/core';
+import { ActiveProjectService } from '@mds-ui/core';
 import { ProjectSummary } from '@mds-ui/models';
 import { AiAssistantPanelComponent } from '../../features/ai/ai-assistant-panel/ai-assistant-panel.component';
 import { AiAssistantUiService } from '../../features/ai/ai-assistant-ui.service';

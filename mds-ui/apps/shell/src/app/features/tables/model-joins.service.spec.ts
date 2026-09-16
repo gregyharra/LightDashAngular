@@ -1,6 +1,6 @@
 import { TestBed } from '@angular/core/testing';
 import { of } from 'rxjs';
-import { LightdashApiService } from '../../core/api/lightdash-api.service';
+import { LightdashApiService } from '@mds-ui/core';
 import { ModelJoinsService } from './model-joins.service';
 
 describe('ModelJoinsService', () => {

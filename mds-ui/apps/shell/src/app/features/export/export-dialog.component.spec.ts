@@ -13,7 +13,7 @@ import {
   ExportDialogComponent,
   ExportDialogData,
 } from './export-dialog.component';
-import { LanguageService } from '../../core/i18n/language.service';
+import { LanguageService } from '@mds-ui/core';
 
 describe('ExportDialogComponent', () => {
   let fixture: ComponentFixture<ExportDialogComponent>;

@@ -25,7 +25,7 @@ import {
   switchMap,
   tap,
 } from 'rxjs/operators';
-import { ActiveProjectService } from '../../core/services/active-project.service';
+import { ActiveProjectService } from '@mds-ui/core';
 import { TransformationChipComponent } from '../../features/lineage/transformation-chip/transformation-chip.component';
 import {
   NavbarSearchGroup,

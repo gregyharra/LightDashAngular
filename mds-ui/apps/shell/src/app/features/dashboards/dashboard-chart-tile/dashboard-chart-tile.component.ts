@@ -20,7 +20,7 @@ import {
   ChartQuerySnapshot,
   chartQueryKey,
   selectEntries,
-} from '../../../core/store';
+} from '@mds-ui/core';
 import { ChartVisualizationComponent } from '../../charts/chart-visualization/chart-visualization.component';
 
 @Component({

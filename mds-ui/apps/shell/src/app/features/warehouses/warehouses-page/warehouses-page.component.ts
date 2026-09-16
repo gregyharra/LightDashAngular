@@ -4,12 +4,12 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
-import { LanguageService } from '../../../core/i18n/language.service';
+import { LanguageService } from '@mds-ui/core';
 import {
   WAREHOUSE_TYPE_LABELS,
   WarehouseListItem,
 } from '@mds-ui/models';
-import { ApiErrorService } from '../../../core/api/api-error.service';
+import { ApiErrorService } from '@mds-ui/core';
 import { WarehouseService } from '../../projects/warehouse.service';
 
 @Component({

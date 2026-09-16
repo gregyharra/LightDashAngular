@@ -10,9 +10,9 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { Observable, forkJoin, of } from 'rxjs';
-import { ActiveProjectService } from '../../../core/services/active-project.service';
+import { ActiveProjectService } from '@mds-ui/core';
 import { explorePath, isExploreableLineageNode } from '../../explorer/explore-routes';
-import { apiErrorMessage } from '../../../core/api/lightdash-api.service';
+import { apiErrorMessage } from '@mds-ui/core';
 import {
   CUSTOM_ATTRIBUTE_DEFS_KEY,
   CustomAttributeDef,

@@ -3,9 +3,9 @@ import { ActivatedRoute, RouterLink } from '@angular/router';
 import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
-import { LanguageService } from '../../../core/i18n/language.service';
-import { ActiveProjectService } from '../../../core/services/active-project.service';
-import { ApiErrorService } from '../../../core/api/api-error.service';
+import { LanguageService } from '@mds-ui/core';
+import { ActiveProjectService } from '@mds-ui/core';
+import { ApiErrorService } from '@mds-ui/core';
 import {
   DbtTreeNode,
   LineageDetailTab,

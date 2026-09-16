@@ -2,7 +2,7 @@ import { Explore, getFieldId } from '@mds-ui/models';
 import {
   buildExploreFromLineageNode,
   resolveLineageNodeForExploreRequest,
-} from '../../../features/explorer/explore-from-dbt.utils';
+} from '../../utils/explore-from-dbt.utils';
 import { fctOrdersExplore } from './explore-fct-orders.fixture';
 import { mockLineage } from './lineage.fixture';
 

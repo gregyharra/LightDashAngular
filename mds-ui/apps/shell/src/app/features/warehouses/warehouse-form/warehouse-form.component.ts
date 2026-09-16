@@ -7,7 +7,7 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatSelectModule } from '@angular/material/select';
 import { MatSlideToggleModule } from '@angular/material/slide-toggle';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
-import { apiErrorMessage } from '../../../core/api/lightdash-api.service';
+import { apiErrorMessage } from '@mds-ui/core';
 import {
   defaultPortForWarehouseType,
   Warehouse,

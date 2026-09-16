@@ -14,9 +14,9 @@ import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import {
   AppLanguage,
   LanguageService,
-} from '../../core/i18n/language.service';
-import { AppStateService } from '../../core/services/app-state.service';
-import { AuthService } from '../../core/services/auth.service';
+} from '@mds-ui/core';
+import { AppStateService } from '@mds-ui/core';
+import { AuthService } from '@mds-ui/core';
 
 @Component({
   selector: 'app-change-password-dialog',

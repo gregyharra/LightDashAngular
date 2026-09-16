@@ -4,8 +4,8 @@ import { By } from '@angular/platform-browser';
 import { provideRouter } from '@angular/router';
 import { provideTranslateService, TranslateService } from '@ngx-translate/core';
 import { of } from 'rxjs';
-import { AppStateService } from '../../core/services/app-state.service';
-import { AuthService } from '../../core/services/auth.service';
+import { AppStateService } from '@mds-ui/core';
+import { AuthService } from '@mds-ui/core';
 import { SettingsSidebarNavComponent } from './settings-sidebar-nav.component';
 
 @Component({

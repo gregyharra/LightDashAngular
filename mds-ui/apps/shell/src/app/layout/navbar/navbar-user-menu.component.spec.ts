@@ -3,9 +3,9 @@ import { provideRouter } from '@angular/router';
 import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 import { provideTranslateService, TranslateService } from '@ngx-translate/core';
 import { of } from 'rxjs';
-import { LanguageService } from '../../core/i18n/language.service';
-import { AppStateService } from '../../core/services/app-state.service';
-import { AuthService } from '../../core/services/auth.service';
+import { LanguageService } from '@mds-ui/core';
+import { AppStateService } from '@mds-ui/core';
+import { AuthService } from '@mds-ui/core';
 import { NavbarUserMenuComponent } from './navbar-user-menu.component';
 
 function openLanguageMenu(fixture: ComponentFixture<NavbarUserMenuComponent>): void {

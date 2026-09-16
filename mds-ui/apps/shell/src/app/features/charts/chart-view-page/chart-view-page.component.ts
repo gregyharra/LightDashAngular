@@ -22,9 +22,9 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
-import { LanguageService } from '../../../core/i18n/language.service';
-import { ActiveProjectService } from '../../../core/services/active-project.service';
-import { apiErrorMessage } from '../../../core/api/lightdash-api.service';
+import { LanguageService } from '@mds-ui/core';
+import { ActiveProjectService } from '@mds-ui/core';
+import { apiErrorMessage } from '@mds-ui/core';
 import {
   DashboardDimensionFilter,
   ChartConfig,
@@ -51,7 +51,7 @@ import {
   LineageNode,
 } from '@mds-ui/models';
 
-import { ChartService } from '../chart.service';
+import { ChartService } from '@mds-ui/core';
 import {
   ChartDetailsDialogComponent,
   ChartDetailsDialogData,
@@ -62,7 +62,7 @@ import {
   SaveChartDialogData,
   SaveChartDialogResult,
 } from '../save-chart-dialog/save-chart-dialog.component';
-import { ExplorerService } from '../../explorer/explorer.service';
+import { ExplorerService } from '@mds-ui/core';
 import {
   CreateChartFromExploreState,
   readCreateFromExploreState,
@@ -78,7 +78,7 @@ import {
   exploreHasFields,
   isExploreableDbtTreeNode,
   resolveExploreNameForSelection,
-} from '../../explorer/explore-from-dbt.utils';
+} from '@mds-ui/core';
 import {
   clampQueryLimit,
   resolveCsvMaxLimit,
@@ -93,7 +93,7 @@ import { chartExportPlacement } from './chart-export-placement';
 import { resolveChartDraftName } from './chart-draft-name';
 import { ResizableSidebarDirective } from '../../../layout/resizable-sidebar/resizable-sidebar.directive';
 import { ProjectBrowseNavComponent } from '../../../layout/project-browse-nav/project-browse-nav.component';
-import { AppStateService } from '../../../core/services/app-state.service';
+import { AppStateService } from '@mds-ui/core';
 import { SqlHighlightComponent } from '../../../shared/sql-highlight/sql-highlight.component';
 import { RunQueryButtonComponent } from '../../../shared/run-query-button/run-query-button.component';
 import { ChartFieldsAccordionComponent } from '../../../shared/chart-fields-accordion/chart-fields-accordion.component';
@@ -106,14 +106,14 @@ import {
   enrichDashboardFilterLabels,
   extractDashboardFiltersFromMetricQuery,
   mergeDashboardFiltersIntoMetricQuery,
-} from '../../dashboards/dashboard-filters';
+} from '@mds-ui/core';
 import {
   ChartQueryActions,
   ChartQueryEntry,
   ChartQueryKeyInput,
   chartQueryKey,
   selectEntries,
-} from '../../../core/store';
+} from '@mds-ui/core';
 import { combineLatest, forkJoin } from 'rxjs';
 
 type TableFieldGroup = {

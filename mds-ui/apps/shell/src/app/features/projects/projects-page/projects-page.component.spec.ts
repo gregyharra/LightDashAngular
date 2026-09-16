@@ -9,11 +9,11 @@ import {
   TranslateService,
 } from '@ngx-translate/core';
 import { of } from 'rxjs';
-import { ApiErrorService } from '../../../core/api/api-error.service';
-import { LanguageService } from '../../../core/i18n/language.service';
+import { ApiErrorService } from '@mds-ui/core';
+import { LanguageService } from '@mds-ui/core';
 import { ProjectSummary } from '@mds-ui/models';
-import { ActiveProjectService } from '../../../core/services/active-project.service';
-import { AppStateService } from '../../../core/services/app-state.service';
+import { ActiveProjectService } from '@mds-ui/core';
+import { AppStateService } from '@mds-ui/core';
 import { ProjectsService } from '../projects.service';
 import { ProjectsPageComponent } from './projects-page.component';
 

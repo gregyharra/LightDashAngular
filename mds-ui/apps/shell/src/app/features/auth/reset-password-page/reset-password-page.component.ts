@@ -5,8 +5,8 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
-import { AuthService } from '../../../core/services/auth.service';
-import { AppStateService } from '../../../core/services/app-state.service';
+import { AuthService } from '@mds-ui/core';
+import { AppStateService } from '@mds-ui/core';
 
 @Component({
   selector: 'app-reset-password-page',

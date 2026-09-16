@@ -1,11 +1,16 @@
 import { HttpHeaders, HttpInterceptorFn, HttpResponse } from '@angular/common/http';
+import { inject, InjectionToken } from '@angular/core';
 import { delay, of } from 'rxjs';
-import { environment } from '../../../environments/environment';
 import { ApiResponse } from '../api/api.types';
 import { parseMockPath, resolveMockResponse } from './mock-api.router';
 
 const MOCK_LATENCY_MS = 80;
 const RESULTS_STREAM_PATTERN = /^\/projects\/[^/]+\/query\/[^/]+\/results$/;
+
+export const MOCK_API_ENABLED = new InjectionToken<boolean>('MOCK_API_ENABLED', {
+  providedIn: 'root',
+  factory: () => false,
+});
 
 function isApiRequest(url: string): boolean {
   return url.startsWith('/api/') || url === '/health' || url.startsWith('/health?');
@@ -23,7 +28,7 @@ function toMockRequest(url: string, method: string, body: unknown) {
 }
 
 export const mockApiInterceptor: HttpInterceptorFn = (request, next) => {
-  if (!environment.useMockApi || !isApiRequest(request.url)) {
+  if (!inject(MOCK_API_ENABLED) || !isApiRequest(request.url)) {
     return next(request);
   }
 

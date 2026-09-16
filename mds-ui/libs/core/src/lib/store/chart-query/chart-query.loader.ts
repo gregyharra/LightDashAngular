@@ -16,13 +16,13 @@ import {
   MOCK_CHART_5_UUID,
   MOCK_CHART_6_UUID,
 } from '../../mock/fixtures/ids.fixture';
-import { ChartService } from '../../../features/charts/chart.service';
-import { ExplorerService } from '../../../features/explorer/explorer.service';
+import { ChartService } from '../../services/chart.service';
+import { ExplorerService } from '../../services/explorer.service';
 import {
   applyDashboardContextToMetricQuery,
   mergeDashboardFiltersIntoMetricQuery,
-} from '../../../features/dashboards/dashboard-filters';
-import { mergeTimeTravelIntoMetricQuery } from '../../../features/explorer/time-travel.utils';
+} from '../../utils/dashboard-filters';
+import { mergeTimeTravelIntoMetricQuery } from '../../utils/time-travel.utils';
 import {
   ChartQueryKeyInput,
   ChartQuerySnapshot,

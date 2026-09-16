@@ -9,8 +9,8 @@ import { MatInputModule } from '@angular/material/input';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatSelectModule } from '@angular/material/select';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
-import { apiErrorMessage } from '../../../core/api/lightdash-api.service';
-import { LanguageService } from '../../../core/i18n/language.service';
+import { apiErrorMessage } from '@mds-ui/core';
+import { LanguageService } from '@mds-ui/core';
 import {
   GitProvider,
   ProjectRepoStatus,
@@ -21,7 +21,7 @@ import {
   ModelLinkOption,
 } from '@mds-ui/models';
 
-import { ActiveProjectService } from '../../../core/services/active-project.service';
+import { ActiveProjectService } from '@mds-ui/core';
 import { ProjectDetail, ProjectsService } from '../projects.service';
 import { WarehouseService } from '../warehouse.service';
 import { WarehouseCreateDialogComponent } from '../../warehouses/warehouse-create-dialog/warehouse-create-dialog.component';

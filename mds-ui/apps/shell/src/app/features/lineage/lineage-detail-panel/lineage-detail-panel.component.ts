@@ -27,7 +27,7 @@ import {
   LineageNode,
   SelectedColumnRef,
 } from '@mds-ui/models';
-import { ActiveProjectService } from '../../../core/services/active-project.service';
+import { ActiveProjectService } from '@mds-ui/core';
 import {
   explorePath,
   isExploreableLineageNode,

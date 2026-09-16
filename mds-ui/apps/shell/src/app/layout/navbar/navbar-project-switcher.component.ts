@@ -4,7 +4,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatMenuModule } from '@angular/material/menu';
 import { Router } from '@angular/router';
 import { TranslatePipe } from '@ngx-translate/core';
-import { ActiveProjectService } from '../../core/services/active-project.service';
+import { ActiveProjectService } from '@mds-ui/core';
 
 @Component({
   selector: 'app-navbar-project-switcher',

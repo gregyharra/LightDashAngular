@@ -21,9 +21,9 @@ import { MatMenuModule } from '@angular/material/menu';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
-import { LanguageService } from '../../../core/i18n/language.service';
-import { ActiveProjectService } from '../../../core/services/active-project.service';
-import { apiErrorMessage } from '../../../core/api/lightdash-api.service';
+import { LanguageService } from '@mds-ui/core';
+import { ActiveProjectService } from '@mds-ui/core';
+import { apiErrorMessage } from '@mds-ui/core';
 import {
   SavedChartBasic,
   Dashboard,
@@ -36,10 +36,10 @@ import {
   TimeTravelConfig,
 } from '@mds-ui/models';
 
-import { mockSqlCharts, MockSqlChartBasic } from '../../../core/mock/fixtures/sql-charts.fixture';
-import { createUuid } from '../../../core/utils/uuid';
-import { ChartService } from '../../charts/chart.service';
-import { ExplorerService } from '../../explorer/explorer.service';
+import { mockSqlCharts, MockSqlChartBasic } from '@mds-ui/core';
+import { createUuid } from '@mds-ui/core';
+import { ChartService } from '@mds-ui/core';
+import { ExplorerService } from '@mds-ui/core';
 import {
   FilterableDimension,
   getFilterableDimensions,

@@ -10,7 +10,7 @@ import {
   inject,
 } from '@angular/core';
 import { TranslateService } from '@ngx-translate/core';
-import { LanguageService } from '../../core/i18n/language.service';
+import { LanguageService } from '@mds-ui/core';
 
 const WIDTH_STORAGE_KEY = 'lightdash-sidebar-width';
 const COLLAPSED_STORAGE_KEY = 'lightdash-page-sidebar-collapsed';

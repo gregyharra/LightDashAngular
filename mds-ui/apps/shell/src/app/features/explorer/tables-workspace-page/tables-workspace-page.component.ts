@@ -34,8 +34,8 @@ import {
   getFieldId,
 } from '@mds-ui/models';
 
-import { ActiveProjectService } from '../../../core/services/active-project.service';
-import { apiErrorMessage } from '../../../core/api/lightdash-api.service';
+import { ActiveProjectService } from '@mds-ui/core';
+import { apiErrorMessage } from '@mds-ui/core';
 
 import { FolderSearchPanelComponent } from '../../lineage/folder-search-panel/folder-search-panel.component';
 import { findTreeNodeByLineageId } from '../../lineage/dbt-tree-utils';
@@ -59,26 +59,26 @@ import {
   formatModelLabel,
   isExploreableDbtTreeNode,
   resolveExploreNameForSelection,
-} from '../explore-from-dbt.utils';
+} from '@mds-ui/core';
 import { buildMetricQuerySql } from '../metric-query-sql.utils';
-import { ExplorerService } from '../explorer.service';
-import { mergeDashboardFiltersIntoMetricQuery } from '../../dashboards/dashboard-filters';
+import { ExplorerService } from '@mds-ui/core';
+import { mergeDashboardFiltersIntoMetricQuery } from '@mds-ui/core';
 import {
   ChartQueryActions,
   ChartQueryEntry,
   ChartQueryKeyInput,
   chartQueryKey,
   selectEntries,
-} from '../../../core/store';
-import { mergeTimeTravelIntoMetricQuery } from '../time-travel.utils';
+} from '@mds-ui/core';
+import { mergeTimeTravelIntoMetricQuery } from '@mds-ui/core';
 import { getFilterableDimensions } from '../tables-filters-panel/tables-filters.utils';
 import { TablesFiltersPanelComponent } from '../tables-filters-panel/tables-filters-panel.component';
 import { TimeTravelControlComponent } from '../../../shared/time-travel-control/time-travel-control.component';
 import { QueryWarningsBannerComponent } from '../../../shared/query-warnings-banner/query-warnings-banner.component';
 import { RunQueryButtonComponent } from '../../../shared/run-query-button/run-query-button.component';
 import { SqlHighlightComponent } from '../../../shared/sql-highlight/sql-highlight.component';
-import { AppStateService } from '../../../core/services/app-state.service';
-import { ChartService } from '../../charts/chart.service';
+import { AppStateService } from '@mds-ui/core';
+import { ChartService } from '@mds-ui/core';
 import {
   clampQueryLimit,
   resolveMaxQueryLimit,

@@ -8,13 +8,17 @@ import { registerLocaleData } from '@angular/common';
 import localeFr from '@angular/common/locales/fr';
 import { provideTranslateService } from '@ngx-translate/core';
 import { provideTranslateHttpLoader } from '@ngx-translate/http-loader';
+import {
+  AppStateService,
+  authInterceptor,
+  LanguageService,
+  MOCK_API_ENABLED,
+  mockApiInterceptor,
+  provideAppStore,
+} from '@mds-ui/core';
 
 import { routes } from './app.routes';
-import { authInterceptor } from './core/interceptors/auth.interceptor';
-import { mockApiInterceptor } from './core/mock/mock-api.interceptor';
-import { AppStateService } from './core/services/app-state.service';
-import { LanguageService } from './core/i18n/language.service';
-import { provideAppStore } from './core/store';
+import { environment } from '../environments/environment';
 
 registerLocaleData(localeFr);
 
@@ -25,6 +29,7 @@ export const appConfig: ApplicationConfig = {
     provideRouter(routes),
     provideAnimationsAsync(),
     provideNativeDateAdapter(),
+    { provide: MOCK_API_ENABLED, useValue: environment.useMockApi },
     {
       provide: MAT_DIALOG_DEFAULT_OPTIONS,
       useValue: {

@@ -6,7 +6,7 @@ import {
   MatDialogRef,
 } from '@angular/material/dialog';
 import { TranslatePipe } from '@ngx-translate/core';
-import { LanguageService } from '../../core/i18n/language.service';
+import { LanguageService } from '@mds-ui/core';
 import { ExportFormat } from './export.models';
 
 export type ExportDialogData = {
