@@ -3,8 +3,10 @@
   "$schema": "../../node_modules/nx/schemas/project-schema.json",
   "projectType": "application",
   "sourceRoot": "apps/shell/src",
-  "tags": ["type:app"],
   "prefix": "app",
+  "tags": [
+    "type:app"
+  ],
   "generators": {
     "@schematics/angular:component": {
       "style": "scss",
@@ -132,6 +134,9 @@
         ],
         "scripts": []
       }
+    },
+    "lint": {
+      "executor": "@nx/eslint:lint"
     }
   }
 }
