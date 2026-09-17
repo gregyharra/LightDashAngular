@@ -4,7 +4,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { TranslatePipe } from '@ngx-translate/core';
 import { AppStateService } from '@mds-ui/core';
 import { ActiveProjectService } from '@mds-ui/core';
-import { ProjectsService } from '../../features/projects/projects.service';
+import { ProjectsService } from '@mds-ui/feature-projects';
 import { AiAssistantPanelComponent } from '../../features/ai/ai-assistant-panel/ai-assistant-panel.component';
 import { AiAssistantUiService } from '../../features/ai/ai-assistant-ui.service';
 import { NavbarProjectSwitcherComponent } from '../navbar/navbar-project-switcher.component';

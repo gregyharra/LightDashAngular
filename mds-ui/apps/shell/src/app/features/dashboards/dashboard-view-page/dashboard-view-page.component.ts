@@ -61,7 +61,7 @@ import {
 } from '../dashboard-tile-settings-dialog/dashboard-tile-settings-dialog.component';
 import { DashboardTileGridInteractionDirective } from '../dashboard-tile-grid-interaction.directive';
 import { getLoomEmbedUrl } from '../dashboard-loom.utils';
-import { ResizableSidebarDirective } from '../../../layout/resizable-sidebar/resizable-sidebar.directive';
+import { ResizableSidebarDirective } from '@mds-ui/shared';
 import { ProjectBrowseNavComponent } from '../../../layout/project-browse-nav/project-browse-nav.component';
 
 type DraftState = {

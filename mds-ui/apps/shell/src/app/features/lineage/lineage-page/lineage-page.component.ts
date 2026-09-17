@@ -16,11 +16,11 @@ import {
   SelectedColumnRef,
 } from '@mds-ui/models';
 import { FolderSearchPanelComponent } from '../folder-search-panel/folder-search-panel.component';
-import { LineageService } from '../lineage.service';
+import { LineageService } from '@mds-ui/feature-projects';
 import { LineageGraphComponent } from '../lineage-graph/lineage-graph.component';
 import { LineageDetailPanelComponent } from '../lineage-detail-panel/lineage-detail-panel.component';
 import { findTreeNodeByLineageId } from '../dbt-tree-utils';
-import { ResizableSidebarDirective } from '../../../layout/resizable-sidebar/resizable-sidebar.directive';
+import { ResizableSidebarDirective } from '@mds-ui/shared';
 import { ProjectBrowseNavComponent } from '../../../layout/project-browse-nav/project-browse-nav.component';
 
 @Component({

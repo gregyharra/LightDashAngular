@@ -22,7 +22,7 @@ export default [
                 "error",
                 {
                     enforceBuildableLibDependency: true,
-                    allow: ["remote-auth/Routes"],
+                    allow: ["remote-auth/Routes", "remote-projects/Routes"],
                     depConstraints: [
                         {
                             sourceTag: "type:models",

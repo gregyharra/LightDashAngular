@@ -1,5 +1,5 @@
 <div class="page-layout">
-  <aside class="page-layout__sidebar" appResizableSidebar>
+  <aside class="page-layout__sidebar" mdsResizableSidebar>
     <div class="page-sidebar page-sidebar--dark">
       @if (projectUuid(); as browseProjectUuid) {
         <app-project-browse-nav
@@ -408,7 +408,7 @@
 
             @if (activeTab() === 'links') {
               <section class="table-hub__panel table-hub__links-panel">
-                <app-filterable-links-table
+                <mds-filterable-links-table
                   variant="hub"
                   [links]="modelJoins()"
                   [loading]="linksLoading()"
@@ -509,7 +509,7 @@
 }
 
 @if (showLinkDialog()) {
-  <app-link-dialog
+  <mds-link-dialog
     mode="hub"
     [models]="modelLinkOptions()"
     [initialLink]="editingLink()"

@@ -17,7 +17,7 @@ import { ActiveProjectService } from '@mds-ui/core';
 import { ProjectSummary } from '@mds-ui/models';
 import { AiAssistantPanelComponent } from '../../features/ai/ai-assistant-panel/ai-assistant-panel.component';
 import { AiAssistantUiService } from '../../features/ai/ai-assistant-ui.service';
-import { ProjectsService } from '../../features/projects/projects.service';
+import { ProjectsService } from '@mds-ui/feature-projects';
 import { NavbarSearchComponent } from '../navbar/navbar-search.component';
 import { AppShellComponent } from './app-shell.component';
 

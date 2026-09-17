@@ -2,7 +2,7 @@ import { Component, inject, signal } from '@angular/core';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { MatIconModule } from '@angular/material/icon';
 import { TranslatePipe } from '@ngx-translate/core';
-import { WarehouseFormComponent } from '../warehouse-form/warehouse-form.component';
+import { WarehouseFormComponent } from '@mds-ui/feature-projects';
 
 @Component({
   selector: 'app-warehouse-edit-page',

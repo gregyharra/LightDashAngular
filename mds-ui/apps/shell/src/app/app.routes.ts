@@ -36,9 +36,9 @@ export const routes: Routes = [
       {
         path: 'projects',
         pathMatch: 'full',
-        loadComponent: () =>
-          import('./features/projects/projects-page/projects-page.component').then(
-            (m) => m.ProjectsPageComponent,
+        loadChildren: () =>
+          import('remote-projects/Routes').then(
+            (m) => m.PROJECTS_REMOTE_ROUTES,
           ),
       },
       {
@@ -70,7 +70,7 @@ export const routes: Routes = [
       {
         path: 'settings',
         loadComponent: () =>
-          import('./features/settings/settings-shell/settings-shell.component').then(
+          import('remote-projects/Routes').then(
             (m) => m.SettingsShellComponent,
           ),
         children: [
@@ -79,25 +79,25 @@ export const routes: Routes = [
             path: 'projects',
             pathMatch: 'full',
             data: { management: true },
-            loadComponent: () =>
-              import('./features/projects/projects-page/projects-page.component').then(
-                (m) => m.ProjectsPageComponent,
+            loadChildren: () =>
+              import('remote-projects/Routes').then(
+                (m) => m.PROJECTS_MANAGEMENT_REMOTE_ROUTES,
               ),
           },
           {
             path: 'projects/create',
             canActivate: [adminGuard],
-            loadComponent: () =>
-              import('./features/projects/project-create-page/project-create-page.component').then(
-                (m) => m.ProjectCreatePageComponent,
+            loadChildren: () =>
+              import('remote-projects/Routes').then(
+                (m) => m.PROJECT_CREATE_REMOTE_ROUTES,
               ),
           },
           {
             path: 'projects/:projectUuid/edit',
             canActivate: [adminGuard],
-            loadComponent: () =>
-              import('./features/projects/project-edit-page/project-edit-page.component').then(
-                (m) => m.ProjectEditPageComponent,
+            loadChildren: () =>
+              import('remote-projects/Routes').then(
+                (m) => m.PROJECT_EDIT_REMOTE_ROUTES,
               ),
           },
           {

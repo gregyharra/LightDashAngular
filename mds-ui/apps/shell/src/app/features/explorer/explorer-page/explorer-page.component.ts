@@ -29,7 +29,7 @@ import {
 } from '@mds-ui/models';
 
 import { ExplorerService } from '../explorer.service';
-import { LineageService } from '../../lineage/lineage.service';
+import { LineageService } from '@mds-ui/feature-projects';
 import { FolderSearchPanelComponent } from '../../lineage/folder-search-panel/folder-search-panel.component';
 import { findTreeNodeByLineageId } from '../../lineage/dbt-tree-utils';
 import {
@@ -67,7 +67,7 @@ import { QueryResultsPanelComponent } from '../../charts/query-results-panel/que
 import { ExportFormat } from '../../export/export.models';
 import { ExportService } from '../../export/export.service';
 import { startExport } from '../../export/start-export';
-import { ResizableSidebarDirective } from '../../../layout/resizable-sidebar/resizable-sidebar.directive';
+import { ResizableSidebarDirective } from '@mds-ui/shared';
 import { ProjectBrowseNavComponent } from '../../../layout/project-browse-nav/project-browse-nav.component';
 import { RunQueryButtonComponent } from '@mds-ui/shared';
 import { SqlHighlightComponent } from '@mds-ui/shared';

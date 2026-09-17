@@ -21,6 +21,12 @@
       "@mds-ui/shared": ["./libs/shared/src/index.ts"],
       "remote-auth/Routes": [
         "./apps/remote-auth/src/app/remote-entry/entry.routes.ts"
+      ],
+      "remote-projects/Routes": [
+        "./apps/remote-projects/src/app/remote-entry/entry.routes.ts"
+      ],
+      "@mds-ui/feature-projects": [
+        "./libs/feature-projects/src/index.ts"
       ]
     }
   },

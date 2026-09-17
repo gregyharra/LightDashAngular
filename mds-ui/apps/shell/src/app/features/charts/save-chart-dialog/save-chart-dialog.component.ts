@@ -13,7 +13,7 @@ import { MatSelectModule } from '@angular/material/select';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { apiErrorMessage } from '@mds-ui/core';
 import { Space } from '@mds-ui/models';
-import { SpaceService } from '../../spaces/space.service';
+import { SpaceService } from '@mds-ui/feature-projects';
 
 export type SaveChartDialogData = {
   projectUuid: string;

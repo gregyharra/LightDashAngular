@@ -9,7 +9,7 @@ import { ActiveProjectService } from '@mds-ui/core';
 import { ApiErrorService } from '@mds-ui/core';
 import { SavedChartBasic } from '@mds-ui/models';
 import { ChartService } from '../chart.service';
-import { ResizableSidebarDirective } from '../../../layout/resizable-sidebar/resizable-sidebar.directive';
+import { ResizableSidebarDirective } from '@mds-ui/shared';
 import { ProjectBrowseNavComponent } from '../../../layout/project-browse-nav/project-browse-nav.component';
 import {
   ContentListColumnHeaderComponent,

@@ -10,7 +10,7 @@ import {
   WarehouseListItem,
 } from '@mds-ui/models';
 import { ApiErrorService } from '@mds-ui/core';
-import { WarehouseService } from '../../projects/warehouse.service';
+import { WarehouseService } from '@mds-ui/feature-projects';
 
 @Component({
   selector: 'app-warehouses-page',

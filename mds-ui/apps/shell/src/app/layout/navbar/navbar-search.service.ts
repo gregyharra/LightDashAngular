@@ -21,7 +21,7 @@ import { ChartService } from '../../features/charts/chart.service';
 import { DashboardService } from '../../features/dashboards/dashboard.service';
 import { inferColumnTransformation } from '../../features/lineage/column-transformation.utils';
 import { columnNamesEqual } from '../../features/lineage/lineage-column-utils';
-import { LineageService } from '../../features/lineage/lineage.service';
+import { LineageService } from '@mds-ui/feature-projects';
 
 export type NavbarSearchKind = 'model' | 'column' | 'dashboard' | 'chart';
 

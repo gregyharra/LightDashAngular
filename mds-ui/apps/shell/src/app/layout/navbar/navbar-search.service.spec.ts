@@ -10,7 +10,7 @@ import {
 
 import { ChartService } from '../../features/charts/chart.service';
 import { DashboardService } from '../../features/dashboards/dashboard.service';
-import { LineageService } from '../../features/lineage/lineage.service';
+import { LineageService } from '@mds-ui/feature-projects';
 import { NavbarSearchService } from './navbar-search.service';
 
 const PROJECT = 'project-1';
