@@ -5,3 +5,8 @@ export * from './lib/feature-chart-query/chart-query.models';
 export * from './lib/feature-chart-query/chart-query.providers';
 export * from './lib/feature-chart-query/chart-query.selectors';
 export * from './lib/feature-chart-query/chart-query.utils';
+export * from './lib/feature-chart-query/chart.service';
+export * from './lib/feature-chart-query/explorer.service';
+export * from './lib/feature-chart-query/dashboard-filters';
+export * from './lib/feature-chart-query/time-travel.utils';
+export * from './lib/feature-chart-query/tables-filters.utils';
