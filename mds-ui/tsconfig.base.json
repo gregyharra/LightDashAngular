@@ -29,7 +29,10 @@
       "remote-warehouses/Routes": [
         "./apps/remote-warehouses/src/app/remote-entry/entry.routes.ts"
       ],
-      "@mds-ui/feature-warehouses": ["./libs/feature-warehouses/src/index.ts"]
+      "@mds-ui/feature-warehouses": ["./libs/feature-warehouses/src/index.ts"],
+      "remote-tables/Routes": [
+        "./apps/remote-tables/src/app/remote-entry/entry.routes.ts"
+      ]
     }
   },
   "angularCompilerOptions": {

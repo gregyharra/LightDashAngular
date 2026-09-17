@@ -6,6 +6,7 @@
     "@angular/core": "^20.3.0",
     "@angular/forms": "^20.3.0",
     "@angular/material": "^20.2.0",
+    "@angular/router": "^20.3.0",
     "@mds-ui/core": "0.0.1",
     "@mds-ui/models": "0.0.1",
     "@ngx-translate/core": "^18.0.0",

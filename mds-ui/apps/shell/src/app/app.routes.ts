@@ -188,17 +188,13 @@ export const routes: Routes = [
       },
       {
         path: 'projects/:projectUuid/tables',
-        loadComponent: () =>
-          import('./features/tables/table-hub-page/table-hub-page.component').then(
-            (m) => m.TableHubPageComponent,
-          ),
+        loadChildren: () =>
+          import('remote-tables/Routes').then((m) => m.TABLES_REMOTE_ROUTES),
       },
       {
         path: 'projects/:projectUuid/tables/:tableId',
-        loadComponent: () =>
-          import('./features/tables/table-hub-page/table-hub-page.component').then(
-            (m) => m.TableHubPageComponent,
-          ),
+        loadChildren: () =>
+          import('remote-tables/Routes').then((m) => m.TABLES_REMOTE_ROUTES),
       },
       { path: '**', redirectTo: 'projects' },
     ],

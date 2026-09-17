@@ -2,7 +2,7 @@
   <aside class="page-layout__sidebar" mdsResizableSidebar>
     <div class="page-sidebar page-sidebar--dark">
       @if (projectUuid(); as browseProjectUuid) {
-        <app-project-browse-nav
+        <mds-project-browse-nav
           [projectUuid]="browseProjectUuid"
           active="lineage"
         />
@@ -67,14 +67,14 @@
       } @else {
         @if (lineage(); as data) {
           <div class="lineage-page__workspace">
-            <app-folder-search-panel
+            <mds-folder-search-panel
               [tree]="dbtTree()"
               [lineageNodes]="data.nodes"
               [projectUuid]="projectUuid()"
               [selectedNodeId]="selectedNodeId()"
               (nodeSelected)="onNodeSelected($event)"
             />
-            <app-lineage-graph
+            <mds-lineage-graph
               class="lineage-page__graph"
               [nodes]="data.nodes"
               [edges]="data.edges"

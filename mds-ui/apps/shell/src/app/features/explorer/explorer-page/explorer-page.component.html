@@ -2,7 +2,7 @@
   <aside class="page-layout__sidebar" mdsResizableSidebar>
     <div class="page-sidebar page-sidebar--dark">
       @if (projectUuid(); as browseProjectUuid) {
-        <app-project-browse-nav
+        <mds-project-browse-nav
           [projectUuid]="browseProjectUuid"
           active="explore"
         />
@@ -11,7 +11,7 @@
   </aside>
 
   <aside class="page-layout__sidebar page-layout__sidebar--project">
-    <app-folder-search-panel
+    <mds-folder-search-panel
       [tree]="dbtTree()"
       [lineageNodes]="lineageNodes()"
       [projectUuid]="projectUuid()"

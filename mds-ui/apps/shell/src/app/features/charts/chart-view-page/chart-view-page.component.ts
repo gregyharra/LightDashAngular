@@ -68,8 +68,8 @@ import {
   readCreateFromExploreState,
 } from '../../explorer/create-chart-from-explore';
 import { LineageService } from '@mds-ui/feature-projects';
-import { FolderSearchPanelComponent } from '../../lineage/folder-search-panel/folder-search-panel.component';
-import { findTreeNodeByLineageId } from '../../lineage/dbt-tree-utils';
+import { FolderSearchPanelComponent } from '@mds-ui/shared';
+import { findTreeNodeByLineageId } from '@mds-ui/shared';
 import {
   findExploreByName,
   findExploreForLineageNode,
@@ -92,7 +92,7 @@ import { startExport } from '../../export/start-export';
 import { chartExportPlacement } from './chart-export-placement';
 import { resolveChartDraftName } from './chart-draft-name';
 import { ResizableSidebarDirective } from '@mds-ui/shared';
-import { ProjectBrowseNavComponent } from '../../../layout/project-browse-nav/project-browse-nav.component';
+import { ProjectBrowseNavComponent } from '@mds-ui/shared';
 import { AppStateService } from '@mds-ui/core';
 import { SqlHighlightComponent } from '@mds-ui/shared';
 import { RunQueryButtonComponent } from '@mds-ui/shared';

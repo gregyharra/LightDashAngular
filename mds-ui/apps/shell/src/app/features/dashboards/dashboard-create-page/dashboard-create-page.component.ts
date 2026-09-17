@@ -14,7 +14,7 @@ import { ActiveProjectService } from '@mds-ui/core';
 import { SpaceService } from '@mds-ui/feature-projects';
 import { DashboardService } from '../dashboard.service';
 import { ResizableSidebarDirective } from '@mds-ui/shared';
-import { ProjectBrowseNavComponent } from '../../../layout/project-browse-nav/project-browse-nav.component';
+import { ProjectBrowseNavComponent } from '@mds-ui/shared';
 
 @Component({
   selector: 'app-dashboard-create-page',

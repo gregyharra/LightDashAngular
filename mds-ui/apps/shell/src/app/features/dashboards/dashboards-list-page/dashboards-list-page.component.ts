@@ -10,7 +10,7 @@ import { ApiErrorService } from '@mds-ui/core';
 import { DashboardBasicDetailsWithTileTypes } from '@mds-ui/models';
 import { DashboardService } from '../dashboard.service';
 import { ResizableSidebarDirective } from '@mds-ui/shared';
-import { ProjectBrowseNavComponent } from '../../../layout/project-browse-nav/project-browse-nav.component';
+import { ProjectBrowseNavComponent } from '@mds-ui/shared';
 import {
   ContentListColumnHeaderComponent,
   ColumnFilterValue,

@@ -10,7 +10,7 @@ import { ApiErrorService } from '@mds-ui/core';
 import { SavedChartBasic } from '@mds-ui/models';
 import { ChartService } from '../chart.service';
 import { ResizableSidebarDirective } from '@mds-ui/shared';
-import { ProjectBrowseNavComponent } from '../../../layout/project-browse-nav/project-browse-nav.component';
+import { ProjectBrowseNavComponent } from '@mds-ui/shared';
 import {
   ContentListColumnHeaderComponent,
   ColumnFilterValue,

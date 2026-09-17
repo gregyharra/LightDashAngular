@@ -62,7 +62,7 @@ import {
 import { DashboardTileGridInteractionDirective } from '../dashboard-tile-grid-interaction.directive';
 import { getLoomEmbedUrl } from '../dashboard-loom.utils';
 import { ResizableSidebarDirective } from '@mds-ui/shared';
-import { ProjectBrowseNavComponent } from '../../../layout/project-browse-nav/project-browse-nav.component';
+import { ProjectBrowseNavComponent } from '@mds-ui/shared';
 
 type DraftState = {
   name: string;

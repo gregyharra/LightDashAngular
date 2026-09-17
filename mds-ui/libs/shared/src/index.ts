@@ -8,7 +8,14 @@ export * from './lib/content-list-filter-chips/content-list-filter-chips.compone
 export * from './lib/content-list-filter.utils';
 export * from './lib/filterable-links-table/filterable-links-table.component';
 export * from './lib/link-dialog/link-dialog.component';
+export * from './lib/lineage/column-transformation.utils';
+export * from './lib/lineage/dbt-tree-utils';
+export * from './lib/lineage/folder-search-panel/folder-search-panel.component';
+export * from './lib/lineage/lineage-column-utils';
+export * from './lib/lineage/lineage-graph/lineage-graph.component';
+export * from './lib/lineage/transformation-chip/transformation-chip.component';
 export * from './lib/model-links.utils';
+export * from './lib/project-browse-nav/project-browse-nav.component';
 export * from './lib/query-warnings-banner/query-warnings-banner.component';
 export * from './lib/resizable-sidebar/resizable-sidebar.directive';
 export * from './lib/run-query-button/query-limit.utils';

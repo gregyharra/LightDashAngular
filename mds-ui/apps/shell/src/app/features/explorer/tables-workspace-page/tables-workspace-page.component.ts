@@ -37,11 +37,11 @@ import {
 import { ActiveProjectService } from '@mds-ui/core';
 import { apiErrorMessage } from '@mds-ui/core';
 
-import { FolderSearchPanelComponent } from '../../lineage/folder-search-panel/folder-search-panel.component';
-import { findTreeNodeByLineageId } from '../../lineage/dbt-tree-utils';
+import { FolderSearchPanelComponent } from '@mds-ui/shared';
+import { findTreeNodeByLineageId } from '@mds-ui/shared';
 import { LineageService } from '@mds-ui/feature-projects';
 import { ResizableSidebarDirective } from '@mds-ui/shared';
-import { ProjectBrowseNavComponent } from '../../../layout/project-browse-nav/project-browse-nav.component';
+import { ProjectBrowseNavComponent } from '@mds-ui/shared';
 import {
   filterTablesFieldGroups,
   TablesFieldGroup,

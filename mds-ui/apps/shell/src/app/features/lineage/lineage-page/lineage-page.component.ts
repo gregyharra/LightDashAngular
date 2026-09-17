@@ -15,13 +15,13 @@ import {
   ProjectLineage,
   SelectedColumnRef,
 } from '@mds-ui/models';
-import { FolderSearchPanelComponent } from '../folder-search-panel/folder-search-panel.component';
+import { FolderSearchPanelComponent } from '@mds-ui/shared';
 import { LineageService } from '@mds-ui/feature-projects';
-import { LineageGraphComponent } from '../lineage-graph/lineage-graph.component';
+import { LineageGraphComponent } from '@mds-ui/shared';
 import { LineageDetailPanelComponent } from '../lineage-detail-panel/lineage-detail-panel.component';
-import { findTreeNodeByLineageId } from '../dbt-tree-utils';
+import { findTreeNodeByLineageId } from '@mds-ui/shared';
 import { ResizableSidebarDirective } from '@mds-ui/shared';
-import { ProjectBrowseNavComponent } from '../../../layout/project-browse-nav/project-browse-nav.component';
+import { ProjectBrowseNavComponent } from '@mds-ui/shared';
 
 @Component({
   selector: 'app-lineage-page',

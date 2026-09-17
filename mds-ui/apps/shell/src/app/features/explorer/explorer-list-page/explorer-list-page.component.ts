@@ -9,7 +9,7 @@ import { ApiErrorService } from '@mds-ui/core';
 import { ExploreSummary } from '@mds-ui/models';
 import { ExplorerService } from '../explorer.service';
 import { ResizableSidebarDirective } from '@mds-ui/shared';
-import { ProjectBrowseNavComponent } from '../../../layout/project-browse-nav/project-browse-nav.component';
+import { ProjectBrowseNavComponent } from '@mds-ui/shared';
 
 @Component({
   selector: 'app-explorer-list-page',

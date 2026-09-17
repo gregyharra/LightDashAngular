@@ -94,7 +94,7 @@
                   <span class="navbar-search__chips">
                     @for (chip of result.chips; track chip.label + (chip.transformationType ?? '')) {
                       @if (chip.transformationType; as transformType) {
-                        <app-transformation-chip
+                        <mds-transformation-chip
                           [type]="transformType"
                           mode="full"
                           size="sm"

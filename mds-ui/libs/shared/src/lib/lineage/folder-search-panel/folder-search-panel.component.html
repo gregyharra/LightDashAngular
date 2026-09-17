@@ -1,0 +1,147 @@
+<aside
+  class="folder-panel"
+  [class.folder-panel--collapsed]="collapsed()"
+  [class.folder-panel--resizing]="resizing()"
+  [style.width.px]="collapsed() ? collapsedWidth : panelWidth()"
+>
+  <header class="folder-panel__header">
+    <div class="folder-panel__header-top">
+      <h2 class="folder-panel__title">{{ title() | translate }}</h2>
+      <div
+        class="folder-panel__view-toggle"
+        role="radiogroup"
+        [attr.aria-label]="'lineage.folder.treeViewMode' | translate"
+      >
+        <button
+          type="button"
+          class="folder-panel__view-btn"
+          role="radio"
+          [attr.aria-checked]="treeViewMode() === 'folder'"
+          [class.folder-panel__view-btn--active]="treeViewMode() === 'folder'"
+          [attr.aria-label]="'lineage.folder.folderView' | translate"
+          [matTooltip]="'lineage.folder.folderView' | translate"
+          matTooltipPosition="below"
+          (click)="setTreeViewMode('folder')"
+        >
+          <mat-icon aria-hidden="true">folder</mat-icon>
+        </button>
+        <button
+          type="button"
+          class="folder-panel__view-btn"
+          role="radio"
+          [attr.aria-checked]="treeViewMode() === 'schema'"
+          [class.folder-panel__view-btn--active]="treeViewMode() === 'schema'"
+          [attr.aria-label]="'lineage.folder.schemaView' | translate"
+          [matTooltip]="'lineage.folder.schemaView' | translate"
+          matTooltipPosition="below"
+          (click)="setTreeViewMode('schema')"
+        >
+          <mat-icon aria-hidden="true">schema</mat-icon>
+        </button>
+      </div>
+      <button
+        type="button"
+        class="folder-panel__fold-btn"
+        [attr.aria-expanded]="!collapsed()"
+        [attr.aria-label]="
+          (collapsed() ? 'lineage.folder.expandProjectPanel' : 'lineage.folder.collapseProjectPanel')
+            | translate
+        "
+        (click)="toggleCollapsed()"
+      >
+        <mat-icon>{{ collapsed() ? 'chevron_right' : 'chevron_left' }}</mat-icon>
+      </button>
+    </div>
+    <div class="folder-panel__search-wrap">
+      <mat-icon class="folder-panel__search-icon">search</mat-icon>
+      <input
+        class="folder-panel__search"
+        type="search"
+        [placeholder]="searchPlaceholder() | translate"
+        [attr.aria-label]="searchPlaceholder() | translate"
+        [ngModel]="searchQuery()"
+        (ngModelChange)="onSearchInput($event)"
+        (keydown)="onSearchKeydown($event)"
+      />
+    </div>
+    @if (searchQuery().trim()) {
+      <p class="folder-panel__match-count">
+        {{ 'lineage.folder.matches' | translate: { count: matchCount() } }}
+        <span class="folder-panel__hint">· {{ 'lineage.folder.enterToSelect' | translate }}</span>
+      </p>
+    }
+  </header>
+
+  <nav #treeNav class="folder-panel__tree" [attr.aria-label]="treeAriaLabel() | translate">
+    @if (visibleItems().length === 0) {
+      <p class="folder-panel__empty">{{ emptyMessage() | translate }}</p>
+    } @else {
+      <ul class="folder-panel__list">
+        @for (item of visibleItems(); track item.node.id) {
+          <li
+            class="folder-panel__item"
+            role="button"
+            tabindex="0"
+            [class.folder-panel__item--selected]="isSelected(item.node)"
+            [class.folder-panel__item--folder]="item.node.type === 'folder'"
+            [style.padding-left.px]="12 + item.depth * 16"
+            [attr.title]="item.node.path"
+            (click)="item.hasChildren ? toggleFolder(item.node.path, $event) : selectItem(item.node, $event)"
+            (keydown.enter)="item.hasChildren ? toggleFolder(item.node.path, $event) : selectItem(item.node, $event)"
+            (keydown.space)="item.hasChildren ? toggleFolder(item.node.path, $event) : selectItem(item.node, $event)"
+          >
+            @if (item.hasChildren) {
+              <button
+                type="button"
+                class="folder-panel__expand"
+                [attr.aria-label]="
+                  (item.expanded ? 'lineage.folder.collapseFolder' : 'lineage.folder.expandFolder')
+                    | translate
+                "
+                (click)="toggleFolder(item.node.path, $event)"
+              >
+                <mat-icon>{{ item.expanded ? 'expand_more' : 'chevron_right' }}</mat-icon>
+              </button>
+            } @else {
+              <span class="folder-panel__expand-spacer"></span>
+            }
+
+            <mat-icon class="folder-panel__icon folder-panel__icon--{{ item.node.type }}">
+              {{ iconForType(item.node.type) }}
+            </mat-icon>
+
+            <button
+              type="button"
+              class="folder-panel__label"
+              [class.folder-panel__label--selectable]="!!item.node.lineageNodeId"
+              [disabled]="!item.node.lineageNodeId"
+              (click)="selectItem(item.node, $event)"
+            >
+              {{ item.node.name }}
+            </button>
+
+            @if (showLeafCount(item.node)) {
+              <span
+                class="folder-panel__count"
+                [attr.aria-label]="'lineage.folder.items' | translate: { count: leafCount(item.node) }"
+              >
+                {{ leafCount(item.node) }}
+              </span>
+            }
+          </li>
+        }
+      </ul>
+    }
+  </nav>
+
+  @if (resizable()) {
+    <div
+      class="folder-panel__resize-handle"
+      role="separator"
+      aria-orientation="vertical"
+      [attr.aria-label]="'lineage.folder.resizePanel' | translate"
+      tabindex="0"
+      (pointerdown)="onResizeStart($event)"
+    ></div>
+  }
+</aside>

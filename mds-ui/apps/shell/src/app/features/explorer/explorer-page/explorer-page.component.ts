@@ -30,8 +30,8 @@ import {
 
 import { ExplorerService } from '../explorer.service';
 import { LineageService } from '@mds-ui/feature-projects';
-import { FolderSearchPanelComponent } from '../../lineage/folder-search-panel/folder-search-panel.component';
-import { findTreeNodeByLineageId } from '../../lineage/dbt-tree-utils';
+import { FolderSearchPanelComponent } from '@mds-ui/shared';
+import { findTreeNodeByLineageId } from '@mds-ui/shared';
 import {
   findExploreByName,
   findExploreForLineageNode,
@@ -68,7 +68,7 @@ import { ExportFormat } from '../../export/export.models';
 import { ExportService } from '../../export/export.service';
 import { startExport } from '../../export/start-export';
 import { ResizableSidebarDirective } from '@mds-ui/shared';
-import { ProjectBrowseNavComponent } from '../../../layout/project-browse-nav/project-browse-nav.component';
+import { ProjectBrowseNavComponent } from '@mds-ui/shared';
 import { RunQueryButtonComponent } from '@mds-ui/shared';
 import { SqlHighlightComponent } from '@mds-ui/shared';
 

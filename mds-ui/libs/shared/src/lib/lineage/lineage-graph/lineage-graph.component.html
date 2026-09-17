@@ -1,0 +1,713 @@
+<div class="lineage-graph">
+  <div class="lineage-graph__toolbar">
+    <div class="lineage-graph__toolbar-group lineage-graph__toolbar-group--scope">
+      <div
+        class="lineage-graph__view-toggle"
+        role="group"
+        [attr.aria-label]="'lineage.graph.scope' | translate"
+      >
+        <button
+          type="button"
+          class="lineage-graph__view-btn"
+          [class.lineage-graph__view-btn--active]="graphMode() === 'focus'"
+          (click)="setGraphMode('focus')"
+          [attr.aria-label]="'lineage.graph.focusOnSelection' | translate"
+          [attr.title]="'lineage.graph.focusOnSelection' | translate"
+        >
+          <mat-icon class="lineage-graph__btn-icon" aria-hidden="true">center_focus_strong</mat-icon>
+          <span class="lineage-graph__btn-label">{{ 'lineage.graph.focus' | translate }}</span>
+        </button>
+        <button
+          type="button"
+          class="lineage-graph__view-btn lineage-graph__view-btn--full"
+          [class.lineage-graph__view-btn--active]="graphMode() === 'full'"
+          (click)="setGraphMode('full')"
+          [attr.aria-label]="'lineage.graph.fullGraph' | translate"
+          [attr.title]="'lineage.graph.fullGraph' | translate"
+        >
+          <mat-icon class="lineage-graph__btn-icon" aria-hidden="true">hub</mat-icon>
+          <span class="lineage-graph__btn-label">
+            <span class="lineage-graph__btn-label-full">{{ 'lineage.graph.fullGraph' | translate }}</span>
+            <span class="lineage-graph__btn-label-short">{{ 'lineage.graph.full' | translate }}</span>
+          </span>
+        </button>
+      </div>
+    </div>
+
+    <div class="lineage-graph__toolbar-divider" aria-hidden="true"></div>
+
+    <div class="lineage-graph__toolbar-group lineage-graph__toolbar-group--hop">
+      <div
+        class="lineage-graph__hop-controls"
+        role="group"
+        [attr.aria-label]="'lineage.graph.hopDepth' | translate"
+        [class.lineage-graph__hop-controls--disabled]="!hopDepthControlsEnabled()"
+      >
+        <button
+          type="button"
+          class="lineage-graph__tool-btn"
+          (click)="decreaseHopDepth()"
+          [disabled]="!canDecreaseHopDepth()"
+          [attr.aria-label]="'lineage.graph.decreaseHopDepth' | translate"
+          [attr.title]="'lineage.graph.showFewerLevels' | translate"
+        >
+          −
+        </button>
+        <span
+          class="lineage-graph__hop-label"
+          [attr.aria-label]="'lineage.graph.hopDepthValue' | translate: { depth: hopDepthLabel() }"
+        >
+          {{ hopDepthLabel() }}
+        </span>
+        <button
+          type="button"
+          class="lineage-graph__tool-btn"
+          (click)="increaseHopDepth()"
+          [disabled]="!canIncreaseHopDepth()"
+          [attr.aria-label]="'lineage.graph.increaseHopDepth' | translate"
+          [attr.title]="'lineage.graph.showMoreLevels' | translate"
+        >
+          +
+        </button>
+        <button
+          type="button"
+          class="lineage-graph__tool-btn lineage-graph__tool-btn--infinity"
+          [class.lineage-graph__tool-btn--active]="isUnlimitedHopDepth()"
+          (click)="setUnlimitedHopDepth()"
+          [disabled]="!hopDepthControlsEnabled()"
+          [attr.aria-label]="'lineage.graph.showFullLineage' | translate"
+          [attr.title]="'lineage.graph.showFullClosure' | translate"
+        >
+          ∞
+        </button>
+      </div>
+    </div>
+
+    <div class="lineage-graph__toolbar-divider" aria-hidden="true"></div>
+
+    <div class="lineage-graph__toolbar-group lineage-graph__toolbar-group--view">
+      <div
+        class="lineage-graph__view-toggle"
+        role="group"
+        [attr.aria-label]="'lineage.graph.viewMode' | translate"
+      >
+        <button
+          type="button"
+          class="lineage-graph__view-btn"
+          [class.lineage-graph__view-btn--active]="viewMode() === 'models'"
+          (click)="setViewMode('models')"
+          [attr.aria-label]="'lineage.graph.modelsView' | translate"
+          [attr.title]="'lineage.graph.modelsView' | translate"
+        >
+          <mat-icon class="lineage-graph__btn-icon" aria-hidden="true">table_chart</mat-icon>
+          <span class="lineage-graph__btn-label">{{ 'lineage.graph.models' | translate }}</span>
+        </button>
+        <button
+          type="button"
+          class="lineage-graph__view-btn"
+          [class.lineage-graph__view-btn--active]="viewMode() === 'columns'"
+          (click)="setViewMode('columns')"
+          [attr.aria-label]="'lineage.graph.columnsView' | translate"
+          [attr.title]="'lineage.graph.columnsView' | translate"
+        >
+          <mat-icon class="lineage-graph__btn-icon" aria-hidden="true">view_column</mat-icon>
+          <span class="lineage-graph__btn-label">{{ 'tables.tabs.columns' | translate }}</span>
+        </button>
+      </div>
+    </div>
+
+    <div class="lineage-graph__toolbar-divider" aria-hidden="true"></div>
+
+    <div class="lineage-graph__toolbar-group lineage-graph__toolbar-group--search">
+      <div class="lineage-graph__node-search">
+        <mat-icon class="lineage-graph__node-search-icon" aria-hidden="true">search</mat-icon>
+        <input
+          type="search"
+          class="lineage-graph__node-search-input"
+          [placeholder]="'lineage.graph.findModel' | translate"
+          [attr.aria-label]="'lineage.graph.findModel' | translate"
+          [value]="nodeSearchQuery()"
+          (input)="onNodeSearchInput($event)"
+          (focus)="onNodeSearchFocus()"
+          (blur)="onNodeSearchBlur()"
+        />
+        @if (nodeSearchOpen() && nodeSearchMatches().length) {
+          <ul class="lineage-graph__node-search-results" role="listbox">
+            @for (match of nodeSearchMatches(); track match.id) {
+              <li>
+                <button
+                  type="button"
+                  class="lineage-graph__node-search-option"
+                  (mousedown)="selectSearchResult(match)"
+                >
+                  {{ match.name }}
+                </button>
+              </li>
+            }
+          </ul>
+        }
+      </div>
+    </div>
+
+    <div class="lineage-graph__toolbar-divider" aria-hidden="true"></div>
+
+    <div class="lineage-graph__toolbar-group lineage-graph__toolbar-group--zoom">
+      <button
+        type="button"
+        class="lineage-graph__tool-btn"
+        (click)="zoomOut()"
+        [attr.aria-label]="'lineage.graph.zoomOut' | translate"
+        [attr.title]="'lineage.graph.zoomOut' | translate"
+      >
+        −
+      </button>
+      <span class="lineage-graph__zoom-label">{{ (zoom() * 100) | number: '1.0-0' }}%</span>
+      <button
+        type="button"
+        class="lineage-graph__tool-btn"
+        (click)="zoomIn()"
+        [attr.aria-label]="'lineage.graph.zoomIn' | translate"
+        [attr.title]="'lineage.graph.zoomIn' | translate"
+      >
+        +
+      </button>
+      <button
+        type="button"
+        class="lineage-graph__tool-btn lineage-graph__tool-btn--fit"
+        (click)="resetView()"
+        [attr.aria-label]="'lineage.graph.fitToView' | translate"
+        [attr.title]="'lineage.graph.fitToView' | translate"
+      >
+        <mat-icon class="lineage-graph__btn-icon" aria-hidden="true">fit_screen</mat-icon>
+        <span class="lineage-graph__btn-label">{{ 'lineage.graph.fit' | translate }}</span>
+      </button>
+      <button
+        type="button"
+        class="lineage-graph__tool-btn lineage-graph__tool-btn--icon"
+        (click)="reorganizeLayout()"
+        [attr.aria-label]="'lineage.graph.reorganizeLayout' | translate"
+        [attr.title]="'lineage.graph.reorganizeLayout' | translate"
+      >
+        <mat-icon>account_tree</mat-icon>
+      </button>
+    </div>
+  </div>
+
+  <div
+    #canvas
+    class="lineage-graph__canvas"
+    [class.lineage-graph__canvas--panning]="isPanning()"
+    [class.lineage-graph__canvas--dragging]="draggingNodeId() !== null"
+    [class.lineage-graph__canvas--column-focus]="hasColumnFocus()"
+    (pointerdown)="onCanvasPointerDown($event)"
+    (pointermove)="onCanvasPointerMove($event)"
+    (pointerup)="onCanvasPointerUp($event)"
+    (pointercancel)="onCanvasPointerUp($event)"
+    (wheel)="onWheel($event)"
+  >
+    <div class="lineage-graph__viewport" [style.transform]="transform()">
+      <svg
+        class="lineage-graph__svg"
+        [attr.width]="bounds().width"
+        [attr.height]="bounds().height"
+        [attr.viewBox]="bounds().minX + ' ' + bounds().minY + ' ' + bounds().width + ' ' + bounds().height"
+      >
+        <defs>
+          <marker
+            id="lineage-arrow"
+            viewBox="0 0 10 10"
+            refX="9"
+            refY="5"
+            markerWidth="6"
+            markerHeight="6"
+            orient="auto-start-reverse"
+          >
+            <path d="M 0 0 L 10 5 L 0 10 z" fill="var(--ld-gray-5)" />
+          </marker>
+          <marker
+            id="lineage-column-arrow"
+            viewBox="0 0 10 10"
+            refX="9"
+            refY="5"
+            markerWidth="5"
+            markerHeight="5"
+            orient="auto-start-reverse"
+          >
+            <path d="M 0 0 L 10 5 L 0 10 z" fill="#868e96" />
+          </marker>
+          <marker
+            id="lineage-column-arrow-highlight"
+            viewBox="0 0 10 10"
+            refX="9"
+            refY="5"
+            markerWidth="5"
+            markerHeight="5"
+            orient="auto-start-reverse"
+          >
+            <path d="M 0 0 L 10 5 L 0 10 z" fill="var(--ld-brand)" />
+          </marker>
+        </defs>
+
+        @for (item of edgePaths(); track item.edge.source + '->' + item.edge.target) {
+          <path
+            class="lineage-graph__edge"
+            [class.lineage-graph__edge--dimmed]="isEdgeDimmed(item.edge)"
+            [class.lineage-graph__edge--highlight]="isEdgeHighlighted(item.edge) && !hasColumnFocus()"
+            [attr.d]="item.path"
+            marker-end="url(#lineage-arrow)"
+          />
+        }
+
+        @for (item of columnEdgePaths(); track item.key) {
+          <path
+            class="lineage-graph__column-edge"
+            [class.lineage-graph__column-edge--highlight]="isColumnEdgeHighlighted(item.key)"
+            [class.lineage-graph__column-edge--dimmed]="isColumnEdgeDimmed(item.key)"
+            [attr.d]="item.path"
+            [attr.marker-end]="
+              isColumnEdgeHighlighted(item.key)
+                ? 'url(#lineage-column-arrow-highlight)'
+                : 'url(#lineage-column-arrow)'
+            "
+          />
+        }
+
+        @for (node of displayNodes(); track node.id) {
+          @if (positions().get(node.id); as pos) {
+            <g
+              class="lineage-graph__node"
+              [class.lineage-graph__node--selected]="selectedNodeId() === node.id"
+              [class.lineage-graph__node--expanded]="isNodeExpanded(node.id)"
+              [class.lineage-graph__node--dimmed]="isNodeDimmed(node.id)"
+              [class.lineage-graph__node--dragging]="draggingNodeId() === node.id"
+              [class.lineage-graph__node--reorganizing]="isReorganizing()"
+              [style.transform]="nodeScreenTransform(pos)"
+            >
+              <rect
+                class="lineage-graph__node-bg"
+                [attr.width]="pos.width"
+                [attr.height]="pos.height"
+                rx="8"
+                [attr.fill]="nodeColors(node.type).fill"
+                [attr.stroke]="nodeColors(node.type).stroke"
+              />
+
+              <g
+                class="lineage-graph__node-header"
+                (pointerdown)="onNodePointerDown(node.id, $event)"
+                (pointerup)="onNodePointerUp(node.id, $event)"
+                (pointercancel)="onNodePointerUp(node.id, $event)"
+                (dblclick)="onNodeDoubleClick(node.id, $event)"
+                role="button"
+                tabindex="0"
+                [attr.aria-label]="'lineage.graph.selectOrDragModel' | translate: { model: node.name }"
+                (keydown.enter)="selectNode(node.id, $event)"
+              >
+                <title>{{ 'lineage.graph.dragToSelect' | translate: { model: node.name } }}</title>
+                <rect
+                  class="lineage-graph__node-header-hit"
+                  [attr.width]="pos.width"
+                  [attr.height]="headerHeight()"
+                  rx="8"
+                  fill="transparent"
+                />
+
+                <g
+                  class="lineage-graph__node-drag-handle"
+                  role="presentation"
+                  aria-hidden="true"
+                >
+                  <rect x="4" y="8" width="10" [attr.height]="headerHeight() - 16" rx="3" fill="transparent" />
+                  <text x="9" y="22" text-anchor="middle" class="lineage-graph__drag-grip">⋮</text>
+                  <text x="9" y="36" text-anchor="middle" class="lineage-graph__drag-grip">⋮</text>
+                  <text x="9" y="50" text-anchor="middle" class="lineage-graph__drag-grip">⋮</text>
+                </g>
+
+                <rect
+                  class="lineage-graph__node-badge"
+                  x="20"
+                  y="12"
+                  [attr.width]="typeBadgeWidth(node.type)"
+                  height="18"
+                  rx="4"
+                  [attr.fill]="nodeColors(node.type).badge"
+                  pointer-events="none"
+                />
+                <text class="lineage-graph__node-badge-text" x="26" y="24" pointer-events="none">
+                  {{ typeIconGlyph(node.type) }}
+                </text>
+
+                @if (nodeHasExpandButton(node)) {
+                  <g
+                    class="lineage-graph__chevron-btn"
+                    [attr.transform]="'translate(' + (pos.width - 28) + ', 10)'"
+                    (click)="toggleNodeExpand(node.id, $event)"
+                    (pointerdown)="$event.stopPropagation()"
+                    (pointerup)="$event.stopPropagation()"
+                    role="button"
+                    tabindex="0"
+                    [attr.aria-label]="
+                      (isNodeExpanded(node.id)
+                        ? 'lineage.graph.collapseColumns'
+                        : 'lineage.graph.expandColumns') | translate
+                    "
+                  >
+                    <title>
+                      {{
+                        (isNodeExpanded(node.id)
+                          ? 'lineage.graph.collapseColumns'
+                          : 'lineage.graph.expandColumns') | translate
+                      }}
+                    </title>
+                    <rect width="18" height="18" rx="4" fill="rgba(255,255,255,0.85)" stroke="var(--ld-gray-4)" />
+                    <foreignObject x="0" y="0" width="18" height="18">
+                      <div
+                        xmlns="http://www.w3.org/1999/xhtml"
+                        class="lineage-graph__chevron-icon"
+                        aria-hidden="true"
+                      >
+                        <mat-icon>{{ isNodeExpanded(node.id) ? 'expand_more' : 'chevron_right' }}</mat-icon>
+                      </div>
+                    </foreignObject>
+                  </g>
+                }
+
+                <foreignObject
+                  x="20"
+                  y="30"
+                  [attr.width]="nodeHeaderTextWidth(pos.width, nodeHasExpandButton(node))"
+                  height="16"
+                  pointer-events="none"
+                >
+                  <div
+                    xmlns="http://www.w3.org/1999/xhtml"
+                    class="lineage-graph__node-name"
+                    [attr.title]="node.name"
+                  >
+                    {{ node.name }}
+                  </div>
+                </foreignObject>
+                <foreignObject
+                  x="20"
+                  y="45"
+                  [attr.width]="nodeMetaTextWidth(pos.width)"
+                  height="11"
+                  pointer-events="none"
+                >
+                  <div
+                    xmlns="http://www.w3.org/1999/xhtml"
+                    class="lineage-graph__node-meta"
+                    [attr.title]="columnCountLabel(node)"
+                  >
+                    {{ columnCountLabel(node) }}
+                  </div>
+                </foreignObject>
+              </g>
+
+              @if (isNodeExpanded(node.id) && node.columns?.length) {
+                <g
+                  class="lineage-graph__node-body"
+                  (pointerup)="onNodeBodyPointerUp(node.id, $event)"
+                  role="presentation"
+                >
+                  <line
+                    class="lineage-graph__node-divider"
+                    x1="8"
+                    [attr.x2]="pos.width - 8"
+                    [attr.y1]="headerHeight()"
+                    [attr.y2]="headerHeight()"
+                  />
+
+                  <defs>
+                    <clipPath [attr.id]="columnClipPathId(node.id)">
+                      <rect
+                        x="0"
+                        [attr.y]="headerHeight()"
+                        [attr.width]="pos.width"
+                        [attr.height]="columnBodyContentHeight(node)"
+                      />
+                    </clipPath>
+                  </defs>
+
+                  <g
+                    class="lineage-graph__node-columns-clip"
+                    [attr.clip-path]="'url(#' + columnClipPathId(node.id) + ')'"
+                    (wheel)="onColumnBodyWheel(node.id, node, $event)"
+                  >
+                    <!-- Hit target so wheel events land on the clipped column body. -->
+                    <rect
+                      class="lineage-graph__node-columns-hit"
+                      x="0"
+                      [attr.y]="headerHeight()"
+                      [attr.width]="pos.width"
+                      [attr.height]="columnBodyContentHeight(node)"
+                      fill="transparent"
+                    />
+                    <g
+                      [attr.transform]=
+                        "'translate(0, ' + (headerHeight() - columnScrollTop(node.id)) + ')'"
+                    >
+                      @for (col of displayColumns(node); track col.name; let i = $index) {
+                        <g
+                          class="lineage-graph__column-row"
+                          [class.lineage-graph__column-row--highlight]="isColumnPathHighlighted(node.id, col.name)"
+                          [class.lineage-graph__column-row--selected]="isColumnSelected(node.id, col.name)"
+                          [class.lineage-graph__column-row--dimmed]="isColumnDimmed(node.id, col.name) || isColumnFilteredOut(node, col)"
+                          [attr.transform]="'translate(0, ' + (i * columnRowHeight()) + ')'"
+                          (pointerdown)="onColumnPointerDown($event)"
+                          (pointerup)="onColumnPointerUp(node.id, col.name, $event)"
+                          role="button"
+                          tabindex="0"
+                          [attr.aria-label]="
+                            'lineage.graph.selectColumn'
+                              | translate: { column: col.name, model: node.name }
+                          "
+                          (keydown.enter)="selectColumn(node.id, col.name, $event)"
+                        >
+                          <title>
+                            {{
+                              'lineage.graph.selectColumnTitle'
+                                | translate: {
+                                    column: col.name,
+                                    type: col.type,
+                                    transformation: transformationChipTitle(columnTransformation(node, col))
+                                  }
+                            }}
+                          </title>
+                          <rect
+                            class="lineage-graph__column-bg"
+                            x="8"
+                            y="0"
+                            [attr.width]="pos.width - 16"
+                            [attr.height]="columnRowHeight()"
+                            rx="4"
+                          />
+                          <circle class="lineage-graph__column-dot" cx="18" [attr.cy]="columnRowHeight() / 2" r="3" />
+                          @if (typeHintForColumn(col); as hint) {
+                            <text class="lineage-graph__column-type-hint" x="28" [attr.y]="columnRowHeight() / 2 + 4">{{ hint }}</text>
+                          }
+                          @let transformType = columnTransformation(node, col);
+                          @let rowLayout = columnRowLayout(pos.width, col, transformType);
+                          <foreignObject
+                            [attr.x]="rowLayout.nameX"
+                            y="2"
+                            [attr.width]="rowLayout.nameMaxWidth"
+                            [attr.height]="columnRowHeight() - 4"
+                            pointer-events="none"
+                          >
+                            <div
+                              xmlns="http://www.w3.org/1999/xhtml"
+                              class="lineage-graph__column-name"
+                              [attr.title]="col.name"
+                            >
+                              {{ col.name }}
+                            </div>
+                          </foreignObject>
+                          <text
+                            class="lineage-graph__column-type"
+                            [attr.x]="rowLayout.typeX"
+                            [attr.y]="columnRowHeight() / 2 + 4"
+                            text-anchor="end"
+                          >
+                            {{ col.type }}
+                          </text>
+                          @if (transformType) {
+                            <g class="lineage-graph__column-transform">
+                              <rect
+                                class="lineage-graph__column-transform-chip"
+                                [attr.x]="rowLayout.chipX"
+                                y="5"
+                                [attr.width]="rowLayout.chipWidth"
+                                [attr.height]="transformChipH()"
+                                [attr.rx]="transformChipH() / 2"
+                                [attr.fill]="transformChipFill(transformType)"
+                                [attr.stroke]="transformChipStroke(transformType)"
+                              />
+                              <text
+                                class="lineage-graph__column-transform-text"
+                                [class.lineage-graph__column-transform-text--compact]="transformationChipMode() === 'compact'"
+                                [attr.x]="rowLayout.chipX + rowLayout.chipWidth / 2"
+                                [attr.y]="columnRowHeight() / 2 + 3"
+                                text-anchor="middle"
+                                [attr.fill]="transformChipTextFill(transformType)"
+                              >
+                                {{ transformationChipText(transformType) }}
+                              </text>
+                            </g>
+                          }
+                        </g>
+                      }
+                    </g>
+                  </g>
+
+                  @if (hasColumnOverflow(node)) {
+                    <text
+                      class="lineage-graph__column-scroll-hint"
+                      [attr.x]="pos.width / 2"
+                      [attr.y]="pos.height - footerHeight() - 2"
+                      text-anchor="middle"
+                    >
+                      {{ 'lineage.graph.scrollForMore' | translate: { count: overflowColumnCount(node) } }}
+                    </text>
+                  }
+                </g>
+              }
+
+              <g
+                class="lineage-graph__node-footer"
+                [attr.transform]="'translate(0, ' + (pos.height - footerHeight()) + ')'"
+              >
+                <line
+                  class="lineage-graph__node-divider"
+                  x1="8"
+                  [attr.x2]="pos.width - 8"
+                  y1="0"
+                  y2="0"
+                />
+                <g
+                  class="lineage-graph__hop-btn"
+                  [class.lineage-graph__hop-btn--disabled]="!canToggleNeighborhood(node.id, 'upstream')"
+                  [class.lineage-graph__hop-btn--active]="isNeighborhoodExpanded(node.id, 'upstream')"
+                  transform="translate(12, 4)"
+                  (click)="canToggleNeighborhood(node.id, 'upstream') && toggleNeighborhood(node.id, 'upstream', $event)"
+                  (pointerdown)="$event.stopPropagation()"
+                  (pointerup)="$event.stopPropagation()"
+                  role="button"
+                  [attr.aria-disabled]="!canToggleNeighborhood(node.id, 'upstream')"
+                  [attr.aria-label]="
+                    'lineage.graph.toggleUpstream' | translate: { model: node.name }
+                  "
+                >
+                  <title>{{ 'lineage.graph.toggleUpstreamShort' | translate }}</title>
+                  <rect width="22" height="20" rx="4" />
+                  <text x="11" y="14" text-anchor="middle">{{ neighborhoodToggleGlyph(node.id, 'upstream') }}</text>
+                </g>
+                <g
+                  class="lineage-graph__hop-btn"
+                  [class.lineage-graph__hop-btn--disabled]="!canToggleNeighborhood(node.id, 'downstream')"
+                  [class.lineage-graph__hop-btn--active]="isNeighborhoodExpanded(node.id, 'downstream')"
+                  [attr.transform]="'translate(' + (pos.width - 34) + ', 4)'"
+                  (click)="canToggleNeighborhood(node.id, 'downstream') && toggleNeighborhood(node.id, 'downstream', $event)"
+                  (pointerdown)="$event.stopPropagation()"
+                  (pointerup)="$event.stopPropagation()"
+                  role="button"
+                  [attr.aria-disabled]="!canToggleNeighborhood(node.id, 'downstream')"
+                  [attr.aria-label]="
+                    'lineage.graph.toggleDownstream' | translate: { model: node.name }
+                  "
+                >
+                  <title>{{ 'lineage.graph.toggleDownstreamShort' | translate }}</title>
+                  <rect width="22" height="20" rx="4" />
+                  <text x="11" y="14" text-anchor="middle">{{ neighborhoodToggleGlyph(node.id, 'downstream') }}</text>
+                </g>
+              </g>
+            </g>
+          }
+        }
+      </svg>
+    </div>
+
+    <div
+      class="lineage-graph__minimap"
+      (pointerdown)="onMinimapPointerDown($event)"
+      (pointermove)="onMinimapPointerMove($event)"
+      (pointerup)="onMinimapPointerUp($event)"
+      (pointercancel)="onMinimapPointerUp($event)"
+      role="slider"
+      aria-valuemin="0"
+      aria-valuemax="100"
+      aria-valuenow="0"
+      [attr.aria-label]="'lineage.graph.minimap' | translate"
+      [attr.title]="'lineage.graph.dragToPan' | translate"
+    >
+      <svg
+        [attr.width]="bounds().width * minimapScale()"
+        [attr.height]="bounds().height * minimapScale()"
+        [attr.viewBox]="'0 0 ' + bounds().width + ' ' + bounds().height"
+      >
+        @for (node of displayNodes(); track node.id) {
+          @if (positions().get(node.id); as pos) {
+            <rect
+              [attr.x]="pos.x - bounds().minX"
+              [attr.y]="pos.y - bounds().minY"
+              [attr.width]="pos.width"
+              [attr.height]="pos.height"
+              rx="4"
+              [attr.fill]="nodeColors(node.type).badge"
+              opacity="0.55"
+            />
+          }
+        }
+        <rect
+          class="lineage-graph__minimap-viewport"
+          [attr.x]="minimapViewport().x"
+          [attr.y]="minimapViewport().y"
+          [attr.width]="minimapViewport().width"
+          [attr.height]="minimapViewport().height"
+        />
+      </svg>
+    </div>
+  </div>
+
+  <div
+    class="lineage-graph__legend"
+    [class.lineage-graph__legend--collapsed]="legendCollapsed()"
+  >
+    <button
+      type="button"
+      class="lineage-graph__legend-toggle"
+      (click)="toggleLegendCollapsed()"
+      [attr.aria-expanded]="!legendCollapsed()"
+      [attr.aria-label]="
+        (legendCollapsed() ? 'lineage.graph.expandLegend' : 'lineage.graph.collapseLegend')
+          | translate
+      "
+      [attr.title]="
+        (legendCollapsed() ? 'lineage.graph.expandLegend' : 'lineage.graph.collapseLegend')
+          | translate
+      "
+    >
+      <span class="lineage-graph__legend-toggle-label">{{ 'lineage.graph.legend' | translate }}</span>
+      <mat-icon class="lineage-graph__legend-toggle-icon" aria-hidden="true">
+        {{ legendCollapsed() ? 'expand_more' : 'expand_less' }}
+      </mat-icon>
+    </button>
+    @if (!legendCollapsed()) {
+      <div class="lineage-graph__legend-body">
+        <div class="lineage-graph__legend-section">
+          <span class="lineage-graph__legend-heading">{{ 'lineage.graph.models' | translate }}</span>
+          <div class="lineage-graph__legend-items">
+            <span class="lineage-graph__legend-item lineage-graph__legend-item--source">
+              {{ 'lineage.modelTypes.source' | translate }}
+            </span>
+            <span class="lineage-graph__legend-item lineage-graph__legend-item--seed">
+              {{ 'lineage.modelTypes.seed' | translate }}
+            </span>
+            <span class="lineage-graph__legend-item lineage-graph__legend-item--staging">
+              {{ 'lineage.modelTypes.staging' | translate }}
+            </span>
+            <span class="lineage-graph__legend-item lineage-graph__legend-item--intermediate">
+              {{ 'lineage.modelTypes.intermediate' | translate }}
+            </span>
+            <span class="lineage-graph__legend-item lineage-graph__legend-item--mart">
+              {{ 'lineage.modelTypes.mart' | translate }}
+            </span>
+            @if (viewMode() === 'columns' || hasColumnFocus()) {
+              <span class="lineage-graph__legend-item lineage-graph__legend-item--column-edge">
+                {{ 'lineage.detail.columnLineage' | translate }}
+              </span>
+            }
+          </div>
+        </div>
+        <div class="lineage-graph__legend-divider" aria-hidden="true"></div>
+        <mds-transformation-legend
+          class="lineage-graph__legend-section lineage-graph__legend-section--transforms"
+          [chipMode]="transformationChipMode()"
+          [activeFilter]="transformationFilter()"
+          (chipModeChange)="setTransformationChipMode($event)"
+          (filterChange)="setTransformationFilter($event)"
+        />
+      </div>
+    }
+  </div>
+</div>

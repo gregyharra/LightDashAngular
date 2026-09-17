@@ -2,7 +2,7 @@
   <aside class="page-layout__sidebar" mdsResizableSidebar>
     <div class="page-sidebar page-sidebar--dark">
       @if (projectUuid(); as browseProjectUuid) {
-        <app-project-browse-nav
+        <mds-project-browse-nav
           [projectUuid]="browseProjectUuid"
           active="tables"
         />

@@ -39,11 +39,11 @@ import {
   getColumnUpstream,
   resolveColumnRefs,
   sortColumns,
-} from '../lineage-column-utils';
+} from '@mds-ui/shared';
 import {
   inferColumnTransformation,
-} from '../column-transformation.utils';
-import { TransformationChipComponent } from '../transformation-chip/transformation-chip.component';
+} from '@mds-ui/shared';
+import { TransformationChipComponent } from '@mds-ui/shared';
 import { SqlHighlightComponent } from '@mds-ui/shared';
 import {
   ModelSqlViewMode,
