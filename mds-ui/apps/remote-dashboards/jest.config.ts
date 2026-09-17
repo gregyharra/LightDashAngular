@@ -1,5 +1,5 @@
 export default {
-  displayName: 'remoteDashboards',
+  displayName: 'remote-dashboards',
   preset: '../../jest.preset.js',
   setupFilesAfterEnv: ['<rootDir>/src/test-setup.ts'],
   coverageDirectory: '../../coverage/apps/remote-dashboards',

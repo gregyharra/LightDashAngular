@@ -1,5 +1,5 @@
 export default {
-  displayName: 'remoteCharts',
+  displayName: 'remote-charts',
   preset: '../../jest.preset.js',
   setupFilesAfterEnv: ['<rootDir>/src/test-setup.ts'],
   coverageDirectory: '../../coverage/apps/remote-charts',

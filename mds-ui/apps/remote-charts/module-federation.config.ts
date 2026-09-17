@@ -1,7 +1,7 @@
 import type { ModuleFederationConfig } from '@nx/module-federation';
 
 const config: ModuleFederationConfig = {
-  name: 'remoteCharts',
+  name: 'remote-charts',
   exposes: {
     './Routes': 'apps/remote-charts/src/app/remote-entry/entry.routes.ts',
   },

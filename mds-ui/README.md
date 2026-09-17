@@ -85,7 +85,7 @@ Nx serves the host and dev remotes when configured in `apps/shell/module-federat
 
 ```bash
 cd mds-ui
-NX_DAEMON=false npx nx run-many -t build --projects=shell,remote-auth,remote-projects,remote-warehouses,remote-tables,remoteExplorer,remoteCharts,remoteDashboards,remoteLineage,remoteAi,remoteExport
+NX_DAEMON=false npx nx run-many -t build --projects=shell,remote-auth,remote-projects,remote-warehouses,remote-tables,remote-explorer,remote-charts,remote-dashboards,remote-lineage,remote-ai,remote-export
 ```
 
 ## Migration phases

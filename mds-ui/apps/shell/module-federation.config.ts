@@ -7,12 +7,12 @@ const config: ModuleFederationConfig = {
     'remote-projects',
     'remote-warehouses',
     'remote-tables',
-    'remoteExplorer',
-    'remoteCharts',
-    'remoteDashboards',
-    'remoteLineage',
-    'remoteAi',
-    'remoteExport',
+    'remote-explorer',
+    'remote-charts',
+    'remote-dashboards',
+    'remote-lineage',
+    'remote-ai',
+    'remote-export',
   ],
 };
 

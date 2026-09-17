@@ -1,7 +1,7 @@
 import type { ModuleFederationConfig } from '@nx/module-federation';
 
 const config: ModuleFederationConfig = {
-  name: 'remoteLineage',
+  name: 'remote-lineage',
   exposes: {
     './Routes': 'apps/remote-lineage/src/app/remote-entry/entry.routes.ts',
   },

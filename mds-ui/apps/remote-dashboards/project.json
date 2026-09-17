@@ -1,5 +1,5 @@
 {
-  "name": "remoteDashboards",
+  "name": "remote-dashboards",
   "$schema": "../../node_modules/nx/schemas/project-schema.json",
   "projectType": "application",
   "prefix": "app",
@@ -75,10 +75,10 @@
       },
       "configurations": {
         "production": {
-          "buildTarget": "remoteDashboards:build:production"
+          "buildTarget": "remote-dashboards:build:production"
         },
         "development": {
-          "buildTarget": "remoteDashboards:build:development"
+          "buildTarget": "remote-dashboards:build:development"
         }
       },
       "dependsOn": [
@@ -88,7 +88,7 @@
     "extract-i18n": {
       "executor": "@angular-devkit/build-angular:extract-i18n",
       "options": {
-        "buildTarget": "remoteDashboards:build"
+        "buildTarget": "remote-dashboards:build"
       }
     },
     "lint": {
@@ -109,16 +109,16 @@
       "executor": "@nx/web:file-server",
       "defaultConfiguration": "production",
       "options": {
-        "buildTarget": "remoteDashboards:build",
+        "buildTarget": "remote-dashboards:build",
         "port": 4207,
         "watch": false
       },
       "configurations": {
         "development": {
-          "buildTarget": "remoteDashboards:build:development"
+          "buildTarget": "remote-dashboards:build:development"
         },
         "production": {
-          "buildTarget": "remoteDashboards:build:production"
+          "buildTarget": "remote-dashboards:build:production"
         }
       }
     }

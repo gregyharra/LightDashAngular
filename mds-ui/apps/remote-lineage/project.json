@@ -1,5 +1,5 @@
 {
-  "name": "remoteLineage",
+  "name": "remote-lineage",
   "$schema": "../../node_modules/nx/schemas/project-schema.json",
   "projectType": "application",
   "prefix": "app",
@@ -75,10 +75,10 @@
       },
       "configurations": {
         "production": {
-          "buildTarget": "remoteLineage:build:production"
+          "buildTarget": "remote-lineage:build:production"
         },
         "development": {
-          "buildTarget": "remoteLineage:build:development"
+          "buildTarget": "remote-lineage:build:development"
         }
       },
       "dependsOn": [
@@ -88,7 +88,7 @@
     "extract-i18n": {
       "executor": "@angular-devkit/build-angular:extract-i18n",
       "options": {
-        "buildTarget": "remoteLineage:build"
+        "buildTarget": "remote-lineage:build"
       }
     },
     "lint": {
@@ -109,16 +109,16 @@
       "executor": "@nx/web:file-server",
       "defaultConfiguration": "production",
       "options": {
-        "buildTarget": "remoteLineage:build",
+        "buildTarget": "remote-lineage:build",
         "port": 4208,
         "watch": false
       },
       "configurations": {
         "development": {
-          "buildTarget": "remoteLineage:build:development"
+          "buildTarget": "remote-lineage:build:development"
         },
         "production": {
-          "buildTarget": "remoteLineage:build:production"
+          "buildTarget": "remote-lineage:build:production"
         }
       }
     }
