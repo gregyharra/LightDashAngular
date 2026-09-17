@@ -1,5 +1,5 @@
 {
-  "name": "remoteCharts",
+  "name": "remote-charts",
   "$schema": "../../node_modules/nx/schemas/project-schema.json",
   "projectType": "application",
   "prefix": "app",
@@ -75,10 +75,10 @@
       },
       "configurations": {
         "production": {
-          "buildTarget": "remoteCharts:build:production"
+          "buildTarget": "remote-charts:build:production"
         },
         "development": {
-          "buildTarget": "remoteCharts:build:development"
+          "buildTarget": "remote-charts:build:development"
         }
       },
       "dependsOn": [
@@ -88,7 +88,7 @@
     "extract-i18n": {
       "executor": "@angular-devkit/build-angular:extract-i18n",
       "options": {
-        "buildTarget": "remoteCharts:build"
+        "buildTarget": "remote-charts:build"
       }
     },
     "lint": {
@@ -109,16 +109,16 @@
       "executor": "@nx/web:file-server",
       "defaultConfiguration": "production",
       "options": {
-        "buildTarget": "remoteCharts:build",
+        "buildTarget": "remote-charts:build",
         "port": 4206,
         "watch": false
       },
       "configurations": {
         "development": {
-          "buildTarget": "remoteCharts:build:development"
+          "buildTarget": "remote-charts:build:development"
         },
         "production": {
-          "buildTarget": "remoteCharts:build:production"
+          "buildTarget": "remote-charts:build:production"
         }
       }
     }

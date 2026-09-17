@@ -46,22 +46,22 @@
       "@mds-ui/feature-chart-query": [
         "./libs/feature-chart-query/src/index.ts"
       ],
-      "remoteExplorer/Routes": [
+      "remote-explorer/Routes": [
         "./apps/remote-explorer/src/app/remote-entry/entry.routes.ts"
       ],
-      "remoteCharts/Routes": [
+      "remote-charts/Routes": [
         "./apps/remote-charts/src/app/remote-entry/entry.routes.ts"
       ],
-      "remoteDashboards/Routes": [
+      "remote-dashboards/Routes": [
         "./apps/remote-dashboards/src/app/remote-entry/entry.routes.ts"
       ],
-      "remoteLineage/Routes": [
+      "remote-lineage/Routes": [
         "./apps/remote-lineage/src/app/remote-entry/entry.routes.ts"
       ],
-      "remoteAi/Routes": [
+      "remote-ai/Routes": [
         "./apps/remote-ai/src/app/remote-entry/entry.routes.ts"
       ],
-      "remoteExport/Routes": [
+      "remote-export/Routes": [
         "./apps/remote-export/src/app/remote-entry/entry.routes.ts"
       ],
       "@mds-ui/feature-export": [

@@ -1,5 +1,5 @@
 export default {
-  displayName: 'remoteExport',
+  displayName: 'remote-export',
   preset: '../../jest.preset.js',
   setupFilesAfterEnv: ['<rootDir>/src/test-setup.ts'],
   coverageDirectory: '../../coverage/apps/remote-export',

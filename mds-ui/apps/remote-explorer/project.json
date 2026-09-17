@@ -1,5 +1,5 @@
 {
-  "name": "remoteExplorer",
+  "name": "remote-explorer",
   "$schema": "../../node_modules/nx/schemas/project-schema.json",
   "projectType": "application",
   "prefix": "app",
@@ -75,10 +75,10 @@
       },
       "configurations": {
         "production": {
-          "buildTarget": "remoteExplorer:build:production"
+          "buildTarget": "remote-explorer:build:production"
         },
         "development": {
-          "buildTarget": "remoteExplorer:build:development"
+          "buildTarget": "remote-explorer:build:development"
         }
       },
       "dependsOn": [
@@ -88,7 +88,7 @@
     "extract-i18n": {
       "executor": "@angular-devkit/build-angular:extract-i18n",
       "options": {
-        "buildTarget": "remoteExplorer:build"
+        "buildTarget": "remote-explorer:build"
       }
     },
     "lint": {
@@ -109,16 +109,16 @@
       "executor": "@nx/web:file-server",
       "defaultConfiguration": "production",
       "options": {
-        "buildTarget": "remoteExplorer:build",
+        "buildTarget": "remote-explorer:build",
         "port": 4205,
         "watch": false
       },
       "configurations": {
         "development": {
-          "buildTarget": "remoteExplorer:build:development"
+          "buildTarget": "remote-explorer:build:development"
         },
         "production": {
-          "buildTarget": "remoteExplorer:build:production"
+          "buildTarget": "remote-explorer:build:production"
         }
       }
     }

@@ -1,5 +1,5 @@
 export default {
-  displayName: 'remoteExplorer',
+  displayName: 'remote-explorer',
   preset: '../../jest.preset.js',
   setupFilesAfterEnv: ['<rootDir>/src/test-setup.ts'],
   coverageDirectory: '../../coverage/apps/remote-explorer',

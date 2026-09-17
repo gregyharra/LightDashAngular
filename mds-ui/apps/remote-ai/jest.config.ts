@@ -1,5 +1,5 @@
 export default {
-  displayName: 'remoteAi',
+  displayName: 'remote-ai',
   preset: '../../jest.preset.js',
   setupFilesAfterEnv: ['<rootDir>/src/test-setup.ts'],
   coverageDirectory: '../../coverage/apps/remote-ai',

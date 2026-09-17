@@ -119,12 +119,12 @@ export const routes: Routes = [
       {
         path: 'projects/:projectUuid/dashboards',
         loadChildren: () =>
-          import('remoteDashboards/Routes').then((m) => m.DASHBOARDS_LIST_REMOTE_ROUTES),
+          import('remote-dashboards/Routes').then((m) => m.DASHBOARDS_LIST_REMOTE_ROUTES),
       },
       {
         path: 'projects/:projectUuid/dashboards/create',
         loadChildren: () =>
-          import('remoteDashboards/Routes').then((m) => m.DASHBOARD_CREATE_REMOTE_ROUTES),
+          import('remote-dashboards/Routes').then((m) => m.DASHBOARD_CREATE_REMOTE_ROUTES),
       },
       {
         path: 'projects/:projectUuid/dashboards/:dashboardUuid/edit',
@@ -134,39 +134,39 @@ export const routes: Routes = [
       {
         path: 'projects/:projectUuid/dashboards/:dashboardUuid',
         loadChildren: () =>
-          import('remoteDashboards/Routes').then((m) => m.DASHBOARD_VIEW_REMOTE_ROUTES),
+          import('remote-dashboards/Routes').then((m) => m.DASHBOARD_VIEW_REMOTE_ROUTES),
       },
       {
         path: 'projects/:projectUuid/explore',
         loadChildren: () =>
-          import('remoteExplorer/Routes').then((m) => m.EXPLORER_REMOTE_ROUTES),
+          import('remote-explorer/Routes').then((m) => m.EXPLORER_REMOTE_ROUTES),
       },
       {
         path: 'projects/:projectUuid/explore/:tableId',
         loadChildren: () =>
-          import('remoteExplorer/Routes').then((m) => m.EXPLORER_REMOTE_ROUTES),
+          import('remote-explorer/Routes').then((m) => m.EXPLORER_REMOTE_ROUTES),
       },
       {
         path: 'projects/:projectUuid/charts/new',
         data: { createMode: true },
         loadChildren: () =>
-          import('remoteCharts/Routes').then((m) => m.CHARTS_VIEW_REMOTE_ROUTES),
+          import('remote-charts/Routes').then((m) => m.CHARTS_VIEW_REMOTE_ROUTES),
       },
       {
         path: 'projects/:projectUuid/charts/:chartUuid',
         loadChildren: () =>
-          import('remoteCharts/Routes').then((m) => m.CHARTS_VIEW_REMOTE_ROUTES),
+          import('remote-charts/Routes').then((m) => m.CHARTS_VIEW_REMOTE_ROUTES),
       },
       {
         path: 'projects/:projectUuid/charts',
         pathMatch: 'full',
         loadChildren: () =>
-          import('remoteCharts/Routes').then((m) => m.CHARTS_LIST_REMOTE_ROUTES),
+          import('remote-charts/Routes').then((m) => m.CHARTS_LIST_REMOTE_ROUTES),
       },
       {
         path: 'projects/:projectUuid/lineage',
         loadChildren: () =>
-          import('remoteLineage/Routes').then((m) => m.LINEAGE_REMOTE_ROUTES),
+          import('remote-lineage/Routes').then((m) => m.LINEAGE_REMOTE_ROUTES),
       },
       {
         path: 'projects/:projectUuid/tables',

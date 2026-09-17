@@ -1,7 +1,7 @@
 import type { ModuleFederationConfig } from '@nx/module-federation';
 
 const config: ModuleFederationConfig = {
-  name: 'remoteExport',
+  name: 'remote-export',
   exposes: {
     './Routes': 'apps/remote-export/src/app/remote-entry/entry.routes.ts',
   },
