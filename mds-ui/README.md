@@ -43,17 +43,49 @@ Set `useMockApi: true` in `apps/shell/src/environments/environment.ts`. Requests
 | `/settings/*` | Settings shell: projects, warehouses, users (admin) |
 | `/projects/:uuid/dashboards`, `/charts`, `/tables`, `/lineage` | Project workspace |
 
-## Nx project layout
+## Nx project layout (Module Federation)
+
+The **shell** is the MF host; feature UIs live in **remotes** loaded via `loadChildren` and `remote*/Routes` path aliases in `tsconfig.base.json`.
 
 ```
-apps/shell/              # Nx application project (tagged type:app)
-  src/app/
-    features/            # auth, projects, settings, charts, dashboards, explorer, …
-    layout/              # App shell, navbar, settings sidebar
+apps/shell/                    # MF host (type:app) — routing, layout, guards
+apps/remote-auth/              # Login, setup, reset-password, users
+apps/remote-projects/          # Projects list/create/edit, settings shell
+apps/remote-warehouses/        # Warehouse admin (under /settings)
+apps/remote-tables/              # Table hub
+apps/remote-explorer/          # Explore / metric query workspace
+apps/remote-charts/            # Charts list and chart editor
+apps/remote-dashboards/        # Dashboards list, create, view
+apps/remote-lineage/           # Lineage graph
+apps/remote-ai/                # AI remote entry (panel UI in @mds-ui/feature-ai)
+apps/remote-export/            # Export remote entry (dialog in @mds-ui/feature-export)
 libs/
-  models/                # Shared domain types and pure model utilities (type:models)
-  core/                  # API, auth, state, guards, interceptors, i18n (type:core)
-  shared/                # Reusable UI components and presentation utilities (type:shared)
+  models/                      # Domain types (type:models)
+  core/                        # API, auth, guards, app store (type:core)
+  shared/                      # Reusable UI (type:shared)
+  feature-chart-query/         # Chart query NgRx + explore/chart services (type:feature)
+  feature-projects/            # Projects + dashboard API services (type:feature)
+  feature-warehouses/          # Warehouse services (type:feature)
+  feature-export/              # Export dialog + startExport helper (type:feature)
+  feature-ai/                  # AI assistant panel + services (type:feature)
+```
+
+Architecture spec: `docs/superpowers/specs/2026-09-16-mds-ui-nx-module-federation-architecture-design.md`.
+
+### Serve (host + remotes)
+
+```bash
+cd mds-ui
+NX_DAEMON=false npx nx serve shell --port 4200
+```
+
+Nx serves the host and dev remotes when configured in `apps/shell/module-federation.config.ts`.
+
+### Build all apps
+
+```bash
+cd mds-ui
+NX_DAEMON=false npx nx run-many -t build --projects=shell,remote-auth,remote-projects,remote-warehouses,remote-tables,remoteExplorer,remoteCharts,remoteDashboards,remoteLineage,remoteAi,remoteExport
 ```
 
 ## Migration phases

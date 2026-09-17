@@ -19,18 +19,16 @@ import {
 import {
   CHART_QUERY_ADAPTER,
   ChartQueryAdapter,
+  ChartService,
+  ExplorerService,
+  applyDashboardContextToMetricQuery,
+  mergeDashboardFiltersIntoMetricQuery,
+  mergeTimeTravelIntoMetricQuery,
   provideChartQueryState,
 } from '@mds-ui/feature-chart-query';
 
 import { routes } from './app.routes';
 import { environment } from '../environments/environment';
-import { ChartService } from './features/charts/chart.service';
-import {
-  applyDashboardContextToMetricQuery,
-  mergeDashboardFiltersIntoMetricQuery,
-} from './features/dashboards/dashboard-filters';
-import { ExplorerService } from './features/explorer/explorer.service';
-import { mergeTimeTravelIntoMetricQuery } from './features/explorer/time-travel.utils';
 
 registerLocaleData(localeFr);
 

@@ -118,17 +118,13 @@ export const routes: Routes = [
       },
       {
         path: 'projects/:projectUuid/dashboards',
-        loadComponent: () =>
-          import('./features/dashboards/dashboards-list-page/dashboards-list-page.component').then(
-            (m) => m.DashboardsListPageComponent,
-          ),
+        loadChildren: () =>
+          import('remoteDashboards/Routes').then((m) => m.DASHBOARDS_LIST_REMOTE_ROUTES),
       },
       {
         path: 'projects/:projectUuid/dashboards/create',
-        loadComponent: () =>
-          import('./features/dashboards/dashboard-create-page/dashboard-create-page.component').then(
-            (m) => m.DashboardCreatePageComponent,
-          ),
+        loadChildren: () =>
+          import('remoteDashboards/Routes').then((m) => m.DASHBOARD_CREATE_REMOTE_ROUTES),
       },
       {
         path: 'projects/:projectUuid/dashboards/:dashboardUuid/edit',
@@ -137,54 +133,40 @@ export const routes: Routes = [
       },
       {
         path: 'projects/:projectUuid/dashboards/:dashboardUuid',
-        loadComponent: () =>
-          import('./features/dashboards/dashboard-view-page/dashboard-view-page.component').then(
-            (m) => m.DashboardViewPageComponent,
-          ),
+        loadChildren: () =>
+          import('remoteDashboards/Routes').then((m) => m.DASHBOARD_VIEW_REMOTE_ROUTES),
       },
       {
         path: 'projects/:projectUuid/explore',
-        loadComponent: () =>
-          import('./features/explorer/explorer-page/explorer-page.component').then(
-            (m) => m.ExplorerPageComponent,
-          ),
+        loadChildren: () =>
+          import('remoteExplorer/Routes').then((m) => m.EXPLORER_REMOTE_ROUTES),
       },
       {
         path: 'projects/:projectUuid/explore/:tableId',
-        loadComponent: () =>
-          import('./features/explorer/explorer-page/explorer-page.component').then(
-            (m) => m.ExplorerPageComponent,
-          ),
+        loadChildren: () =>
+          import('remoteExplorer/Routes').then((m) => m.EXPLORER_REMOTE_ROUTES),
       },
       {
         path: 'projects/:projectUuid/charts/new',
         data: { createMode: true },
-        loadComponent: () =>
-          import('./features/charts/chart-view-page/chart-view-page.component').then(
-            (m) => m.ChartViewPageComponent,
-          ),
+        loadChildren: () =>
+          import('remoteCharts/Routes').then((m) => m.CHARTS_VIEW_REMOTE_ROUTES),
       },
       {
         path: 'projects/:projectUuid/charts/:chartUuid',
-        loadComponent: () =>
-          import('./features/charts/chart-view-page/chart-view-page.component').then(
-            (m) => m.ChartViewPageComponent,
-          ),
+        loadChildren: () =>
+          import('remoteCharts/Routes').then((m) => m.CHARTS_VIEW_REMOTE_ROUTES),
       },
       {
         path: 'projects/:projectUuid/charts',
         pathMatch: 'full',
-        loadComponent: () =>
-          import('./features/charts/charts-list-page/charts-list-page.component').then(
-            (m) => m.ChartsListPageComponent,
-          ),
+        loadChildren: () =>
+          import('remoteCharts/Routes').then((m) => m.CHARTS_LIST_REMOTE_ROUTES),
       },
       {
         path: 'projects/:projectUuid/lineage',
-        loadComponent: () =>
-          import('./features/lineage/lineage-page/lineage-page.component').then(
-            (m) => m.LineagePageComponent,
-          ),
+        loadChildren: () =>
+          import('remoteLineage/Routes').then((m) => m.LINEAGE_REMOTE_ROUTES),
       },
       {
         path: 'projects/:projectUuid/tables',

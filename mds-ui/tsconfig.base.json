@@ -45,6 +45,30 @@
       ],
       "@mds-ui/feature-chart-query": [
         "./libs/feature-chart-query/src/index.ts"
+      ],
+      "remoteExplorer/Routes": [
+        "./apps/remote-explorer/src/app/remote-entry/entry.routes.ts"
+      ],
+      "remoteCharts/Routes": [
+        "./apps/remote-charts/src/app/remote-entry/entry.routes.ts"
+      ],
+      "remoteDashboards/Routes": [
+        "./apps/remote-dashboards/src/app/remote-entry/entry.routes.ts"
+      ],
+      "remoteLineage/Routes": [
+        "./apps/remote-lineage/src/app/remote-entry/entry.routes.ts"
+      ],
+      "remoteAi/Routes": [
+        "./apps/remote-ai/src/app/remote-entry/entry.routes.ts"
+      ],
+      "remoteExport/Routes": [
+        "./apps/remote-export/src/app/remote-entry/entry.routes.ts"
+      ],
+      "@mds-ui/feature-export": [
+        "./libs/feature-export/src/index.ts"
+      ],
+      "@mds-ui/feature-ai": [
+        "./libs/feature-ai/src/index.ts"
       ]
     }
   },
