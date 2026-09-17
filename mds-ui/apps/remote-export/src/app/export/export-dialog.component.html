@@ -1,0 +1,43 @@
+<h2 mat-dialog-title>{{ 'export.dialog.title' | translate: { format: formatLabel } }}</h2>
+
+<mat-dialog-content class="export-dialog__content">
+  @if (!showOverrideWarning) {
+    <p class="export-dialog__message">
+      {{ 'export.dialog.limit' | translate: { count: csvMaxLimitLabel } }}
+    </p>
+  } @else {
+    <p class="export-dialog__message export-dialog__message--warning">
+      {{ 'export.dialog.warning' | translate }}
+    </p>
+  }
+</mat-dialog-content>
+
+<mat-dialog-actions align="end" class="export-dialog__actions">
+  <button mat-stroked-button type="button" mat-dialog-close>
+    {{ 'common.cancel' | translate }}
+  </button>
+
+  @if (!showOverrideWarning) {
+    <button
+      mat-stroked-button
+      type="button"
+      data-testid="export-all-rows"
+      (click)="startOverrideConfirm()"
+    >
+      {{ 'export.allRows' | translate }}
+    </button>
+    <button mat-flat-button color="primary" type="button" (click)="confirmCapped()">
+      {{ 'export.action' | translate }}
+    </button>
+  } @else {
+    <button
+      mat-flat-button
+      color="primary"
+      type="button"
+      data-testid="confirm-export-all-rows"
+      (click)="confirmOverride()"
+    >
+      {{ 'export.allRows' | translate }}
+    </button>
+  }
+</mat-dialog-actions>
