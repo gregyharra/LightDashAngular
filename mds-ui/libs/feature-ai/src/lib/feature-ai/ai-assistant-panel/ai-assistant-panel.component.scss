@@ -1,0 +1,124 @@
+.ai-panel {
+  position: fixed;
+  top: var(--ld-navbar-height, 56px);
+  right: 0;
+  bottom: 0;
+  width: min(26rem, 100vw);
+  z-index: 40;
+  display: flex;
+  flex-direction: column;
+  background: #fff;
+  border-left: 1px solid var(--ld-gray-3, #dee2e6);
+  box-shadow: -8px 0 24px rgba(0, 0, 0, 0.08);
+}
+
+.ai-panel__header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  padding: 0.85rem 1rem 0.5rem;
+  border-bottom: 1px solid var(--ld-gray-3, #dee2e6);
+}
+
+.ai-panel__title {
+  margin: 0;
+  font-size: 1.05rem;
+}
+
+.ai-panel__subtitle {
+  margin: 0.2rem 0 0;
+  font-size: 0.8rem;
+  color: var(--ld-gray-6, #868e96);
+}
+
+.ai-panel__header-actions {
+  display: flex;
+}
+
+.ai-panel__mode {
+  margin: 0.75rem 1rem 0;
+}
+
+.ai-panel__messages {
+  flex: 1;
+  overflow: auto;
+  padding: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.ai-panel__hint {
+  color: var(--ld-gray-6, #868e96);
+  font-size: 0.875rem;
+}
+
+.ai-panel__bubble {
+  border-radius: 10px;
+  padding: 0.65rem 0.75rem;
+  max-width: 100%;
+
+  pre {
+    margin: 0;
+    white-space: pre-wrap;
+    font-family: inherit;
+    font-size: 0.875rem;
+  }
+}
+
+.ai-panel__bubble--user {
+  align-self: flex-end;
+  background: #e7f5ff;
+}
+
+.ai-panel__bubble--assistant {
+  align-self: stretch;
+  background: #f8f9fa;
+}
+
+.ai-panel__loading {
+  display: flex;
+  justify-content: center;
+  padding: 0.5rem;
+}
+
+.ai-panel__error {
+  color: #c92a2a;
+  font-size: 0.85rem;
+}
+
+.ai-panel__proposal {
+  border: 1px solid #a5d8ff;
+  background: #e7f5ff;
+  border-radius: 8px;
+  padding: 0.75rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+
+  p {
+    margin: 0;
+    font-size: 0.85rem;
+  }
+}
+
+.ai-panel__composer {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  padding: 0.75rem 1rem 1rem;
+  border-top: 1px solid var(--ld-gray-3, #dee2e6);
+
+  textarea {
+    width: 100%;
+    resize: vertical;
+    border: 1px solid var(--ld-gray-4, #ced4da);
+    border-radius: 8px;
+    padding: 0.55rem 0.7rem;
+    font: inherit;
+  }
+
+  button {
+    align-self: flex-end;
+  }
+}
