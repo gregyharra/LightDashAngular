@@ -40,7 +40,8 @@ export const chartQueryFeature = createFeature({
       },
     })),
     on(ChartQueryActions.invalidate, (state, { key }) => {
-      const { [key]: _removed, ...entries } = state.entries;
+      const entries = { ...state.entries };
+      delete entries[key];
       return { ...state, entries };
     }),
     on(ChartQueryActions.invalidateAll, (state) => ({

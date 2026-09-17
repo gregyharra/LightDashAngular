@@ -1,6 +1,4 @@
 import { Component, computed, effect, inject, signal, viewChild } from '@angular/core';
-import { toSignal } from '@angular/core/rxjs-interop';
-import { Store } from '@ngrx/store';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { forkJoin } from 'rxjs';
 import { MatButtonModule } from '@angular/material/button';
@@ -64,12 +62,10 @@ import { buildMetricQuerySql } from '../metric-query-sql.utils';
 import { ExplorerService } from '../explorer.service';
 import { mergeDashboardFiltersIntoMetricQuery } from '../../dashboards/dashboard-filters';
 import {
-  ChartQueryActions,
-  ChartQueryEntry,
+  ChartQueryFacade,
   ChartQueryKeyInput,
   chartQueryKey,
-  selectEntries,
-} from '@mds-ui/core';
+} from '@mds-ui/feature-chart-query';
 import { mergeTimeTravelIntoMetricQuery } from '../time-travel.utils';
 import { getFilterableDimensions } from '../tables-filters-panel/tables-filters.utils';
 import { TablesFiltersPanelComponent } from '../tables-filters-panel/tables-filters-panel.component';
@@ -129,13 +125,11 @@ export class TablesWorkspacePageComponent {
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
   private readonly appState = inject(AppStateService);
-  private readonly store = inject(Store);
+  private readonly chartQuery = inject(ChartQueryFacade);
   private readonly translate = inject(TranslateService);
   private readonly activeProjectService = inject(ActiveProjectService);
 
-  private readonly cacheEntries = toSignal(this.store.select(selectEntries), {
-    initialValue: {} as Record<string, ChartQueryEntry>,
-  });
+  private readonly cacheEntries = this.chartQuery.entries;
 
   protected readonly projectUuid = signal<string | null>(null);
   protected readonly tableId = signal<string | null>(null);
@@ -1081,7 +1075,7 @@ export class TablesWorkspacePageComponent {
     this.queryError.set(null);
     this.queryWarnings.set([]);
     this.hasRunQuery.set(true);
-    this.store.dispatch(ChartQueryActions.load({ key: cacheKey, input }));
+    this.chartQuery.load(cacheKey, input);
   }
 
   private queryCacheInput(): ChartQueryKeyInput | null {

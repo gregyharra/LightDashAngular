@@ -11,13 +11,16 @@ import { provideTranslateHttpLoader } from '@ngx-translate/http-loader';
 import {
   AppStateService,
   authInterceptor,
-  CHART_QUERY_ADAPTER,
-  ChartQueryAdapter,
   LanguageService,
   MOCK_API_ENABLED,
   mockApiInterceptor,
   provideAppStore,
 } from '@mds-ui/core';
+import {
+  CHART_QUERY_ADAPTER,
+  ChartQueryAdapter,
+  provideChartQueryState,
+} from '@mds-ui/feature-chart-query';
 
 import { routes } from './app.routes';
 import { environment } from '../environments/environment';
@@ -53,7 +56,8 @@ export const appConfig: ApplicationConfig = {
         };
       },
     },
-    ...provideAppStore(),
+    provideAppStore(),
+    provideChartQueryState(),
     provideRouter(routes),
     provideAnimationsAsync(),
     provideNativeDateAdapter(),

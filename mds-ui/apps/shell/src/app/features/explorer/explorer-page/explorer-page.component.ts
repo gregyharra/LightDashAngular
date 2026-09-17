@@ -1,6 +1,4 @@
 import { Component, computed, effect, inject, signal } from '@angular/core';
-import { toSignal } from '@angular/core/rxjs-interop';
-import { Store } from '@ngrx/store';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { forkJoin } from 'rxjs';
 import { MatButtonModule } from '@angular/material/button';
@@ -43,12 +41,10 @@ import {
   CreateChartFromExploreState,
 } from '../create-chart-from-explore';
 import {
-  ChartQueryActions,
-  ChartQueryEntry,
+  ChartQueryFacade,
   ChartQueryKeyInput,
   chartQueryKey,
-  selectEntries,
-} from '@mds-ui/core';
+} from '@mds-ui/feature-chart-query';
 import {
   clampQueryLimit,
   DEFAULT_QUERY_LIMIT,
@@ -102,7 +98,7 @@ export class ExplorerPageComponent {
   private readonly lineageService = inject(LineageService);
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
-  private readonly store = inject(Store);
+  private readonly chartQuery = inject(ChartQueryFacade);
   private readonly dialog = inject(MatDialog);
   private readonly exportService = inject(ExportService);
   private readonly snackBar = inject(MatSnackBar);
@@ -111,9 +107,7 @@ export class ExplorerPageComponent {
   private readonly translate = inject(TranslateService);
   private readonly activeProjectService = inject(ActiveProjectService);
 
-  private readonly cacheEntries = toSignal(this.store.select(selectEntries), {
-    initialValue: {} as Record<string, ChartQueryEntry>,
-  });
+  private readonly cacheEntries = this.chartQuery.entries;
 
   protected readonly projectUuid = signal<string | null>(null);
   protected readonly tableId = signal<string | null>(null);
@@ -617,7 +611,7 @@ export class ExplorerPageComponent {
 
     this.queryLoading.set(!cachedEntry?.snapshot?.queryResults);
     this.queryError.set(null);
-    this.store.dispatch(ChartQueryActions.load({ key: cacheKey, input }));
+    this.chartQuery.load(cacheKey, input);
   }
 
   protected onExportCsv(): void {

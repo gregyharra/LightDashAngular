@@ -1,6 +1,11 @@
 import { inject, Injectable } from '@angular/core';
 import { Observable, switchMap } from 'rxjs';
-import { apiErrorMessage } from '../../api/lightdash-api.service';
+import {
+  apiErrorMessage,
+  MOCK_CHART_4_UUID,
+  MOCK_CHART_5_UUID,
+  MOCK_CHART_6_UUID,
+} from '@mds-ui/core';
 import {
   BigNumberComparison,
   defaultConfigForType,
@@ -11,11 +16,6 @@ import {
   QueryResults,
 } from '@mds-ui/models';
 
-import {
-  MOCK_CHART_4_UUID,
-  MOCK_CHART_5_UUID,
-  MOCK_CHART_6_UUID,
-} from '../../mock/fixtures/ids.fixture';
 import { CHART_QUERY_ADAPTER } from './chart-query.adapter';
 import {
   ChartQueryKeyInput,

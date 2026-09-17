@@ -9,8 +9,6 @@ import {
   inject,
   signal,
 } from '@angular/core';
-import { toSignal } from '@angular/core/rxjs-interop';
-import { Store } from '@ngrx/store';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { MatButtonModule } from '@angular/material/button';
 import { MatDialog } from '@angular/material/dialog';
@@ -108,12 +106,10 @@ import {
   mergeDashboardFiltersIntoMetricQuery,
 } from '../../dashboards/dashboard-filters';
 import {
-  ChartQueryActions,
-  ChartQueryEntry,
+  ChartQueryFacade,
   ChartQueryKeyInput,
   chartQueryKey,
-  selectEntries,
-} from '@mds-ui/core';
+} from '@mds-ui/feature-chart-query';
 import { combineLatest, forkJoin } from 'rxjs';
 
 type TableFieldGroup = {
@@ -172,13 +168,11 @@ export class ChartViewPageComponent {
   private readonly platformId = inject(PLATFORM_ID);
   private readonly renderer = inject(Renderer2);
   private readonly destroyRef = inject(DestroyRef);
-  private readonly store = inject(Store);
+  private readonly chartQuery = inject(ChartQueryFacade);
   private readonly activeProjectService = inject(ActiveProjectService);
   protected readonly chartExportPlacement = chartExportPlacement;
 
-  private readonly cacheEntries = toSignal(this.store.select(selectEntries), {
-    initialValue: {} as Record<string, ChartQueryEntry>,
-  });
+  private readonly cacheEntries = this.chartQuery.entries;
 
   protected readonly projectUuid = signal<string | null>(null);
   protected readonly chartUuid = signal<string | null>(null);
@@ -1667,7 +1661,7 @@ export class ChartViewPageComponent {
 
     this.queryLoading.set(!cachedEntry?.snapshot?.queryResults);
     this.queryError.set(null);
-    this.store.dispatch(ChartQueryActions.load({ key: cacheKey, input }));
+    this.chartQuery.load(cacheKey, input);
   }
 
   private queryCacheInput(): ChartQueryKeyInput | null {

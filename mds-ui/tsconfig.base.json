@@ -16,22 +16,35 @@
     "target": "ES2022",
     "module": "ES2022",
     "paths": {
-      "@mds-ui/models": ["./libs/models/src/index.ts"],
-      "@mds-ui/core": ["./libs/core/src/index.ts"],
-      "@mds-ui/shared": ["./libs/shared/src/index.ts"],
+      "@mds-ui/models": [
+        "./libs/models/src/index.ts"
+      ],
+      "@mds-ui/core": [
+        "./libs/core/src/index.ts"
+      ],
+      "@mds-ui/shared": [
+        "./libs/shared/src/index.ts"
+      ],
       "remote-auth/Routes": [
         "./apps/remote-auth/src/app/remote-entry/entry.routes.ts"
       ],
       "remote-projects/Routes": [
         "./apps/remote-projects/src/app/remote-entry/entry.routes.ts"
       ],
-      "@mds-ui/feature-projects": ["./libs/feature-projects/src/index.ts"],
+      "@mds-ui/feature-projects": [
+        "./libs/feature-projects/src/index.ts"
+      ],
       "remote-warehouses/Routes": [
         "./apps/remote-warehouses/src/app/remote-entry/entry.routes.ts"
       ],
-      "@mds-ui/feature-warehouses": ["./libs/feature-warehouses/src/index.ts"],
+      "@mds-ui/feature-warehouses": [
+        "./libs/feature-warehouses/src/index.ts"
+      ],
       "remote-tables/Routes": [
         "./apps/remote-tables/src/app/remote-entry/entry.routes.ts"
+      ],
+      "@mds-ui/feature-chart-query": [
+        "./libs/feature-chart-query/src/index.ts"
       ]
     }
   },

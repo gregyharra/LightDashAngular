@@ -1,6 +1,4 @@
 import { Component, computed, effect, inject, input, signal } from '@angular/core';
-import { toSignal } from '@angular/core/rxjs-interop';
-import { Store } from '@ngrx/store';
 import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
@@ -15,12 +13,10 @@ import {
 } from '@mds-ui/models';
 
 import {
-  ChartQueryActions,
-  ChartQueryEntry,
+  ChartQueryFacade,
   ChartQuerySnapshot,
   chartQueryKey,
-  selectEntries,
-} from '@mds-ui/core';
+} from '@mds-ui/feature-chart-query';
 import { ChartVisualizationComponent } from '../../charts/chart-visualization/chart-visualization.component';
 
 @Component({
@@ -35,7 +31,7 @@ import { ChartVisualizationComponent } from '../../charts/chart-visualization/ch
   styleUrl: './dashboard-chart-tile.component.scss',
 })
 export class DashboardChartTileComponent {
-  private readonly store = inject(Store);
+  private readonly chartQuery = inject(ChartQueryFacade);
   private readonly translate = inject(TranslateService);
 
   readonly projectUuid = input.required<string>();
@@ -57,9 +53,7 @@ export class DashboardChartTileComponent {
 
   private lastSeenRefreshToken: number | null = null;
 
-  private readonly cacheEntries = toSignal(this.store.select(selectEntries), {
-    initialValue: {} as Record<string, ChartQueryEntry>,
-  });
+  private readonly cacheEntries = this.chartQuery.entries;
 
   private readonly cacheKeyInput = computed(() => {
     const savedChartUuid = this.savedChartUuid();
@@ -129,7 +123,7 @@ export class DashboardChartTileComponent {
       }
 
       if (bypassCache) {
-        this.store.dispatch(ChartQueryActions.invalidate({ key: cacheKey }));
+        this.chartQuery.invalidate(cacheKey);
         this.queryResults.set(null);
       } else if (entry?.snapshot) {
         this.applySnapshot(entry.snapshot);
@@ -157,15 +151,10 @@ export class DashboardChartTileComponent {
 
       this.loading.set(!this.displayResults());
       this.error.set(null);
-      this.store.dispatch(
-        ChartQueryActions.load({
-          key: cacheKey,
-          input: {
-            ...cacheKeyInput,
-            bypassCache,
-          },
-        }),
-      );
+      this.chartQuery.load(cacheKey, {
+        ...cacheKeyInput,
+        bypassCache,
+      });
     });
 
     effect(() => {
