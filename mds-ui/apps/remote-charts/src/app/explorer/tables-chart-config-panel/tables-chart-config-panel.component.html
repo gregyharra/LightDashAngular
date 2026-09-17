@@ -1,0 +1,1101 @@
+<div class="tables-chart-config">
+  <section class="tables-chart-config__section">
+    <h3 class="tables-chart-config__heading">{{ 'charts.workspace.chartType' | translate }}</h3>
+    <button
+      mat-stroked-button
+      type="button"
+      class="tables-chart-config__type-trigger"
+      [matMenuTriggerFor]="chartTypeMenu"
+      [disabled]="!hasQueryResults()"
+      [matTooltip]="'charts.workspace.runQueryToChangeType' | translate"
+      [matTooltipDisabled]="hasQueryResults()"
+    >
+      <mat-icon>{{ selectedChartType().icon }}</mat-icon>
+      <span>{{ selectedChartType().labelKey | translate }}</span>
+      <mat-icon class="tables-chart-config__type-chevron">expand_more</mat-icon>
+    </button>
+
+    <mat-menu #chartTypeMenu="matMenu" class="tables-chart-config__type-menu">
+      @for (option of chartTypeOptions; track option.value) {
+        <button
+          mat-menu-item
+          type="button"
+          [class.tables-chart-config__type-item--active]="chartKind() === option.value"
+          (click)="setChartKind(option.value)"
+        >
+          <mat-icon>{{ option.icon }}</mat-icon>
+          <span>{{ option.labelKey | translate }}</span>
+        </button>
+      }
+    </mat-menu>
+  </section>
+
+  @if (isCartesianChart()) {
+    <mat-tab-group
+      class="tables-chart-config__tabs"
+      [mat-stretch-tabs]="false"
+      mat-align-tabs="start"
+      animationDuration="0ms"
+    >
+      @for (section of cartesianSections; track section.id) {
+        <mat-tab [label]="section.labelKey | translate">
+          <div class="tables-chart-config__tab-body">
+            @switch (section.id) {
+              @case ('layout') {
+                <div class="tables-chart-config__group">
+                  <div class="tables-chart-config__group-header">
+                    <span class="tables-chart-config__subheading">{{ xAxisHeading() }}</span>
+                    <button
+                      mat-icon-button
+                      type="button"
+                      class="tables-chart-config__icon-action"
+                      [attr.aria-label]="'charts.workspace.flipAxes' | translate"
+                      [matTooltip]="'charts.workspace.flipAxes' | translate"
+                      (click)="toggleFlipAxes()"
+                    >
+                      <mat-icon>swap_horiz</mat-icon>
+                    </button>
+                  </div>
+
+                  @if (selectedDimensions().length > 0) {
+                    <mat-form-field appearance="outline" subscriptSizing="dynamic">
+                      <mat-label>{{ 'charts.workspace.field' | translate }}</mat-label>
+                      <mat-select
+                        [value]="chartXField()"
+                        (valueChange)="setChartXField($event)"
+                      >
+                        @for (fieldId of selectedDimensions(); track fieldId) {
+                          <mat-option [value]="fieldId">
+                            {{ getFieldLabel()(fieldId) }}
+                          </mat-option>
+                        }
+                      </mat-select>
+                    </mat-form-field>
+                  } @else {
+                    <p class="tables-chart-config__hint">
+                      {{ 'charts.workspace.selectDimensionXAxis' | translate }}
+                    </p>
+                  }
+                </div>
+
+                <div class="tables-chart-config__group">
+                  <div class="tables-chart-config__group-header">
+                    <span class="tables-chart-config__subheading">{{ yAxisHeading() }}</span>
+                    @if (availableYFields().length > 0) {
+                      <button
+                        mat-button
+                        type="button"
+                        class="tables-chart-config__text-action"
+                        (click)="addYField()"
+                      >
+                        <mat-icon>add</mat-icon>
+                        {{ 'charts.workspace.add' | translate }}
+                      </button>
+                    }
+                  </div>
+
+                  @if (chartYFields().length > 0) {
+                    @for (fieldId of chartYFields(); track fieldId; let index = $index) {
+                      <mat-form-field appearance="outline" subscriptSizing="dynamic">
+                        <mat-label>{{ 'charts.workspace.metric' | translate }}</mat-label>
+                        <mat-select
+                          [value]="fieldId"
+                          (valueChange)="setChartYField(index, $event)"
+                        >
+                          @for (metricId of yFieldOptions(fieldId); track metricId) {
+                            <mat-option [value]="metricId">
+                              {{ getFieldLabel()(metricId) }}
+                            </mat-option>
+                          }
+                        </mat-select>
+                        @if (chartYFields().length > 1) {
+                          <button
+                            mat-icon-button
+                            matSuffix
+                            type="button"
+                            [attr.aria-label]="'charts.workspace.removeMetric' | translate"
+                            (click)="removeYField(index)"
+                          >
+                            <mat-icon>close</mat-icon>
+                          </button>
+                        }
+                      </mat-form-field>
+                    }
+                  } @else {
+                    <p class="tables-chart-config__hint">
+                      {{ 'charts.workspace.selectMetricYAxis' | translate }}
+                    </p>
+                  }
+                </div>
+
+                <div class="tables-chart-config__group">
+                  <span class="tables-chart-config__subheading">{{ 'charts.workspace.stacking' | translate }}</span>
+                  <div class="tables-chart-config__segmented">
+                    <button
+                      type="button"
+                      class="tables-chart-config__segment"
+                      [class.tables-chart-config__segment--active]="displayConfig().stackMode === 'none'"
+                      (click)="setStackMode('none')"
+                    >
+                      {{ 'charts.workspace.none' | translate }}
+                    </button>
+                    <button
+                      type="button"
+                      class="tables-chart-config__segment"
+                      [class.tables-chart-config__segment--active]="displayConfig().stackMode === 'stack'"
+                      (click)="setStackMode('stack')"
+                    >
+                      {{ 'charts.workspace.stack' | translate }}
+                    </button>
+                    <button
+                      type="button"
+                      class="tables-chart-config__segment"
+                      [class.tables-chart-config__segment--active]="displayConfig().stackMode === 'percent'"
+                      (click)="setStackMode('percent')"
+                    >
+                      {{ 'charts.workspace.percent' | translate }}
+                    </button>
+                  </div>
+                </div>
+
+                <div class="tables-chart-config__group">
+                  <span class="tables-chart-config__subheading">{{ 'charts.workspace.data' | translate }}</span>
+                  <mat-form-field appearance="outline" subscriptSizing="dynamic">
+                    <mat-label>{{ 'charts.workspace.rowLimit' | translate }}</mat-label>
+                    <input
+                      matInput
+                      type="number"
+                      min="1"
+                      [max]="resolvedMaxRowLimit()"
+                      step="100"
+                      [value]="displayConfig().rowLimit"
+                      (change)="setRowLimit($any($event.target).value)"
+                      (blur)="setRowLimit($any($event.target).value)"
+                      (keydown)="onRowLimitKeydown($event)"
+                    />
+                  </mat-form-field>
+                </div>
+              }
+
+              @case ('series') {
+                @if (chartYFields().length > 0) {
+                  @for (fieldId of chartYFields(); track fieldId) {
+                    <div class="tables-chart-config__series-row">
+                      <span class="tables-chart-config__series-swatch"></span>
+                      <span class="tables-chart-config__series-label">{{
+                        getFieldLabel()(fieldId)
+                      }}</span>
+                    </div>
+                  }
+                } @else {
+                  <p class="tables-chart-config__hint">
+                    {{ 'charts.workspace.addMetricsForSeries' | translate }}
+                  </p>
+                }
+              }
+
+              @case ('axes') {
+                <div class="tables-chart-config__group">
+                  <span class="tables-chart-config__subheading">{{
+                    'charts.workspace.axisLabel'
+                      | translate: { axis: xAxisHeading() }
+                  }}</span>
+                  <mat-form-field appearance="outline" subscriptSizing="dynamic">
+                    <mat-label>{{ 'charts.workspace.label' | translate }}</mat-label>
+                    <input
+                      matInput
+                      [ngModel]="displayConfig().xAxisLabel"
+                      (ngModelChange)="patchDisplayConfig({ xAxisLabel: $event })"
+                    />
+                  </mat-form-field>
+                </div>
+
+                <div class="tables-chart-config__group">
+                  <span class="tables-chart-config__subheading">{{
+                    'charts.workspace.axisLabel'
+                      | translate: { axis: yAxisHeading() }
+                  }}</span>
+                  <mat-form-field appearance="outline" subscriptSizing="dynamic">
+                    <mat-label>{{ 'charts.workspace.label' | translate }}</mat-label>
+                    <input
+                      matInput
+                      [ngModel]="displayConfig().yAxisLabel"
+                      (ngModelChange)="patchDisplayConfig({ yAxisLabel: $event })"
+                    />
+                  </mat-form-field>
+                </div>
+
+                <div class="tables-chart-config__group">
+                  <span class="tables-chart-config__subheading">{{ 'charts.workspace.showGrid' | translate }}</span>
+                  <mat-checkbox
+                    [checked]="displayConfig().showGridX"
+                    (change)="patchDisplayConfig({ showGridX: $event.checked })"
+                  >
+                    {{ 'charts.workspace.xAxisGrid' | translate }}
+                  </mat-checkbox>
+                  <mat-checkbox
+                    [checked]="displayConfig().showGridY"
+                    (change)="patchDisplayConfig({ showGridY: $event.checked })"
+                  >
+                    {{ 'charts.workspace.yAxisGrid' | translate }}
+                  </mat-checkbox>
+                </div>
+
+                <div class="tables-chart-config__group">
+                  <span class="tables-chart-config__subheading">{{ 'charts.workspace.showAxis' | translate }}</span>
+                  <mat-checkbox
+                    [checked]="displayConfig().showXAxis"
+                    (change)="patchDisplayConfig({ showXAxis: $event.checked })"
+                  >
+                    {{ 'charts.workspace.xAxis' | translate }}
+                  </mat-checkbox>
+                  <mat-checkbox
+                    [checked]="displayConfig().showYAxis"
+                    (change)="patchDisplayConfig({ showYAxis: $event.checked })"
+                  >
+                    {{ 'charts.workspace.yAxis' | translate }}
+                  </mat-checkbox>
+                </div>
+              }
+
+              @case ('display') {
+                <div class="tables-chart-config__group">
+                  <span class="tables-chart-config__subheading">{{ 'charts.workspace.legend' | translate }}</span>
+                  <mat-slide-toggle
+                    [checked]="displayConfig().showLegend"
+                    (change)="patchDisplayConfig({ showLegend: $event.checked })"
+                  >
+                    {{ 'charts.workspace.showLegend' | translate }}
+                  </mat-slide-toggle>
+
+                  <span class="tables-chart-config__label">{{ 'charts.workspace.placement' | translate }}</span>
+                  <div class="tables-chart-config__segmented tables-chart-config__segmented--wrap">
+                    <button
+                      type="button"
+                      class="tables-chart-config__segment"
+                      [class.tables-chart-config__segment--active]="displayConfig().legendPlacement === 'chart'"
+                      (click)="setLegendPlacement('chart')"
+                    >
+                      {{ 'charts.workspace.chartArea' | translate }}
+                    </button>
+                    <button
+                      type="button"
+                      class="tables-chart-config__segment"
+                      [class.tables-chart-config__segment--active]="displayConfig().legendPlacement === 'outside-right'"
+                      (click)="setLegendPlacement('outside-right')"
+                    >
+                      {{ 'charts.workspace.outsideRight' | translate }}
+                    </button>
+                    <button
+                      type="button"
+                      class="tables-chart-config__segment"
+                      [class.tables-chart-config__segment--active]="displayConfig().legendPlacement === 'outside-left'"
+                      (click)="setLegendPlacement('outside-left')"
+                    >
+                      {{ 'charts.workspace.outsideLeft' | translate }}
+                    </button>
+                  </div>
+                </div>
+              }
+
+              @case ('margins') {
+                <div class="tables-chart-config__margins">
+                  @for (side of marginSides; track side) {
+                    <mat-form-field appearance="outline" subscriptSizing="dynamic">
+                      <mat-label>{{
+                        ('charts.workspace.margin.' + side) | translate
+                      }}</mat-label>
+                      <input
+                        matInput
+                        type="number"
+                        min="0"
+                        [ngModel]="marginValue(side)"
+                        (ngModelChange)="patchMargins(side, $event)"
+                      />
+                    </mat-form-field>
+                  }
+                </div>
+              }
+            }
+          </div>
+        </mat-tab>
+      }
+    </mat-tab-group>
+  } @else if (isPieChart()) {
+    <mat-tab-group
+      class="tables-chart-config__tabs"
+      [mat-stretch-tabs]="false"
+      mat-align-tabs="start"
+      animationDuration="0ms"
+    >
+      @for (section of pieSections; track section.id) {
+        <mat-tab [label]="section.labelKey | translate">
+          <div class="tables-chart-config__tab-body">
+            @switch (section.id) {
+              @case ('layout') {
+                <div class="tables-chart-config__group">
+                  <span class="tables-chart-config__subheading">{{ 'charts.workspace.group' | translate }}</span>
+                  @if (selectedDimensions().length > 0) {
+                    <mat-form-field appearance="outline" subscriptSizing="dynamic">
+                      <mat-label>{{ 'charts.workspace.dimension' | translate }}</mat-label>
+                      <mat-select
+                        [value]="chartXField()"
+                        (valueChange)="setChartXField($event)"
+                      >
+                        @for (fieldId of selectedDimensions(); track fieldId) {
+                          <mat-option [value]="fieldId">
+                            {{ getFieldLabel()(fieldId) }}
+                          </mat-option>
+                        }
+                      </mat-select>
+                    </mat-form-field>
+                  } @else {
+                    <p class="tables-chart-config__hint">
+                      {{ 'charts.workspace.selectDimensionPie' | translate }}
+                    </p>
+                  }
+                </div>
+
+                <div class="tables-chart-config__group">
+                  <span class="tables-chart-config__subheading">{{ 'charts.workspace.metric' | translate }}</span>
+                  @if (selectedMetrics().length > 0) {
+                    <mat-form-field appearance="outline" subscriptSizing="dynamic">
+                      <mat-label>{{ 'charts.workspace.metric' | translate }}</mat-label>
+                      <mat-select
+                        [value]="pieMetric()"
+                        (valueChange)="setPieMetric($event)"
+                      >
+                        @for (metricId of yFieldOptions(pieMetric() || selectedMetrics()[0]); track metricId) {
+                          <mat-option [value]="metricId">
+                            {{ getFieldLabel()(metricId) }}
+                          </mat-option>
+                        }
+                      </mat-select>
+                    </mat-form-field>
+                  } @else {
+                    <p class="tables-chart-config__hint">
+                      {{ 'charts.workspace.selectMetricPie' | translate }}
+                    </p>
+                  }
+                </div>
+
+                <div class="tables-chart-config__group">
+                  <span class="tables-chart-config__subheading">{{ 'charts.workspace.data' | translate }}</span>
+                  <mat-form-field appearance="outline" subscriptSizing="dynamic">
+                    <mat-label>{{ 'charts.workspace.rowLimit' | translate }}</mat-label>
+                    <input
+                      matInput
+                      type="number"
+                      min="1"
+                      [max]="resolvedMaxRowLimit()"
+                      step="100"
+                      [value]="displayConfig().rowLimit"
+                      (change)="setRowLimit($any($event.target).value)"
+                      (blur)="setRowLimit($any($event.target).value)"
+                      (keydown)="onRowLimitKeydown($event)"
+                    />
+                  </mat-form-field>
+                </div>
+              }
+
+              @case ('display') {
+                <div class="tables-chart-config__group">
+                  <span class="tables-chart-config__subheading">{{ 'charts.workspace.legend' | translate }}</span>
+                  <mat-slide-toggle
+                    [checked]="displayConfig().showLegend"
+                    (change)="patchDisplayConfig({ showLegend: $event.checked })"
+                  >
+                    {{ 'charts.workspace.showLegend' | translate }}
+                  </mat-slide-toggle>
+
+                  <span class="tables-chart-config__label">{{ 'charts.workspace.placement' | translate }}</span>
+                  <div class="tables-chart-config__segmented tables-chart-config__segmented--wrap">
+                    <button
+                      type="button"
+                      class="tables-chart-config__segment"
+                      [class.tables-chart-config__segment--active]="displayConfig().legendPlacement === 'chart'"
+                      (click)="setLegendPlacement('chart')"
+                    >
+                      {{ 'charts.workspace.chartArea' | translate }}
+                    </button>
+                    <button
+                      type="button"
+                      class="tables-chart-config__segment"
+                      [class.tables-chart-config__segment--active]="displayConfig().legendPlacement === 'outside-right'"
+                      (click)="setLegendPlacement('outside-right')"
+                    >
+                      {{ 'charts.workspace.outsideRight' | translate }}
+                    </button>
+                    <button
+                      type="button"
+                      class="tables-chart-config__segment"
+                      [class.tables-chart-config__segment--active]="displayConfig().legendPlacement === 'outside-left'"
+                      (click)="setLegendPlacement('outside-left')"
+                    >
+                      {{ 'charts.workspace.outsideLeft' | translate }}
+                    </button>
+                  </div>
+                </div>
+              }
+
+              @case ('margins') {
+                <div class="tables-chart-config__margins">
+                  @for (side of marginSides; track side) {
+                    <mat-form-field appearance="outline" subscriptSizing="dynamic">
+                      <mat-label>{{
+                        ('charts.workspace.margin.' + side) | translate
+                      }}</mat-label>
+                      <input
+                        matInput
+                        type="number"
+                        min="0"
+                        [ngModel]="marginValue(side)"
+                        (ngModelChange)="patchMargins(side, $event)"
+                      />
+                    </mat-form-field>
+                  }
+                </div>
+              }
+            }
+          </div>
+        </mat-tab>
+      }
+    </mat-tab-group>
+  } @else if (isTableChart()) {
+    <mat-tab-group
+      class="tables-chart-config__tabs"
+      [mat-stretch-tabs]="false"
+      mat-align-tabs="start"
+      animationDuration="0ms"
+    >
+      @for (section of tableSections; track section.id) {
+        <mat-tab [label]="section.labelKey | translate">
+          <div class="tables-chart-config__tab-body">
+            @switch (section.id) {
+              @case ('general') {
+                <div class="tables-chart-config__group">
+                  <span class="tables-chart-config__subheading">{{ 'charts.sections.display' | translate }}</span>
+                  <mat-slide-toggle
+                    [checked]="displayConfig().showTableNames"
+                    (change)="patchDisplayConfig({ showTableNames: $event.checked })"
+                  >
+                    {{ 'charts.workspace.showTableNames' | translate }}
+                  </mat-slide-toggle>
+                  <mat-slide-toggle
+                    [checked]="displayConfig().showColumnTotals"
+                    (change)="patchDisplayConfig({ showColumnTotals: $event.checked })"
+                  >
+                    {{ 'charts.workspace.showColumnTotals' | translate }}
+                  </mat-slide-toggle>
+                </div>
+
+                <div class="tables-chart-config__group">
+                  <span class="tables-chart-config__subheading">{{ 'charts.workspace.data' | translate }}</span>
+                  <mat-form-field appearance="outline" subscriptSizing="dynamic">
+                    <mat-label>{{ 'charts.workspace.rowLimit' | translate }}</mat-label>
+                    <input
+                      matInput
+                      type="number"
+                      min="1"
+                      [max]="resolvedMaxRowLimit()"
+                      step="100"
+                      [value]="displayConfig().rowLimit"
+                      (change)="setRowLimit($any($event.target).value)"
+                      (blur)="setRowLimit($any($event.target).value)"
+                      (keydown)="onRowLimitKeydown($event)"
+                    />
+                  </mat-form-field>
+                </div>
+              }
+              @default {
+                <p class="tables-chart-config__hint tables-chart-config__hint--disabled">
+                  {{ 'charts.workspace.availableAfterSave' | translate }}
+                </p>
+              }
+            }
+          </div>
+        </mat-tab>
+      }
+    </mat-tab-group>
+  } @else if (isBigNumberChart()) {
+    <section class="tables-chart-config__section">
+      <h3 class="tables-chart-config__heading">{{ 'explorer.fields' | translate }}</h3>
+      @if (selectedMetrics().length > 0) {
+        <mat-form-field appearance="outline" subscriptSizing="dynamic">
+          <mat-label>{{ 'charts.workspace.metric' | translate }}</mat-label>
+          <mat-select
+            [value]="bigNumberMetric()"
+            (valueChange)="setBigNumberMetric($event)"
+          >
+            @for (metricId of selectedMetrics(); track metricId) {
+              <mat-option [value]="metricId">
+                {{ getFieldLabel()(metricId) }}
+              </mat-option>
+            }
+          </mat-select>
+        </mat-form-field>
+      } @else {
+        <p class="tables-chart-config__hint">
+          {{ 'charts.workspace.selectMetricBigValue' | translate }}
+        </p>
+      }
+    </section>
+  } @else if (isFunnelChart()) {
+    <mat-tab-group
+      class="tables-chart-config__tabs"
+      [mat-stretch-tabs]="false"
+      mat-align-tabs="start"
+      animationDuration="0ms"
+    >
+      @for (section of funnelSections; track section.id) {
+        <mat-tab [label]="section.labelKey | translate">
+          <div class="tables-chart-config__tab-body">
+            @switch (section.id) {
+              @case ('layout') {
+                <div class="tables-chart-config__group">
+                  <span class="tables-chart-config__subheading">{{ 'charts.workspace.metric' | translate }}</span>
+                  @if (selectedMetrics().length > 0) {
+                    <mat-form-field appearance="outline" subscriptSizing="dynamic">
+                      <mat-label>{{ 'charts.workspace.metric' | translate }}</mat-label>
+                      <mat-select
+                        [value]="funnelMetric()"
+                        (valueChange)="setFunnelMetric($event)"
+                      >
+                        @for (metricId of yFieldOptions(funnelMetric() || selectedMetrics()[0]); track metricId) {
+                          <mat-option [value]="metricId">
+                            {{ getFieldLabel()(metricId) }}
+                          </mat-option>
+                        }
+                      </mat-select>
+                    </mat-form-field>
+                  } @else {
+                    <p class="tables-chart-config__hint">
+                      {{ 'charts.workspace.selectMetricFunnel' | translate }}
+                    </p>
+                  }
+                </div>
+
+                <div class="tables-chart-config__group">
+                  <span class="tables-chart-config__subheading">{{
+                    'charts.workspace.optionalLabel' | translate
+                  }}</span>
+                  @if (selectedDimensions().length > 0) {
+                    <mat-form-field appearance="outline" subscriptSizing="dynamic">
+                      <mat-label>{{ 'charts.workspace.dimension' | translate }}</mat-label>
+                      <mat-select
+                        [value]="funnelLabelField()"
+                        (valueChange)="setFunnelLabelField($event)"
+                      >
+                        <mat-option [value]="null">{{ 'charts.workspace.none' | translate }}</mat-option>
+                        @for (fieldId of selectedDimensions(); track fieldId) {
+                          <mat-option [value]="fieldId">
+                            {{ getFieldLabel()(fieldId) }}
+                          </mat-option>
+                        }
+                      </mat-select>
+                    </mat-form-field>
+                  } @else {
+                    <p class="tables-chart-config__hint">
+                      {{ 'charts.workspace.selectDimensionFunnel' | translate }}
+                    </p>
+                  }
+                </div>
+
+                <div class="tables-chart-config__group">
+                  <span class="tables-chart-config__subheading">{{ 'charts.workspace.orientation' | translate }}</span>
+                  <div class="tables-chart-config__segmented">
+                    <button
+                      type="button"
+                      class="tables-chart-config__segment"
+                      [class.tables-chart-config__segment--active]="funnelDataInput() === 'column'"
+                      (click)="setFunnelDataInput('column')"
+                    >
+                      {{ 'charts.workspace.column' | translate }}
+                    </button>
+                    <button
+                      type="button"
+                      class="tables-chart-config__segment"
+                      [class.tables-chart-config__segment--active]="funnelDataInput() === 'row'"
+                      (click)="setFunnelDataInput('row')"
+                    >
+                      {{ 'charts.workspace.row' | translate }}
+                    </button>
+                  </div>
+                </div>
+
+                <div class="tables-chart-config__group">
+                  <span class="tables-chart-config__subheading">{{ 'charts.workspace.data' | translate }}</span>
+                  <mat-form-field appearance="outline" subscriptSizing="dynamic">
+                    <mat-label>{{ 'charts.workspace.rowLimit' | translate }}</mat-label>
+                    <input
+                      matInput
+                      type="number"
+                      min="1"
+                      [max]="resolvedMaxRowLimit()"
+                      step="100"
+                      [value]="displayConfig().rowLimit"
+                      (change)="setRowLimit($any($event.target).value)"
+                      (blur)="setRowLimit($any($event.target).value)"
+                      (keydown)="onRowLimitKeydown($event)"
+                    />
+                  </mat-form-field>
+                </div>
+              }
+
+              @case ('display') {
+                <div class="tables-chart-config__group">
+                  <span class="tables-chart-config__subheading">{{ 'charts.workspace.legend' | translate }}</span>
+                  <mat-slide-toggle
+                    [checked]="displayConfig().showLegend"
+                    (change)="patchDisplayConfig({ showLegend: $event.checked })"
+                  >
+                    {{ 'charts.workspace.showLegend' | translate }}
+                  </mat-slide-toggle>
+
+                  <span class="tables-chart-config__label">{{ 'charts.workspace.placement' | translate }}</span>
+                  <div class="tables-chart-config__segmented tables-chart-config__segmented--wrap">
+                    <button
+                      type="button"
+                      class="tables-chart-config__segment"
+                      [class.tables-chart-config__segment--active]="displayConfig().legendPlacement === 'chart'"
+                      (click)="setLegendPlacement('chart')"
+                    >
+                      {{ 'charts.workspace.chartArea' | translate }}
+                    </button>
+                    <button
+                      type="button"
+                      class="tables-chart-config__segment"
+                      [class.tables-chart-config__segment--active]="displayConfig().legendPlacement === 'outside-right'"
+                      (click)="setLegendPlacement('outside-right')"
+                    >
+                      {{ 'charts.workspace.outsideRight' | translate }}
+                    </button>
+                    <button
+                      type="button"
+                      class="tables-chart-config__segment"
+                      [class.tables-chart-config__segment--active]="displayConfig().legendPlacement === 'outside-left'"
+                      (click)="setLegendPlacement('outside-left')"
+                    >
+                      {{ 'charts.workspace.outsideLeft' | translate }}
+                    </button>
+                  </div>
+                </div>
+
+                <div class="tables-chart-config__group">
+                  <span class="tables-chart-config__subheading">{{ 'charts.sections.margins' | translate }}</span>
+                  <div class="tables-chart-config__margins">
+                    @for (side of marginSides; track side) {
+                      <mat-form-field appearance="outline" subscriptSizing="dynamic">
+                        <mat-label>{{
+                          ('charts.workspace.margin.' + side) | translate
+                        }}</mat-label>
+                        <input
+                          matInput
+                          type="number"
+                          min="0"
+                          [ngModel]="marginValue(side)"
+                          (ngModelChange)="patchMargins(side, $event)"
+                        />
+                      </mat-form-field>
+                    }
+                  </div>
+                </div>
+              }
+            }
+          </div>
+        </mat-tab>
+      }
+    </mat-tab-group>
+  } @else if (isTreemapChart()) {
+    <mat-tab-group
+      class="tables-chart-config__tabs"
+      [mat-stretch-tabs]="false"
+      mat-align-tabs="start"
+      animationDuration="0ms"
+    >
+      @for (section of treemapSections; track section.id) {
+        <mat-tab [label]="section.labelKey | translate">
+          <div class="tables-chart-config__tab-body">
+            @switch (section.id) {
+              @case ('layout') {
+                <div class="tables-chart-config__group">
+                  <div class="tables-chart-config__group-header">
+                    <span class="tables-chart-config__subheading">{{ 'explorer.dimensionsAndMetrics' | translate }}</span>
+                    @if (availableTreemapDimensions().length > 0) {
+                      <button
+                        mat-button
+                        type="button"
+                        class="tables-chart-config__text-action"
+                        (click)="addTreemapDimension()"
+                      >
+                        <mat-icon>add</mat-icon>
+                        {{ 'charts.workspace.add' | translate }}
+                      </button>
+                    }
+                  </div>
+
+                  @if (treemapDimensionFieldIds().length > 0) {
+                    @for (fieldId of treemapDimensionFieldIds(); track fieldId; let index = $index) {
+                      <div class="tables-chart-config__series-row">
+                        <mat-form-field appearance="outline" subscriptSizing="dynamic">
+                          <mat-label>{{
+                            'charts.workspace.dimensionNumber'
+                              | translate: { number: index + 1 }
+                          }}</mat-label>
+                          <mat-select
+                            [value]="fieldId"
+                            (valueChange)="setTreemapDimensionField(index, $event)"
+                          >
+                            @for (dimensionId of treemapDimensionOptions(fieldId); track dimensionId) {
+                              <mat-option [value]="dimensionId">
+                                {{ getFieldLabel()(dimensionId) }}
+                              </mat-option>
+                            }
+                          </mat-select>
+                        </mat-form-field>
+                        <button
+                          mat-icon-button
+                          type="button"
+                          [attr.aria-label]="'charts.workspace.moveDimensionUp' | translate"
+                          [disabled]="index === 0"
+                          (click)="moveTreemapDimension(index, -1)"
+                        >
+                          <mat-icon>arrow_upward</mat-icon>
+                        </button>
+                        <button
+                          mat-icon-button
+                          type="button"
+                          [attr.aria-label]="'charts.workspace.moveDimensionDown' | translate"
+                          [disabled]="index === treemapDimensionFieldIds().length - 1"
+                          (click)="moveTreemapDimension(index, 1)"
+                        >
+                          <mat-icon>arrow_downward</mat-icon>
+                        </button>
+                        <button
+                          mat-icon-button
+                          type="button"
+                          [attr.aria-label]="'charts.workspace.removeDimension' | translate"
+                          (click)="removeTreemapDimension(index)"
+                        >
+                          <mat-icon>close</mat-icon>
+                        </button>
+                      </div>
+                    }
+                  } @else {
+                    <p class="tables-chart-config__hint">
+                      {{ 'charts.workspace.selectDimensionsTreemap' | translate }}
+                    </p>
+                  }
+                </div>
+
+                <div class="tables-chart-config__group">
+                  <span class="tables-chart-config__subheading">{{ 'charts.workspace.metric' | translate }}</span>
+                  @if (selectedMetrics().length > 0) {
+                    <mat-form-field appearance="outline" subscriptSizing="dynamic">
+                      <mat-label>{{ 'charts.workspace.metric' | translate }}</mat-label>
+                      <mat-select
+                        [value]="treemapMetric()"
+                        (valueChange)="setTreemapMetric($event)"
+                      >
+                        @for (metricId of yFieldOptions(treemapMetric() || selectedMetrics()[0]); track metricId) {
+                          <mat-option [value]="metricId">
+                            {{ getFieldLabel()(metricId) }}
+                          </mat-option>
+                        }
+                      </mat-select>
+                    </mat-form-field>
+                  } @else {
+                    <p class="tables-chart-config__hint">
+                      {{ 'charts.workspace.selectMetricTreemap' | translate }}
+                    </p>
+                  }
+                </div>
+
+                <div class="tables-chart-config__group">
+                  <span class="tables-chart-config__subheading">{{ 'charts.workspace.data' | translate }}</span>
+                  <mat-form-field appearance="outline" subscriptSizing="dynamic">
+                    <mat-label>{{ 'charts.workspace.rowLimit' | translate }}</mat-label>
+                    <input
+                      matInput
+                      type="number"
+                      min="1"
+                      [max]="resolvedMaxRowLimit()"
+                      step="100"
+                      [value]="displayConfig().rowLimit"
+                      (change)="setRowLimit($any($event.target).value)"
+                      (blur)="setRowLimit($any($event.target).value)"
+                      (keydown)="onRowLimitKeydown($event)"
+                    />
+                  </mat-form-field>
+                </div>
+              }
+
+              @case ('display') {
+                <div class="tables-chart-config__group">
+                  <span class="tables-chart-config__subheading">{{ 'charts.workspace.legend' | translate }}</span>
+                  <mat-slide-toggle
+                    [checked]="displayConfig().showLegend"
+                    (change)="patchDisplayConfig({ showLegend: $event.checked })"
+                  >
+                    {{ 'charts.workspace.showLegend' | translate }}
+                  </mat-slide-toggle>
+                </div>
+
+                <div class="tables-chart-config__group">
+                  <span class="tables-chart-config__subheading">{{ 'charts.sections.margins' | translate }}</span>
+                  <div class="tables-chart-config__margins">
+                    @for (side of marginSides; track side) {
+                      <mat-form-field appearance="outline" subscriptSizing="dynamic">
+                        <mat-label>{{
+                          ('charts.workspace.margin.' + side) | translate
+                        }}</mat-label>
+                        <input
+                          matInput
+                          type="number"
+                          min="0"
+                          [ngModel]="marginValue(side)"
+                          (ngModelChange)="patchMargins(side, $event)"
+                        />
+                      </mat-form-field>
+                    }
+                  </div>
+                </div>
+              }
+            }
+          </div>
+        </mat-tab>
+      }
+    </mat-tab-group>
+  } @else if (isGaugeChart()) {
+    <mat-tab-group
+      class="tables-chart-config__tabs"
+      [mat-stretch-tabs]="false"
+      mat-align-tabs="start"
+      animationDuration="0ms"
+    >
+      @for (section of gaugeSections; track section.id) {
+        <mat-tab [label]="section.labelKey | translate">
+          <div class="tables-chart-config__tab-body">
+            @switch (section.id) {
+              @case ('layout') {
+                <div class="tables-chart-config__group">
+                  <span class="tables-chart-config__subheading">{{ 'charts.workspace.metric' | translate }}</span>
+                  @if (selectedMetrics().length > 0) {
+                    <mat-form-field appearance="outline" subscriptSizing="dynamic">
+                      <mat-label>{{ 'charts.workspace.metric' | translate }}</mat-label>
+                      <mat-select
+                        [value]="gaugeMetric()"
+                        (valueChange)="setGaugeMetric($event)"
+                      >
+                        @for (metricId of yFieldOptions(gaugeMetric() || selectedMetrics()[0]); track metricId) {
+                          <mat-option [value]="metricId">
+                            {{ getFieldLabel()(metricId) }}
+                          </mat-option>
+                        }
+                      </mat-select>
+                    </mat-form-field>
+                  } @else {
+                    <p class="tables-chart-config__hint">
+                      {{ 'charts.workspace.selectMetricGauge' | translate }}
+                    </p>
+                  }
+                </div>
+
+                <div class="tables-chart-config__group">
+                  <span class="tables-chart-config__subheading">{{ 'charts.workspace.range' | translate }}</span>
+                  <div class="tables-chart-config__margins">
+                    <mat-form-field appearance="outline" subscriptSizing="dynamic">
+                      <mat-label>{{ 'charts.workspace.min' | translate }}</mat-label>
+                      <input
+                        matInput
+                        type="number"
+                        [value]="gaugeMin() ?? ''"
+                        (change)="setGaugeMin($any($event.target).value)"
+                        (blur)="setGaugeMin($any($event.target).value)"
+                      />
+                    </mat-form-field>
+                    <mat-form-field appearance="outline" subscriptSizing="dynamic">
+                      <mat-label>{{ 'charts.workspace.max' | translate }}</mat-label>
+                      <input
+                        matInput
+                        type="number"
+                        [value]="gaugeMax() ?? ''"
+                        (change)="setGaugeMax($any($event.target).value)"
+                        (blur)="setGaugeMax($any($event.target).value)"
+                      />
+                    </mat-form-field>
+                  </div>
+                </div>
+
+                <div class="tables-chart-config__group">
+                  <span class="tables-chart-config__subheading">{{ 'charts.workspace.data' | translate }}</span>
+                  <mat-form-field appearance="outline" subscriptSizing="dynamic">
+                    <mat-label>{{ 'charts.workspace.rowLimit' | translate }}</mat-label>
+                    <input
+                      matInput
+                      type="number"
+                      min="1"
+                      [max]="resolvedMaxRowLimit()"
+                      step="100"
+                      [value]="displayConfig().rowLimit"
+                      (change)="setRowLimit($any($event.target).value)"
+                      (blur)="setRowLimit($any($event.target).value)"
+                      (keydown)="onRowLimitKeydown($event)"
+                    />
+                  </mat-form-field>
+                </div>
+              }
+
+              @case ('display') {
+                <div class="tables-chart-config__group">
+                  <span class="tables-chart-config__subheading">{{ 'charts.workspace.label' | translate }}</span>
+                  <mat-slide-toggle
+                    [checked]="showGaugeLabel()"
+                    (change)="setShowGaugeLabel($event.checked)"
+                  >
+                    {{ 'charts.workspace.showLabel' | translate }}
+                  </mat-slide-toggle>
+                </div>
+
+                <div class="tables-chart-config__group">
+                  <span class="tables-chart-config__subheading">{{ 'charts.sections.margins' | translate }}</span>
+                  <div class="tables-chart-config__margins">
+                    @for (side of marginSides; track side) {
+                      <mat-form-field appearance="outline" subscriptSizing="dynamic">
+                        <mat-label>{{
+                          ('charts.workspace.margin.' + side) | translate
+                        }}</mat-label>
+                        <input
+                          matInput
+                          type="number"
+                          min="0"
+                          [ngModel]="marginValue(side)"
+                          (ngModelChange)="patchMargins(side, $event)"
+                        />
+                      </mat-form-field>
+                    }
+                  </div>
+                </div>
+              }
+            }
+          </div>
+        </mat-tab>
+      }
+    </mat-tab-group>
+  } @else if (isSankeyChart()) {
+    <mat-tab-group
+      class="tables-chart-config__tabs"
+      [mat-stretch-tabs]="false"
+      mat-align-tabs="start"
+      animationDuration="0ms"
+    >
+      @for (section of sankeySections; track section.id) {
+        <mat-tab [label]="section.labelKey | translate">
+          <div class="tables-chart-config__tab-body">
+            @switch (section.id) {
+              @case ('layout') {
+                <div class="tables-chart-config__group">
+                  <span class="tables-chart-config__subheading">{{ 'explorer.fields' | translate }}</span>
+                  <mat-form-field appearance="outline" subscriptSizing="dynamic">
+                    <mat-label>{{ 'charts.workspace.source' | translate }}</mat-label>
+                    <mat-select
+                      [value]="sankeySourceFieldId()"
+                      (selectionChange)="setSankeySourceFieldId($event.value)"
+                    >
+                      @for (fieldId of selectedDimensions(); track fieldId) {
+                        <mat-option [value]="fieldId">{{ getFieldLabel()(fieldId) }}</mat-option>
+                      }
+                    </mat-select>
+                  </mat-form-field>
+                  <mat-form-field appearance="outline" subscriptSizing="dynamic">
+                    <mat-label>{{ 'charts.workspace.target' | translate }}</mat-label>
+                    <mat-select
+                      [value]="sankeyTargetFieldId()"
+                      (selectionChange)="setSankeyTargetFieldId($event.value)"
+                    >
+                      @for (fieldId of selectedDimensions(); track fieldId) {
+                        <mat-option [value]="fieldId">{{ getFieldLabel()(fieldId) }}</mat-option>
+                      }
+                    </mat-select>
+                  </mat-form-field>
+                  <mat-form-field appearance="outline" subscriptSizing="dynamic">
+                    <mat-label>{{ 'charts.workspace.weight' | translate }}</mat-label>
+                    <mat-select
+                      [value]="sankeyWeightFieldId()"
+                      (selectionChange)="setSankeyWeightFieldId($event.value)"
+                    >
+                      @for (fieldId of selectedMetrics(); track fieldId) {
+                        <mat-option [value]="fieldId">{{ getFieldLabel()(fieldId) }}</mat-option>
+                      }
+                    </mat-select>
+                  </mat-form-field>
+                  @if (selectedDimensions().length < 2 || selectedMetrics().length < 1) {
+                    <p class="tables-chart-config__hint">
+                      {{ 'charts.workspace.selectFieldsSankey' | translate }}
+                    </p>
+                  }
+                </div>
+
+                <div class="tables-chart-config__group">
+                  <span class="tables-chart-config__subheading">{{ 'charts.workspace.data' | translate }}</span>
+                  <mat-form-field appearance="outline" subscriptSizing="dynamic">
+                    <mat-label>{{ 'charts.workspace.rowLimit' | translate }}</mat-label>
+                    <input
+                      matInput
+                      type="number"
+                      min="1"
+                      [max]="resolvedMaxRowLimit()"
+                      step="100"
+                      [value]="displayConfig().rowLimit"
+                      (change)="setRowLimit($any($event.target).value)"
+                      (blur)="setRowLimit($any($event.target).value)"
+                      (keydown)="onRowLimitKeydown($event)"
+                    />
+                  </mat-form-field>
+                </div>
+              }
+
+              @case ('display') {
+                <div class="tables-chart-config__group">
+                  <span class="tables-chart-config__subheading">{{ 'charts.workspace.labels' | translate }}</span>
+                  <mat-slide-toggle
+                    [checked]="showNodeLabels()"
+                    (change)="setShowNodeLabels($event.checked)"
+                  >
+                    {{ 'charts.workspace.showNodeLabels' | translate }}
+                  </mat-slide-toggle>
+                </div>
+
+                <div class="tables-chart-config__group">
+                  <span class="tables-chart-config__subheading">{{ 'charts.sections.margins' | translate }}</span>
+                  <div class="tables-chart-config__margins">
+                    @for (side of marginSides; track side) {
+                      <mat-form-field appearance="outline" subscriptSizing="dynamic">
+                        <mat-label>{{
+                          ('charts.workspace.margin.' + side) | translate
+                        }}</mat-label>
+                        <input
+                          matInput
+                          type="number"
+                          min="0"
+                          [ngModel]="marginValue(side)"
+                          (ngModelChange)="patchMargins(side, $event)"
+                        />
+                      </mat-form-field>
+                    }
+                  </div>
+                </div>
+              }
+            }
+          </div>
+        </mat-tab>
+      }
+    </mat-tab-group>
+  } @else {
+    <section class="tables-chart-config__section">
+      <p class="tables-chart-config__hint">
+        {{ 'charts.workspace.switchForConfiguration' | translate }}
+      </p>
+    </section>
+  }
+</div>

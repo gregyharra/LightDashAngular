@@ -1,0 +1,470 @@
+<div class="page-layout">
+  <aside class="page-layout__sidebar" mdsResizableSidebar>
+    <div class="page-sidebar page-sidebar--dark">
+      @if (projectUuid(); as browseProjectUuid) {
+        <mds-project-browse-nav
+          [projectUuid]="browseProjectUuid"
+          active="charts"
+        />
+      }
+    </div>
+  </aside>
+
+  @if (editMode()) {
+    <aside class="page-layout__sidebar page-layout__sidebar--project">
+      <mds-folder-search-panel
+        [tree]="dbtTree()"
+        [lineageNodes]="lineageNodes()"
+        [projectUuid]="projectUuid()"
+        [selectedNodeId]="selectedTableId()"
+        [searchPlaceholder]="'explorer.searchModels' | translate"
+        [emptyMessage]="'explorer.noModelsMatch' | translate"
+        collapsedStorageKey="lightdash-chart-view-folder-panel-collapsed"
+        [treeAriaLabel]="'tables.dbtTree' | translate"
+        (nodeSelected)="onProjectNodeSelected($event)"
+      />
+    </aside>
+  }
+
+  @if (editMode() && (chart() || (isCreateMode() && explore()))) {
+    <aside
+      class="page-layout__sidebar page-layout__sidebar--fields chart-view__config"
+      [class.chart-view__config--collapsed]="configCollapsed()"
+      [class.chart-view__config--resizing]="configResizing()"
+      [class.chart-view__config--configure]="configureMode()"
+      [class.chart-view__config--fields]="!configureMode()"
+      [style.width.px]="
+        configCollapsed() ? configCollapsedWidth : configPanelWidth()
+      "
+      [attr.aria-label]="
+        (configureMode()
+          ? 'explorer.chartConfiguration'
+          : 'explorer.dimensionsAndMetrics') | translate
+      "
+    >
+      @if (configureMode() || configCollapsed()) {
+        <button
+          type="button"
+          class="chart-view__config-fold-btn"
+          [attr.aria-expanded]="!configCollapsed()"
+          [attr.aria-label]="
+            (configCollapsed()
+              ? 'explorer.expandChartConfiguration'
+              : 'explorer.collapseChartConfiguration') | translate
+          "
+          (click)="toggleConfigCollapsed()"
+        >
+          <mat-icon>{{
+            configCollapsed() ? 'chevron_right' : 'chevron_left'
+          }}</mat-icon>
+        </button>
+      }
+
+      @if (!configureMode() && !configCollapsed()) {
+        <div class="chart-view__config-toolbar">
+          <div class="chart-view__fields-search">
+            <mat-icon>search</mat-icon>
+            <input
+              type="search"
+              class="chart-view__fields-search-input"
+              [placeholder]="'explorer.searchDimensionsMetrics' | translate"
+              [attr.aria-label]="'explorer.searchDimensionsMetrics' | translate"
+              [value]="fieldSearch()"
+              (input)="onFieldSearch($any($event.target).value)"
+            />
+          </div>
+          <button
+            type="button"
+            class="chart-view__config-fold-btn chart-view__config-fold-btn--inline"
+            [attr.aria-expanded]="!configCollapsed()"
+            [attr.aria-label]="'explorer.collapseChartConfiguration' | translate"
+            (click)="toggleConfigCollapsed()"
+          >
+            <mat-icon>chevron_left</mat-icon>
+          </button>
+        </div>
+      }
+
+      <div class="chart-view__config-body">
+        @if (configureMode()) {
+          <header class="chart-view__config-mode-header">
+            <h2 class="chart-view__panel-title">{{ 'explorer.configure' | translate }}</h2>
+            <button
+              mat-icon-button
+              type="button"
+              [attr.aria-label]="'explorer.closeConfigureAria' | translate"
+              (click)="closeConfigureMode()"
+            >
+              <mat-icon>close</mat-icon>
+            </button>
+          </header>
+          <div class="chart-view__config-mode-body">
+            <app-tables-chart-config-panel
+              [chartKind]="chartKind()"
+              [chartXField]="chartXField()"
+              [chartYFields]="chartYFields()"
+              [funnelDataInput]="funnelDataInput()"
+              [treemapDimensionFieldIds]="treemapDimensionFieldIds()"
+              [gaugeMin]="gaugeMin()"
+              [gaugeMax]="gaugeMax()"
+              [showGaugeLabel]="showGaugeLabel()"
+              [sankeySourceFieldId]="sankeySourceFieldId()"
+              [sankeyTargetFieldId]="sankeyTargetFieldId()"
+              [sankeyWeightFieldId]="sankeyWeightFieldId()"
+              [showNodeLabels]="showNodeLabels()"
+              [selectedDimensions]="selectedDimensionList()"
+              [selectedMetrics]="selectedMetricList()"
+              [displayConfig]="chartDisplayConfig()"
+              [maxRowLimit]="maxQueryLimit()"
+              [hasQueryResults]="!!queryResults()"
+              [getFieldLabel]="getFieldLabelFn"
+              (chartKindChange)="setChartKind($event)"
+              (chartXFieldChange)="setChartXField($event)"
+              (chartYFieldsChange)="setChartYFields($event)"
+              (funnelDataInputChange)="setFunnelDataInput($event)"
+              (treemapDimensionFieldIdsChange)="setTreemapDimensionFieldIds($event)"
+              (gaugeMinChange)="setGaugeMin($event)"
+              (gaugeMaxChange)="setGaugeMax($event)"
+              (showGaugeLabelChange)="setShowGaugeLabel($event)"
+              (sankeySourceFieldIdChange)="setSankeySourceFieldId($event)"
+              (sankeyTargetFieldIdChange)="setSankeyTargetFieldId($event)"
+              (sankeyWeightFieldIdChange)="setSankeyWeightFieldId($event)"
+              (showNodeLabelsChange)="setShowNodeLabels($event)"
+              (displayConfigChange)="setChartDisplayConfig($event)"
+            />
+          </div>
+        } @else {
+          <div class="chart-view__fields-scroll">
+            <mds-chart-fields-accordion
+              [fieldGroups]="filteredTableGroups()"
+              [selectedFieldIds]="selectedFieldIds()"
+              [showEmpty]="!!fieldSearch().trim()"
+              (fieldToggled)="onAccordionFieldToggled($event)"
+            />
+          </div>
+        }
+      </div>
+
+      <div
+        class="chart-view__config-resize-handle"
+        role="separator"
+        aria-orientation="vertical"
+        [attr.aria-label]="'explorer.resizeChartConfiguration' | translate"
+        tabindex="0"
+        (pointerdown)="onConfigResizeStart($event)"
+      ></div>
+    </aside>
+  }
+
+  <div class="page-layout__content">
+    @if (loading()) {
+      <div class="chart-view__loading">
+        <mat-spinner diameter="32" />
+      </div>
+    } @else if (error()) {
+      <div class="chart-view__error page__container">{{ error() }}</div>
+    } @else if (chart() || isCreateMode()) {
+      <section class="chart-view">
+        <div class="page__container page__container--wide">
+          <header class="chart-view__header">
+            <nav class="chart-view__breadcrumbs" [attr.aria-label]="'charts.breadcrumb' | translate">
+              <a routerLink="/projects" class="chart-view__breadcrumb-link">{{ 'nav.home' | translate }}</a>
+              <mat-icon>chevron_right</mat-icon>
+              <a
+                class="chart-view__breadcrumb-link"
+                [routerLink]="['/projects', projectUuid(), 'charts']"
+              >
+                {{ 'charts.title' | translate }}
+              </a>
+              <mat-icon>chevron_right</mat-icon>
+              <span class="chart-view__breadcrumb-current-wrap">
+                <span class="chart-view__breadcrumb-current">{{ displayName() }}</span>
+                @if (editMode()) {
+                  <button
+                    mat-icon-button
+                    type="button"
+                    class="chart-view__breadcrumb-edit"
+                    [attr.aria-label]="'charts.workspace.editNameDescriptionAria' | translate"
+                    [matTooltip]="'charts.workspace.editNameDescription' | translate"
+                    (click)="openChartDetailsDialog()"
+                  >
+                    <mat-icon>edit</mat-icon>
+                  </button>
+                }
+              </span>
+            </nav>
+
+            <div class="chart-view__title-actions">
+              @if (editMode()) {
+                @if (explore()) {
+                  <mds-run-query-button
+                    [limit]="queryRowLimit()"
+                    [maxLimit]="maxQueryLimit()"
+                    [disabled]="!canRunQuery()"
+                    [loading]="queryLoading()"
+                    (run)="runQuery()"
+                    (limitChange)="setQueryRowLimit($event)"
+                  />
+                }
+                <button
+                  mat-stroked-button
+                  type="button"
+                  class="chart-view__action-btn"
+                  [attr.aria-pressed]="configureMode()"
+                  (click)="toggleConfigureMode()"
+                >
+                  <mat-icon>{{ configureMode() ? 'close' : 'tune' }}</mat-icon>
+                  {{
+                    (configureMode()
+                      ? 'explorer.closeConfigure'
+                      : 'explorer.configureChart') | translate
+                  }}
+                </button>
+                <button
+                  mat-stroked-button
+                  type="button"
+                  class="chart-view__action-btn chart-view__save-btn"
+                  [disabled]="!canSave() || saveLoading()"
+                  (click)="saveChart()"
+                >
+                  @if (saveLoading()) {
+                    <mat-spinner diameter="18" />
+                  } @else {
+                    <mat-icon>save</mat-icon>
+                  }
+                  {{ 'common.save' | translate }}
+                </button>
+                <button
+                  mat-flat-button
+                  color="primary"
+                  type="button"
+                  class="chart-view__action-btn"
+                  (click)="onDoneClick()"
+                >
+                  {{ 'charts.workspace.done' | translate }}
+                </button>
+              } @else {
+                <button
+                  mat-flat-button
+                  color="primary"
+                  type="button"
+                  class="chart-view__action-btn"
+                  (click)="enterEditMode()"
+                >
+                  <mat-icon>edit</mat-icon>
+                  {{ 'dashboards.workspace.edit' | translate }}
+                </button>
+                @if (chartExportPlacement(editMode()) === 'header') {
+                  <button
+                    mat-stroked-button
+                    type="button"
+                    class="chart-view__action-btn chart-view__export-btn"
+                    [disabled]="!queryResults()"
+                    [matMenuTriggerFor]="headerExportMenu"
+                  >
+                    <mat-icon>download</mat-icon>
+                    {{ 'export.action' | translate }}
+                  </button>
+                  <mat-menu #headerExportMenu="matMenu">
+                    <button mat-menu-item type="button" (click)="onExportCsv()">
+                      {{ 'export.csv' | translate }}
+                    </button>
+                    <button mat-menu-item type="button" (click)="onExportXlsx()">
+                      {{ 'export.excel' | translate }}
+                    </button>
+                  </mat-menu>
+                }
+              }
+              <span class="chart-view__table-badge">
+                <mat-icon>table_chart</mat-icon>
+                {{ displayTableLabel() }}
+              </span>
+            </div>
+          </header>
+
+          <div class="chart-view__body">
+              @if (!editMode()) {
+                <div class="chart-view__title-row">
+                  <div class="chart-view__title-block">
+                    <h1 class="chart-view__title">{{ displayName() }}</h1>
+                    @if (displayDescription()) {
+                      <p class="chart-view__description">{{ displayDescription() }}</p>
+                    }
+                  </div>
+                </div>
+              }
+
+              @if (saveError()) {
+                <div class="chart-view__banner chart-view__banner--error">{{ saveError() }}</div>
+              } @else if (saveSuccess()) {
+                <div class="chart-view__banner chart-view__banner--success">{{ 'charts.workspace.saved' | translate }}</div>
+              }
+
+              <div class="chart-view__workspace">
+            <div class="chart-view__main">
+              <mat-accordion class="chart-view__accordion" multi>
+                <mat-expansion-panel class="chart-view__panel-section" [expanded]="true">
+                  <mat-expansion-panel-header>
+                    <mat-panel-title>{{ 'explorer.filters' | translate }}</mat-panel-title>
+                  </mat-expansion-panel-header>
+                  @if (explore()) {
+                    <app-tables-filters-panel
+                      [dimensions]="filterableDimensions()"
+                      [filters]="dimensionFilters()"
+                      [editable]="editMode()"
+                      (filtersChange)="onDimensionFiltersChange($event)"
+                    />
+                  } @else {
+                    <div class="chart-view__panel-empty">
+                      <p>{{ 'explorer.loadingFilterFields' | translate }}</p>
+                    </div>
+                  }
+                </mat-expansion-panel>
+
+                <mat-expansion-panel
+                  class="chart-view__panel-section chart-view__panel-section--header-actions"
+                  [expanded]="true"
+                >
+                  <mat-expansion-panel-header>
+                    <mat-panel-title>{{ 'explorer.chart' | translate }}</mat-panel-title>
+                    @if (editMode()) {
+                      <mat-panel-description>
+                        <button
+                          type="button"
+                          class="chart-view__configure-inline"
+                          (click)="toggleConfigureMode($event)"
+                        >
+                          {{
+                            (configureMode()
+                              ? 'explorer.closeConfigure'
+                              : 'explorer.configure') | translate
+                          }}
+                        </button>
+                      </mat-panel-description>
+                    }
+                  </mat-expansion-panel-header>
+
+                  <div class="chart-view__viz">
+                    @if (queryLoading()) {
+                      <div class="chart-view__viz-loading">
+                        <mat-spinner diameter="28" />
+                        <span>{{ 'charts.workspace.runningQuery' | translate }}</span>
+                      </div>
+                    } @else if (queryError()) {
+                      <div class="chart-view__viz-error">{{ queryError() }}</div>
+                    } @else if (queryResults() && !canRenderChart()) {
+                      <div class="chart-view__viz-empty">
+                        <mat-icon>bar_chart</mat-icon>
+                        <p>
+                          @if (editMode()) {
+                            {{ 'charts.workspace.configureAxesToVisualize' | translate }}
+                          } @else {
+                            {{ 'charts.workspace.noResultsToVisualize' | translate }}
+                          }
+                        </p>
+                      </div>
+                    } @else if (canRenderChart()) {
+                      <app-chart-visualization
+                        [chartConfig]="chartConfig()"
+                        [queryResults]="queryResults()"
+                      />
+                    } @else {
+                      <div class="chart-view__viz-empty">
+                        <mat-icon>bar_chart</mat-icon>
+                        <p>
+                          @if (editMode()) {
+                            {{ 'charts.workspace.selectRunToVisualize' | translate }}
+                          } @else {
+                            {{ 'charts.workspace.noChartDataYet' | translate }}
+                          }
+                        </p>
+                      </div>
+                    }
+                  </div>
+                </mat-expansion-panel>
+
+                <mat-expansion-panel
+                  class="chart-view__panel-section chart-view__panel-section--header-actions"
+                  [expanded]="true"
+                >
+                  <mat-expansion-panel-header>
+                    <mat-panel-title>{{ 'explorer.results' | translate }}</mat-panel-title>
+                    @if (chartExportPlacement(editMode()) === 'results') {
+                      <mat-panel-description>
+                        <button
+                          mat-stroked-button
+                          type="button"
+                          class="chart-view__action-btn chart-view__export-btn"
+                          [disabled]="!queryResults()"
+                          [matMenuTriggerFor]="resultsExportMenu"
+                          (click)="$event.stopPropagation()"
+                        >
+                          <mat-icon>download</mat-icon>
+                          {{ 'export.action' | translate }}
+                        </button>
+                        <mat-menu #resultsExportMenu="matMenu">
+                          <button
+                            mat-menu-item
+                            type="button"
+                            (click)="onExportCsv()"
+                          >
+                            {{ 'export.csv' | translate }}
+                          </button>
+                          <button
+                            mat-menu-item
+                            type="button"
+                            (click)="onExportXlsx()"
+                          >
+                            {{ 'export.excel' | translate }}
+                          </button>
+                        </mat-menu>
+                      </mat-panel-description>
+                    }
+                  </mat-expansion-panel-header>
+
+                  <app-query-results-panel
+                    [loading]="queryLoading()"
+                    [error]="queryError()"
+                    [hasResultsObject]="!!queryResults()"
+                    [rows]="resultRows()"
+                    [displayedColumns]="displayedColumns()"
+                    [columnLabel]="columnLabelFn"
+                    [isMetric]="isMetricFn"
+                    [pageIndex]="clampedResultsPageIndex()"
+                    [pageSize]="resultsPageSize()"
+                    [pageSizeOptions]="resultsPageSizeOptions"
+                    [showExport]="chartExportPlacement(editMode()) === 'results'"
+                    (page)="onResultsPage($event)"
+                  />
+                </mat-expansion-panel>
+
+                <mat-expansion-panel class="chart-view__panel-section">
+                  <mat-expansion-panel-header>
+                    <mat-panel-title>{{ 'explorer.sql' | translate }}</mat-panel-title>
+                  </mat-expansion-panel-header>
+
+                  @if (displaySql(); as sql) {
+                    <mds-sql-highlight
+                      [sql]="sql"
+                      [ariaLabel]="'explorer.chartSqlAria' | translate"
+                    />
+                  } @else if (queryLoading()) {
+                    <div class="chart-view__panel-loading">
+                      <mat-spinner diameter="24" />
+                      <span>{{ 'explorer.compilingQuery' | translate }}</span>
+                    </div>
+                  } @else {
+                    <div class="chart-view__panel-empty">
+                      <p>{{ 'explorer.selectFieldsForSql' | translate }}</p>
+                    </div>
+                  }
+                </mat-expansion-panel>
+              </mat-accordion>
+            </div>
+              </div>
+          </div>
+        </div>
+      </section>
+    }
+  </div>
+</div>

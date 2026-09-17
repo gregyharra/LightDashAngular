@@ -1,0 +1,39 @@
+<h2 mat-dialog-title>{{ 'charts.workspace.editDetails' | translate }}</h2>
+
+<mat-dialog-content class="chart-details-dialog__content">
+  <mat-form-field
+    appearance="outline"
+    class="chart-details-dialog__field"
+    subscriptSizing="dynamic"
+  >
+    <mat-label>{{ 'charts.workspace.chartName' | translate }}</mat-label>
+    <input matInput [(ngModel)]="name" maxlength="120" autofocus />
+  </mat-form-field>
+
+  <mat-form-field
+    appearance="outline"
+    class="chart-details-dialog__field"
+    subscriptSizing="dynamic"
+  >
+    <mat-label>{{ 'charts.workspace.description' | translate }}</mat-label>
+    <textarea
+      matInput
+      [(ngModel)]="description"
+      maxlength="280"
+      rows="3"
+    ></textarea>
+  </mat-form-field>
+</mat-dialog-content>
+
+<mat-dialog-actions align="end">
+  <button mat-stroked-button type="button" (click)="cancel()">{{ 'common.cancel' | translate }}</button>
+  <button
+    mat-flat-button
+    color="primary"
+    type="button"
+    [disabled]="!canApply"
+    (click)="apply()"
+  >
+    {{ 'charts.workspace.apply' | translate }}
+  </button>
+</mat-dialog-actions>
