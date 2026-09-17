@@ -1,0 +1,59 @@
+<div class="transformation-legend">
+  <div class="transformation-legend__header">
+    <span class="transformation-legend__title">{{ 'lineage.transformations.title' | translate }}</span>
+    <div
+      class="transformation-legend__mode-toggle"
+      role="radiogroup"
+      [attr.aria-label]="'lineage.transformations.display' | translate"
+    >
+      <button
+        type="button"
+        class="transformation-legend__mode-btn"
+        [class.transformation-legend__mode-btn--active]="chipMode() === 'compact'"
+        role="radio"
+        [attr.aria-checked]="chipMode() === 'compact'"
+        (click)="setChipMode('compact')"
+        [attr.title]="'lineage.transformations.compactBadges' | translate"
+      >
+        A
+      </button>
+      <button
+        type="button"
+        class="transformation-legend__mode-btn"
+        [class.transformation-legend__mode-btn--active]="chipMode() === 'full'"
+        role="radio"
+        [attr.aria-checked]="chipMode() === 'full'"
+        (click)="setChipMode('full')"
+        [attr.title]="'lineage.transformations.fullLabels' | translate"
+      >
+        Abc
+      </button>
+    </div>
+  </div>
+
+  <ul class="transformation-legend__list">
+    @for (type of types; track type) {
+      <li class="transformation-legend__item">
+        <button
+          type="button"
+          class="transformation-legend__filter-btn"
+          [class.transformation-legend__filter-btn--active]="activeFilter() === type"
+          [attr.aria-pressed]="activeFilter() === type"
+          [title]="
+            'lineage.transformations.descriptions.' + translationKey(type)
+              | translate
+          "
+          (click)="toggleFilter(type)"
+        >
+          <mds-transformation-chip [type]="type" [mode]="chipMode()" size="sm" />
+          <span class="transformation-legend__label">
+            {{
+              'lineage.transformations.labels.' + translationKey(type)
+                | translate
+            }}
+          </span>
+        </button>
+      </li>
+    }
+  </ul>
+</div>

@@ -26,7 +26,7 @@ import {
   tap,
 } from 'rxjs/operators';
 import { ActiveProjectService } from '@mds-ui/core';
-import { TransformationChipComponent } from '../../features/lineage/transformation-chip/transformation-chip.component';
+import { TransformationChipComponent } from '@mds-ui/shared';
 import {
   NavbarSearchGroup,
   NavbarSearchResult,

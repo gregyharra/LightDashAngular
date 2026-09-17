@@ -17,17 +17,17 @@ import {
   LineageNode,
 } from '@mds-ui/models';
 
-import { ChartService } from '../../features/charts/chart.service';
-import { DashboardService } from '../../features/dashboards/dashboard.service';
-import { inferColumnTransformation } from '../../features/lineage/column-transformation.utils';
-import { columnNamesEqual } from '../../features/lineage/lineage-column-utils';
-import { LineageService } from '../../features/lineage/lineage.service';
+import { ChartService } from '@mds-ui/feature-chart-query';
+import { DashboardService } from '@mds-ui/feature-projects';
+import { inferColumnTransformation } from '@mds-ui/shared';
+import { columnNamesEqual } from '@mds-ui/shared';
+import { LineageService } from '@mds-ui/feature-projects';
 
 export type NavbarSearchKind = 'model' | 'column' | 'dashboard' | 'chart';
 
 export type NavbarSearchChip = {
   label: string;
-  /** When set, render with `app-transformation-chip` instead of a meta chip. */
+  /** When set, render with `mds-transformation-chip` instead of a meta chip. */
   transformationType?: ColumnTransformationType;
 };
 

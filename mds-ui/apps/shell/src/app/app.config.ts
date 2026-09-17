@@ -11,23 +11,24 @@ import { provideTranslateHttpLoader } from '@ngx-translate/http-loader';
 import {
   AppStateService,
   authInterceptor,
-  CHART_QUERY_ADAPTER,
-  ChartQueryAdapter,
   LanguageService,
   MOCK_API_ENABLED,
   mockApiInterceptor,
   provideAppStore,
 } from '@mds-ui/core';
+import {
+  CHART_QUERY_ADAPTER,
+  ChartQueryAdapter,
+  ChartService,
+  ExplorerService,
+  applyDashboardContextToMetricQuery,
+  mergeDashboardFiltersIntoMetricQuery,
+  mergeTimeTravelIntoMetricQuery,
+  provideChartQueryState,
+} from '@mds-ui/feature-chart-query';
 
 import { routes } from './app.routes';
 import { environment } from '../environments/environment';
-import { ChartService } from './features/charts/chart.service';
-import {
-  applyDashboardContextToMetricQuery,
-  mergeDashboardFiltersIntoMetricQuery,
-} from './features/dashboards/dashboard-filters';
-import { ExplorerService } from './features/explorer/explorer.service';
-import { mergeTimeTravelIntoMetricQuery } from './features/explorer/time-travel.utils';
 
 registerLocaleData(localeFr);
 
@@ -53,7 +54,8 @@ export const appConfig: ApplicationConfig = {
         };
       },
     },
-    ...provideAppStore(),
+    provideAppStore(),
+    provideChartQueryState(),
     provideRouter(routes),
     provideAnimationsAsync(),
     provideNativeDateAdapter(),

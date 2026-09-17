@@ -1,0 +1,520 @@
+<div class="page-layout">
+  <aside class="page-layout__sidebar" mdsResizableSidebar>
+    <div class="page-sidebar page-sidebar--dark">
+      @if (projectUuid(); as browseProjectUuid) {
+        <mds-project-browse-nav
+          [projectUuid]="browseProjectUuid"
+          active="tables"
+        />
+      }
+    </div>
+  </aside>
+
+  <div class="page-layout__content page-layout__content--flush">
+    <div class="table-hub">
+      @if (loading()) {
+        <div class="table-hub__loading">
+          <mat-spinner diameter="32" />
+        </div>
+      } @else if (error()) {
+        <div class="table-hub__error">{{ error() }}</div>
+      } @else {
+        <mds-folder-search-panel
+          [tree]="dbtTree()"
+          [lineageNodes]="lineage()?.nodes ?? []"
+          [projectUuid]="projectUuid()"
+          [selectedNodeId]="tableId()"
+          [searchPlaceholder]="'tables.searchModels' | translate"
+          [emptyMessage]="'tables.noModelsMatch' | translate"
+          collapsedStorageKey="lightdash-tables-hub-folder-collapsed"
+          [treeAriaLabel]="'tables.dbtTree' | translate"
+          (nodeSelected)="onNodeSelected($event)"
+        />
+
+        <div class="table-hub__main">
+          @if (!tableId()) {
+            <section class="table-hub__empty">
+              <h1 class="table-hub__title">{{ 'tables.title' | translate }}</h1>
+              <p class="table-hub__subtitle">
+                {{ 'tables.selectModel' | translate }}
+              </p>
+              @if (quality(); as q) {
+                <div class="table-hub__quality">
+                  <p class="table-hub__quality-score">
+                    {{ 'tables.docQuality' | translate: { score: q.score } }}
+                  </p>
+                  <p>
+                    {{
+                      'tables.documentationSummary'
+                        | translate
+                          : {
+                              modelsDescribed: q.models.described,
+                              modelsTotal: q.models.total,
+                              columnsDescribed: q.columns.described,
+                              columnsTotal: q.columns.total,
+                            }
+                    }}
+                  </p>
+                </div>
+              }
+            </section>
+          } @else if (entryLoading()) {
+            <div class="table-hub__loading">
+              <mat-spinner diameter="32" />
+            </div>
+          } @else if (entryError()) {
+            <div class="table-hub__error">{{ entryError() }}</div>
+          } @else if (entry()) {
+            <header class="table-hub__header">
+              <div class="table-hub__header-title">
+                <p class="table-hub__meta">
+                  {{ entry()!.type }}
+                  @if (entry()!.schema) {
+                    · {{ entry()!.schema }}.{{ entry()!.name }}
+                  }
+                  @if (quality(); as q) {
+                    · {{ 'tables.quality' | translate: { score: q.score } }}
+                  }
+                </p>
+                <h1 class="table-hub__title">{{ entry()!.name }}</h1>
+                @if (entry()!.dbtPath) {
+                  <p class="table-hub__path">{{ entry()!.dbtPath }}</p>
+                }
+              </div>
+              <button
+                mat-flat-button
+                type="button"
+                class="table-hub__explore-btn"
+                [attr.aria-label]="'tables.exploreData' | translate"
+                (click)="exploreInCharts()"
+              >
+                <mat-icon>bar_chart</mat-icon>
+                <span class="table-hub__explore-label table-hub__explore-label--full">
+                  {{ 'tables.exploreData' | translate }}
+                </span>
+                <span class="table-hub__explore-label table-hub__explore-label--short">
+                  {{ 'tables.explore' | translate }}
+                </span>
+              </button>
+            </header>
+
+            <div class="table-hub__tabs" role="tablist">
+              <button
+                type="button"
+                class="table-hub__tab"
+                [class.table-hub__tab--active]="activeTab() === 'overview'"
+                (click)="setTab('overview')"
+              >
+                {{ 'tables.tabs.overview' | translate }}
+              </button>
+              <button
+                type="button"
+                class="table-hub__tab"
+                [class.table-hub__tab--active]="activeTab() === 'columns'"
+                (click)="setTab('columns')"
+              >
+                {{ 'tables.tabs.columns' | translate }}
+                <span class="table-hub__tab-count">{{ entry()!.columns.length }}</span>
+              </button>
+              <button
+                type="button"
+                class="table-hub__tab"
+                [class.table-hub__tab--active]="activeTab() === 'links'"
+                (click)="setTab('links')"
+              >
+                {{ 'tables.tabs.links' | translate }}
+                <span class="table-hub__tab-count">{{ linksCount() }}</span>
+              </button>
+              <button
+                type="button"
+                class="table-hub__tab"
+                [class.table-hub__tab--active]="activeTab() === 'lineage'"
+                (click)="setTab('lineage')"
+              >
+                {{ 'tables.lineage' | translate }}
+              </button>
+              <button
+                type="button"
+                class="table-hub__tab"
+                [class.table-hub__tab--active]="activeTab() === 'sql'"
+                (click)="setTab('sql')"
+              >
+                {{ 'tables.tabs.sql' | translate }}
+              </button>
+            </div>
+
+            @if (activeTab() === 'overview') {
+              <section class="table-hub__panel">
+                <label class="table-hub__label" for="hub-description">
+                  {{ 'tables.fields.description' | translate }}
+                </label>
+                <textarea
+                  id="hub-description"
+                  class="table-hub__textarea"
+                  rows="4"
+                  [ngModel]="descriptionDraft()"
+                  (ngModelChange)="descriptionDraft.set($event)"
+                ></textarea>
+                @if (entry()!.dbtDescription) {
+                  <p class="table-hub__hint">dbt: {{ entry()!.dbtDescription }}</p>
+                }
+
+                <p class="table-hub__label" id="hub-tags-label">
+                  {{ 'tables.fields.tags' | translate }}
+                </p>
+                <div
+                  class="table-hub__tags"
+                  role="group"
+                  aria-labelledby="hub-tags-label"
+                >
+                  <mat-chip-grid #chipGrid [attr.aria-label]="'tables.fields.tags' | translate">
+                    @for (tag of tagsDraft(); track tag) {
+                      <mat-chip-row
+                        class="table-hub__tag"
+                        [removable]="enableTagEditing"
+                        (removed)="enableTagEditing && removeTag(tag)"
+                      >
+                        {{ tag }}
+                        @if (enableTagEditing) {
+                            <button
+                              matChipRemove
+                              [attr.aria-label]="'tables.removeTag' | translate: { tag: tag }"
+                            >
+                            <mat-icon>cancel</mat-icon>
+                          </button>
+                        }
+                      </mat-chip-row>
+                    }
+                  </mat-chip-grid>
+                  @if (enableTagEditing) {
+                    <input
+                      id="hub-tags"
+                      class="table-hub__tags-input"
+                      [placeholder]="'tables.addTagPlaceholder' | translate"
+                      [matChipInputFor]="chipGrid"
+                      [matChipInputSeparatorKeyCodes]="tagSeparatorKeys"
+                      (matChipInputTokenEnd)="addTagFromInput($event)"
+                    />
+                  }
+                </div>
+
+                <dl class="table-hub__dl">
+                  @if (entry()!.materialization) {
+                    <div>
+                      <dt>{{ 'tables.fields.materialization' | translate }}</dt>
+                      <dd>{{ entry()!.materialization }}</dd>
+                    </div>
+                  }
+                  @if (entry()!.packageName) {
+                    <div>
+                      <dt>{{ 'tables.fields.package' | translate }}</dt>
+                      <dd>{{ entry()!.packageName }}</dd>
+                    </div>
+                  }
+                  @if (entry()!.catalog) {
+                    <div>
+                      <dt>{{ 'tables.fields.catalog' | translate }}</dt>
+                      <dd>{{ entry()!.catalog }}</dd>
+                    </div>
+                  }
+                </dl>
+
+                <button
+                  mat-flat-button
+                  type="button"
+                  [disabled]="saving()"
+                  (click)="saveOverview()"
+                >
+                  {{ 'tables.saveOverview' | translate }}
+                </button>
+              </section>
+            }
+
+            @if (activeTab() === 'columns') {
+              <section class="table-hub__panel table-hub__columns-panel">
+                <div class="table-hub__columns-toolbar">
+                  <p class="table-hub__hint">
+                    {{ 'tables.attributes.hint' | translate }}
+                  </p>
+                  <button mat-stroked-button type="button" (click)="openAddAttributeDialog()">
+                    <mat-icon>add</mat-icon>
+                    {{ 'tables.attributes.add' | translate }}
+                  </button>
+                </div>
+
+                <div class="table-hub__table-scroll">
+                  <table class="table-hub__table">
+                    <thead>
+                      <tr>
+                        <th scope="col">
+                          <mds-content-list-column-header
+                            [label]="'tables.fields.name' | translate"
+                            filterType="text"
+                            [textPlaceholder]="'tables.filterNames' | translate"
+                            [value]="columnFilters().name"
+                            (valueChange)="updateColumnFilter('name', $event)"
+                          />
+                        </th>
+                        <th scope="col">
+                          <mds-content-list-column-header
+                            [label]="'tables.fields.type' | translate"
+                            filterType="select"
+                            [options]="columnTypeOptions()"
+                            [value]="columnFilters().type"
+                            (valueChange)="updateColumnFilter('type', $event)"
+                          />
+                        </th>
+                        <th scope="col" class="table-hub__transform-header">
+                          {{ 'tables.fields.transformation' | translate }}
+                        </th>
+                        <th scope="col" class="table-hub__desc-header">
+                          <mds-content-list-column-header
+                            [label]="'tables.fields.description' | translate"
+                            filterType="text"
+                            [textPlaceholder]="'tables.filterDescriptions' | translate"
+                            [value]="columnFilters().description"
+                            (valueChange)="updateColumnFilter('description', $event)"
+                          />
+                        </th>
+                        @for (attr of attributeDefs(); track attr.id) {
+                          <th scope="col" class="table-hub__attr-header">
+                            <div class="table-hub__attr-header-row">
+                              <mds-content-list-column-header
+                                [label]="attr.name"
+                                [filterType]="attributeFilterType(attr)"
+                                [options]="attributeFilterOptions(attr)"
+                                [textPlaceholder]="'tables.filterValues' | translate"
+                                [value]="attributeFilterValue(attr)"
+                                (valueChange)="updateAttributeFilter(attr.id, $event)"
+                              />
+                              <button
+                                type="button"
+                                class="table-hub__attr-delete"
+                                [attr.aria-label]="
+                                  'tables.attributes.deleteLabel'
+                                    | translate: { name: attr.name }
+                                "
+                                (click)="deleteAttribute(attr)"
+                              >
+                                <mat-icon inline>close</mat-icon>
+                              </button>
+                            </div>
+                          </th>
+                        }
+                      </tr>
+                    </thead>
+                    <tbody>
+                      @if (filteredColumns().length === 0) {
+                        <tr>
+                          <td [attr.colspan]="4 + attributeDefs().length">
+                            <p class="table-hub__empty-filter">
+                              {{ 'tables.noColumnsMatch' | translate }}
+                            </p>
+                          </td>
+                        </tr>
+                      }
+                      @for (column of filteredColumns(); track column.name) {
+                        <tr>
+                          <td class="table-hub__mono">{{ column.name }}</td>
+                          <td>{{ column.type }}</td>
+                          <td class="table-hub__transform-cell">
+                            @if (columnTransformation(column); as transformType) {
+                              <mds-transformation-chip
+                                [type]="transformType"
+                                mode="full"
+                                size="md"
+                              />
+                            } @else {
+                              <span class="table-hub__transform-empty">—</span>
+                            }
+                          </td>
+                          <td class="table-hub__desc-cell">
+                            <input
+                              class="table-hub__input table-hub__input--inline"
+                              [value]="column.descriptionOverride ?? column.description ?? ''"
+                              (change)="saveColumnDescription(column.name, $any($event.target).value)"
+                              [attr.aria-label]="
+                                'tables.descriptionFor'
+                                  | translate: { name: column.name }
+                              "
+                            />
+                            @if (column.dbtDescription) {
+                              <p class="table-hub__hint">dbt: {{ column.dbtDescription }}</p>
+                            }
+                          </td>
+                          @for (attr of attributeDefs(); track attr.id) {
+                            <td class="table-hub__attr-cell">
+                              @switch (attr.type) {
+                                @case ('enum') {
+                                  <select
+                                    class="table-hub__input table-hub__input--inline"
+                                    [value]="columnAttributeText(column, attr.id)"
+                                    (change)="onAttributeValueChange(column.name, attr, $any($event.target).value)"
+                                    [attr.aria-label]="
+                                      'tables.attributeFor'
+                                        | translate: { attribute: attr.name, column: column.name }
+                                    "
+                                  >
+                                    <option value="">—</option>
+                                    @for (option of attr.options ?? []; track option) {
+                                      <option [value]="option">{{ option }}</option>
+                                    }
+                                  </select>
+                                }
+                                @case ('boolean') {
+                                  <input
+                                    type="checkbox"
+                                    [checked]="columnAttributeChecked(column, attr.id)"
+                                    (change)="onBooleanAttributeChange(column.name, attr, $any($event.target).checked)"
+                                    [attr.aria-label]="
+                                      'tables.attributeFor'
+                                        | translate: { attribute: attr.name, column: column.name }
+                                    "
+                                  />
+                                }
+                                @case ('number') {
+                                  <input
+                                    type="number"
+                                    class="table-hub__input table-hub__input--inline"
+                                    [value]="columnAttributeText(column, attr.id)"
+                                    (change)="onAttributeValueChange(column.name, attr, $any($event.target).value)"
+                                    [attr.aria-label]="
+                                      'tables.attributeFor'
+                                        | translate: { attribute: attr.name, column: column.name }
+                                    "
+                                  />
+                                }
+                                @default {
+                                  <input
+                                    class="table-hub__input table-hub__input--inline"
+                                    [value]="columnAttributeText(column, attr.id)"
+                                    (change)="onAttributeValueChange(column.name, attr, $any($event.target).value)"
+                                    [attr.aria-label]="
+                                      'tables.attributeFor'
+                                        | translate: { attribute: attr.name, column: column.name }
+                                    "
+                                  />
+                                }
+                              }
+                            </td>
+                          }
+                        </tr>
+                      }
+                    </tbody>
+                  </table>
+                </div>
+              </section>
+            }
+
+            @if (activeTab() === 'links') {
+              <section class="table-hub__panel table-hub__links-panel">
+                <mds-filterable-links-table
+                  variant="hub"
+                  [links]="modelJoins()"
+                  [loading]="linksLoading()"
+                  [saving]="saving()"
+                  (addRequested)="openAddLinkDialog()"
+                  (editRequested)="onEditLink($event)"
+                  (deleteRequested)="onDeleteLink($event)"
+                />
+              </section>
+            }
+
+            @if (activeTab() === 'lineage') {
+              <section class="table-hub__panel table-hub__lineage">
+                <div class="table-hub__lineage-toolbar">
+                  <p class="table-hub__hint">
+                    {{ 'tables.lineageHint' | translate }}
+                  </p>
+                  <button mat-stroked-button type="button" (click)="openFullLineage()">
+                    {{ 'tables.openFullLineage' | translate }}
+                  </button>
+                </div>
+
+                @if (lineage(); as data) {
+                  @if (selectedNode(); as node) {
+                    <mds-lineage-graph
+                      class="table-hub__lineage-graph"
+                      [nodes]="data.nodes"
+                      [edges]="data.edges"
+                      [columnEdges]="data.columnEdges ?? []"
+                      [selectedNodeId]="node.id"
+                      [selectedColumn]="selectedColumn()"
+                      [viewMode]="lineageViewMode()"
+                      [graphMode]="lineageGraphMode()"
+                      [hopDepth]="lineageHopDepth()"
+                      (nodeSelected)="onGraphNodeSelected($event)"
+                      (columnSelected)="onGraphColumnSelected($event)"
+                      (columnSelectionCleared)="clearSelectedColumn()"
+                      (viewModeChange)="onLineageViewModeChange($event)"
+                      (graphModeChange)="onLineageGraphModeChange($event)"
+                      (hopDepthChange)="onLineageHopDepthChange($event)"
+                    />
+                  }
+                } @else {
+                  <p class="table-hub__hint">{{ 'tables.lineageUnavailable' | translate }}</p>
+                }
+              </section>
+            }
+
+            @if (activeTab() === 'sql') {
+              <section class="table-hub__panel">
+                @if (hasAnySql()) {
+                  <div class="table-hub__sql-toolbar">
+                    <mat-button-toggle-group
+                      class="table-hub__sql-toggle"
+                      [value]="sqlViewMode()"
+                      (change)="setSqlViewMode($event.value)"
+                      [attr.aria-label]="'tables.sqlView' | translate"
+                    >
+                      <mat-button-toggle value="compiled" [disabled]="!hasCompiledSql()">
+                        {{ 'tables.compiled' | translate }}
+                      </mat-button-toggle>
+                      <mat-button-toggle value="uncompiled" [disabled]="!hasUncompiledSql()">
+                        {{ 'tables.uncompiled' | translate }}
+                      </mat-button-toggle>
+                    </mat-button-toggle-group>
+                  </div>
+                  @if (showCompiledUnavailableHint()) {
+                    <p class="table-hub__hint">
+                      {{ 'tables.compiledUnavailable' | translate }}
+                      <code>dbt compile</code>
+                      {{ 'tables.generateCompiled' | translate }}
+                    </p>
+                  }
+                  @if (displaySql(); as sql) {
+                    <mds-sql-highlight
+                      [sql]="sql"
+                      [ariaLabel]="'tables.modelSql' | translate"
+                    />
+                  }
+                } @else {
+                  <p class="table-hub__hint">{{ 'tables.noSql' | translate }}</p>
+                }
+              </section>
+            }
+          }
+        </div>
+      }
+    </div>
+  </div>
+</div>
+
+@if (showAddAttribute()) {
+  <app-add-attribute-dialog
+    [existingNames]="existingAttributeNames()"
+    (saved)="onAddAttributeSaved($event)"
+    (cancelled)="onAddAttributeCancelled()"
+  />
+}
+
+@if (showLinkDialog()) {
+  <mds-link-dialog
+    mode="hub"
+    [models]="modelLinkOptions()"
+    [initialLink]="editingLink()"
+    [lockedSourceModelId]="entry()?.id ?? tableId()"
+    (saved)="onLinkDialogSaved($event)"
+    (cancelled)="onLinkDialogCancelled()"
+  />
+}

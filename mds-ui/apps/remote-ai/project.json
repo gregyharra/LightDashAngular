@@ -1,0 +1,126 @@
+{
+  "name": "remoteAi",
+  "$schema": "../../node_modules/nx/schemas/project-schema.json",
+  "projectType": "application",
+  "prefix": "app",
+  "sourceRoot": "apps/remote-ai/src",
+  "tags": [
+    "type:app"
+  ],
+  "targets": {
+    "build": {
+      "executor": "@nx/angular:webpack-browser",
+      "outputs": [
+        "{options.outputPath}"
+      ],
+      "defaultConfiguration": "production",
+      "options": {
+        "outputPath": "dist/apps/remote-ai",
+        "index": "apps/remote-ai/src/index.html",
+        "main": "apps/remote-ai/src/main.ts",
+        "polyfills": [
+          "zone.js"
+        ],
+        "tsConfig": "apps/remote-ai/tsconfig.app.json",
+        "inlineStyleLanguage": "scss",
+        "assets": [
+          {
+            "glob": "**/*",
+            "input": "apps/remote-ai/public"
+          }
+        ],
+        "styles": [
+          "apps/remote-ai/src/styles.scss"
+        ],
+        "customWebpackConfig": {
+          "path": "apps/remote-ai/webpack.config.ts"
+        }
+      },
+      "configurations": {
+        "production": {
+          "budgets": [
+            {
+              "type": "initial",
+              "maximumWarning": "500kb",
+              "maximumError": "1mb"
+            },
+            {
+              "type": "anyComponentStyle",
+              "maximumWarning": "12kb",
+              "maximumError": "16kb"
+            }
+          ],
+          "outputHashing": "all",
+          "customWebpackConfig": {
+            "path": "apps/remote-ai/webpack.prod.config.ts"
+          }
+        },
+        "development": {
+          "buildOptimizer": false,
+          "optimization": false,
+          "vendorChunk": true,
+          "extractLicenses": false,
+          "sourceMap": true,
+          "namedChunks": true
+        }
+      }
+    },
+    "serve": {
+      "continuous": true,
+      "executor": "@nx/angular:dev-server",
+      "defaultConfiguration": "development",
+      "options": {
+        "port": 4209,
+        "publicHost": "http://localhost:4209"
+      },
+      "configurations": {
+        "production": {
+          "buildTarget": "remoteAi:build:production"
+        },
+        "development": {
+          "buildTarget": "remoteAi:build:development"
+        }
+      },
+      "dependsOn": [
+        "shell:serve"
+      ]
+    },
+    "extract-i18n": {
+      "executor": "@angular-devkit/build-angular:extract-i18n",
+      "options": {
+        "buildTarget": "remoteAi:build"
+      }
+    },
+    "lint": {
+      "executor": "@nx/eslint:lint"
+    },
+    "test": {
+      "executor": "@nx/jest:jest",
+      "outputs": [
+        "{workspaceRoot}/coverage/{projectRoot}"
+      ],
+      "options": {
+        "jestConfig": "apps/remote-ai/jest.config.ts",
+        "tsConfig": "apps/remote-ai/tsconfig.spec.json"
+      }
+    },
+    "serve-static": {
+      "continuous": true,
+      "executor": "@nx/web:file-server",
+      "defaultConfiguration": "production",
+      "options": {
+        "buildTarget": "remoteAi:build",
+        "port": 4209,
+        "watch": false
+      },
+      "configurations": {
+        "development": {
+          "buildTarget": "remoteAi:build:development"
+        },
+        "production": {
+          "buildTarget": "remoteAi:build:production"
+        }
+      }
+    }
+  }
+}

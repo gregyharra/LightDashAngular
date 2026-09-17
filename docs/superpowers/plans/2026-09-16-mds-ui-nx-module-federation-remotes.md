@@ -721,8 +721,9 @@ echo 'shell features cleared OK'
 ```bash
 # Components in remotes must not inject Store directly
 rg "inject\(Store\)" apps/remote-*/src -g '*.component.ts' && exit 1 || true
-# No remote importing another remote path
-rg "from 'remote-" apps/remote-*/src && exit 1 || true
+# No remote importing another remote path, statically or dynamically
+rg "(from\s+|import\s*\()\s*['\"]remote-" apps/remote-*/src \
+  -g '*.{ts,tsx,js,jsx,mjs,cjs}' && exit 1 || true
 ```
 
 Expected: no matches.

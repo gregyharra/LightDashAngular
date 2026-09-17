@@ -1,0 +1,15 @@
+{
+  "name": "@mds-ui/feature-chart-query",
+  "version": "0.0.1",
+  "peerDependencies": {
+    "@angular/core": "^20.3.0",
+    "@mds-ui/core": "0.0.1",
+    "@mds-ui/models": "0.0.1",
+    "@ngrx/effects": "^20.1.0",
+    "@ngrx/store": "^20.1.0",
+    "@ngx-translate/core": "^18.0.0",
+    "rxjs": "~7.8.0"
+  },
+  "sideEffects": false,
+  "private": true
+}

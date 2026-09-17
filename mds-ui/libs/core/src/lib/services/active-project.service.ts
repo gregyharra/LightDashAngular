@@ -1,11 +1,10 @@
 import { Injectable, computed, inject, signal } from '@angular/core';
-import { Store } from '@ngrx/store';
-import { ChartQueryActions } from '../store';
 import { ProjectSummary } from '@mds-ui/models';
+import { APP_DATA_INVALIDATOR } from './app-data-invalidator';
 
 @Injectable({ providedIn: 'root' })
 export class ActiveProjectService {
-  private readonly store = inject(Store);
+  private readonly dataInvalidator = inject(APP_DATA_INVALIDATOR);
   private readonly projectsSignal = signal<ProjectSummary[]>([]);
   private readonly activeUuidSignal = signal<string | null>(null);
 
@@ -33,7 +32,7 @@ export class ActiveProjectService {
 
     const previous = this.activeUuidSignal();
     if (previous !== null && previous !== projectUuid) {
-      this.store.dispatch(ChartQueryActions.invalidateAll());
+      this.dataInvalidator.invalidateAll();
     }
 
     this.activeUuidSignal.set(projectUuid);

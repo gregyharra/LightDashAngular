@@ -1,5 +1,5 @@
 import nx from "@nx/eslint-plugin";
-import baseConfig from "../../eslint.config.mjs";
+import baseConfig, { moduleBoundaryOptions } from "../../eslint.config.mjs";
 
 export default [
     ...nx.configs["flat/angular"],
@@ -24,6 +24,18 @@ export default [
                     type: "element",
                     prefix: "app",
                     style: "kebab-case"
+                }
+            ],
+            "@nx/enforce-module-boundaries": [
+                "error",
+                {
+                    ...moduleBoundaryOptions,
+                    allow: [
+                        "remote-auth/Routes",
+                        "remote-projects/Routes",
+                        "remote-warehouses/Routes",
+                        "remote-tables/Routes"
+                    ]
                 }
             ]
         }

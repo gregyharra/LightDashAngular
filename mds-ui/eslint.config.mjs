@@ -1,5 +1,45 @@
 import nx from "@nx/eslint-plugin";
 
+export const moduleBoundaryOptions = {
+    enforceBuildableLibDependency: true,
+    depConstraints: [
+        {
+            sourceTag: "type:models",
+            onlyDependOnLibsWithTags: []
+        },
+        {
+            sourceTag: "type:core",
+            onlyDependOnLibsWithTags: [
+                "type:models"
+            ]
+        },
+        {
+            sourceTag: "type:shared",
+            onlyDependOnLibsWithTags: [
+                "type:models",
+                "type:core"
+            ]
+        },
+        {
+            sourceTag: "type:feature",
+            onlyDependOnLibsWithTags: [
+                "type:models",
+                "type:core",
+                "type:shared"
+            ]
+        },
+        {
+            sourceTag: "type:app",
+            onlyDependOnLibsWithTags: [
+                "type:models",
+                "type:core",
+                "type:shared",
+                "type:feature"
+            ]
+        }
+    ]
+};
+
 export default [
     ...nx.configs["flat/base"],
     ...nx.configs["flat/typescript"],
@@ -20,46 +60,7 @@ export default [
         rules: {
             "@nx/enforce-module-boundaries": [
                 "error",
-                {
-                    enforceBuildableLibDependency: true,
-                    allow: [],
-                    depConstraints: [
-                        {
-                            sourceTag: "type:models",
-                            onlyDependOnLibsWithTags: []
-                        },
-                        {
-                            sourceTag: "type:core",
-                            onlyDependOnLibsWithTags: [
-                                "type:models"
-                            ]
-                        },
-                        {
-                            sourceTag: "type:shared",
-                            onlyDependOnLibsWithTags: [
-                                "type:models",
-                                "type:core"
-                            ]
-                        },
-                        {
-                            sourceTag: "type:feature",
-                            onlyDependOnLibsWithTags: [
-                                "type:models",
-                                "type:core",
-                                "type:shared"
-                            ]
-                        },
-                        {
-                            sourceTag: "type:app",
-                            onlyDependOnLibsWithTags: [
-                                "type:models",
-                                "type:core",
-                                "type:shared",
-                                "type:feature"
-                            ]
-                        }
-                    ]
-                }
+                moduleBoundaryOptions
             ]
         }
     },
