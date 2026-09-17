@@ -1,0 +1,50 @@
+@if (unknownTypeNotice()) {
+  <div class="chart-viz__notice" role="status">
+    {{ 'charts.workspace.unsupportedType' | translate }}
+  </div>
+}
+
+@if (chartKind() === 'big_number' && queryResults()) {
+  <div
+    class="chart-viz__big-number"
+    [class.chart-viz__big-number--dashboard]="dashboardMode()"
+  >
+    @if (bigNumberValue(); as value) {
+      <div class="chart-viz__big-number-value">{{ value }}</div>
+      @if (bigNumberLabel()) {
+        <div class="chart-viz__big-number-label">{{ bigNumberLabel() }}</div>
+      }
+      @if (bigNumberComparison(); as comparison) {
+        <div
+          class="chart-viz__big-number-comparison"
+          [class.chart-viz__big-number-comparison--up]="
+            comparison.direction === 'up'
+          "
+          [class.chart-viz__big-number-comparison--down]="
+            comparison.direction === 'down'
+          "
+        >
+          {{ comparison.label }}
+        </div>
+      }
+    }
+  </div>
+} @else if (chartKind() === 'table' && queryResults()) {
+  <div class="chart-viz__table-wrap">
+    <table mat-table [dataSource]="tableRows()" class="chart-viz__table">
+      @for (column of displayedColumns(); track column) {
+        <ng-container [matColumnDef]="column">
+          <th mat-header-cell *matHeaderCellDef>{{ getColumnLabel(column) }}</th>
+          <td mat-cell *matCellDef="let row">{{ row[column] }}</td>
+        </ng-container>
+      }
+
+      <tr mat-header-row *matHeaderRowDef="displayedColumns()"></tr>
+      <tr mat-row *matRowDef="let row; columns: displayedColumns()"></tr>
+    </table>
+  </div>
+} @else {
+  <div class="chart-viz__canvas-wrap">
+    <app-echart-host [option]="echartsOption()" />
+  </div>
+}

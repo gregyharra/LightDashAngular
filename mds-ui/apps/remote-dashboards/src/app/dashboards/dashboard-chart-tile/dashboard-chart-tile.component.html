@@ -1,0 +1,30 @@
+<div class="dashboard-chart-tile">
+  @let results = displayResults();
+  @if (!savedChartUuid()) {
+    <div class="dashboard-chart-tile__state dashboard-chart-tile__state--empty">
+      <mat-icon>bar_chart</mat-icon>
+      <span>{{ 'dashboards.workspace.chartNotConfigured' | translate }}</span>
+    </div>
+  } @else if (results && results.rows.length > 0) {
+    <app-chart-visualization
+      [chartConfig]="displayConfig()"
+      [queryResults]="results"
+      [bigNumberComparison]="displayComparison()"
+      [dashboardMode]="true"
+    />
+  } @else if (results) {
+    <div class="dashboard-chart-tile__state dashboard-chart-tile__state--empty">
+      <mat-icon>bar_chart</mat-icon>
+      <span>{{ 'dashboards.workspace.noData' | translate }}</span>
+    </div>
+  } @else if (error()) {
+    <div class="dashboard-chart-tile__state dashboard-chart-tile__state--error">
+      <mat-icon>error_outline</mat-icon>
+      <span>{{ error() }}</span>
+    </div>
+  } @else {
+    <div class="dashboard-chart-tile__state dashboard-chart-tile__state--loading">
+      <mat-spinner diameter="24" />
+    </div>
+  }
+</div>

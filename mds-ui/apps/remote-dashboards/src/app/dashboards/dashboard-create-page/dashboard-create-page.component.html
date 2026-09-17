@@ -1,0 +1,111 @@
+<div class="page-layout">
+  <aside class="page-layout__sidebar" mdsResizableSidebar>
+    <div class="page-sidebar page-sidebar--dark">
+      @if (projectUuid(); as browseProjectUuid) {
+        <mds-project-browse-nav
+          [projectUuid]="browseProjectUuid"
+          active="dashboards"
+        />
+      }
+    </div>
+  </aside>
+
+  <div class="page-layout__content">
+    <section class="dashboard-create">
+      <div class="page__container">
+        <header class="dashboard-create__header">
+          <nav
+            class="dashboard-create__breadcrumbs"
+            [attr.aria-label]="'dashboards.breadcrumb' | translate"
+          >
+            <a routerLink="/projects" class="dashboard-create__breadcrumb-link">
+              {{ 'nav.home' | translate }}
+            </a>
+            <mat-icon>chevron_right</mat-icon>
+            <a
+              class="dashboard-create__breadcrumb-link"
+              [routerLink]="['/projects', projectUuid(), 'dashboards']"
+            >
+              {{ 'dashboards.title' | translate }}
+            </a>
+            <mat-icon>chevron_right</mat-icon>
+            <span class="dashboard-create__breadcrumb-current">
+              {{ 'dashboards.create.action' | translate }}
+            </span>
+          </nav>
+        </header>
+
+        <h1 class="dashboard-create__title">{{ 'dashboards.create.action' | translate }}</h1>
+        <p class="dashboard-create__subtitle">
+          {{ 'dashboards.create.subtitle' | translate }}
+        </p>
+
+        <form class="dashboard-create__form" (ngSubmit)="submit()">
+          <mat-form-field appearance="outline" class="dashboard-create__field">
+            <mat-label>{{ 'dashboards.create.name' | translate }}</mat-label>
+            <input
+              matInput
+              name="name"
+              [(ngModel)]="name"
+              required
+              autocomplete="off"
+              [disabled]="submitting()"
+            />
+          </mat-form-field>
+
+          <mat-form-field appearance="outline" class="dashboard-create__field">
+            <mat-label>{{ 'dashboards.fields.description' | translate }}</mat-label>
+            <textarea
+              matInput
+              name="description"
+              [(ngModel)]="description"
+              rows="3"
+              [disabled]="submitting()"
+            ></textarea>
+          </mat-form-field>
+
+          <mat-form-field appearance="outline" class="dashboard-create__field">
+            <mat-label>{{ 'dashboards.fields.space' | translate }}</mat-label>
+            <mat-select
+              name="spaceUuid"
+              [(ngModel)]="spaceUuid"
+              [disabled]="submitting() || spacesLoading()"
+            >
+              @for (space of spaces(); track space.uuid) {
+                <mat-option [value]="space.uuid">{{ space.name }}</mat-option>
+              }
+            </mat-select>
+          </mat-form-field>
+
+          @if (error()) {
+            <div class="dashboard-create__error">{{ error() }}</div>
+          }
+
+          <div class="dashboard-create__actions">
+            <button
+              mat-stroked-button
+              type="button"
+              class="dashboard-create__cancel-btn"
+              (click)="cancel()"
+              [disabled]="submitting()"
+            >
+              {{ 'common.cancel' | translate }}
+            </button>
+            <button
+              mat-flat-button
+              type="submit"
+              class="dashboard-create__submit-btn"
+              [disabled]="submitting() || !name.trim()"
+            >
+              @if (submitting()) {
+                <mat-spinner diameter="18" />
+              } @else {
+                {{ 'dashboards.create.action' | translate }}
+              }
+            </button>
+          </div>
+        </form>
+      </div>
+    </section>
+  </div>
+</div>
