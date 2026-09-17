@@ -3,10 +3,8 @@ import { provideRouter, Router } from '@angular/router';
 import { provideStore } from '@ngrx/store';
 import { ActiveProjectService } from '@mds-ui/core';
 import { ProjectSummary, WarehouseListItem } from '@mds-ui/models';
-import {
-  ProjectsService,
-} from '@mds-ui/feature-projects';
-import { WarehouseService } from '@mds-ui/feature-projects';
+import { ProjectsService } from '@mds-ui/feature-projects';
+import { WarehouseService } from '@mds-ui/feature-warehouses';
 import { of } from 'rxjs';
 import { projectsFeature } from '../store/projects.reducer';
 import { ProjectCreatePageFacade } from './project-create-page.facade';

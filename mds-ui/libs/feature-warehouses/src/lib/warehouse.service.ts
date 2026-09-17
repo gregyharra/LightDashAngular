@@ -35,10 +35,15 @@ export class WarehouseService {
   }
 
   test(warehouseUuid: string): Observable<WarehouseTestResult> {
-    return this.api.post<WarehouseTestResult>(`/warehouses/${warehouseUuid}/test`, {});
+    return this.api.post<WarehouseTestResult>(
+      `/warehouses/${warehouseUuid}/test`,
+      {},
+    );
   }
 
-  testConnection(body: WarehouseTestConnection): Observable<WarehouseTestResult> {
+  testConnection(
+    body: WarehouseTestConnection,
+  ): Observable<WarehouseTestResult> {
     return this.api.post<WarehouseTestResult>('/warehouses/test', body);
   }
 }

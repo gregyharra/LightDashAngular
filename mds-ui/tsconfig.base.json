@@ -25,9 +25,11 @@
       "remote-projects/Routes": [
         "./apps/remote-projects/src/app/remote-entry/entry.routes.ts"
       ],
-      "@mds-ui/feature-projects": [
-        "./libs/feature-projects/src/index.ts"
-      ]
+      "@mds-ui/feature-projects": ["./libs/feature-projects/src/index.ts"],
+      "remote-warehouses/Routes": [
+        "./apps/remote-warehouses/src/app/remote-entry/entry.routes.ts"
+      ],
+      "@mds-ui/feature-warehouses": ["./libs/feature-warehouses/src/index.ts"]
     }
   },
   "angularCompilerOptions": {

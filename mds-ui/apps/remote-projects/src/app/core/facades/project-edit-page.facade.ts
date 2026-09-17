@@ -16,7 +16,10 @@ import {
   ProjectsService,
   ProjectUpdate,
 } from '@mds-ui/feature-projects';
-import { WarehouseService } from '@mds-ui/feature-projects';
+import {
+  WarehouseCreateDialogFacade,
+  WarehouseService,
+} from '@mds-ui/feature-warehouses';
 import { TranslateService } from '@ngx-translate/core';
 import { forkJoin } from 'rxjs';
 import { ProjectsActions } from '../store/projects.actions';
@@ -27,6 +30,7 @@ export class ProjectEditPageFacade {
   private readonly store = inject(Store);
   private readonly projectsService = inject(ProjectsService);
   private readonly warehouseService = inject(WarehouseService);
+  private readonly warehouseDialog = inject(WarehouseCreateDialogFacade);
   private readonly lineageService = inject(LineageService);
   private readonly modelJoinsService = inject(ModelJoinsService);
   private readonly activeProject = inject(ActiveProjectService);
@@ -34,8 +38,12 @@ export class ProjectEditPageFacade {
   private readonly router = inject(Router);
 
   readonly project = this.store.selectSignal(projectsFeature.selectProject);
-  readonly warehouses = this.store.selectSignal(projectsFeature.selectWarehouses);
-  readonly repoStatus = this.store.selectSignal(projectsFeature.selectRepoStatus);
+  readonly warehouses = this.store.selectSignal(
+    projectsFeature.selectWarehouses,
+  );
+  readonly repoStatus = this.store.selectSignal(
+    projectsFeature.selectRepoStatus,
+  );
   readonly loading = this.store.selectSignal(projectsFeature.selectLoading);
   readonly saving = this.store.selectSignal(projectsFeature.selectSaving);
   readonly error = this.store.selectSignal(projectsFeature.selectError);
@@ -105,6 +113,21 @@ export class ProjectEditPageFacade {
         warehouses: [...this.warehouses(), warehouse],
       }),
     );
+  }
+
+  openCreateWarehouse(
+    projectName: string,
+    onCreated?: (warehouse: Warehouse) => void,
+  ): void {
+    this.warehouseDialog
+      .open(projectName ? `${projectName} warehouse` : undefined)
+      .subscribe((warehouse) => {
+        if (!warehouse) {
+          return;
+        }
+        this.addWarehouse(warehouse);
+        onCreated?.(warehouse);
+      });
   }
 
   syncRepository(projectUuid: string): void {

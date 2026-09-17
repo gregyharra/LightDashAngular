@@ -2,14 +2,18 @@
   <div class="page__container">
     <header class="warehouses__header">
       <div>
-        <h1 class="warehouses__title">{{ 'warehouses.title' | translate }}</h1>
+        <h1 class="warehouses__title">{{ "warehouses.title" | translate }}</h1>
         <p class="warehouses__subtitle">
-          {{ 'warehouses.subtitle' | translate }}
+          {{ "warehouses.subtitle" | translate }}
         </p>
       </div>
-      <button mat-flat-button class="warehouses__create-btn" (click)="openCreate()">
+      <button
+        mat-flat-button
+        class="warehouses__create-btn"
+        (click)="openCreate()"
+      >
         <mat-icon>add</mat-icon>
-        {{ 'warehouses.create' | translate }}
+        {{ "warehouses.create" | translate }}
       </button>
     </header>
 
@@ -22,9 +26,9 @@
     } @else if (warehouses().length === 0) {
       <div class="warehouses__empty">
         <mat-icon>storage</mat-icon>
-        <p>{{ 'warehouses.empty' | translate }}</p>
+        <p>{{ "warehouses.empty" | translate }}</p>
         <button mat-stroked-button (click)="openCreate()">
-          {{ 'warehouses.createFirst' | translate }}
+          {{ "warehouses.createFirst" | translate }}
         </button>
       </div>
     } @else {
@@ -63,7 +67,7 @@
               @if (warehouse.hasPassword) {
                 <span class="warehouse-card__chip">
                   <mat-icon>lock</mat-icon>
-                  {{ 'warehouses.passwordSet' | translate }}
+                  {{ "warehouses.passwordSet" | translate }}
                 </span>
               }
             </div>
@@ -73,7 +77,8 @@
                 <span class="warehouse-card__detail">{{ detail }}</span>
               }
               <span class="warehouse-card__date">
-                {{ 'warehouses.updated' | translate }} {{ formatDate(warehouse.updatedAt) }}
+                {{ "warehouses.updated" | translate }}
+                {{ formatDate(warehouse.updatedAt) }}
               </span>
             </div>
           </article>

@@ -1,4 +1,11 @@
-import { Component, effect, inject, input, output, signal } from '@angular/core';
+import {
+  Component,
+  effect,
+  inject,
+  input,
+  output,
+  signal,
+} from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -52,7 +59,10 @@ export class WarehouseFormComponent {
   protected readonly testing = signal(false);
   protected readonly error = signal<string | null>(null);
   protected readonly success = signal<string | null>(null);
-  protected readonly testResult = signal<{ success: boolean; message: string } | null>(null);
+  protected readonly testResult = signal<{
+    success: boolean;
+    message: string;
+  } | null>(null);
   protected readonly isEditing = signal(false);
 
   protected name = '';
@@ -134,7 +144,9 @@ export class WarehouseFormComponent {
   }
 
   private normalizeType(type: string): WarehouseType {
-    const match = WAREHOUSE_TYPE_OPTIONS.find((option) => option.value === type);
+    const match = WAREHOUSE_TYPE_OPTIONS.find(
+      (option) => option.value === type,
+    );
     return match?.value ?? 'trino';
   }
 
@@ -144,7 +156,9 @@ export class WarehouseFormComponent {
 
   protected catalogLabel(): string {
     return this.translate.instant(
-      this.type === 'oracle' ? 'warehouses.fields.serviceName' : 'warehouses.fields.catalog',
+      this.type === 'oracle'
+        ? 'warehouses.fields.serviceName'
+        : 'warehouses.fields.catalog',
     );
   }
 

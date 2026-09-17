@@ -32,7 +32,9 @@ export class WarehouseCreateDialogComponent {
   private readonly dialogRef = inject(
     MatDialogRef<WarehouseCreateDialogComponent, Warehouse | undefined>,
   );
-  readonly data = inject<WarehouseCreateDialogData>(MAT_DIALOG_DATA, { optional: true });
+  readonly data = inject<WarehouseCreateDialogData>(MAT_DIALOG_DATA, {
+    optional: true,
+  });
 
   protected onSaved(warehouse: Warehouse): void {
     this.dialogRef.close(warehouse);

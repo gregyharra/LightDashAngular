@@ -3,11 +3,8 @@ import { Router } from '@angular/router';
 import { Store } from '@ngrx/store';
 import { ActiveProjectService, apiErrorMessage } from '@mds-ui/core';
 import { Warehouse, WarehouseListItem } from '@mds-ui/models';
-import {
-  ProjectCreate,
-  ProjectsService,
-} from '@mds-ui/feature-projects';
-import { WarehouseService } from '@mds-ui/feature-projects';
+import { ProjectCreate, ProjectsService } from '@mds-ui/feature-projects';
+import { WarehouseService } from '@mds-ui/feature-warehouses';
 import { ProjectsActions } from '../store/projects.actions';
 import { projectsFeature } from '../store/projects.reducer';
 
@@ -19,7 +16,9 @@ export class ProjectCreatePageFacade {
   private readonly activeProject = inject(ActiveProjectService);
   private readonly router = inject(Router);
 
-  readonly warehouses = this.store.selectSignal(projectsFeature.selectWarehouses);
+  readonly warehouses = this.store.selectSignal(
+    projectsFeature.selectWarehouses,
+  );
   readonly loading = this.store.selectSignal(projectsFeature.selectLoading);
   readonly submitting = this.store.selectSignal(projectsFeature.selectSaving);
   readonly error = this.store.selectSignal(projectsFeature.selectError);

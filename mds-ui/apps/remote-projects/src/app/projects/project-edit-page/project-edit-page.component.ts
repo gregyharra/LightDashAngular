@@ -15,8 +15,6 @@ import {
   LinkDialogSavePayload,
   ModelJoinView,
 } from '@mds-ui/models';
-
-import { WarehouseCreateDialogComponent } from '@mds-ui/feature-projects';
 import { ProjectDetail } from '@mds-ui/feature-projects';
 import { detectGitProvider } from '../git-provider.utils';
 import {
@@ -94,12 +92,13 @@ export class ProjectEditPageComponent {
     });
   }
 
-  protected readonly gitProviders: { value: GitProvider; labelKey: string }[] = [
-    { value: 'github', labelKey: 'projects.git.providers.github' },
-    { value: 'gitlab', labelKey: 'projects.git.providers.gitlab' },
-    { value: 'bitbucket', labelKey: 'projects.git.providers.bitbucket' },
-    { value: 'generic', labelKey: 'projects.git.providers.generic' },
-  ];
+  protected readonly gitProviders: { value: GitProvider; labelKey: string }[] =
+    [
+      { value: 'github', labelKey: 'projects.git.providers.github' },
+      { value: 'gitlab', labelKey: 'projects.git.providers.gitlab' },
+      { value: 'bitbucket', labelKey: 'projects.git.providers.bitbucket' },
+      { value: 'generic', labelKey: 'projects.git.providers.generic' },
+    ];
 
   protected readonly modelLinkOptions = this.facade.modelLinkOptions;
   protected readonly linksCount = this.facade.linksCount;
@@ -143,7 +142,8 @@ export class ProjectEditPageComponent {
     this.selectedWarehouseUuid = project.warehouseUuid ?? null;
     this.gitRepoUrl = project.gitRepoUrl ?? '';
     this.gitDefaultBranch = project.gitDefaultBranch ?? 'main';
-    this.gitProvider = project.gitProvider ?? detectGitProvider(project.gitRepoUrl ?? '');
+    this.gitProvider =
+      project.gitProvider ?? detectGitProvider(project.gitRepoUrl ?? '');
     this.gitSubdirectory = project.gitSubdirectory ?? '';
     this.gitUsername = project.gitUsername ?? '';
     this.dbtProjectPath = project.dbtProjectPath ?? '';
@@ -155,20 +155,7 @@ export class ProjectEditPageComponent {
   }
 
   protected openCreateWarehouseDialog(): void {
-    const dialogRef = this.dialog.open(WarehouseCreateDialogComponent, {
-      width: '720px',
-      panelClass: 'warehouse-create-dialog-panel',
-      data: {
-        suggestedName: this.name ? `${this.name} warehouse` : undefined,
-      },
-    });
-
-    dialogRef.afterClosed().subscribe((warehouse) => {
-      if (!warehouse) {
-        return;
-      }
-
-      this.facade.addWarehouse(warehouse);
+    this.facade.openCreateWarehouse(this.name, (warehouse) => {
       this.selectedWarehouseUuid = warehouse.warehouseUuid;
     });
   }
@@ -216,7 +203,9 @@ export class ProjectEditPageComponent {
       return;
     }
 
-    const confirmed = confirm(this.translate.instant('projects.git.removeConfirm'));
+    const confirmed = confirm(
+      this.translate.instant('projects.git.removeConfirm'),
+    );
     if (!confirmed) {
       return;
     }
@@ -282,8 +271,8 @@ export class ProjectEditPageComponent {
       return;
     }
     this.facade.saveLink(projectUuid, payload, () => {
-        this.showLinkDialog.set(false);
-        this.editingLink.set(null);
+      this.showLinkDialog.set(false);
+      this.editingLink.set(null);
     });
   }
 
@@ -297,7 +286,9 @@ export class ProjectEditPageComponent {
       return;
     }
 
-    const confirmed = confirm(this.translate.instant('projects.edit.deleteConfirm'));
+    const confirmed = confirm(
+      this.translate.instant('projects.edit.deleteConfirm'),
+    );
     if (!confirmed) {
       return;
     }

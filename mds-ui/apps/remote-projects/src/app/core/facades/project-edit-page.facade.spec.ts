@@ -16,8 +16,11 @@ import {
   ModelJoinsService,
   ProjectDetail,
   ProjectsService,
-  WarehouseService,
 } from '@mds-ui/feature-projects';
+import {
+  WarehouseCreateDialogFacade,
+  WarehouseService,
+} from '@mds-ui/feature-warehouses';
 import { TranslateService } from '@ngx-translate/core';
 import { of, Subject } from 'rxjs';
 import { projectsFeature } from '../store/projects.reducer';
@@ -67,6 +70,9 @@ describe('ProjectEditPageFacade', () => {
     update: jest.fn(() => of(link)),
     delete: jest.fn(() => of({ deleted: true })),
   };
+  const warehouseDialog = {
+    open: jest.fn(() => of(null)),
+  };
   const activeProjects = signal<ProjectSummary[]>([]);
 
   beforeEach(() => {
@@ -94,6 +100,7 @@ describe('ProjectEditPageFacade', () => {
         },
         { provide: LineageService, useValue: lineageService },
         { provide: ModelJoinsService, useValue: modelJoinsService },
+        { provide: WarehouseCreateDialogFacade, useValue: warehouseDialog },
         {
           provide: TranslateService,
           useValue: { instant: (key: string) => key },

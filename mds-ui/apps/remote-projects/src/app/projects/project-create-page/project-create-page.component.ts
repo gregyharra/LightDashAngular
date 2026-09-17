@@ -2,7 +2,6 @@ import { Component, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { MatButtonModule } from '@angular/material/button';
-import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
@@ -10,7 +9,7 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatSelectModule } from '@angular/material/select';
 import { TranslatePipe } from '@ngx-translate/core';
 import { GitProvider } from '@mds-ui/models';
-import { WarehouseCreateDialogComponent } from '@mds-ui/feature-projects';
+import { WarehouseCreateDialogFacade } from '@mds-ui/feature-warehouses';
 import { ProjectCreatePageFacade } from '../../core/facades/project-create-page.facade';
 import { detectGitProvider } from '../git-provider.utils';
 
@@ -20,7 +19,6 @@ import { detectGitProvider } from '../git-provider.utils';
     FormsModule,
     RouterLink,
     MatButtonModule,
-    MatDialogModule,
     MatFormFieldModule,
     MatIconModule,
     MatInputModule,
@@ -33,7 +31,7 @@ import { detectGitProvider } from '../git-provider.utils';
 })
 export class ProjectCreatePageComponent {
   private readonly facade = inject(ProjectCreatePageFacade);
-  private readonly dialog = inject(MatDialog);
+  private readonly warehouseDialog = inject(WarehouseCreateDialogFacade);
 
   protected readonly loading = this.facade.loading;
   protected readonly submitting = this.facade.submitting;
@@ -52,12 +50,13 @@ export class ProjectCreatePageComponent {
   protected dbtTarget = '';
   private providerManuallySet = false;
 
-  protected readonly gitProviders: { value: GitProvider; labelKey: string }[] = [
-    { value: 'github', labelKey: 'projects.git.providers.github' },
-    { value: 'gitlab', labelKey: 'projects.git.providers.gitlab' },
-    { value: 'bitbucket', labelKey: 'projects.git.providers.bitbucket' },
-    { value: 'generic', labelKey: 'projects.git.providers.generic' },
-  ];
+  protected readonly gitProviders: { value: GitProvider; labelKey: string }[] =
+    [
+      { value: 'github', labelKey: 'projects.git.providers.github' },
+      { value: 'gitlab', labelKey: 'projects.git.providers.gitlab' },
+      { value: 'bitbucket', labelKey: 'projects.git.providers.bitbucket' },
+      { value: 'generic', labelKey: 'projects.git.providers.generic' },
+    ];
 
   constructor() {
     this.facade.loadWarehouses();
@@ -82,22 +81,16 @@ export class ProjectCreatePageComponent {
   }
 
   protected openCreateWarehouseDialog(): void {
-    const dialogRef = this.dialog.open(WarehouseCreateDialogComponent, {
-      width: '720px',
-      panelClass: 'warehouse-create-dialog-panel',
-      data: {
-        suggestedName: this.name ? `${this.name} warehouse` : undefined,
-      },
-    });
+    this.warehouseDialog
+      .open(this.name ? `${this.name} warehouse` : undefined)
+      .subscribe((warehouse) => {
+        if (!warehouse) {
+          return;
+        }
 
-    dialogRef.afterClosed().subscribe((warehouse) => {
-      if (!warehouse) {
-        return;
-      }
-
-      this.facade.addWarehouse(warehouse);
-      this.selectedWarehouseUuid = warehouse.warehouseUuid;
-    });
+        this.facade.addWarehouse(warehouse);
+        this.selectedWarehouseUuid = warehouse.warehouseUuid;
+      });
   }
 
   protected cancel(): void {

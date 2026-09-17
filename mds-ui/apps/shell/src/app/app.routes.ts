@@ -102,27 +102,10 @@ export const routes: Routes = [
           },
           {
             path: 'warehouses',
-            pathMatch: 'full',
             canActivate: [adminGuard],
-            loadComponent: () =>
-              import('./features/warehouses/warehouses-page/warehouses-page.component').then(
-                (m) => m.WarehousesPageComponent,
-              ),
-          },
-          {
-            path: 'warehouses/create',
-            canActivate: [adminGuard],
-            loadComponent: () =>
-              import('./features/warehouses/warehouse-edit-page/warehouse-edit-page.component').then(
-                (m) => m.WarehouseEditPageComponent,
-              ),
-          },
-          {
-            path: 'warehouses/:warehouseUuid/edit',
-            canActivate: [adminGuard],
-            loadComponent: () =>
-              import('./features/warehouses/warehouse-edit-page/warehouse-edit-page.component').then(
-                (m) => m.WarehouseEditPageComponent,
+            loadChildren: () =>
+              import('remote-warehouses/Routes').then(
+                (m) => m.WAREHOUSES_REMOTE_ROUTES,
               ),
           },
           {
