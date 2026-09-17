@@ -12,22 +12,20 @@ export const routes: Routes = [
   {
     path: 'setup',
     canActivate: [setupGuard],
-    loadComponent: () =>
-      import('./features/auth/setup-page/setup-page.component').then((m) => m.SetupPageComponent),
+    loadChildren: () =>
+      import('remote-auth/Routes').then((m) => m.SETUP_REMOTE_ROUTES),
   },
   {
     path: 'login',
     canActivate: [guestGuard],
-    loadComponent: () =>
-      import('./features/auth/login-page/login-page.component').then((m) => m.LoginPageComponent),
+    loadChildren: () =>
+      import('remote-auth/Routes').then((m) => m.LOGIN_REMOTE_ROUTES),
   },
   {
     path: 'reset-password',
     canActivate: [resetPasswordGuard],
-    loadComponent: () =>
-      import('./features/auth/reset-password-page/reset-password-page.component').then(
-        (m) => m.ResetPasswordPageComponent,
-      ),
+    loadChildren: () =>
+      import('remote-auth/Routes').then((m) => m.RESET_PASSWORD_REMOTE_ROUTES),
   },
   {
     path: '',
@@ -49,17 +47,24 @@ export const routes: Routes = [
       },
       {
         path: 'projects/:projectUuid/edit',
-        redirectTo: (route) => `/settings/projects/${route.params['projectUuid']}/edit`,
+        redirectTo: (route) =>
+          `/settings/projects/${route.params['projectUuid']}/edit`,
       },
       {
         path: 'projects/:projectUuid/settings/warehouse',
-        redirectTo: (route) => `/settings/projects/${route.params['projectUuid']}/edit`,
+        redirectTo: (route) =>
+          `/settings/projects/${route.params['projectUuid']}/edit`,
       },
-      { path: 'warehouses', pathMatch: 'full', redirectTo: 'settings/warehouses' },
+      {
+        path: 'warehouses',
+        pathMatch: 'full',
+        redirectTo: 'settings/warehouses',
+      },
       { path: 'warehouses/create', redirectTo: 'settings/warehouses/create' },
       {
         path: 'warehouses/:warehouseUuid/edit',
-        redirectTo: (route) => `/settings/warehouses/${route.params['warehouseUuid']}/edit`,
+        redirectTo: (route) =>
+          `/settings/warehouses/${route.params['warehouseUuid']}/edit`,
       },
       { path: 'users', redirectTo: 'settings/users' },
       {
@@ -123,26 +128,24 @@ export const routes: Routes = [
           {
             path: 'users',
             canActivate: [adminGuard],
-            loadComponent: () =>
-              import('./features/auth/users-page/users-page.component').then(
-                (m) => m.UsersPageComponent,
-              ),
+            loadChildren: () =>
+              import('remote-auth/Routes').then((m) => m.USERS_REMOTE_ROUTES),
           },
         ],
       },
       {
         path: 'projects/:projectUuid/dashboards',
         loadComponent: () =>
-          import(
-            './features/dashboards/dashboards-list-page/dashboards-list-page.component'
-          ).then((m) => m.DashboardsListPageComponent),
+          import('./features/dashboards/dashboards-list-page/dashboards-list-page.component').then(
+            (m) => m.DashboardsListPageComponent,
+          ),
       },
       {
         path: 'projects/:projectUuid/dashboards/create',
         loadComponent: () =>
-          import(
-            './features/dashboards/dashboard-create-page/dashboard-create-page.component'
-          ).then((m) => m.DashboardCreatePageComponent),
+          import('./features/dashboards/dashboard-create-page/dashboard-create-page.component').then(
+            (m) => m.DashboardCreatePageComponent,
+          ),
       },
       {
         path: 'projects/:projectUuid/dashboards/:dashboardUuid/edit',
@@ -152,46 +155,46 @@ export const routes: Routes = [
       {
         path: 'projects/:projectUuid/dashboards/:dashboardUuid',
         loadComponent: () =>
-          import(
-            './features/dashboards/dashboard-view-page/dashboard-view-page.component'
-          ).then((m) => m.DashboardViewPageComponent),
+          import('./features/dashboards/dashboard-view-page/dashboard-view-page.component').then(
+            (m) => m.DashboardViewPageComponent,
+          ),
       },
       {
         path: 'projects/:projectUuid/explore',
         loadComponent: () =>
-          import(
-            './features/explorer/explorer-page/explorer-page.component'
-          ).then((m) => m.ExplorerPageComponent),
+          import('./features/explorer/explorer-page/explorer-page.component').then(
+            (m) => m.ExplorerPageComponent,
+          ),
       },
       {
         path: 'projects/:projectUuid/explore/:tableId',
         loadComponent: () =>
-          import(
-            './features/explorer/explorer-page/explorer-page.component'
-          ).then((m) => m.ExplorerPageComponent),
+          import('./features/explorer/explorer-page/explorer-page.component').then(
+            (m) => m.ExplorerPageComponent,
+          ),
       },
       {
         path: 'projects/:projectUuid/charts/new',
         data: { createMode: true },
         loadComponent: () =>
-          import(
-            './features/charts/chart-view-page/chart-view-page.component'
-          ).then((m) => m.ChartViewPageComponent),
+          import('./features/charts/chart-view-page/chart-view-page.component').then(
+            (m) => m.ChartViewPageComponent,
+          ),
       },
       {
         path: 'projects/:projectUuid/charts/:chartUuid',
         loadComponent: () =>
-          import(
-            './features/charts/chart-view-page/chart-view-page.component'
-          ).then((m) => m.ChartViewPageComponent),
+          import('./features/charts/chart-view-page/chart-view-page.component').then(
+            (m) => m.ChartViewPageComponent,
+          ),
       },
       {
         path: 'projects/:projectUuid/charts',
         pathMatch: 'full',
         loadComponent: () =>
-          import(
-            './features/charts/charts-list-page/charts-list-page.component'
-          ).then((m) => m.ChartsListPageComponent),
+          import('./features/charts/charts-list-page/charts-list-page.component').then(
+            (m) => m.ChartsListPageComponent,
+          ),
       },
       {
         path: 'projects/:projectUuid/lineage',
@@ -203,16 +206,16 @@ export const routes: Routes = [
       {
         path: 'projects/:projectUuid/tables',
         loadComponent: () =>
-          import(
-            './features/tables/table-hub-page/table-hub-page.component'
-          ).then((m) => m.TableHubPageComponent),
+          import('./features/tables/table-hub-page/table-hub-page.component').then(
+            (m) => m.TableHubPageComponent,
+          ),
       },
       {
         path: 'projects/:projectUuid/tables/:tableId',
         loadComponent: () =>
-          import(
-            './features/tables/table-hub-page/table-hub-page.component'
-          ).then((m) => m.TableHubPageComponent),
+          import('./features/tables/table-hub-page/table-hub-page.component').then(
+            (m) => m.TableHubPageComponent,
+          ),
       },
       { path: '**', redirectTo: 'projects' },
     ],

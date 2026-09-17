@@ -14,13 +14,12 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatSelectModule } from '@angular/material/select';
 import { MatTableModule } from '@angular/material/table';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
-import { apiErrorMessage } from '@mds-ui/core';
 import {
-  AuthService,
   CreateUserPayload,
   ManagedUser,
   UpdateUserPayload,
 } from '@mds-ui/core';
+import { UsersPageFacade } from '../core/facades/users-page.facade';
 
 type UserFormValue = {
   email: string;
@@ -62,15 +61,27 @@ type UserFormValue = {
         <mat-form-field appearance="outline">
           <mat-label>{{ 'users.fields.role' | translate }}</mat-label>
           <mat-select formControlName="role">
-            <mat-option value="member">{{ 'users.roles.member' | translate }}</mat-option>
-            <mat-option value="admin">{{ 'users.roles.admin' | translate }}</mat-option>
+            <mat-option value="member">{{
+              'users.roles.member' | translate
+            }}</mat-option>
+            <mat-option value="admin">{{
+              'users.roles.admin' | translate
+            }}</mat-option>
           </mat-select>
         </mat-form-field>
       </form>
     </mat-dialog-content>
     <mat-dialog-actions align="end">
-      <button mat-button type="button" mat-dialog-close>{{ 'common.cancel' | translate }}</button>
-      <button mat-flat-button color="primary" type="button" (click)="save()" [disabled]="form.invalid">
+      <button mat-button type="button" mat-dialog-close>
+        {{ 'common.cancel' | translate }}
+      </button>
+      <button
+        mat-flat-button
+        color="primary"
+        type="button"
+        (click)="save()"
+        [disabled]="form.invalid"
+      >
         {{ 'users.create.submit' | translate }}
       </button>
     </mat-dialog-actions>
@@ -93,7 +104,9 @@ type UserFormValue = {
 })
 export class CreateUserDialogComponent {
   private readonly fb = inject(FormBuilder);
-  private readonly dialogRef = inject(MatDialogRef<CreateUserDialogComponent, CreateUserPayload>);
+  private readonly dialogRef = inject(
+    MatDialogRef<CreateUserDialogComponent, CreateUserPayload>,
+  );
 
   protected readonly form = this.fb.nonNullable.group({
     email: ['', [Validators.required, Validators.email]],
@@ -140,15 +153,27 @@ export class CreateUserDialogComponent {
         <mat-form-field appearance="outline">
           <mat-label>{{ 'users.fields.role' | translate }}</mat-label>
           <mat-select formControlName="role">
-            <mat-option value="member">{{ 'users.roles.member' | translate }}</mat-option>
-            <mat-option value="admin">{{ 'users.roles.admin' | translate }}</mat-option>
+            <mat-option value="member">{{
+              'users.roles.member' | translate
+            }}</mat-option>
+            <mat-option value="admin">{{
+              'users.roles.admin' | translate
+            }}</mat-option>
           </mat-select>
         </mat-form-field>
       </form>
     </mat-dialog-content>
     <mat-dialog-actions align="end">
-      <button mat-button type="button" mat-dialog-close>{{ 'common.cancel' | translate }}</button>
-      <button mat-flat-button color="primary" type="button" (click)="save()" [disabled]="form.invalid">
+      <button mat-button type="button" mat-dialog-close>
+        {{ 'common.cancel' | translate }}
+      </button>
+      <button
+        mat-flat-button
+        color="primary"
+        type="button"
+        (click)="save()"
+        [disabled]="form.invalid"
+      >
         {{ 'common.save' | translate }}
       </button>
     </mat-dialog-actions>
@@ -165,7 +190,9 @@ export class CreateUserDialogComponent {
 })
 export class EditUserDialogComponent {
   private readonly fb = inject(FormBuilder);
-  private readonly dialogRef = inject(MatDialogRef<EditUserDialogComponent, UserFormValue>);
+  private readonly dialogRef = inject(
+    MatDialogRef<EditUserDialogComponent, UserFormValue>,
+  );
   private readonly data = inject<ManagedUser>(MAT_DIALOG_DATA);
 
   protected readonly form = this.fb.nonNullable.group({
@@ -200,11 +227,15 @@ export class EditUserDialogComponent {
           class="temp-copy-btn"
           (click)="copy()"
           [attr.aria-label]="
-            (copied() ? 'users.password.copied' : 'users.password.copyPassword') | translate
+            (copied() ? 'users.password.copied' : 'users.password.copyPassword')
+              | translate
           "
         >
           <mat-icon>{{ copied() ? 'check' : 'content_copy' }}</mat-icon>
-          {{ (copied() ? 'users.password.copied' : 'users.password.copy') | translate }}
+          {{
+            (copied() ? 'users.password.copied' : 'users.password.copy')
+              | translate
+          }}
         </button>
       </div>
     </mat-dialog-content>
@@ -283,32 +314,27 @@ export class TemporaryPasswordDialogComponent {
   styleUrl: './users-page.component.scss',
 })
 export class UsersPageComponent implements OnInit {
-  private readonly auth = inject(AuthService);
+  private readonly facade = inject(UsersPageFacade);
   private readonly dialog = inject(MatDialog);
   private readonly translate = inject(TranslateService);
 
-  protected readonly loading = signal(true);
-  protected readonly error = signal<string | null>(null);
-  protected readonly users = signal<ManagedUser[]>([]);
-  protected readonly displayedColumns = ['name', 'email', 'role', 'status', 'actions'];
+  protected readonly loading = this.facade.loading;
+  protected readonly error = this.facade.error;
+  protected readonly users = this.facade.users;
+  protected readonly displayedColumns = [
+    'name',
+    'email',
+    'role',
+    'status',
+    'actions',
+  ];
 
   ngOnInit(): void {
     this.reload();
   }
 
   protected reload(): void {
-    this.loading.set(true);
-    this.error.set(null);
-    this.auth.listUsers().subscribe({
-      next: (users) => {
-        this.users.set(users);
-        this.loading.set(false);
-      },
-      error: (err: unknown) => {
-        this.loading.set(false);
-        this.error.set(apiErrorMessage(err, this.translate.instant('users.loadError')));
-      },
-    });
+    this.facade.load();
   }
 
   protected openCreate(): void {
@@ -320,17 +346,12 @@ export class UsersPageComponent implements OnInit {
       if (!value) {
         return;
       }
-      this.auth.createUser(value).subscribe({
-        next: (created) => {
-          this.reload();
-          this.showTemporaryPassword({
-            title: this.translate.instant('users.password.userCreated'),
-            message: this.translate.instant('users.password.firstSignInMessage'),
-            temporaryPassword: created.temporaryPassword ?? '',
-          });
-        },
-        error: (err: unknown) =>
-          this.error.set(apiErrorMessage(err, this.translate.instant('users.createError'))),
+      this.facade.create(value, (temporaryPassword) => {
+        this.showTemporaryPassword({
+          title: this.translate.instant('users.password.userCreated'),
+          message: this.translate.instant('users.password.firstSignInMessage'),
+          temporaryPassword,
+        });
       });
     });
   }
@@ -351,48 +372,40 @@ export class UsersPageComponent implements OnInit {
         lastName: value.lastName,
         role: value.role,
       };
-      this.auth.updateUser(user.userUuid, patch).subscribe({
-        next: () => {
-          this.error.set(null);
-          this.reload();
-        },
-        error: (err: unknown) =>
-          this.error.set(apiErrorMessage(err, this.translate.instant('users.updateError'))),
-      });
+      this.facade.update(user.userUuid, patch);
     });
   }
 
   protected resetPassword(user: ManagedUser): void {
     if (
       !confirm(
-        this.translate.instant('users.password.resetConfirm', { email: user.email }),
+        this.translate.instant('users.password.resetConfirm', {
+          email: user.email,
+        }),
       )
     ) {
       return;
     }
-    this.auth.resetUserPassword(user.userUuid).subscribe({
-      next: (updated) => {
-        this.reload();
-        this.showTemporaryPassword({
-          title: this.translate.instant('users.password.resetTitle'),
-          message: this.translate.instant('users.password.nextSignInMessage'),
-          temporaryPassword: updated.temporaryPassword ?? '',
-        });
-      },
-      error: (err: unknown) =>
-        this.error.set(apiErrorMessage(err, this.translate.instant('users.password.resetError'))),
+    this.facade.resetPassword(user.userUuid, (temporaryPassword) => {
+      this.showTemporaryPassword({
+        title: this.translate.instant('users.password.resetTitle'),
+        message: this.translate.instant('users.password.nextSignInMessage'),
+        temporaryPassword,
+      });
     });
   }
 
   protected deactivate(user: ManagedUser): void {
-    if (!confirm(this.translate.instant('users.deactivateConfirm', { email: user.email }))) {
+    if (
+      !confirm(
+        this.translate.instant('users.deactivateConfirm', {
+          email: user.email,
+        }),
+      )
+    ) {
       return;
     }
-    this.auth.deactivateUser(user.userUuid).subscribe({
-      next: () => this.reload(),
-      error: (err: unknown) =>
-        this.error.set(apiErrorMessage(err, this.translate.instant('users.deactivateError'))),
-    });
+    this.facade.deactivate(user.userUuid);
   }
 
   private showTemporaryPassword(data: {
@@ -400,10 +413,6 @@ export class UsersPageComponent implements OnInit {
     message: string;
     temporaryPassword: string;
   }): void {
-    if (!data.temporaryPassword) {
-      this.error.set(this.translate.instant('users.password.missing'));
-      return;
-    }
     this.dialog.open(TemporaryPasswordDialogComponent, {
       width: '28rem',
       disableClose: true,

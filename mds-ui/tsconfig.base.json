@@ -16,14 +16,11 @@
     "target": "ES2022",
     "module": "ES2022",
     "paths": {
-      "@mds-ui/models": [
-        "./libs/models/src/index.ts"
-      ],
-      "@mds-ui/core": [
-        "./libs/core/src/index.ts"
-      ],
-      "@mds-ui/shared": [
-        "./libs/shared/src/index.ts"
+      "@mds-ui/models": ["./libs/models/src/index.ts"],
+      "@mds-ui/core": ["./libs/core/src/index.ts"],
+      "@mds-ui/shared": ["./libs/shared/src/index.ts"],
+      "remote-auth/Routes": [
+        "./apps/remote-auth/src/app/remote-entry/entry.routes.ts"
       ]
     }
   },
