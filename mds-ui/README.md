@@ -74,7 +74,7 @@ Architecture spec: `docs/superpowers/specs/2026-09-16-mds-ui-nx-module-federatio
 
 ### Serve (host + remotes)
 
-Classic webpack Module Federation is configured in `webpack.mf.base.ts` and each app’s `webpack.config.ts`. Nx still needs a **data-only** host file at `apps/shell/module-federation.config.ts` so `@nx/angular:module-federation-dev-server` knows which remotes to start in dev.
+Classic webpack Module Federation is configured in `webpack.mf.base.ts` and each app’s `webpack.config.ts` (not Nx `withModuleFederation`). Nx `@nx/angular:module-federation-dev-server` still needs **data-only** `module-federation.config.ts` on the shell **and each remote** so it can discover and start remotes in dev.
 
 ```bash
 cd mds-ui
