@@ -74,12 +74,22 @@ Architecture spec: `docs/superpowers/specs/2026-09-16-mds-ui-nx-module-federatio
 
 ### Serve (host + remotes)
 
+Classic webpack Module Federation is configured in `webpack.mf.base.ts` and each app’s `webpack.config.ts`. Nx still needs a **data-only** host file at `apps/shell/module-federation.config.ts` so `@nx/angular:module-federation-dev-server` knows which remotes to start in dev.
+
 ```bash
 cd mds-ui
+npm start
+# equivalent:
 NX_DAEMON=false npx nx serve shell --port 4200
 ```
 
-Nx serves the host and dev remotes when configured in `apps/shell/module-federation.config.ts`.
+The shell listens on **4200** and Nx starts remotes on **4201–4210** (see `MF_REMOTE_PORTS` in `webpack.mf.base.ts`). Wait for the log line `All remotes started` before using the app.
+
+To serve a built remote without the dev compiler (e.g. `remote-auth` on 4201):
+
+```bash
+NX_DAEMON=false npx nx run remote-auth:serve-static --configuration=development
+```
 
 ### Build all apps
 

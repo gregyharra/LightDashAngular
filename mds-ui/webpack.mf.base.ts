@@ -76,6 +76,7 @@ export type ClassicMfOptions = {
   remotes?: Record<string, string>;
 };
 
+/** Classic webpack MF plugin. Remote exposes use `./apps/<app>/src/app/remote-entry/entry.routes.ts`. */
 export function createMfPlugin(options: ClassicMfOptions) {
   return new ModuleFederationPlugin({
     name: options.name,
@@ -83,7 +84,6 @@ export function createMfPlugin(options: ClassicMfOptions) {
     exposes: options.exposes,
     remotes: options.remotes,
     shared: mfShared,
-    // Angular host dynamic import compatibility — adjust in Task 2 if build fails:
     library: { type: 'module' },
   });
 }
@@ -108,10 +108,10 @@ export function withClassicModuleFederation(options: ClassicMfOptions) {
   };
 }
 
+/** Shell host remotes map: bare `http://localhost:PORT/remoteEntry.js` (see MF_REMOTE_PORTS). */
 export function shellDevRemotes(): Record<string, string> {
   const remotes: Record<string, string> = {};
   for (const [name, port] of Object.entries(MF_REMOTE_PORTS)) {
-    // Format may need `name@url` vs bare URL — Task 2 verifies against shell build
     remotes[name] = `http://localhost:${port}/remoteEntry.js`;
   }
   return remotes;
