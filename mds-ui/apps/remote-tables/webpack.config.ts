@@ -1,9 +1,8 @@
-import { withModuleFederation } from '@nx/module-federation/angular';
-import config from './module-federation.config';
+import { withClassicModuleFederation } from '../../webpack.mf.base';
 
-/**
- * DTS Plugin is disabled in Nx Workspaces as Nx already provides Typing support for Module Federation
- * The DTS Plugin can be enabled by setting dts: true
- * Learn more about the DTS Plugin here: https://module-federation.io/configure/dts.html
- */
-export default withModuleFederation(config, { dts: false });
+export default withClassicModuleFederation({
+  name: 'remote-tables',
+  exposes: {
+    './Routes': './apps/remote-tables/src/app/remote-entry/entry.routes.ts',
+  },
+});
