@@ -1,5 +1,5 @@
 import { Injectable, inject } from '@angular/core';
-import { ExportService, startExport } from '@mds-ui/feature-export';
+import { ExportService, startExport } from '@mds-ui/shared';
 
 @Injectable()
 export class ExportDialogFacade {

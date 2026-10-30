@@ -41,6 +41,7 @@ import {
   ChartQueryKeyInput,
   ChartService,
   ExplorerService,
+  LineageService,
   mergeDashboardFiltersIntoMetricQuery,
   mergeTimeTravelIntoMetricQuery,
 } from '@mds-ui/core';
@@ -74,7 +75,6 @@ import {
   TablesFiltersPanelComponent,
   TimeTravelControlComponent,
 } from '@mds-ui/shared';
-import { LineageService } from '@mds-ui/feature-projects';
 import { ChartVisualizationComponent } from '../../charts/chart-visualization/chart-visualization.component';
 import {
   SaveChartDialogComponent,

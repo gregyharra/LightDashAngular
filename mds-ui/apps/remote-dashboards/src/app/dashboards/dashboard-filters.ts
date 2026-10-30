@@ -9,8 +9,10 @@ import {
   getFieldId,
 } from '@mds-ui/models';
 
-import { createUuid } from '@mds-ui/core';
-import { mergeTimeTravelIntoMetricQuery } from '@mds-ui/core';
+import {
+  createUuid,
+  mergeTimeTravelIntoMetricQuery,
+} from '@mds-ui/core';
 
 type Translate = (key: string) => string;
 

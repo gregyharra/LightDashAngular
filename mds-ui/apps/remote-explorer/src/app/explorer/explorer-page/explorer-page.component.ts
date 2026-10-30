@@ -19,6 +19,7 @@ import {
   ChartQueryKeyInput,
   ExplorerService,
   LanguageService,
+  LineageService,
 } from '@mds-ui/core';
 import {
   DashboardDimensionFilter,
@@ -32,13 +33,15 @@ import {
   LineageNode,
 } from '@mds-ui/models';
 
-import { LineageService } from '@mds-ui/feature-projects';
 import {
   buildMetricQuerySql,
   clampQueryLimit,
   CREATE_FROM_EXPLORE_STATE_KEY,
   CreateChartFromExploreState,
   DEFAULT_QUERY_LIMIT,
+  ExportDialogComponent,
+  ExportFormat,
+  ExportService,
   filterTablesFieldGroups,
   findExploreByName,
   findExploreForLineageNode,
@@ -53,14 +56,12 @@ import {
   resolveMaxQueryLimit,
   RunQueryButtonComponent,
   SqlHighlightComponent,
+  startExport,
   TablesFieldGroup,
   TablesFieldsPanelComponent,
   TablesFiltersPanelComponent,
 } from '@mds-ui/shared';
 import { QueryResultsPanelComponent } from '../../charts/query-results-panel/query-results-panel.component';
-import { ExportFormat } from '@mds-ui/feature-export';
-import { ExportService } from '@mds-ui/feature-export';
-import { ExportDialogComponent, startExport } from '@mds-ui/feature-export';
 
 const RESULTS_PAGE_SIZE_OPTIONS = [10, 25, 50, 100];
 const RESULTS_DEFAULT_PAGE_SIZE = 25;

@@ -1,6 +1,10 @@
 import { Injectable, inject } from '@angular/core';
-import { ChartQueryFacade, ChartService, ExplorerService } from '@mds-ui/core';
-import { DashboardService } from '@mds-ui/feature-projects';
+import {
+  ChartQueryFacade,
+  ChartService,
+  DashboardService,
+  ExplorerService,
+} from '@mds-ui/core';
 
 @Injectable()
 export class DashboardViewPageFacade {

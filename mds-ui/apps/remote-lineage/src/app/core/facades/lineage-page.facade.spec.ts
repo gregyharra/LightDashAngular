@@ -1,6 +1,6 @@
 import { TestBed } from '@angular/core/testing';
 import { LineagePageFacade } from './lineage-page.facade';
-import { LineageService } from '@mds-ui/feature-projects';
+import { LineageService } from '@mds-ui/core';
 
 describe('LineagePageFacade', () => {
   it('is creatable', () => {

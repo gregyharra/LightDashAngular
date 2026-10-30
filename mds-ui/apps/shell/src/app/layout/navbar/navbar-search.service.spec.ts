@@ -8,9 +8,11 @@ import {
   ProjectLineage,
 } from '@mds-ui/models';
 
-import { ChartService } from '@mds-ui/core';
-import { DashboardService } from '@mds-ui/feature-projects';
-import { LineageService } from '@mds-ui/feature-projects';
+import {
+  ChartService,
+  DashboardService,
+  LineageService,
+} from '@mds-ui/core';
 import { NavbarSearchService } from './navbar-search.service';
 
 const PROJECT = 'project-1';

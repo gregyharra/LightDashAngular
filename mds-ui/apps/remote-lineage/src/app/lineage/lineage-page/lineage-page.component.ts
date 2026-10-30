@@ -3,9 +3,12 @@ import { ActivatedRoute, RouterLink } from '@angular/router';
 import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
-import { LanguageService } from '@mds-ui/core';
-import { ActiveProjectService } from '@mds-ui/core';
-import { ApiErrorService } from '@mds-ui/core';
+import {
+  ActiveProjectService,
+  ApiErrorService,
+  LanguageService,
+  LineageService,
+} from '@mds-ui/core';
 import {
   DbtTreeNode,
   LineageDetailTab,
@@ -15,13 +18,14 @@ import {
   ProjectLineage,
   SelectedColumnRef,
 } from '@mds-ui/models';
-import { FolderSearchPanelComponent } from '@mds-ui/shared';
-import { LineageService } from '@mds-ui/feature-projects';
-import { LineageGraphComponent } from '@mds-ui/shared';
+import {
+  findTreeNodeByLineageId,
+  FolderSearchPanelComponent,
+  LineageGraphComponent,
+  ProjectBrowseNavComponent,
+  ResizableSidebarDirective,
+} from '@mds-ui/shared';
 import { LineageDetailPanelComponent } from '../lineage-detail-panel/lineage-detail-panel.component';
-import { findTreeNodeByLineageId } from '@mds-ui/shared';
-import { ResizableSidebarDirective } from '@mds-ui/shared';
-import { ProjectBrowseNavComponent } from '@mds-ui/shared';
 
 @Component({
   selector: 'app-lineage-page',

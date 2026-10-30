@@ -4,22 +4,20 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
-import { LanguageService } from '@mds-ui/core';
-import { ActiveProjectService } from '@mds-ui/core';
-import { ApiErrorService } from '@mds-ui/core';
+import {
+  ActiveProjectService,
+  ApiErrorService,
+  DashboardService,
+  LanguageService,
+} from '@mds-ui/core';
 import { DashboardBasicDetailsWithTileTypes } from '@mds-ui/models';
-import { DashboardService } from '@mds-ui/feature-projects';
-import { ResizableSidebarDirective } from '@mds-ui/shared';
-import { ProjectBrowseNavComponent } from '@mds-ui/shared';
 import {
-  ContentListColumnHeaderComponent,
-  ColumnFilterValue,
-} from '@mds-ui/shared';
-import { ContentListFilterChipsComponent } from '@mds-ui/shared';
-import {
-  DashboardColumnFilters,
   collectUniqueSpaces,
+  ColumnFilterValue,
+  ContentListColumnHeaderComponent,
+  ContentListFilterChipsComponent,
   createEmptyDashboardColumnFilters,
+  DashboardColumnFilters,
   emptyDateFilter,
   emptyNumberFilter,
   emptySelectFilter,
@@ -29,6 +27,8 @@ import {
   hasActiveDashboardColumnFilters,
   isSharedSpaceFilterValue,
   parseSpaceFilterValue,
+  ProjectBrowseNavComponent,
+  ResizableSidebarDirective,
   sharedSpaceFilterValue,
   spaceFilterValue,
 } from '@mds-ui/shared';

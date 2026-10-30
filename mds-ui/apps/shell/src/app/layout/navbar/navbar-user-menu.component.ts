@@ -5,10 +5,10 @@ import { MatMenuModule } from '@angular/material/menu';
 import { TranslatePipe } from '@ngx-translate/core';
 import {
   AppLanguage,
+  AppStateService,
+  AuthService,
   LanguageService,
 } from '@mds-ui/core';
-import { AppStateService } from '@mds-ui/core';
-import { AuthService } from '@mds-ui/core';
 
 @Component({
   selector: 'app-navbar-user-menu',

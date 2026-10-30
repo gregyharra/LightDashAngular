@@ -4,22 +4,20 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
-import { LanguageService } from '@mds-ui/core';
-import { ActiveProjectService } from '@mds-ui/core';
-import { ApiErrorService } from '@mds-ui/core';
-import { SavedChartBasic } from '@mds-ui/models';
-import { ChartService } from '@mds-ui/core';
-import { ResizableSidebarDirective } from '@mds-ui/shared';
-import { ProjectBrowseNavComponent } from '@mds-ui/shared';
 import {
-  ContentListColumnHeaderComponent,
-  ColumnFilterValue,
-} from '@mds-ui/shared';
-import { ContentListFilterChipsComponent } from '@mds-ui/shared';
+  ActiveProjectService,
+  ApiErrorService,
+  ChartService,
+  LanguageService,
+} from '@mds-ui/core';
+import { SavedChartBasic } from '@mds-ui/models';
 import {
   ChartColumnFilters,
   collectUniqueSpaces,
   collectUniqueValues,
+  ColumnFilterValue,
+  ContentListColumnHeaderComponent,
+  ContentListFilterChipsComponent,
   createEmptyChartColumnFilters,
   emptyDateFilter,
   emptyNumberFilter,
@@ -28,6 +26,8 @@ import {
   filterCharts,
   getChartActiveFilterChips,
   hasActiveChartColumnFilters,
+  ProjectBrowseNavComponent,
+  ResizableSidebarDirective,
 } from '@mds-ui/shared';
 
 const CHART_KIND_LABELS: Record<string, string> = {

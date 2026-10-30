@@ -21,9 +21,19 @@ import { MatMenuModule } from '@angular/material/menu';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
-import { LanguageService } from '@mds-ui/core';
-import { ActiveProjectService } from '@mds-ui/core';
-import { apiErrorMessage } from '@mds-ui/core';
+import {
+  ActiveProjectService,
+  apiErrorMessage,
+  ChartService,
+  createUuid,
+  DashboardService,
+  ExplorerService,
+  FilterableDimension,
+  getFilterableDimensions,
+  LanguageService,
+  MockSqlChartBasic,
+  mockSqlCharts,
+} from '@mds-ui/core';
 import {
   SavedChartBasic,
   Dashboard,
@@ -36,15 +46,6 @@ import {
   TimeTravelConfig,
 } from '@mds-ui/models';
 
-import { mockSqlCharts, MockSqlChartBasic } from '@mds-ui/core';
-import { createUuid } from '@mds-ui/core';
-import { ChartService } from '@mds-ui/core';
-import { ExplorerService } from '@mds-ui/core';
-import {
-  FilterableDimension,
-  getFilterableDimensions,
-} from '@mds-ui/core';
-import { DashboardService } from '@mds-ui/feature-projects';
 import { DashboardChartTileComponent } from '../dashboard-chart-tile/dashboard-chart-tile.component';
 import { DashboardFiltersBarComponent } from '../dashboard-filters-bar/dashboard-filters-bar.component';
 import { DashboardMarkdownComponent } from '../dashboard-markdown/dashboard-markdown.component';
@@ -61,8 +62,10 @@ import {
 } from '../dashboard-tile-settings-dialog/dashboard-tile-settings-dialog.component';
 import { DashboardTileGridInteractionDirective } from '../dashboard-tile-grid-interaction.directive';
 import { getLoomEmbedUrl } from '../dashboard-loom.utils';
-import { ResizableSidebarDirective } from '@mds-ui/shared';
-import { ProjectBrowseNavComponent } from '@mds-ui/shared';
+import {
+  ProjectBrowseNavComponent,
+  ResizableSidebarDirective,
+} from '@mds-ui/shared';
 
 type DraftState = {
   name: string;

@@ -6,8 +6,10 @@ import { MatButtonToggleModule } from '@angular/material/button-toggle';
 import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
-import { ActiveProjectService } from '@mds-ui/core';
-import { apiErrorMessage } from '@mds-ui/core';
+import {
+  ActiveProjectService,
+  apiErrorMessage,
+} from '@mds-ui/core';
 import { AiChatMode } from '@mds-ui/models';
 import { AiAssistantService } from '../ai-assistant.service';
 import { AiAssistantUiService } from '../ai-assistant-ui.service';

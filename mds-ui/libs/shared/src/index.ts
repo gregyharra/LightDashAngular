@@ -38,3 +38,16 @@ export * from './lib/explorer/tables-chart-config-panel/tables-chart-config.cons
 export * from './lib/explorer/tables-fields-panel/tables-fields-panel.component';
 export * from './lib/explorer/tables-filters-panel/tables-filters-panel.component';
 export * from './lib/explorer/tables-filters-panel/tables-filters.utils';
+
+export * from './lib/export/export.models';
+export * from './lib/export/export.service';
+export * from './lib/export/start-export';
+export {
+  ExportDialogComponent,
+  type ExportDialogData,
+  type ExportDialogResult,
+} from './lib/export/export-dialog/export-dialog.component';
+export * from './lib/warehouses/warehouse-create-dialog/warehouse-create-dialog.component';
+export * from './lib/warehouses/warehouse-create-dialog/warehouse-create-dialog.facade';
+export * from './lib/warehouses/warehouse-form/warehouse-form.component';
+export * from './lib/warehouses/warehouse.service';

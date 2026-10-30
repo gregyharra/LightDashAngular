@@ -8,13 +8,17 @@ import { MatInputModule } from '@angular/material/input';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatSelectModule } from '@angular/material/select';
 import { TranslatePipe } from '@ngx-translate/core';
-import { apiErrorMessage } from '@mds-ui/core';
+import {
+  ActiveProjectService,
+  apiErrorMessage,
+  DashboardService,
+  SpaceService,
+} from '@mds-ui/core';
 import { Space } from '@mds-ui/models';
-import { ActiveProjectService } from '@mds-ui/core';
-import { SpaceService } from '@mds-ui/feature-projects';
-import { DashboardService } from '@mds-ui/feature-projects';
-import { ResizableSidebarDirective } from '@mds-ui/shared';
-import { ProjectBrowseNavComponent } from '@mds-ui/shared';
+import {
+  ProjectBrowseNavComponent,
+  ResizableSidebarDirective,
+} from '@mds-ui/shared';
 
 @Component({
   selector: 'app-dashboard-create-page',

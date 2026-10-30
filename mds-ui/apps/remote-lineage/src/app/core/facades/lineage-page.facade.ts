@@ -1,5 +1,5 @@
 import { Injectable, inject } from '@angular/core';
-import { LineageService } from '@mds-ui/feature-projects';
+import { LineageService } from '@mds-ui/core';
 
 @Injectable()
 export class LineagePageFacade {

@@ -26,3 +26,9 @@ export * from './lib/chart-query/explorer.service';
 export * from './lib/chart-query/dashboard-filters';
 export * from './lib/chart-query/time-travel.utils';
 export * from './lib/chart-query/tables-filters.utils';
+
+export * from './lib/services/api/dashboard.service';
+export * from './lib/services/api/lineage.service';
+export * from './lib/services/api/model-joins.service';
+export * from './lib/services/api/projects.service';
+export * from './lib/services/api/space.service';

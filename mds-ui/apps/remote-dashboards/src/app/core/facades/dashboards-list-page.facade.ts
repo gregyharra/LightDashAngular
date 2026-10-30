@@ -1,5 +1,5 @@
 import { Injectable, inject } from '@angular/core';
-import { DashboardService } from '@mds-ui/feature-projects';
+import { DashboardService } from '@mds-ui/core';
 
 @Injectable()
 export class DashboardsListPageFacade {

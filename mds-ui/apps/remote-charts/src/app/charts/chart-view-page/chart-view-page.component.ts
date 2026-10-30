@@ -32,6 +32,7 @@ import {
   ExplorerService,
   extractDashboardFiltersFromMetricQuery,
   LanguageService,
+  LineageService,
   mergeDashboardFiltersIntoMetricQuery,
 } from '@mds-ui/core';
 import {
@@ -76,6 +77,9 @@ import {
   clampQueryLimit,
   CreateChartFromExploreState,
   exploreHasFields,
+  ExportDialogComponent,
+  ExportFormat,
+  ExportService,
   findExploreByName,
   findExploreForLineageNode,
   findTreeNodeByLineageId,
@@ -90,16 +94,13 @@ import {
   resolveMaxQueryLimit,
   RunQueryButtonComponent,
   SqlHighlightComponent,
+  startExport,
   TablesChartConfigPanelComponent,
   TablesChartDisplayConfig,
   TablesFiltersPanelComponent,
 } from '@mds-ui/shared';
-import { LineageService } from '@mds-ui/feature-projects';
 import { ChartVisualizationComponent } from '../chart-visualization/chart-visualization.component';
 import { QueryResultsPanelComponent } from '../query-results-panel/query-results-panel.component';
-import { ExportFormat } from '@mds-ui/feature-export';
-import { ExportService } from '@mds-ui/feature-export';
-import { ExportDialogComponent, startExport } from '@mds-ui/feature-export';
 import { chartExportPlacement } from './chart-export-placement';
 import { resolveChartDraftName } from './chart-draft-name';
 import { combineLatest, forkJoin } from 'rxjs';

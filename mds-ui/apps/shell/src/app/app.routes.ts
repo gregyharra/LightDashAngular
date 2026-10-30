@@ -13,19 +13,19 @@ export const routes: Routes = [
     path: 'setup',
     canActivate: [setupGuard],
     loadChildren: () =>
-      import('remote-auth/Routes').then((m) => m.SETUP_REMOTE_ROUTES),
+      import('@mds-ui/features/auth').then((m) => m.SETUP_REMOTE_ROUTES),
   },
   {
     path: 'login',
     canActivate: [guestGuard],
     loadChildren: () =>
-      import('remote-auth/Routes').then((m) => m.LOGIN_REMOTE_ROUTES),
+      import('@mds-ui/features/auth').then((m) => m.LOGIN_REMOTE_ROUTES),
   },
   {
     path: 'reset-password',
     canActivate: [resetPasswordGuard],
     loadChildren: () =>
-      import('remote-auth/Routes').then((m) => m.RESET_PASSWORD_REMOTE_ROUTES),
+      import('@mds-ui/features/auth').then((m) => m.RESET_PASSWORD_REMOTE_ROUTES),
   },
   {
     path: '',
@@ -37,7 +37,7 @@ export const routes: Routes = [
         path: 'projects',
         pathMatch: 'full',
         loadChildren: () =>
-          import('remote-projects/Routes').then(
+          import('@mds-ui/features/projects').then(
             (m) => m.PROJECTS_REMOTE_ROUTES,
           ),
       },
@@ -70,7 +70,7 @@ export const routes: Routes = [
       {
         path: 'settings',
         loadComponent: () =>
-          import('remote-projects/Routes').then(
+          import('@mds-ui/features/projects').then(
             (m) => m.SettingsShellComponent,
           ),
         children: [
@@ -80,7 +80,7 @@ export const routes: Routes = [
             pathMatch: 'full',
             data: { management: true },
             loadChildren: () =>
-              import('remote-projects/Routes').then(
+              import('@mds-ui/features/projects').then(
                 (m) => m.PROJECTS_MANAGEMENT_REMOTE_ROUTES,
               ),
           },
@@ -88,7 +88,7 @@ export const routes: Routes = [
             path: 'projects/create',
             canActivate: [adminGuard],
             loadChildren: () =>
-              import('remote-projects/Routes').then(
+              import('@mds-ui/features/projects').then(
                 (m) => m.PROJECT_CREATE_REMOTE_ROUTES,
               ),
           },
@@ -96,7 +96,7 @@ export const routes: Routes = [
             path: 'projects/:projectUuid/edit',
             canActivate: [adminGuard],
             loadChildren: () =>
-              import('remote-projects/Routes').then(
+              import('@mds-ui/features/projects').then(
                 (m) => m.PROJECT_EDIT_REMOTE_ROUTES,
               ),
           },
@@ -104,7 +104,7 @@ export const routes: Routes = [
             path: 'warehouses',
             canActivate: [adminGuard],
             loadChildren: () =>
-              import('remote-warehouses/Routes').then(
+              import('@mds-ui/features/warehouses').then(
                 (m) => m.WAREHOUSES_REMOTE_ROUTES,
               ),
           },
@@ -112,7 +112,7 @@ export const routes: Routes = [
             path: 'users',
             canActivate: [adminGuard],
             loadChildren: () =>
-              import('remote-auth/Routes').then((m) => m.USERS_REMOTE_ROUTES),
+              import('@mds-ui/features/auth').then((m) => m.USERS_REMOTE_ROUTES),
           },
         ],
       },
@@ -171,12 +171,12 @@ export const routes: Routes = [
       {
         path: 'projects/:projectUuid/tables',
         loadChildren: () =>
-          import('remote-tables/Routes').then((m) => m.TABLES_REMOTE_ROUTES),
+          import('@mds-ui/features/tables').then((m) => m.TABLES_REMOTE_ROUTES),
       },
       {
         path: 'projects/:projectUuid/tables/:tableId',
         loadChildren: () =>
-          import('remote-tables/Routes').then((m) => m.TABLES_REMOTE_ROUTES),
+          import('@mds-ui/features/tables').then((m) => m.TABLES_REMOTE_ROUTES),
       },
       { path: '**', redirectTo: 'projects' },
     ],
