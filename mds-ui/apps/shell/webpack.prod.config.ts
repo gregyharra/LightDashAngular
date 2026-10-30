@@ -1,9 +1,2 @@
-import {
-  shellDevRemotes,
-  withClassicModuleFederation,
-} from '../../webpack.mf.base';
-
-export default withClassicModuleFederation({
-  name: 'shell',
-  remotes: shellDevRemotes(),
-});
+/** Identity webpack config — Module Federation removed; remotes resolve via tsconfig path aliases. */
+export default (config: Record<string, unknown>) => config;

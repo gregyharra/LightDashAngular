@@ -98,11 +98,11 @@
       }
     },
     "serve": {
-      "executor": "@nx/angular:module-federation-dev-server",
+      "executor": "@nx/angular:dev-server",
       "defaultConfiguration": "development",
       "options": {
         "proxyConfig": "proxy.conf.json",
-        "publicHost": "http://localhost:4200"
+        "port": 4200
       },
       "configurations": {
         "production": {
