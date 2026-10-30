@@ -1,0 +1,18 @@
+{
+  "warehouses": {
+    "title": "Warehouses",
+    "subtitle": "Manage reusable database connections for your projects.",
+    "createFirst": "Create your first warehouse",
+    "createVerb": "Create",
+    "editVerb": "Edit",
+    "edit": "Edit warehouse",
+    "editSubtitle": "Configure a reusable Trino connection for your projects.",
+    "empty": "No warehouses yet.",
+    "delete": "Delete warehouse",
+    "deleteConfirm": "Delete this warehouse connection? Projects using it will be unassigned.",
+    "loadError": "Failed to load warehouses.",
+    "deleteError": "Failed to delete warehouse.",
+    "passwordSet": "Password set",
+    "updated": "Updated"
+  }
+}

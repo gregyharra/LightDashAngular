@@ -1,4 +1,5 @@
 import { Routes } from '@angular/router';
+import { provideFeatureTranslations } from '@mds-ui/core';
 import { provideState } from '@ngrx/store';
 import { ProjectCreatePageFacade } from './core/facades/project-create-page.facade';
 import { ProjectEditPageFacade } from './core/facades/project-edit-page.facade';
@@ -11,12 +12,13 @@ import { ProjectsPageComponent } from './projects/projects-page/projects-page.co
 import { SettingsShellComponent } from './settings/settings-shell/settings-shell.component';
 
 const projectState = provideState(projectsFeature);
+const projectTranslations = provideFeatureTranslations('projects');
 
 export const PROJECTS_REMOTE_ROUTES: Routes = [
   {
     path: '',
     component: ProjectsPageComponent,
-    providers: [projectState, ProjectsPageFacade],
+    providers: [...projectTranslations, projectState, ProjectsPageFacade],
   },
 ];
 
@@ -25,7 +27,7 @@ export const PROJECTS_MANAGEMENT_REMOTE_ROUTES: Routes = [
     path: '',
     component: ProjectsPageComponent,
     data: { management: true },
-    providers: [projectState, ProjectsPageFacade],
+    providers: [...projectTranslations, projectState, ProjectsPageFacade],
   },
 ];
 
@@ -33,7 +35,7 @@ export const PROJECT_CREATE_REMOTE_ROUTES: Routes = [
   {
     path: '',
     component: ProjectCreatePageComponent,
-    providers: [projectState, ProjectCreatePageFacade],
+    providers: [...projectTranslations, projectState, ProjectCreatePageFacade],
   },
 ];
 
@@ -41,7 +43,7 @@ export const PROJECT_EDIT_REMOTE_ROUTES: Routes = [
   {
     path: '',
     component: ProjectEditPageComponent,
-    providers: [projectState, ProjectEditPageFacade],
+    providers: [...projectTranslations, projectState, ProjectEditPageFacade],
   },
 ];
 

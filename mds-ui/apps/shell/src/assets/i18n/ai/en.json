@@ -1,0 +1,17 @@
+{
+  "ai": {
+    "title": "Ask AI",
+    "subtitle": "Grounded on the active project’s dbt models",
+    "clearChat": "Clear chat",
+    "mode": "AI mode",
+    "ask": "Ask",
+    "edit": "Edit",
+    "hint": "Try “describe fct_orders”, “sql for stg_payments”, or “create a bar chart of orders by status”.",
+    "proposed": "Proposed {{chartKind}} on {{tableName}}",
+    "openChartBuilder": "Open in chart builder",
+    "placeholder": "Ask about models, SQL, or charts…",
+    "message": "Message",
+    "send": "Send",
+    "requestFailed": "AI request failed."
+  }
+}

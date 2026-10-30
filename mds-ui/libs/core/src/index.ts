@@ -4,6 +4,7 @@ export * from './lib/api/lightdash-api.service';
 export * from './lib/guards/auth.guard';
 export * from './lib/interceptors/auth.interceptor';
 export * from './lib/i18n/language.service';
+export * from './lib/i18n/feature-translate.providers';
 export * from './lib/mock/mock-api.interceptor';
 export * from './lib/mock/fixtures/sql-charts.fixture';
 export * from './lib/mock/fixtures/ids.fixture';

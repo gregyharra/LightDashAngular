@@ -1,0 +1,58 @@
+{
+  "tables": {
+    "explore": "Explorer",
+    "exploreData": "Explorer les données",
+    "searchModels": "Rechercher des modèles…",
+    "noModelsMatch": "Aucun modèle ne correspond à votre recherche",
+    "selectModel": "Sélectionnez un modèle pour afficher sa documentation, ses colonnes, son lignage et son SQL.",
+    "loadError": "Impossible de charger les tables.",
+    "detailsLoadError": "Impossible de charger les détails de la table.",
+    "docQuality": "Qualité de la documentation : {{score}} %",
+    "quality": "qualité {{score}} %",
+    "documentationSummary": "Modèles documentés {{modelsDescribed}}/{{modelsTotal}} · Colonnes {{columnsDescribed}}/{{columnsTotal}}",
+    "unset": "Non défini",
+    "removeTag": "Supprimer l'étiquette {{tag}}",
+    "addTagPlaceholder": "Ajoutez une étiquette et appuyez sur Entrée",
+    "saveOverview": "Enregistrer la vue d'ensemble",
+    "filterNames": "Filtrer les noms…",
+    "filterDescriptions": "Filtrer les descriptions…",
+    "filterValues": "Filtrer les valeurs…",
+    "noColumnsMatch": "Aucune colonne ne correspond à vos filtres.",
+    "descriptionFor": "Description de {{name}}",
+    "attributeFor": "{{attribute}} de {{column}}",
+    "lineageHint": "Lignage centré sur ce modèle. Développez les niveaux ou passez à la vue des colonnes depuis la barre d'outils du graphique.",
+    "openFullLineage": "Ouvrir le lignage complet du projet",
+    "lineageUnavailable": "Le graphique de lignage n'est pas disponible pour ce projet.",
+    "compiledUnavailable": "Le SQL compilé n'est pas disponible pour ce modèle. Exécutez",
+    "noSql": "Aucun SQL disponible pour ce modèle.",
+    "tabs": {
+      "links": "Liens",
+      "sql": "SQL"
+    },
+    "fields": {
+      "description": "Description",
+      "transformation": "Transformation"
+    },
+    "attributes": {
+      "add": "Ajouter un attribut",
+      "hint": "Ajoutez des attributs personnalisés pour saisir des métadonnées supplémentaires par colonne.",
+      "options": "Options",
+      "enumOptions": "Options de l'énumération",
+      "removeOption": "Supprimer l'option {{option}}",
+      "optionPlaceholder": "Ajoutez une option et appuyez sur Entrée",
+      "deleteLabel": "Supprimer l'attribut {{name}}",
+      "deleteConfirm": "Supprimer l'attribut « {{name}} » ? Ses valeurs seront retirées de toutes les colonnes.",
+      "types": {
+        "text": "Texte",
+        "number": "Nombre",
+        "enum": "Énumération (choix fixes)",
+        "boolean": "Booléen"
+      },
+      "errors": {
+        "nameRequired": "Le nom est obligatoire.",
+        "duplicate": "Un attribut portant ce nom existe déjà.",
+        "optionRequired": "Ajoutez au moins une option à l'attribut d'énumération."
+      }
+    }
+  }
+}

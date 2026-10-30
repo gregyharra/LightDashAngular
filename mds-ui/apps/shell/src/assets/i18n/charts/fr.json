@@ -1,0 +1,50 @@
+{
+  "explorer": {
+    "expandChartConfiguration": "Développer la configuration du graphique",
+    "collapseChartConfiguration": "Réduire la configuration du graphique",
+    "resizeChartConfiguration": "Redimensionner la configuration du graphique",
+    "configureChart": "Configurer le graphique",
+    "loadingFilterFields": "Chargement des champs pour les filtres…",
+    "chartSqlAria": "SQL du graphique"
+  },
+  "charts": {
+    "title": "Graphiques",
+    "all": "Tous les graphiques",
+    "create": "Créer un graphique",
+    "empty": "Aucun graphique.",
+    "notFound": "Aucun graphique trouvé.",
+    "noFilterMatches": "Aucun graphique ne correspond à vos filtres.",
+    "search": "Rechercher des graphiques…",
+    "loadError": "Impossible de charger les graphiques.",
+    "openError": "Impossible d'ouvrir ce graphique. Actualisez la page.",
+    "fields": {
+      "name": "Nom",
+      "type": "Type",
+      "table": "Table",
+      "space": "Espace",
+      "lastEdited": "Dernière modification",
+      "views": "Vues"
+    },
+    "types": {
+      "bar": "Barres"
+    },
+    "workspace": {
+      "untitled": "Graphique sans titre",
+      "saved": "Graphique enregistré.",
+      "editDetails": "Modifier les détails du graphique",
+      "chartName": "Nom du graphique",
+      "description": "Description",
+      "saveError": "Impossible d’enregistrer le graphique.",
+      "done": "Terminé",
+      "editNameDescription": "Modifier le nom et la description",
+      "editNameDescriptionAria": "Modifier le nom et la description du graphique",
+      "configureAxesToVisualize": "Ajoutez une dimension et une métrique, puis configurez les axes pour afficher le graphique.",
+      "noResultsToVisualize": "Ce graphique n'a aucun résultat à afficher.",
+      "selectRunToVisualize": "Sélectionnez des champs, puis exécutez la requête pour afficher le graphique.",
+      "noChartDataYet": "Aucune donnée de graphique pour le moment."
+    }
+  },
+  "tables": {
+    "search": "Rechercher des tables…"
+  }
+}

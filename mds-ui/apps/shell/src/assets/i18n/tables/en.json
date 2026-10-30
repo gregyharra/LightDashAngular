@@ -1,0 +1,58 @@
+{
+  "tables": {
+    "explore": "Explore",
+    "exploreData": "Explore data",
+    "searchModels": "Search models…",
+    "noModelsMatch": "No models match your search",
+    "selectModel": "Select a model to view documentation, columns, lineage, and SQL.",
+    "loadError": "Failed to load tables.",
+    "detailsLoadError": "Failed to load table details.",
+    "docQuality": "Doc quality {{score}}%",
+    "quality": "quality {{score}}%",
+    "documentationSummary": "Models documented {{modelsDescribed}}/{{modelsTotal}} · Columns {{columnsDescribed}}/{{columnsTotal}}",
+    "unset": "Unset",
+    "removeTag": "Remove tag {{tag}}",
+    "addTagPlaceholder": "Add tag and press Enter",
+    "saveOverview": "Save overview",
+    "filterNames": "Filter names…",
+    "filterDescriptions": "Filter descriptions…",
+    "filterValues": "Filter values…",
+    "noColumnsMatch": "No columns match your filters.",
+    "descriptionFor": "Description for {{name}}",
+    "attributeFor": "{{attribute}} for {{column}}",
+    "lineageHint": "Focused lineage for this model. Expand hops or switch to columns view in the graph toolbar.",
+    "openFullLineage": "Open full project lineage",
+    "lineageUnavailable": "Lineage graph is unavailable for this project.",
+    "compiledUnavailable": "Compiled SQL is unavailable for this model. Run",
+    "noSql": "No SQL available for this model.",
+    "tabs": {
+      "links": "Links",
+      "sql": "SQL"
+    },
+    "fields": {
+      "description": "Description",
+      "transformation": "Transformation"
+    },
+    "attributes": {
+      "add": "Add attribute",
+      "hint": "Add custom attributes to capture extra metadata per column.",
+      "options": "Options",
+      "enumOptions": "Enum options",
+      "removeOption": "Remove option {{option}}",
+      "optionPlaceholder": "Add option and press Enter",
+      "deleteLabel": "Delete attribute {{name}}",
+      "deleteConfirm": "Delete the \"{{name}}\" attribute? This removes its values from every column.",
+      "types": {
+        "text": "Text",
+        "number": "Number",
+        "enum": "Enum (fixed choices)",
+        "boolean": "Boolean"
+      },
+      "errors": {
+        "nameRequired": "Name is required.",
+        "duplicate": "An attribute with this name already exists.",
+        "optionRequired": "Add at least one option for an enum attribute."
+      }
+    }
+  }
+}

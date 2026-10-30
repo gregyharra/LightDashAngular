@@ -1,4 +1,5 @@
 import { Routes } from '@angular/router';
+import { provideFeatureTranslations } from '@mds-ui/core';
 import { ChartsListPageComponent } from './charts/charts-list-page/charts-list-page.component';
 import { ChartViewPageComponent } from './charts/chart-view-page/chart-view-page.component';
 import { ChartsListPageFacade } from './core/facades/charts-list-page.facade';
@@ -8,7 +9,7 @@ export const CHARTS_LIST_REMOTE_ROUTES: Routes = [
   {
     path: '',
     component: ChartsListPageComponent,
-    providers: [ChartsListPageFacade],
+    providers: [...provideFeatureTranslations('charts'), ChartsListPageFacade],
   },
 ];
 
@@ -16,7 +17,7 @@ export const CHARTS_VIEW_REMOTE_ROUTES: Routes = [
   {
     path: '',
     component: ChartViewPageComponent,
-    providers: [ChartViewPageFacade],
+    providers: [...provideFeatureTranslations('charts'), ChartViewPageFacade],
   },
 ];
 

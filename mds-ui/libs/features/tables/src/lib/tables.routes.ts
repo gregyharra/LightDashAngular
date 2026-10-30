@@ -1,4 +1,5 @@
 import { Routes } from '@angular/router';
+import { provideFeatureTranslations } from '@mds-ui/core';
 import { provideState } from '@ngrx/store';
 import { TableHubPageFacade } from './core/facades/table-hub-page.facade';
 import { tablesFeature } from './core/store/tables.reducer';
@@ -8,6 +9,6 @@ export const TABLES_REMOTE_ROUTES: Routes = [
   {
     path: '',
     component: TableHubPageComponent,
-    providers: [provideState(tablesFeature), TableHubPageFacade],
+    providers: [...provideFeatureTranslations('tables'), provideState(tablesFeature), TableHubPageFacade],
   },
 ];

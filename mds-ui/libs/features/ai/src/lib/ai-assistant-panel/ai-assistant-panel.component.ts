@@ -9,6 +9,7 @@ import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import {
   ActiveProjectService,
   apiErrorMessage,
+  provideFeatureTranslations,
 } from '@mds-ui/core';
 import { AiChatMode } from '@mds-ui/models';
 import { AiAssistantService } from '../ai-assistant.service';
@@ -24,6 +25,9 @@ import { AiAssistantUiService } from '../ai-assistant-ui.service';
     MatProgressSpinnerModule,
     TranslatePipe,
   ],
+  // Mounted directly by the app shell layout (not via a route), so the ai catalog
+  // is provided on the component itself.
+  providers: [...provideFeatureTranslations('ai')],
   templateUrl: './ai-assistant-panel.component.html',
   styleUrl: './ai-assistant-panel.component.scss',
 })

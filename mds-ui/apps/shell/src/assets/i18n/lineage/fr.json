@@ -1,0 +1,35 @@
+{
+  "lineage": {
+    "dbtLineage": "Lignage dbt",
+    "loadError": "Impossible de charger le lignage.",
+    "summary": "{{nodes}} nœuds · {{dependencies}} dépendances",
+    "columnLinks": "{{count}} liens de colonnes",
+    "lastCompiled": "Dernière compilation : {{date}}",
+    "selectModel": "Sélectionnez un modèle dans l'arborescence du projet ou le graphique",
+    "detail": {
+      "resizePanel": "Redimensionner le panneau de détails",
+      "expandPanel": "Développer le panneau de détails",
+      "collapsePanel": "Réduire le panneau de détails",
+      "openInTables": "Ouvrir dans Tables",
+      "tabsAria": "Onglets du panneau de détails",
+      "details": "Détails",
+      "path": "Chemin",
+      "database": "Base de données",
+      "noColumnMetadata": "Aucune métadonnée de colonne disponible",
+      "searchColumns": "Rechercher des colonnes…",
+      "transform": "Transformation",
+      "selectedColumn": "Colonne sélectionnée",
+      "derivedFrom": "Dérivée de ({{count}})",
+      "usedBy": "Utilisée par ({{count}})",
+      "noUpstreamColumns": "Aucun lignage de colonne en amont",
+      "noDownstreamColumns": "Aucun lignage de colonne en aval",
+      "compiledUnavailable": "Le SQL compilé n'est pas disponible. Exécutez",
+      "noSql": "Aucun SQL disponible pour ce nœud",
+      "onModel": "sur {{model}}",
+      "upstream": "En amont ({{count}})",
+      "downstream": "En aval ({{count}})",
+      "noUpstreamDependencies": "Aucune dépendance en amont",
+      "noDownstreamDependencies": "Aucune dépendance en aval"
+    }
+  }
+}

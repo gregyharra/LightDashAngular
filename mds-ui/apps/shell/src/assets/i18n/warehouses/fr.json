@@ -1,0 +1,18 @@
+{
+  "warehouses": {
+    "title": "Entrepôts",
+    "subtitle": "Gérez les connexions réutilisables aux bases de données de vos projets.",
+    "createFirst": "Créer votre premier entrepôt",
+    "createVerb": "Créer",
+    "editVerb": "Modifier",
+    "edit": "Modifier l'entrepôt",
+    "editSubtitle": "Configurez une connexion Trino réutilisable pour vos projets.",
+    "empty": "Aucun entrepôt.",
+    "delete": "Supprimer l'entrepôt",
+    "deleteConfirm": "Supprimer cette connexion d'entrepôt ? Les projets qui l'utilisent ne lui seront plus associés.",
+    "loadError": "Impossible de charger les entrepôts.",
+    "deleteError": "Impossible de supprimer l'entrepôt.",
+    "passwordSet": "Mot de passe défini",
+    "updated": "Mis à jour le"
+  }
+}

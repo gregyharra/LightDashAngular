@@ -1,4 +1,5 @@
 import { Routes } from '@angular/router';
+import { provideFeatureTranslations } from '@mds-ui/core';
 import { provideState } from '@ngrx/store';
 import { WarehousesPageFacade } from './core/facades/warehouses-page.facade';
 import { warehousesFeature } from './core/store/warehouses.reducer';
@@ -8,7 +9,7 @@ import { WarehousesPageComponent } from './warehouses-page/warehouses-page.compo
 export const WAREHOUSES_REMOTE_ROUTES: Routes = [
   {
     path: '',
-    providers: [provideState(warehousesFeature)],
+    providers: [...provideFeatureTranslations('warehouses'), provideState(warehousesFeature)],
     children: [
       {
         path: '',

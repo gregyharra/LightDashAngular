@@ -1,4 +1,5 @@
 import { Routes } from '@angular/router';
+import { provideFeatureTranslations } from '@mds-ui/core';
 import { provideState } from '@ngrx/store';
 import { LoginPageFacade } from './core/facades/login-page.facade';
 import { ResetPasswordPageFacade } from './core/facades/reset-password-page.facade';
@@ -14,25 +15,25 @@ import { UsersPageComponent } from './users-page/users-page.component';
 const loginRoute = {
   path: '',
   component: LoginPageComponent,
-  providers: [provideState(authUiFeature), LoginPageFacade],
+  providers: [...provideFeatureTranslations('auth'), provideState(authUiFeature), LoginPageFacade],
 } satisfies Routes[number];
 
 const setupRoute = {
   path: '',
   component: SetupPageComponent,
-  providers: [provideState(authUiFeature), SetupPageFacade],
+  providers: [...provideFeatureTranslations('auth'), provideState(authUiFeature), SetupPageFacade],
 } satisfies Routes[number];
 
 const resetPasswordRoute = {
   path: '',
   component: ResetPasswordPageComponent,
-  providers: [provideState(authUiFeature), ResetPasswordPageFacade],
+  providers: [...provideFeatureTranslations('auth'), provideState(authUiFeature), ResetPasswordPageFacade],
 } satisfies Routes[number];
 
 const usersRoute = {
   path: '',
   component: UsersPageComponent,
-  providers: [provideState(usersFeature), UsersPageFacade],
+  providers: [...provideFeatureTranslations('auth'), provideState(usersFeature), UsersPageFacade],
 } satisfies Routes[number];
 
 export const LOGIN_REMOTE_ROUTES: Routes = [loginRoute];
