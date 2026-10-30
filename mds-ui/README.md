@@ -43,37 +43,30 @@ Set `useMockApi: true` in `apps/shell/src/environments/environment.ts`. Requests
 | `/settings/*` | Settings shell: projects, warehouses, users (admin) |
 | `/projects/:uuid/dashboards`, `/charts`, `/tables`, `/lineage` | Project workspace |
 
-## Nx project layout (Module Federation)
+## Nx project layout (shell + feature libs)
 
-The **shell** is the MF host; feature UIs live in **remotes** loaded via `loadChildren` and `remote*/Routes` path aliases in `tsconfig.base.json`.
+The **shell** is a single Angular app. Each feature is a library under `libs/features/*` lazy-loaded from `apps/shell/src/app/app.routes.ts` via `@mds-ui/features/{name}`. Features must not import each other; shared data services live in `@mds-ui/core` and shared UI in `@mds-ui/shared`.
 
 ```
-apps/shell/                    # MF host (type:app) — routing, layout, guards
-apps/remote-auth/              # Login, setup, reset-password, users
-apps/remote-projects/          # Projects list/create/edit, settings shell
-apps/remote-warehouses/        # Warehouse admin (under /settings)
-apps/remote-tables/              # Table hub
-apps/remote-explorer/          # Explore / metric query workspace
-apps/remote-charts/            # Charts list and chart editor
-apps/remote-dashboards/        # Dashboards list, create, view
-apps/remote-lineage/           # Lineage graph
-apps/remote-ai/                # AI remote entry (panel UI in @mds-ui/feature-ai)
-apps/remote-export/            # Export remote entry (dialog in @mds-ui/feature-export)
+apps/shell/                    # Routing, layout, guards (type:app)
 libs/
   models/                      # Domain types (type:models)
-  core/                        # API, auth, guards, app store, chart-query NgRx + explore/chart services (type:core)
-  shared/                      # Reusable UI (type:shared)
-  feature-projects/            # Projects + dashboard API services (type:feature)
-  feature-warehouses/          # Warehouse services (type:feature)
-  feature-export/              # Export dialog + startExport helper (type:feature)
-  feature-ai/                  # AI assistant panel + services (type:feature)
+  core/                        # API, auth, guards, app store, chart-query NgRx, project/lineage/dashboard/space services (type:core)
+  shared/                      # Reusable UI: explorer panels, export dialog, warehouse form/dialog (type:shared)
+  features/
+    auth/                      # Login, setup, reset-password, users
+    projects/                  # Projects list/create/edit, settings shell
+    warehouses/                # Warehouse admin (under /settings)
+    tables/                    # Table hub
+    explorer/                  # Explore / metric query workspace
+    charts/                    # Charts list and chart editor
+    dashboards/                # Dashboards list, create, view
+    lineage/                   # Lineage graph
+    ai/                        # AI assistant panel + services
+    export/                    # Export routes/facade (dialog lives in @mds-ui/shared)
 ```
 
-Architecture spec: `docs/superpowers/specs/2026-09-16-mds-ui-nx-module-federation-architecture-design.md`.
-
-### Serve (host + remotes)
-
-Classic webpack Module Federation is configured in `webpack.mf.base.ts` and each app’s `webpack.config.ts` (not Nx `withModuleFederation`). Nx `@nx/angular:module-federation-dev-server` still needs **data-only** `module-federation.config.ts` on the shell **and each remote** so it can discover and start remotes in dev.
+### Serve
 
 ```bash
 cd mds-ui
@@ -82,19 +75,11 @@ npm start
 NX_DAEMON=false npx nx serve shell --port 4200
 ```
 
-The shell listens on **4200** and Nx starts remotes on **4201–4210** (see `MF_REMOTE_PORTS` in `webpack.mf.base.ts`). Wait for the log line `All remotes started` before using the app.
-
-To serve a built remote without the dev compiler (e.g. `remote-auth` on 4201):
-
-```bash
-NX_DAEMON=false npx nx run remote-auth:serve-static --configuration=development
-```
-
-### Build all apps
+### Build
 
 ```bash
 cd mds-ui
-NX_DAEMON=false npx nx run-many -t build --projects=shell,remote-auth,remote-projects,remote-warehouses,remote-tables,remote-explorer,remote-charts,remote-dashboards,remote-lineage,remote-ai,remote-export
+NX_DAEMON=false npx nx build shell --configuration=development
 ```
 
 ## Migration phases

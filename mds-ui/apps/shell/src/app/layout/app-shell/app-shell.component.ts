@@ -7,8 +7,10 @@ import {
   AppStateService,
   ProjectsService,
 } from '@mds-ui/core';
-import { AiAssistantPanelComponent } from '@mds-ui/feature-ai';
-import { AiAssistantUiService } from '@mds-ui/feature-ai';
+import {
+  AiAssistantPanelComponent,
+  AiAssistantUiService,
+} from '@mds-ui/features/ai';
 import { NavbarProjectSwitcherComponent } from '../navbar/navbar-project-switcher.component';
 import { NavbarSearchComponent } from '../navbar/navbar-search.component';
 import { NavbarUserMenuComponent } from '../navbar/navbar-user-menu.component';

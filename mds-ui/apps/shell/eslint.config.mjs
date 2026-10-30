@@ -28,15 +28,7 @@ export default [
             ],
             "@nx/enforce-module-boundaries": [
                 "error",
-                {
-                    ...moduleBoundaryOptions,
-                    allow: [
-                        "remote-auth/Routes",
-                        "remote-projects/Routes",
-                        "remote-warehouses/Routes",
-                        "remote-tables/Routes"
-                    ]
-                }
+                moduleBoundaryOptions
             ]
         }
     },

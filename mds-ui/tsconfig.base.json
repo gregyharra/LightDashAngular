@@ -25,36 +25,6 @@
       "@mds-ui/shared": [
         "./libs/shared/src/index.ts"
       ],
-      "@mds-ui/feature-projects": [
-        "./libs/feature-projects/src/index.ts"
-      ],
-      "@mds-ui/feature-warehouses": [
-        "./libs/feature-warehouses/src/index.ts"
-      ],
-      "remote-explorer/Routes": [
-        "./apps/remote-explorer/src/app/remote-entry/entry.routes.ts"
-      ],
-      "remote-charts/Routes": [
-        "./apps/remote-charts/src/app/remote-entry/entry.routes.ts"
-      ],
-      "remote-dashboards/Routes": [
-        "./apps/remote-dashboards/src/app/remote-entry/entry.routes.ts"
-      ],
-      "remote-lineage/Routes": [
-        "./apps/remote-lineage/src/app/remote-entry/entry.routes.ts"
-      ],
-      "remote-ai/Routes": [
-        "./apps/remote-ai/src/app/remote-entry/entry.routes.ts"
-      ],
-      "remote-export/Routes": [
-        "./apps/remote-export/src/app/remote-entry/entry.routes.ts"
-      ],
-      "@mds-ui/feature-export": [
-        "./libs/feature-export/src/index.ts"
-      ],
-      "@mds-ui/feature-ai": [
-        "./libs/feature-ai/src/index.ts"
-      ],
       "@mds-ui/features/auth": [
         "./libs/features/auth/src/index.ts"
       ],
@@ -66,6 +36,24 @@
       ],
       "@mds-ui/features/tables": [
         "./libs/features/tables/src/index.ts"
+      ],
+      "@mds-ui/features/explorer": [
+        "./libs/features/explorer/src/index.ts"
+      ],
+      "@mds-ui/features/charts": [
+        "./libs/features/charts/src/index.ts"
+      ],
+      "@mds-ui/features/dashboards": [
+        "./libs/features/dashboards/src/index.ts"
+      ],
+      "@mds-ui/features/lineage": [
+        "./libs/features/lineage/src/index.ts"
+      ],
+      "@mds-ui/features/ai": [
+        "./libs/features/ai/src/index.ts"
+      ],
+      "@mds-ui/features/export": [
+        "./libs/features/export/src/index.ts"
       ]
     }
   },

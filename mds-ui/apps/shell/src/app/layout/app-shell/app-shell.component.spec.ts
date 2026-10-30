@@ -18,13 +18,15 @@ import {
   ProjectsService,
 } from '@mds-ui/core';
 import { ProjectSummary } from '@mds-ui/models';
-import { AiAssistantPanelComponent } from '@mds-ui/feature-ai';
-import { AiAssistantUiService } from '@mds-ui/feature-ai';
+import {
+  AiAssistantPanelComponent,
+  AiAssistantUiService,
+} from '@mds-ui/features/ai';
 import { NavbarSearchComponent } from '../navbar/navbar-search.component';
 import { AppShellComponent } from './app-shell.component';
 
 @Component({
-  selector: 'app-ai-assistant-panel',
+  selector: 'mds-ai-assistant-panel',
   template: '',
 })
 class AiAssistantPanelStub {}
@@ -198,7 +200,7 @@ describe('AppShellComponent navbar identity', () => {
       fixture.nativeElement.querySelector('[aria-label="Ask AI"]'),
     ).toBeNull();
     expect(
-      fixture.nativeElement.querySelector('app-ai-assistant-panel'),
+      fixture.nativeElement.querySelector('mds-ai-assistant-panel'),
     ).toBeNull();
 
     component['openAiAssistant']();
@@ -230,7 +232,7 @@ describe('AppShellComponent navbar identity', () => {
     );
     expect(askAi).not.toBeNull();
     expect(
-      fixture.nativeElement.querySelector('app-ai-assistant-panel'),
+      fixture.nativeElement.querySelector('mds-ai-assistant-panel'),
     ).not.toBeNull();
 
     component['openAiAssistant']();

@@ -18,7 +18,7 @@ export type ExportDialogData = {
 export type ExportDialogResult = { overrideRowCap: boolean } | undefined;
 
 @Component({
-  selector: 'app-export-dialog',
+  selector: 'mds-export-dialog',
   imports: [MatButtonModule, MatDialogModule, TranslatePipe],
   templateUrl: './export-dialog.component.html',
   styleUrl: './export-dialog.component.scss',
