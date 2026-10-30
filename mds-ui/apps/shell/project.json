@@ -66,10 +66,7 @@
           "apps/shell/src/styles/tailwind.css",
           "apps/shell/src/styles.scss"
         ],
-        "scripts": [],
-        "customWebpackConfig": {
-          "path": "apps/shell/webpack.config.ts"
-        }
+        "scripts": []
       },
       "configurations": {
         "production": {
@@ -85,10 +82,7 @@
               "maximumError": "16kB"
             }
           ],
-          "outputHashing": "all",
-          "customWebpackConfig": {
-            "path": "apps/shell/webpack.prod.config.ts"
-          }
+          "outputHashing": "all"
         },
         "development": {
           "optimization": false,

@@ -46,10 +46,7 @@
       ],
       "inputs": [
         "production",
-        "^production",
-        {
-          "env": "NX_MF_DEV_REMOTES"
-        }
+        "^production"
       ]
     },
     "@angular-devkit/build-angular:browser": {

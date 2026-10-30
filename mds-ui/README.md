@@ -19,7 +19,7 @@ This runs `nx serve shell --open`. Open `http://localhost:4200` if the browser d
 
 Default `apps/shell/src/environments/environment.ts` has **`useMockApi: false`**, so the app talks to the backend via `proxy.conf.json` (port `8080`). On a fresh database you will land on **`/setup`** (create first admin), then use **`/login`** thereafter.
 
-If port 4200 is already in use, stop the existing process (`lsof -i :4200`) or run `npx nx serve shell --port 4201` and open the matching URL.
+If port 4200 is already in use, stop the existing process (`lsof -i :4200`) or run `npx nx serve shell --port 4300` and open the matching URL.
 
 ### Real backend (default)
 
@@ -66,7 +66,22 @@ libs/
     export/                    # Export routes/facade (dialog lives in @mds-ui/shared)
 ```
 
-### Serve
+### i18n layout
+
+Translation catalogs live under `apps/shell/src/assets/i18n/`:
+
+```
+assets/i18n/
+  en.json, fr.json           # Root catalog (shell + shared/core strings)
+  {feature}/en.json          # Per-feature catalogs (auth, projects, warehouses, tables,
+  {feature}/fr.json          #   charts, dashboards, lineage, ai)
+```
+
+The root catalog is loaded at startup; feature catalogs are merged when the feature loads. Keep `en` and `fr` keys in sync (`i18n-catalogs.spec.ts`).
+
+### Serve (single app)
+
+There is one dev server — no per-feature remotes or extra ports.
 
 ```bash
 cd mds-ui
