@@ -61,9 +61,8 @@ apps/remote-ai/                # AI remote entry (panel UI in @mds-ui/feature-ai
 apps/remote-export/            # Export remote entry (dialog in @mds-ui/feature-export)
 libs/
   models/                      # Domain types (type:models)
-  core/                        # API, auth, guards, app store (type:core)
+  core/                        # API, auth, guards, app store, chart-query NgRx + explore/chart services (type:core)
   shared/                      # Reusable UI (type:shared)
-  feature-chart-query/         # Chart query NgRx + explore/chart services (type:feature)
   feature-projects/            # Projects + dashboard API services (type:feature)
   feature-warehouses/          # Warehouse services (type:feature)
   feature-export/              # Export dialog + startExport helper (type:feature)

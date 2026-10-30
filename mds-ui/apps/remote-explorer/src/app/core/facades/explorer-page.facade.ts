@@ -1,5 +1,5 @@
 import { Injectable, inject } from '@angular/core';
-import { ChartQueryFacade, ExplorerService } from '@mds-ui/feature-chart-query';
+import { ChartQueryFacade, ExplorerService } from '@mds-ui/core';
 
 @Injectable()
 export class ExplorerPageFacade {

@@ -29,26 +29,20 @@ import {
 } from '@mds-ui/models';
 import { ActiveProjectService } from '@mds-ui/core';
 import {
-  explorePath,
-  isExploreableLineageNode,
-} from '../../explorer/explore-routes';
-import {
-  computeColumnLineageHighlight,
   columnRefKey,
+  computeColumnLineageHighlight,
+  explorePath,
   getColumnDownstream,
   getColumnUpstream,
-  resolveColumnRefs,
-  sortColumns,
-} from '@mds-ui/shared';
-import {
   inferColumnTransformation,
-} from '@mds-ui/shared';
-import { TransformationChipComponent } from '@mds-ui/shared';
-import { SqlHighlightComponent } from '@mds-ui/shared';
-import {
+  isExploreableLineageNode,
   ModelSqlViewMode,
   preferredModelSqlViewMode,
+  resolveColumnRefs,
   resolveModelSqlDisplay,
+  sortColumns,
+  SqlHighlightComponent,
+  TransformationChipComponent,
 } from '@mds-ui/shared';
 
 type DetailTab = LineageDetailTab;

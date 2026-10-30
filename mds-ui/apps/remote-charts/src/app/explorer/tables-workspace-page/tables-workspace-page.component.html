@@ -32,7 +32,7 @@
         />
 
         @if (tableId(); as selectedNodeId) {
-          <app-tables-fields-panel
+          <mds-tables-fields-panel
             [projectUuid]="projectUuid()!"
             [tableId]="selectedNodeId"
             [tableLabel]="selectedNodeLabel()"
@@ -51,7 +51,7 @@
             (chartConfigClose)="closeChartConfig()"
           >
             @if (explore()) {
-              <app-tables-chart-config-panel
+              <mds-tables-chart-config-panel
                 tablesChartConfig
                 [chartKind]="chartKind()"
                 [chartXField]="chartXField()"
@@ -86,7 +86,7 @@
                 (displayConfigChange)="setChartDisplayConfig($event)"
               />
             }
-          </app-tables-fields-panel>
+          </mds-tables-fields-panel>
         }
 
         <main class="tables-workspace__main">
@@ -169,7 +169,7 @@
                   <mat-panel-title>{{ 'explorer.filters' | translate }}</mat-panel-title>
                 </mat-expansion-panel-header>
                 @if (explore()) {
-                  <app-tables-filters-panel
+                  <mds-tables-filters-panel
                     [dimensions]="filterableDimensions()"
                     [filters]="dimensionFilters()"
                     (filtersChange)="onDimensionFiltersChange($event)"

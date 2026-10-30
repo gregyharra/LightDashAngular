@@ -32,62 +32,54 @@ import {
   getFieldId,
 } from '@mds-ui/models';
 
-import { ActiveProjectService } from '@mds-ui/core';
-import { apiErrorMessage } from '@mds-ui/core';
+import {
+  ActiveProjectService,
+  apiErrorMessage,
+  AppStateService,
+  ChartQueryFacade,
+  chartQueryKey,
+  ChartQueryKeyInput,
+  ChartService,
+  ExplorerService,
+  mergeDashboardFiltersIntoMetricQuery,
+  mergeTimeTravelIntoMetricQuery,
+} from '@mds-ui/core';
 
-import { FolderSearchPanelComponent } from '@mds-ui/shared';
-import { findTreeNodeByLineageId } from '@mds-ui/shared';
-import { LineageService } from '@mds-ui/feature-projects';
-import { ResizableSidebarDirective } from '@mds-ui/shared';
-import { ProjectBrowseNavComponent } from '@mds-ui/shared';
 import {
+  buildMetricQuerySql,
+  clampQueryLimit,
+  CustomMetricDialogComponent,
+  CustomMetricDialogData,
+  CustomMetricDialogResult,
+  exploreHasFields,
   filterTablesFieldGroups,
-  TablesFieldGroup,
-  TablesFieldsPanelComponent,
-} from '../tables-fields-panel/tables-fields-panel.component';
-import { ChartVisualizationComponent } from '../../charts/chart-visualization/chart-visualization.component';
-import { TablesChartConfigPanelComponent } from '../tables-chart-config-panel/tables-chart-config-panel.component';
-import { TablesChartDisplayConfig } from '../tables-chart-config-panel/tables-chart-config.constants';
-import {
   findExploreByName,
   findExploreForLineageNode,
-} from '../explore-lineage.utils';
-import {
-  exploreHasFields,
+  findTreeNodeByLineageId,
+  FolderSearchPanelComponent,
   formatModelLabel,
+  getFilterableDimensions,
   isExploreableDbtTreeNode,
+  ProjectBrowseNavComponent,
+  QueryWarningsBannerComponent,
+  ResizableSidebarDirective,
   resolveExploreNameForSelection,
-} from '../explore-from-dbt.utils';
-import { buildMetricQuerySql } from '../metric-query-sql.utils';
-import { ExplorerService } from '@mds-ui/feature-chart-query';
-import { mergeDashboardFiltersIntoMetricQuery } from '@mds-ui/feature-chart-query';
-import {
-  ChartQueryFacade,
-  ChartQueryKeyInput,
-  chartQueryKey,
-} from '@mds-ui/feature-chart-query';
-import { mergeTimeTravelIntoMetricQuery } from '../time-travel.utils';
-import { getFilterableDimensions } from '../tables-filters-panel/tables-filters.utils';
-import { TablesFiltersPanelComponent } from '../tables-filters-panel/tables-filters-panel.component';
-import { TimeTravelControlComponent } from '@mds-ui/shared';
-import { QueryWarningsBannerComponent } from '@mds-ui/shared';
-import { RunQueryButtonComponent } from '@mds-ui/shared';
-import { SqlHighlightComponent } from '@mds-ui/shared';
-import { AppStateService } from '@mds-ui/core';
-import { ChartService } from '@mds-ui/feature-chart-query';
-import {
-  clampQueryLimit,
   resolveMaxQueryLimit,
-} from '../query-limit.utils';
+  RunQueryButtonComponent,
+  SqlHighlightComponent,
+  TablesChartConfigPanelComponent,
+  TablesChartDisplayConfig,
+  TablesFieldGroup,
+  TablesFieldsPanelComponent,
+  TablesFiltersPanelComponent,
+  TimeTravelControlComponent,
+} from '@mds-ui/shared';
+import { LineageService } from '@mds-ui/feature-projects';
+import { ChartVisualizationComponent } from '../../charts/chart-visualization/chart-visualization.component';
 import {
   SaveChartDialogComponent,
   SaveChartDialogResult,
 } from '../../charts/save-chart-dialog/save-chart-dialog.component';
-import {
-  CustomMetricDialogComponent,
-  CustomMetricDialogData,
-  CustomMetricDialogResult,
-} from '../custom-metric/custom-metric-dialog.component';
 
 @Component({
   selector: 'app-tables-workspace-page',

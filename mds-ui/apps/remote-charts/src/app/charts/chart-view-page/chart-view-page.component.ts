@@ -20,9 +20,20 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
-import { LanguageService } from '@mds-ui/core';
-import { ActiveProjectService } from '@mds-ui/core';
-import { apiErrorMessage } from '@mds-ui/core';
+import {
+  ActiveProjectService,
+  apiErrorMessage,
+  AppStateService,
+  ChartQueryFacade,
+  chartQueryKey,
+  ChartQueryKeyInput,
+  ChartService,
+  enrichDashboardFilterLabels,
+  ExplorerService,
+  extractDashboardFiltersFromMetricQuery,
+  LanguageService,
+  mergeDashboardFiltersIntoMetricQuery,
+} from '@mds-ui/core';
 import {
   DashboardDimensionFilter,
   ChartConfig,
@@ -49,7 +60,6 @@ import {
   LineageNode,
 } from '@mds-ui/models';
 
-import { ChartService } from '@mds-ui/feature-chart-query';
 import {
   ChartDetailsDialogComponent,
   ChartDetailsDialogData,
@@ -60,28 +70,31 @@ import {
   SaveChartDialogData,
   SaveChartDialogResult,
 } from '../save-chart-dialog/save-chart-dialog.component';
-import { ExplorerService } from '@mds-ui/feature-chart-query';
 import {
+  buildMetricQuerySql,
+  ChartFieldsAccordionComponent,
+  clampQueryLimit,
   CreateChartFromExploreState,
-  readCreateFromExploreState,
-} from '../../explorer/create-chart-from-explore';
-import { LineageService } from '@mds-ui/feature-projects';
-import { FolderSearchPanelComponent } from '@mds-ui/shared';
-import { findTreeNodeByLineageId } from '@mds-ui/shared';
-import {
+  exploreHasFields,
   findExploreByName,
   findExploreForLineageNode,
-} from '../../explorer/explore-lineage.utils';
-import {
-  exploreHasFields,
+  findTreeNodeByLineageId,
+  FolderSearchPanelComponent,
+  getFilterableDimensions,
   isExploreableDbtTreeNode,
-  resolveExploreNameForSelection,
-} from '../../explorer/explore-from-dbt.utils';
-import {
-  clampQueryLimit,
+  ProjectBrowseNavComponent,
+  readCreateFromExploreState,
+  ResizableSidebarDirective,
   resolveCsvMaxLimit,
+  resolveExploreNameForSelection,
   resolveMaxQueryLimit,
-} from '../../explorer/query-limit.utils';
+  RunQueryButtonComponent,
+  SqlHighlightComponent,
+  TablesChartConfigPanelComponent,
+  TablesChartDisplayConfig,
+  TablesFiltersPanelComponent,
+} from '@mds-ui/shared';
+import { LineageService } from '@mds-ui/feature-projects';
 import { ChartVisualizationComponent } from '../chart-visualization/chart-visualization.component';
 import { QueryResultsPanelComponent } from '../query-results-panel/query-results-panel.component';
 import { ExportFormat } from '@mds-ui/feature-export';
@@ -89,27 +102,6 @@ import { ExportService } from '@mds-ui/feature-export';
 import { ExportDialogComponent, startExport } from '@mds-ui/feature-export';
 import { chartExportPlacement } from './chart-export-placement';
 import { resolveChartDraftName } from './chart-draft-name';
-import { ResizableSidebarDirective } from '@mds-ui/shared';
-import { ProjectBrowseNavComponent } from '@mds-ui/shared';
-import { AppStateService } from '@mds-ui/core';
-import { SqlHighlightComponent } from '@mds-ui/shared';
-import { RunQueryButtonComponent } from '@mds-ui/shared';
-import { ChartFieldsAccordionComponent } from '@mds-ui/shared';
-import { TablesChartConfigPanelComponent } from '../../explorer/tables-chart-config-panel/tables-chart-config-panel.component';
-import { TablesChartDisplayConfig } from '../../explorer/tables-chart-config-panel/tables-chart-config.constants';
-import { TablesFiltersPanelComponent } from '../../explorer/tables-filters-panel/tables-filters-panel.component';
-import { getFilterableDimensions } from '../../explorer/tables-filters-panel/tables-filters.utils';
-import { buildMetricQuerySql } from '../../explorer/metric-query-sql.utils';
-import {
-  enrichDashboardFilterLabels,
-  extractDashboardFiltersFromMetricQuery,
-  mergeDashboardFiltersIntoMetricQuery,
-} from '@mds-ui/feature-chart-query';
-import {
-  ChartQueryFacade,
-  ChartQueryKeyInput,
-  chartQueryKey,
-} from '@mds-ui/feature-chart-query';
 import { combineLatest, forkJoin } from 'rxjs';
 
 type TableFieldGroup = {

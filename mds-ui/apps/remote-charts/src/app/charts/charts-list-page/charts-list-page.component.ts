@@ -8,7 +8,7 @@ import { LanguageService } from '@mds-ui/core';
 import { ActiveProjectService } from '@mds-ui/core';
 import { ApiErrorService } from '@mds-ui/core';
 import { SavedChartBasic } from '@mds-ui/models';
-import { ChartService } from '@mds-ui/feature-chart-query';
+import { ChartService } from '@mds-ui/core';
 import { ResizableSidebarDirective } from '@mds-ui/shared';
 import { ProjectBrowseNavComponent } from '@mds-ui/shared';
 import {

@@ -13,3 +13,16 @@ export * from './lib/services/active-project.service';
 export * from './lib/services/app-data-invalidator';
 export * from './lib/store';
 export * from './lib/utils/uuid';
+
+export * from './lib/chart-query/chart-query.actions';
+export * from './lib/chart-query/chart-query.adapter';
+export * from './lib/chart-query/chart-query.facade';
+export * from './lib/chart-query/chart-query.models';
+export * from './lib/chart-query/chart-query.providers';
+export * from './lib/chart-query/chart-query.selectors';
+export * from './lib/chart-query/chart-query.utils';
+export * from './lib/chart-query/chart.service';
+export * from './lib/chart-query/explorer.service';
+export * from './lib/chart-query/dashboard-filters';
+export * from './lib/chart-query/time-travel.utils';
+export * from './lib/chart-query/tables-filters.utils';

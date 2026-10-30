@@ -1,5 +1,5 @@
 import { Router } from '@angular/router';
-import { readCreateFromExploreState } from '../../explorer/create-chart-from-explore';
+import { readCreateFromExploreState } from '@mds-ui/shared';
 
 describe('readCreateFromExploreState', () => {
   it('returns null when navigation has no extras', () => {

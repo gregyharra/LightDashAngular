@@ -25,7 +25,7 @@ import {
   mergeDashboardFiltersIntoMetricQuery,
   mergeTimeTravelIntoMetricQuery,
   provideChartQueryState,
-} from '@mds-ui/feature-chart-query';
+} from '@mds-ui/core';
 
 import { routes } from './app.routes';
 import { environment } from '../environments/environment';

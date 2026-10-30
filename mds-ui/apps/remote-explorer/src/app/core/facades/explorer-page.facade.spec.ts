@@ -1,6 +1,6 @@
 import { TestBed } from '@angular/core/testing';
 import { ExplorerPageFacade } from './explorer-page.facade';
-import { ChartQueryFacade, ExplorerService } from '@mds-ui/feature-chart-query';
+import { ChartQueryFacade, ExplorerService } from '@mds-ui/core';
 
 describe('ExplorerPageFacade', () => {
   it('is creatable', () => {

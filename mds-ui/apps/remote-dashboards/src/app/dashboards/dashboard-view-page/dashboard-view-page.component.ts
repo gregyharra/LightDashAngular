@@ -38,12 +38,12 @@ import {
 
 import { mockSqlCharts, MockSqlChartBasic } from '@mds-ui/core';
 import { createUuid } from '@mds-ui/core';
-import { ChartService } from '@mds-ui/feature-chart-query';
-import { ExplorerService } from '@mds-ui/feature-chart-query';
+import { ChartService } from '@mds-ui/core';
+import { ExplorerService } from '@mds-ui/core';
 import {
   FilterableDimension,
   getFilterableDimensions,
-} from '@mds-ui/feature-chart-query';
+} from '@mds-ui/core';
 import { DashboardService } from '@mds-ui/feature-projects';
 import { DashboardChartTileComponent } from '../dashboard-chart-tile/dashboard-chart-tile.component';
 import { DashboardFiltersBarComponent } from '../dashboard-filters-bar/dashboard-filters-bar.component';

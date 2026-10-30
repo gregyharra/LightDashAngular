@@ -26,7 +26,7 @@
 
   @if (tableId(); as selectedTableId) {
     <aside class="page-layout__sidebar page-layout__sidebar--fields">
-      <app-tables-fields-panel
+      <mds-tables-fields-panel
         [projectUuid]="projectUuid()!"
         [tableId]="selectedTableId"
         [tableLabel]="explore()?.label || selectedTableId"
@@ -224,7 +224,7 @@
                     <mat-expansion-panel-header>
                       <mat-panel-title>{{ 'explorer.filters' | translate }}</mat-panel-title>
                     </mat-expansion-panel-header>
-                    <app-tables-filters-panel
+                    <mds-tables-filters-panel
                       [dimensions]="filterableDimensions()"
                       [filters]="dimensionFilters()"
                       (filtersChange)="onDimensionFiltersChange($event)"

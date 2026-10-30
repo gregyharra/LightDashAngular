@@ -10,7 +10,7 @@ import {
 } from '@mds-ui/models';
 
 import { createUuid } from '@mds-ui/core';
-import { mergeTimeTravelIntoMetricQuery } from '@mds-ui/feature-chart-query';
+import { mergeTimeTravelIntoMetricQuery } from '@mds-ui/core';
 
 type Translate = (key: string) => string;
 

@@ -8,7 +8,7 @@ import {
   ProjectLineage,
 } from '@mds-ui/models';
 
-import { ChartService } from '@mds-ui/feature-chart-query';
+import { ChartService } from '@mds-ui/core';
 import { DashboardService } from '@mds-ui/feature-projects';
 import { LineageService } from '@mds-ui/feature-projects';
 import { NavbarSearchService } from './navbar-search.service';

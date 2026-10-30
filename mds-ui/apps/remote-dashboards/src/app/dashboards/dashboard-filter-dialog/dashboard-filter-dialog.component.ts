@@ -25,7 +25,7 @@ import {
   operatorNeedsTwoValues,
   operatorNeedsUnitOfTime,
   operatorNeedsValue,
-} from '@mds-ui/feature-chart-query';
+} from '@mds-ui/core';
 
 export type DashboardFilterDialogData = {
   dimensions: FilterableDimension[];

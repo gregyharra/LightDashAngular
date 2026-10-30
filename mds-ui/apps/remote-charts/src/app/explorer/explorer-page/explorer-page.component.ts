@@ -10,10 +10,16 @@ import { PageEvent } from '@angular/material/paginator';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
-import { LanguageService } from '@mds-ui/core';
-import { ActiveProjectService } from '@mds-ui/core';
-import { AppStateService } from '@mds-ui/core';
-import { apiErrorMessage } from '@mds-ui/core';
+import {
+  ActiveProjectService,
+  apiErrorMessage,
+  AppStateService,
+  ChartQueryFacade,
+  chartQueryKey,
+  ChartQueryKeyInput,
+  ExplorerService,
+  LanguageService,
+} from '@mds-ui/core';
 import {
   DashboardDimensionFilter,
   Explore,
@@ -26,47 +32,35 @@ import {
   LineageNode,
 } from '@mds-ui/models';
 
-import { ExplorerService } from '@mds-ui/feature-chart-query';
 import { LineageService } from '@mds-ui/feature-projects';
-import { FolderSearchPanelComponent } from '@mds-ui/shared';
-import { findTreeNodeByLineageId } from '@mds-ui/shared';
 import {
-  findExploreByName,
-  findExploreForLineageNode,
-} from '../explore-lineage.utils';
-import { groupExploresByTags } from '../explore-sections.utils';
-import { resolveExploreNameForSelection } from '../explore-from-dbt.utils';
-import {
+  buildMetricQuerySql,
+  clampQueryLimit,
   CREATE_FROM_EXPLORE_STATE_KEY,
   CreateChartFromExploreState,
-} from '../create-chart-from-explore';
-import {
-  ChartQueryFacade,
-  ChartQueryKeyInput,
-  chartQueryKey,
-} from '@mds-ui/feature-chart-query';
-import {
-  clampQueryLimit,
   DEFAULT_QUERY_LIMIT,
-  resolveCsvMaxLimit,
-  resolveMaxQueryLimit,
-} from '../query-limit.utils';
-import { buildMetricQuerySql } from '../metric-query-sql.utils';
-import { TablesFiltersPanelComponent } from '../tables-filters-panel/tables-filters-panel.component';
-import { getFilterableDimensions } from '../tables-filters-panel/tables-filters.utils';
-import {
   filterTablesFieldGroups,
+  findExploreByName,
+  findExploreForLineageNode,
+  findTreeNodeByLineageId,
+  FolderSearchPanelComponent,
+  getFilterableDimensions,
+  groupExploresByTags,
+  ProjectBrowseNavComponent,
+  ResizableSidebarDirective,
+  resolveCsvMaxLimit,
+  resolveExploreNameForSelection,
+  resolveMaxQueryLimit,
+  RunQueryButtonComponent,
+  SqlHighlightComponent,
   TablesFieldGroup,
   TablesFieldsPanelComponent,
-} from '../tables-fields-panel/tables-fields-panel.component';
+  TablesFiltersPanelComponent,
+} from '@mds-ui/shared';
 import { QueryResultsPanelComponent } from '../../charts/query-results-panel/query-results-panel.component';
 import { ExportFormat } from '@mds-ui/feature-export';
 import { ExportService } from '@mds-ui/feature-export';
 import { ExportDialogComponent, startExport } from '@mds-ui/feature-export';
-import { ResizableSidebarDirective } from '@mds-ui/shared';
-import { ProjectBrowseNavComponent } from '@mds-ui/shared';
-import { RunQueryButtonComponent } from '@mds-ui/shared';
-import { SqlHighlightComponent } from '@mds-ui/shared';
 
 const RESULTS_PAGE_SIZE_OPTIONS = [10, 25, 50, 100];
 const RESULTS_DEFAULT_PAGE_SIZE = 25;

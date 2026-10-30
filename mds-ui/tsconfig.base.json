@@ -43,9 +43,6 @@
       "remote-tables/Routes": [
         "./apps/remote-tables/src/app/remote-entry/entry.routes.ts"
       ],
-      "@mds-ui/feature-chart-query": [
-        "./libs/feature-chart-query/src/index.ts"
-      ],
       "remote-explorer/Routes": [
         "./apps/remote-explorer/src/app/remote-entry/entry.routes.ts"
       ],

@@ -17,7 +17,7 @@ import {
   LineageNode,
 } from '@mds-ui/models';
 
-import { ChartService } from '@mds-ui/feature-chart-query';
+import { ChartService } from '@mds-ui/core';
 import { DashboardService } from '@mds-ui/feature-projects';
 import { inferColumnTransformation } from '@mds-ui/shared';
 import { columnNamesEqual } from '@mds-ui/shared';

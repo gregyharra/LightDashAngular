@@ -16,7 +16,7 @@ import {
   ChartQueryFacade,
   ChartQuerySnapshot,
   chartQueryKey,
-} from '@mds-ui/feature-chart-query';
+} from '@mds-ui/core';
 import { ChartVisualizationComponent } from '../../charts/chart-visualization/chart-visualization.component';
 
 @Component({

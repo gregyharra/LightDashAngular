@@ -99,7 +99,7 @@
             </button>
           </header>
           <div class="chart-view__config-mode-body">
-            <app-tables-chart-config-panel
+            <mds-tables-chart-config-panel
               [chartKind]="chartKind()"
               [chartXField]="chartXField()"
               [chartYFields]="chartYFields()"
@@ -308,7 +308,7 @@
                     <mat-panel-title>{{ 'explorer.filters' | translate }}</mat-panel-title>
                   </mat-expansion-panel-header>
                   @if (explore()) {
-                    <app-tables-filters-panel
+                    <mds-tables-filters-panel
                       [dimensions]="filterableDimensions()"
                       [filters]="dimensionFilters()"
                       [editable]="editMode()"
