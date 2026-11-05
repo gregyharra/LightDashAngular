@@ -1,0 +1,17 @@
+{
+  "ai": {
+    "title": "Demander à l’IA",
+    "subtitle": "Basé sur les modèles dbt du projet actif",
+    "clearChat": "Effacer la conversation",
+    "mode": "Mode de l’IA",
+    "ask": "Demander",
+    "edit": "Modifier",
+    "hint": "Essayez « describe fct_orders », « sql for stg_payments » ou « create a bar chart of orders by status ».",
+    "proposed": "{{chartKind}} proposé sur {{tableName}}",
+    "openChartBuilder": "Ouvrir dans l’éditeur de graphiques",
+    "placeholder": "Posez une question sur les modèles, le SQL ou les graphiques…",
+    "message": "Message",
+    "send": "Envoyer",
+    "requestFailed": "Échec de la requête à l’IA."
+  }
+}

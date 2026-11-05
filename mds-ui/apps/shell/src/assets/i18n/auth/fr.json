@@ -1,0 +1,80 @@
+{
+  "auth": {
+    "signInTitle": "Connexion",
+    "signInSubtitle": "Connectez-vous pour accéder à votre espace de travail.",
+    "email": "E-mail",
+    "password": "Mot de passe",
+    "signIn": "Se connecter",
+    "signingIn": "Connexion…",
+    "forgotHint": "Mot de passe oublié ? Demandez à un administrateur de le réinitialiser. Il vous remettra un lien de réinitialisation (ou un mot de passe temporaire qui vous obligera à en choisir un nouveau).",
+    "setupTitle": "Créer un compte administrateur",
+    "setupSubtitle": "Bienvenue. Configurez le premier administrateur qui gérera cet espace de travail.",
+    "firstName": "Prénom",
+    "lastName": "Nom",
+    "createAdmin": "Créer le compte administrateur",
+    "creating": "Création…",
+    "resetTitle": "Réinitialiser le mot de passe",
+    "resetSubtitle": "Choisissez un nouveau mot de passe pour votre compte.",
+    "resetSubmit": "Mettre à jour le mot de passe",
+    "resetting": "Mise à jour…",
+    "invalidResetLinkHelp": "Ce lien de réinitialisation est manquant ou invalide. Demandez à un administrateur d’exécuter la commande de réinitialisation du mot de passe, ou connectez-vous avec le mot de passe temporaire qui vous a été remis.",
+    "backToSignIn": "Retour à la connexion",
+    "errors": {
+      "createAdmin": "Impossible de créer le compte administrateur",
+      "invalidCredentials": "E-mail ou mot de passe incorrect",
+      "invalidResetLink": "Ce lien de réinitialisation est manquant ou invalide. Demandez-en un nouveau à un administrateur.",
+      "setPassword": "Impossible de définir un nouveau mot de passe"
+    }
+  },
+  "users": {
+    "title": "Utilisateurs",
+    "subtitle": "Créez et gérez les utilisateurs de l'espace de travail.",
+    "loadError": "Impossible de charger les utilisateurs",
+    "createError": "Impossible de créer l'utilisateur",
+    "updateError": "Impossible de modifier l'utilisateur",
+    "deactivate": "Désactiver",
+    "deactivateConfirm": "Désactiver {{email}} ?",
+    "deactivateError": "Impossible de désactiver l'utilisateur",
+    "empty": "Aucun utilisateur trouvé.",
+    "fields": {
+      "name": "Nom",
+      "email": "E-mail",
+      "firstName": "Prénom",
+      "lastName": "Nom",
+      "role": "Rôle",
+      "status": "Statut"
+    },
+    "roles": {
+      "member": "Membre",
+      "admin": "Admin"
+    },
+    "status": {
+      "active": "Actif",
+      "inactive": "Inactif"
+    },
+    "create": {
+      "title": "Créer un utilisateur",
+      "button": "Créer un utilisateur",
+      "submit": "Créer",
+      "note": "Un mot de passe temporaire sera généré. Communiquez-le à l'utilisateur, qui devra le modifier lors de sa première connexion."
+    },
+    "edit": {
+      "title": "Modifier l'utilisateur",
+      "button": "Modifier"
+    },
+    "password": {
+      "resetButton": "Réinitialiser le mot de passe",
+      "resetConfirm": "Réinitialiser le mot de passe de {{email}} ? Un nouveau mot de passe temporaire sera généré.",
+      "resetTitle": "Mot de passe réinitialisé",
+      "resetError": "Impossible de réinitialiser le mot de passe",
+      "userCreated": "Utilisateur créé",
+      "firstSignInMessage": "Copiez ce mot de passe temporaire et envoyez-le à l'utilisateur. Il devra le modifier lors de sa première connexion.",
+      "nextSignInMessage": "Copiez ce mot de passe temporaire et envoyez-le à l'utilisateur. Il devra le modifier lors de sa prochaine connexion.",
+      "missing": "L'utilisateur a été enregistré, mais aucun mot de passe temporaire n'a été renvoyé.",
+      "copyPassword": "Copier le mot de passe",
+      "copy": "Copier",
+      "copied": "Copié",
+      "done": "Terminé"
+    }
+  }
+}

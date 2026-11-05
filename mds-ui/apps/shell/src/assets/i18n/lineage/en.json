@@ -1,0 +1,35 @@
+{
+  "lineage": {
+    "dbtLineage": "dbt Lineage",
+    "loadError": "Failed to load lineage.",
+    "summary": "{{nodes}} nodes · {{dependencies}} dependencies",
+    "columnLinks": "{{count}} column links",
+    "lastCompiled": "Last compiled {{date}}",
+    "selectModel": "Select a model from the project tree or graph",
+    "detail": {
+      "resizePanel": "Resize detail panel",
+      "expandPanel": "Expand detail panel",
+      "collapsePanel": "Collapse detail panel",
+      "openInTables": "Open in Tables",
+      "tabsAria": "Detail panel tabs",
+      "details": "Details",
+      "path": "Path",
+      "database": "Database",
+      "noColumnMetadata": "No column metadata available",
+      "searchColumns": "Search columns…",
+      "transform": "Transform",
+      "selectedColumn": "Selected column",
+      "derivedFrom": "Derived from ({{count}})",
+      "usedBy": "Used by ({{count}})",
+      "noUpstreamColumns": "No upstream column lineage",
+      "noDownstreamColumns": "No downstream column lineage",
+      "compiledUnavailable": "Compiled SQL is unavailable. Run",
+      "noSql": "No SQL available for this node",
+      "onModel": "on {{model}}",
+      "upstream": "Upstream ({{count}})",
+      "downstream": "Downstream ({{count}})",
+      "noUpstreamDependencies": "No upstream dependencies",
+      "noDownstreamDependencies": "No downstream dependencies"
+    }
+  }
+}

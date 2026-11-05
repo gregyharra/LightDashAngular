@@ -1,0 +1,50 @@
+{
+  "explorer": {
+    "expandChartConfiguration": "Expand chart configuration",
+    "collapseChartConfiguration": "Collapse chart configuration",
+    "resizeChartConfiguration": "Resize chart configuration",
+    "configureChart": "Configure chart",
+    "loadingFilterFields": "Loading fields for filters…",
+    "chartSqlAria": "Chart SQL"
+  },
+  "charts": {
+    "title": "Charts",
+    "all": "All charts",
+    "create": "Create chart",
+    "empty": "No charts yet.",
+    "notFound": "No charts found.",
+    "noFilterMatches": "No charts match your filters.",
+    "search": "Search charts…",
+    "loadError": "Failed to load charts.",
+    "openError": "Unable to open this chart. Try refreshing the page.",
+    "fields": {
+      "name": "Name",
+      "type": "Type",
+      "table": "Table",
+      "space": "Space",
+      "lastEdited": "Last edited",
+      "views": "Views"
+    },
+    "types": {
+      "bar": "Bar"
+    },
+    "workspace": {
+      "untitled": "Untitled chart",
+      "saved": "Chart saved.",
+      "editDetails": "Edit chart details",
+      "chartName": "Chart name",
+      "description": "Description",
+      "saveError": "Failed to save chart.",
+      "done": "Done",
+      "editNameDescription": "Edit name and description",
+      "editNameDescriptionAria": "Edit chart name and description",
+      "configureAxesToVisualize": "Add a dimension and a metric, then configure axes to visualize.",
+      "noResultsToVisualize": "This chart has no results to visualize.",
+      "selectRunToVisualize": "Select fields, then click Run query to visualize.",
+      "noChartDataYet": "No chart data yet."
+    }
+  },
+  "tables": {
+    "search": "Search tables…"
+  }
+}

@@ -1,0 +1,99 @@
+{
+  "settings": {
+    "title": "Settings",
+    "navigation": "Settings navigation",
+    "changePassword": "Change password",
+    "logout": "Logout",
+    "warehouses": "Warehouses",
+    "users": "Users"
+  },
+  "projects": {
+    "title": "Projects",
+    "managementSubtitle": "Create projects and manage their settings.",
+    "exploreSubtitle": "Select a project to explore metrics, charts, and dashboards.",
+    "domainFallback": "Explore metrics, charts, and dashboards.",
+    "loadError": "Failed to load projects.",
+    "createNew": "Create new",
+    "empty": "No projects available.",
+    "editSettings": "Edit project settings",
+    "created": "Created",
+    "open": "Open",
+    "saving": "Saving…",
+    "deleting": "Deleting…",
+    "noWarehousesHint": "No warehouses exist yet. Create one to connect this project to Trino.",
+    "fields": {
+      "name": "Project name",
+      "warehouse": "Warehouse",
+      "noWarehouse": "No warehouse assigned"
+    },
+    "create": {
+      "title": "Create project",
+      "subtitle": "Add a new project to organize dashboards, charts, and metrics.",
+      "submit": "Create project"
+    },
+    "edit": {
+      "breadcrumb": "Edit",
+      "title": "Project settings",
+      "subtitle": "Update the project name, warehouse connection, Git repository settings, and table links.",
+      "configuration": "Configuration",
+      "tableLinks": "Table links",
+      "save": "Save project",
+      "saved": "Project settings saved.",
+      "dangerTitle": "Danger zone",
+      "dangerText": "Permanently delete this project and all of its spaces, dashboards, and saved charts. Warehouse connections are kept.",
+      "delete": "Delete project",
+      "deleteConfirm": "Delete this project permanently? All spaces, dashboards, and saved charts will be removed. This cannot be undone."
+    },
+    "git": {
+      "title": "Git repository",
+      "subtitle": "Optional. Point this project at a dbt repo to clone locally for semantic layer artifacts.",
+      "repositoryUrl": "Repository URL",
+      "provider": "Provider",
+      "autoDetect": "Auto-detect",
+      "providers": {
+        "github": "GitHub",
+        "gitlab": "GitLab",
+        "bitbucket": "Bitbucket",
+        "generic": "Generic HTTPS"
+      },
+      "defaultBranch": "Default branch",
+      "subdirectory": "Subdirectory (monorepo)",
+      "subdirectoryHint": "Path to the dbt project within the repository, if not at the root.",
+      "bitbucketUsername": "Bitbucket username",
+      "bitbucketUsernameHint": "Required for Bitbucket Cloud HTTP access tokens / app passwords.",
+      "accessToken": "Access token",
+      "bitbucketTokenHint": "Bitbucket Cloud HTTP access token or app password.",
+      "privateTokenHint": "For private repositories. Stored encrypted on the server.",
+      "savedTokenHint": "A token is saved. Leave blank to keep it, or check clear below.",
+      "clearToken": "Clear saved access token",
+      "cloned": "Cloned",
+      "configured": "Configured",
+      "notConfigured": "Not configured",
+      "sync": "Sync repository",
+      "syncing": "Syncing…",
+      "synced": "Repository synced successfully.",
+      "remove": "Remove local clone",
+      "removing": "Removing…",
+      "removed": "Local clone removed.",
+      "removeConfirm": "Remove the local clone for this project? Git settings are kept so you can sync again later.",
+      "repoStatus": {
+        "branch": "Branch:",
+        "commit": "Commit:",
+        "lastSync": "Last sync:",
+        "never": "Never",
+        "dbtPath": "dbt path:",
+        "dbtTarget": "dbt target:"
+      }
+    },
+    "dbt": {
+      "title": "dbt project",
+      "subtitle": "Optional. Local path to your dbt project when not using Git sync. Relative paths are resolved from the backend directory.",
+      "path": "dbt project path",
+      "pathHint": "Overrides DBT_PROJECT_PATH from .env for this project. Requires target/manifest.json (run dbt compile).",
+      "pathHintEdit": "Local dbt directory for this project. Relative to mds-backend/. Cleared on desync only when the path pointed at the cloned repo.",
+      "target": "dbt profile target",
+      "targetHint": "Optional profiles.yml target used for dbt parse after Git sync.",
+      "targetHintEdit": "Optional profiles.yml target passed to dbt parse after sync (e.g. dev or parse)."
+    }
+  }
+}

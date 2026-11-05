@@ -1,0 +1,6 @@
+export {
+  LOGIN_REMOTE_ROUTES,
+  RESET_PASSWORD_REMOTE_ROUTES,
+  SETUP_REMOTE_ROUTES,
+  USERS_REMOTE_ROUTES,
+} from './lib/auth.routes';

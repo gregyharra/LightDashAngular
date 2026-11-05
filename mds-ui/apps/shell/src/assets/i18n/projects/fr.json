@@ -1,0 +1,99 @@
+{
+  "settings": {
+    "title": "Paramètres",
+    "navigation": "Navigation des paramètres",
+    "changePassword": "Changer le mot de passe",
+    "logout": "Déconnexion",
+    "warehouses": "Entrepôts",
+    "users": "Utilisateurs"
+  },
+  "projects": {
+    "title": "Projets",
+    "managementSubtitle": "Créez des projets et gérez leurs paramètres.",
+    "exploreSubtitle": "Sélectionnez un projet pour explorer les métriques, graphiques et tableaux de bord.",
+    "domainFallback": "Explorez les métriques, graphiques et tableaux de bord.",
+    "loadError": "Impossible de charger les projets.",
+    "createNew": "Créer",
+    "empty": "Aucun projet disponible.",
+    "editSettings": "Modifier les paramètres du projet",
+    "created": "Créé le",
+    "open": "Ouvrir",
+    "saving": "Enregistrement…",
+    "deleting": "Suppression…",
+    "noWarehousesHint": "Aucun entrepôt n'existe encore. Créez-en un pour connecter ce projet à Trino.",
+    "fields": {
+      "name": "Nom du projet",
+      "warehouse": "Entrepôt",
+      "noWarehouse": "Aucun entrepôt attribué"
+    },
+    "create": {
+      "title": "Créer un projet",
+      "subtitle": "Ajoutez un projet pour organiser les tableaux de bord, graphiques et métriques.",
+      "submit": "Créer le projet"
+    },
+    "edit": {
+      "breadcrumb": "Modifier",
+      "title": "Paramètres du projet",
+      "subtitle": "Modifiez le nom du projet, la connexion à l'entrepôt, le dépôt Git et les liens de tables.",
+      "configuration": "Configuration",
+      "tableLinks": "Liens de tables",
+      "save": "Enregistrer le projet",
+      "saved": "Paramètres du projet enregistrés.",
+      "dangerTitle": "Zone dangereuse",
+      "dangerText": "Supprimez définitivement ce projet et tous ses espaces, tableaux de bord et graphiques enregistrés. Les connexions aux entrepôts sont conservées.",
+      "delete": "Supprimer le projet",
+      "deleteConfirm": "Supprimer définitivement ce projet ? Tous les espaces, tableaux de bord et graphiques enregistrés seront supprimés. Cette action est irréversible."
+    },
+    "git": {
+      "title": "Dépôt Git",
+      "subtitle": "Facultatif. Associez ce projet à un dépôt dbt à cloner localement pour les artefacts de la couche sémantique.",
+      "repositoryUrl": "URL du dépôt",
+      "provider": "Fournisseur",
+      "autoDetect": "Détection automatique",
+      "providers": {
+        "github": "GitHub",
+        "gitlab": "GitLab",
+        "bitbucket": "Bitbucket",
+        "generic": "HTTPS générique"
+      },
+      "defaultBranch": "Branche par défaut",
+      "subdirectory": "Sous-répertoire (monorepo)",
+      "subdirectoryHint": "Chemin du projet dbt dans le dépôt, s'il ne se trouve pas à la racine.",
+      "bitbucketUsername": "Nom d'utilisateur Bitbucket",
+      "bitbucketUsernameHint": "Requis pour les jetons d'accès HTTP et mots de passe d'application Bitbucket Cloud.",
+      "accessToken": "Jeton d'accès",
+      "bitbucketTokenHint": "Jeton d'accès HTTP ou mot de passe d'application Bitbucket Cloud.",
+      "privateTokenHint": "Pour les dépôts privés. Stocké chiffré sur le serveur.",
+      "savedTokenHint": "Un jeton est enregistré. Laissez ce champ vide pour le conserver ou cochez l'option ci-dessous.",
+      "clearToken": "Effacer le jeton d'accès enregistré",
+      "cloned": "Cloné",
+      "configured": "Configuré",
+      "notConfigured": "Non configuré",
+      "sync": "Synchroniser le dépôt",
+      "syncing": "Synchronisation…",
+      "synced": "Dépôt synchronisé.",
+      "remove": "Supprimer le clone local",
+      "removing": "Suppression…",
+      "removed": "Clone local supprimé.",
+      "removeConfirm": "Supprimer le clone local de ce projet ? Les paramètres Git seront conservés pour une synchronisation ultérieure.",
+      "repoStatus": {
+        "branch": "Branche :",
+        "commit": "Commit :",
+        "lastSync": "Dernière synchro :",
+        "never": "Jamais",
+        "dbtPath": "Chemin dbt :",
+        "dbtTarget": "Cible dbt :"
+      }
+    },
+    "dbt": {
+      "title": "Projet dbt",
+      "subtitle": "Facultatif. Chemin local de votre projet dbt lorsque la synchronisation Git n'est pas utilisée. Les chemins relatifs partent du répertoire du backend.",
+      "path": "Chemin du projet dbt",
+      "pathHint": "Remplace DBT_PROJECT_PATH du fichier .env pour ce projet. Nécessite target/manifest.json (exécutez dbt compile).",
+      "pathHintEdit": "Répertoire dbt local pour ce projet. Relatif à mds-backend/. Effacé lors d'une désynchronisation uniquement si le chemin pointait vers le dépôt cloné.",
+      "target": "Cible du profil dbt",
+      "targetHint": "Cible profiles.yml facultative utilisée par dbt parse après la synchronisation Git.",
+      "targetHintEdit": "Cible profiles.yml facultative passée à dbt parse après la synchronisation (p. ex. dev ou parse)."
+    }
+  }
+}

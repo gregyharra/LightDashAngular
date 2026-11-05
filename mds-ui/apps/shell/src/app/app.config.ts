@@ -9,23 +9,21 @@ import localeFr from '@angular/common/locales/fr';
 import { provideTranslateService } from '@ngx-translate/core';
 import { provideTranslateHttpLoader } from '@ngx-translate/http-loader';
 import {
+  applyDashboardContextToMetricQuery,
   AppStateService,
   authInterceptor,
-  LanguageService,
-  MOCK_API_ENABLED,
-  mockApiInterceptor,
-  provideAppStore,
-} from '@mds-ui/core';
-import {
   CHART_QUERY_ADAPTER,
   ChartQueryAdapter,
   ChartService,
   ExplorerService,
-  applyDashboardContextToMetricQuery,
+  LanguageService,
   mergeDashboardFiltersIntoMetricQuery,
   mergeTimeTravelIntoMetricQuery,
+  MOCK_API_ENABLED,
+  mockApiInterceptor,
+  provideAppStore,
   provideChartQueryState,
-} from '@mds-ui/feature-chart-query';
+} from '@mds-ui/core';
 
 import { routes } from './app.routes';
 import { environment } from '../environments/environment';

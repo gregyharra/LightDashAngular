@@ -24,3 +24,30 @@ export * from './lib/sql-highlight/model-sql-view';
 export * from './lib/sql-highlight/sql-highlight.component';
 export * from './lib/time-travel-control/time-travel-control.component';
 export * from './lib/time-travel-control/time-travel-control.utils';
+export * from './lib/explorer/create-chart-from-explore';
+export * from './lib/explorer/custom-metric/custom-metric-dialog.component';
+export * from './lib/explorer/custom-metric/custom-metric.utils';
+export * from './lib/explorer/explore-from-dbt.utils';
+export * from './lib/explorer/explore-lineage.utils';
+export * from './lib/explorer/explore-routes';
+export * from './lib/explorer/explore-sections.utils';
+export * from './lib/explorer/explore-tree.utils';
+export * from './lib/explorer/metric-query-sql.utils';
+export * from './lib/explorer/tables-chart-config-panel/tables-chart-config-panel.component';
+export * from './lib/explorer/tables-chart-config-panel/tables-chart-config.constants';
+export * from './lib/explorer/tables-fields-panel/tables-fields-panel.component';
+export * from './lib/explorer/tables-filters-panel/tables-filters-panel.component';
+export * from './lib/explorer/tables-filters-panel/tables-filters.utils';
+
+export * from './lib/export/export.models';
+export * from './lib/export/export.service';
+export * from './lib/export/start-export';
+export {
+  ExportDialogComponent,
+  type ExportDialogData,
+  type ExportDialogResult,
+} from './lib/export/export-dialog/export-dialog.component';
+export * from './lib/warehouses/warehouse-create-dialog/warehouse-create-dialog.component';
+export * from './lib/warehouses/warehouse-create-dialog/warehouse-create-dialog.facade';
+export * from './lib/warehouses/warehouse-form/warehouse-form.component';
+export * from './lib/warehouses/warehouse.service';

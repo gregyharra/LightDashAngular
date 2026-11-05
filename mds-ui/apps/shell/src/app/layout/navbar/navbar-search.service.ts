@@ -17,11 +17,15 @@ import {
   LineageNode,
 } from '@mds-ui/models';
 
-import { ChartService } from '@mds-ui/feature-chart-query';
-import { DashboardService } from '@mds-ui/feature-projects';
-import { inferColumnTransformation } from '@mds-ui/shared';
-import { columnNamesEqual } from '@mds-ui/shared';
-import { LineageService } from '@mds-ui/feature-projects';
+import {
+  ChartService,
+  DashboardService,
+  LineageService,
+} from '@mds-ui/core';
+import {
+  columnNamesEqual,
+  inferColumnTransformation,
+} from '@mds-ui/shared';
 
 export type NavbarSearchKind = 'model' | 'column' | 'dashboard' | 'chart';
 

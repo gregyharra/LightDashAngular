@@ -2,11 +2,15 @@ import { Component, computed, inject, OnInit } from '@angular/core';
 import { RouterLink, RouterOutlet } from '@angular/router';
 import { MatIconModule } from '@angular/material/icon';
 import { TranslatePipe } from '@ngx-translate/core';
-import { AppStateService } from '@mds-ui/core';
-import { ActiveProjectService } from '@mds-ui/core';
-import { ProjectsService } from '@mds-ui/feature-projects';
-import { AiAssistantPanelComponent } from '@mds-ui/feature-ai';
-import { AiAssistantUiService } from '@mds-ui/feature-ai';
+import {
+  ActiveProjectService,
+  AppStateService,
+  ProjectsService,
+} from '@mds-ui/core';
+import {
+  AiAssistantPanelComponent,
+  AiAssistantUiService,
+} from '@mds-ui/features/ai';
 import { NavbarProjectSwitcherComponent } from '../navbar/navbar-project-switcher.component';
 import { NavbarSearchComponent } from '../navbar/navbar-search.component';
 import { NavbarUserMenuComponent } from '../navbar/navbar-user-menu.component';
